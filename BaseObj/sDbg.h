@@ -24,7 +24,7 @@
 
 #include "sDbgMacros.h"
 
-typedef struct sDbg {
+struct sDbg {
 	Bool verbose;
 	Bool dbgtofile;
 	Bool dbgtoscreen;
@@ -37,14 +37,12 @@ typedef struct sDbg {
 	char msg[DBG_MSG_MAXLEN];
 	char stack[DBG_STACK_MAXLEN];
 
-#ifdef __cplusplus
 	EXPORT void out(int msgtype, const char* callerFunc_, int stackLevel_, char* msgMask_, ...);
 	EXPORT sDbg(Bool verbose_, Bool dbgtoscreen_, Bool dbgtofile_, char* outfilepath_);
 	EXPORT ~sDbg();	
 	EXPORT void createOutFile(char* objName, void* objAddr, int objDepth);
-#endif
 
-
-} tDbg;
+};
 
 #define defaultdbg new sDbg(DEFAULT_DBG_VERBOSITY, DEFAULT_DBG_TO_SCREEN, DEFAULT_DBG_TO_FILE, DEFAULT_DBG_FPATH)
+#define clonedbg(fromDbg) new sDbg(fromDbg->verbose, fromDbg->dbgtoscreen, fromDbg->dbgtofile, fromDbg->outfilepath)

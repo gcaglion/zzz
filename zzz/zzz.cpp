@@ -20,6 +20,7 @@ struct sRoot : sObj {
 	sFXData* fxData1;
 	sOraConnection* dbconn1;
 	sDataShape* dshape1;
+	sDataShape* dshape2;
 	sForecaster* mainForecaster=nullptr;
 
 	//tData*			fData=nullptr;		//-- Forecaster data
@@ -30,26 +31,10 @@ struct sRoot : sObj {
 	int dsType;
 	
 
-	sRoot(int argc=0, char* argv[]=nullptr) : sObj(nullptr, newsname("RootObj"), nullptr) {
+	sRoot(int argc_=0, char* argv_[]=nullptr) : sObj(nullptr, newsname("RootObj"), nullptr) {
 		dbg->pauseOnError=true;
 
-		char orName[XMLKEY_PARM_NAME_MAXLEN];
-		char orValS[XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
-
-		//-- set default cfgFilaName
-		getFullFileName("Client.xml", cfgFileFullName);
-
-		for (int p=1; p<argc; p++) {
-			if (!getValuePair(argv[p], &orName[0], &orValS[0], '=')) fail("wrong parameter format in command line: %s", argv[p]);
-			if (_stricmp(orName, "--cfgFile")==0) {
-				if (!getFullFileName(orValS, cfgFileFullName)) fail("could not set cfgFileFullName from override parameter: %s", orValS);
-			} else {
-				strcpy_s(cfgOverrideName[cfgOverrideCnt], XMLKEY_PARM_NAME_MAXLEN, orName);
-				strcpy_s(cfgOverrideValS[cfgOverrideCnt], XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT, orValS);
-				cfgOverrideCnt++;
-			}
-		}
-
+		CLoverride(argc_, argv_);
 	}
 
 	void execute() {
@@ -58,9 +43,11 @@ struct sRoot : sObj {
 			//safespawn(clientCfg, newsname("client_Config"), nullptr, "C:\\Users\\gcaglion\\dev\\zzz\\ForecastData.xml");
 			safespawn(clientCfg, newsname("Root_Config"), defaultdbg, cfgFileFullName);
 
-			//safespawn(dbconn1, newsname("DBConn1"), defaultdbg, clientCfg, "/Forecaster/Data/Train/Dataset/TimeSerie/FXDB_DataSource/DBConnection");
-			//delete dbconn1;
-			safespawn(mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
+			//safespawn(mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
+			sName* n=new sName("dshape1");
+			dshape1=new sDataShape(this, n, nullptr, clientCfg, "/Forecaster/Data/Shape");
+			//safespawn(dshape2, newsname("Shape2"), nullptr, clientCfg, "/Forecaster/Data/Shape");
+			//safespawn(forecastData, newsname("Main_Forecaster_Data"), defaultdbg, clientCfg, "/Forecaster/Data");
 
 			//safespawn(dbconn1, newsname("DBConn1"), nullptr, "History", "HistoryPwd", "Algo");
 			//safespawn(dbconn1, newsname("DBConn1"), defaultdbg, clientCfg, "/Forecaster/Data/Train/Dataset/TimeSerie/FXDB_DataSource/DBConnection");
@@ -102,6 +89,27 @@ struct sRoot : sObj {
 		}
 		catch (std::exception exc) {
 			fail("Exception=%s", exc.what());
+		}
+	}
+
+private:
+
+	void CLoverride(int argc, char* argv[]) {
+		char orName[XMLKEY_PARM_NAME_MAXLEN];
+		char orValS[XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
+
+		//-- set default cfgFilaName
+		getFullFileName("Client.xml", cfgFileFullName);
+
+		for (int p=1; p<argc; p++) {
+			if (!getValuePair(argv[p], &orName[0], &orValS[0], '=')) fail("wrong parameter format in command line: %s", argv[p]);
+			if (_stricmp(orName, "--cfgFile")==0) {
+				if (!getFullFileName(orValS, cfgFileFullName)) fail("could not set cfgFileFullName from override parameter: %s", orValS);
+			} else {
+				strcpy_s(cfgOverrideName[cfgOverrideCnt], XMLKEY_PARM_NAME_MAXLEN, orName);
+				strcpy_s(cfgOverrideValS[cfgOverrideCnt], XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT, orValS);
+				cfgOverrideCnt++;
+			}
 		}
 	}
 
