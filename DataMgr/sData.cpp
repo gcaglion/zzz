@@ -5,17 +5,14 @@ sDataShape::sDataShape(sCfgObjParmsDef, int sampleLen_, int predictionLen_, int 
 }
 sDataShape::sDataShape(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
-	//-- 0. Backup currentKey
-	sCfgKey* bkpKey=cfg->currentKey;
-	//-- 1. set Key 
- safecall(cfg, setKey, keyDesc_);
-	//-- 2. get Parameters
-	safecall(cfg->currentKey, getParm, &sampleLen, "SampleLen");
-	safecall(cfg->currentKey, getParm, &predictionLen, "PredictionLen");
-	safecall(cfg->currentKey, getParm, &featuresCnt, "FeaturesCount");
-	//-- 3. spawn sub-Keys
+	//-- 1. get Parameters
+	safecall(cfgKey, getParm, &sampleLen, "SampleLen");
+	safecall(cfgKey, getParm, &predictionLen, "PredictionLen");
+	safecall(cfgKey, getParm, &featuresCnt, "FeaturesCount");
+	//-- 2. do stuff and spawn sub-Keys
 	//-- 4. Restore currentKey
-	cfg->currentKey=bkpKey;
+	cfg->currentKey=cfg->bkpKey;
+	
 
 }
 sDataShape::~sDataShape() {
@@ -27,23 +24,18 @@ sData::sData(sCfgObjParmsDef, sDataShape* shape_, Bool doTrain, Bool doTest, Boo
 }
 sData::sData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
-	//-- 0. Backup currentKey
-	sCfgKey* bkpKey=cfg->currentKey;
-	//-- 1. set Key 
- safecall(cfg, setKey, keyDesc_);
-	//-- 2. get Parameters
-	safecall(cfg->currentKey, getParm, &ActionDo[TRAIN], "Train/Do");
-	safecall(cfg->currentKey, getParm, &ActionDo[TEST], "Test/Do");
-	safecall(cfg->currentKey, getParm, &ActionDo[VALID], "Validation/Do");
-	//-- 3. spawn sub-Keys
+	//-- 1. get Parameters
+	safecall(cfgKey, getParm, &ActionDo[TRAIN], "Train/Do");
+	safecall(cfgKey, getParm, &ActionDo[TEST], "Test/Do");
+	safecall(cfgKey, getParm, &ActionDo[VALID], "Validation/Do");
+	//-- 2. do stuff and spawn sub-Keys
 	safespawn(shape, newsname("Shape"), nullptr, cfg, "Shape");
-	
 	if (ActionDo[TRAIN]) safespawn(ds[TRAIN], newsname("Train_Data"), nullptr, cfg, "Train/DataSet");
 	if (ActionDo[TEST])  safespawn(ds[TEST], newsname("Test_Data"), nullptr, cfg, "Test/DataSet");
-	if (ActionDo[VALID]) safespawn(ds[VALID], newsname("Validation_Data"), nullptr, cfg, "Validation/DataSet");
-	
-	//-- 4. Restore currentKey
-	cfg->currentKey=bkpKey;
+	if (ActionDo[VALID]) safespawn(ds[VALID], newsname("Validation_Data"), nullptr, cfg, "Validation/DataSet");	
+	//-- 3. Restore currentKey
+	cfg->currentKey=cfg->bkpKey;
+
 }
 sData::~sData() {
 	for (int a=0; a<3; a++) {

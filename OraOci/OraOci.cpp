@@ -14,18 +14,16 @@ sOraConnection::sOraConnection(sCfgObjParmsDef, const char* DBUserName_, const c
 	safecall(this, open);
 }
 sOraConnection::sOraConnection(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
-	//-- 0. Backup currentKey
-	sCfgKey* bkpKey=cfg->currentKey;
-	//-- 1. set Key 
-	//safecall(cfg, setKey, keyDesc_);
-	//-- 2. get Parameters
+
+	//-- 1. get Parameters
 	safecall(cfgKey, getParm, &DBUserName, "UserName");
 	safecall(cfgKey, getParm, &DBPassword, "Password");
 	safecall(cfgKey, getParm, &DBConnString, "ConnString");
-	//-- 3. open connection
-	safecall(this, open);
-	//-- 4. Restore currentKey
-	cfg->currentKey=bkpKey;
+	//-- 2. do stuff and spawn sub-Keys
+	safecall(this, open);	//-- open connection
+	//-- 3. Restore currentKey
+	cfg->currentKey=cfg->bkpKey;
+
 }
 sOraConnection::~sOraConnection() {
 	close();

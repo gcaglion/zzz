@@ -30,7 +30,7 @@ struct sDataShape : sCfgObj {
 struct sData : sCfgObj {
 
 	//-- shape
-	sDataShape* shape=nullptr;
+	sDataShape* shape;
 
 	//-- actions
 	Bool ActionDo[3];

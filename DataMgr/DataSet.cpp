@@ -57,24 +57,17 @@ sDataSet::sDataSet(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	sDataSet_pre();
 
-	//-- 0. Backup currentKey
-	sCfgKey* bkpKey=cfg->currentKey;
-	//-- 1. set Key 
- safecall(cfg, setKey, keyDesc_);
-
-	//-- 2. common parameters
-	safecall(cfg->currentKey, getParm, &batchSamplesCnt, "BatchSamplesCount");
-	safecall(cfg->currentKey, getParm, &selectedFeature, "SelectedFeatures", &selectedFeaturesCnt);
-	safecall(cfg->currentKey, getParm, &BWFeature, "BWFeatures", new int);
-	//-- 3. spawn sub-Keys
-	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), nullptr, cfg, "TimeSerie");
-	//-- 2.1. DataShape parameters, retrieved from object hierarchy
+	//-- 1. get Parameters
+	safecall(cfgKey, getParm, &batchSamplesCnt, "BatchSamplesCount");
+	safecall(cfgKey, getParm, &selectedFeature, "SelectedFeatures", &selectedFeaturesCnt);
+	safecall(cfgKey, getParm, &BWFeature, "BWFeatures", new int);
+	//-- 2. do stuff and spawn sub-Keys
 	safecall(cfg, setKey, "../../../Shape");
 	safecall(cfg->currentKey, getParm, &sampleLen, "SampleLen");
 	safecall(cfg->currentKey, getParm, &targetLen, "PredictionLen");
-
-	//-- 4. Restore currentKey
-	cfg->currentKey=bkpKey;
+	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), nullptr, cfg, "TimeSerie");
+	//-- 3. Restore currentKey
+	cfg->currentKey=cfg->bkpKey;
 
 	sDataSet_post();
 

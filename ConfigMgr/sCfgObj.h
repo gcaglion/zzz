@@ -14,9 +14,23 @@ struct sCfgObj : sObj {
 	sCfgObj(sCfgObjParmsDef) : sObj(sObjParmsVal) {
 
 		cfg=cfg_;
+		cfg->bkpKey=cfg->currentKey;
 		safecall(cfg, setKey, keyDesc_);
 		cfgKey=cfg->currentKey;
 	}
 
 	~sCfgObj(){}
+
 };
+
+/*
+==============================================================================
+
+//-- 1. get Parameters
+//-- 2. do stuff and spawn sub-Keys
+//-- 3. Restore currentKey
+cfg->currentKey=cfg->bkpKey;
+
+==============================================================================
+
+*/

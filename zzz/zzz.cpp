@@ -58,8 +58,8 @@ struct sRoot : sObj {
 			//safespawn(clientCfg, newsname("client_Config"), nullptr, "C:\\Users\\gcaglion\\dev\\zzz\\ForecastData.xml");
 			safespawn(clientCfg, newsname("Root_Config"), defaultdbg, cfgFileFullName);
 
-			safespawn(dbconn1, newsname("DBConn1"), defaultdbg, clientCfg, "/Forecaster/Data/Train/Dataset/TimeSerie/FXDB_DataSource/DBConnection");
-			delete dbconn1;
+			//safespawn(dbconn1, newsname("DBConn1"), defaultdbg, clientCfg, "/Forecaster/Data/Train/Dataset/TimeSerie/FXDB_DataSource/DBConnection");
+			//delete dbconn1;
 			safespawn(mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
 
 			//safespawn(dbconn1, newsname("DBConn1"), nullptr, "History", "HistoryPwd", "Algo");
