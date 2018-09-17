@@ -101,8 +101,7 @@ void sDataSet::dump(char* dumpFileName_) {
 	sprintf_s(dumpFileName, MAX_PATH, ((dumpFileName==nullptr) ? "C:/temp/DataSet.log" : dumpFileName));
 
 	FILE* dumpFile;
-	fopen_s(&dumpFile, dumpFileName, "w");
-	if (errno!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
+	if( fopen_s(&dumpFile, dumpFileName, "w") !=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
 	fprintf(dumpFile, "SampleId\t");
 	for (b=0; b<(sampleLen); b++) {

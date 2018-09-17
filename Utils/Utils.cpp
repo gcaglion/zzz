@@ -5,8 +5,7 @@ bool fexist(const char* fname_) {
 	FILE* f;
 	bool success;
 	
-	fopen_s(&f, fname_, "r");
-	success=(errno==0);
+	success = (fopen_s(&f, fname_, "r") ==0);
 	if(success) fclose(f);
 
 	return success;
@@ -26,20 +25,22 @@ EXPORT bool getFullFileName(const char* iName, char* oName, const char* currPath
 
 	//-- 2. check for path modifiers in name
 	int plen;
-	if (iName[0]=='.' && iName[1]=='.' && iName[2]=='/') {
-		plen=max(instr('/', currPath, true), instr(92, currPath, true));
-		currPath[plen]='\0';
-		return (getFullFileName(&iName[3], oName, currPath));
+	if (iName[0]=='.' && iName[1]=='.') {
+		if (iName[2]=='\\'||iName[2]=='/') {
+			plen=max(instr('/', currPath, true), instr('\\', currPath, true));
+			currPath[plen]='\0';
+			return (getFullFileName(&iName[3], oName, currPath));
+		}
 	}
 
-	//-- try opening iName in current path
-	sprintf_s(oName, MAX_PATH, "%s/%s", currPath, iName);
-	if (fexist(oName)) return true;
-	//-- try opening iName with no path
+	//-- 3. try opening iName with no path
 	strcpy_s(oName, MAX_PATH, iName);
 	if (fexist(oName)) return true;
 
-	return false;
+	//-- 4. try opening iName in currPath
+	sprintf_s(oName, MAX_PATH, "%s\\%s", currPath, iName);
+	return (fexist(oName));
+
 }
 
 EXPORT char* MyGetCurrentDirectory() {

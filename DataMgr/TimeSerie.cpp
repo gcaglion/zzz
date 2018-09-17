@@ -135,8 +135,7 @@ void sTimeSerie::dump(char* dumpFileName) {
 	int s, f;
 
 	FILE* dumpFile;
-	fopen_s(&dumpFile, dumpFileName, "w");
-	if (errno!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
+	if( fopen_s(&dumpFile, dumpFileName, "w") !=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
 	fprintf(dumpFile, "i, datetime");
 	for (f=0; f<featuresCnt; f++) fprintf(dumpFile, ",F%d_orig,F%d_tr,F%d_trs", f, f, f);

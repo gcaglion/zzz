@@ -3,8 +3,7 @@
 sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName, int overridesCnt, char** overrideName, char** overrideValS) : sObj(sObjParmsVal) {
 
 	//-- open file
-	fopen_s(&cfgFile, cfgFileFullName, "r");
-	if (errno!=0) fail("Could not open configuration file %s . Error %d", cfgFileFullName, errno);
+	if( fopen_s(&cfgFile, cfgFileFullName, "r") !=0) fail("Could not open configuration file %s . Error %d", cfgFileFullName, errno);
 
 	//-- create one cfgLine object for each line in file, including comments
 	linesCnt=0;
@@ -21,7 +20,9 @@ sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName, int overridesCnt, char** o
 	currentKey=rootKey;
 
 }
-sCfg::~sCfg() {}
+sCfg::~sCfg() {
+	fclose(cfgFile);
+}
 
 void sCfg::setKey(const char* keyDesc_, bool ignoreError, bool* oKeyFound_) {
 

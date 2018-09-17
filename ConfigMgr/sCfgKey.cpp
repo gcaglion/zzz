@@ -12,12 +12,12 @@ sCfgKey::sCfgKey(sObjParmsDef, int linesCnt_, sCfgLine** cfgLine_, int startLine
 		//-- check for subkeys
 		if (cfgLine_[l]->type==cfgLine_KeyStart) {
 
-			//-- spawn subKey with updated debugger
-			safespawn(key[keysCnt], newsname("%s", cfgLine_[l]->naked), dbg, linesCnt_, cfgLine_, l);
-			
 			//-- check for key-specific Debugger for the current subKey
 			setDbg();
 
+			//-- spawn subKey with updated debugger
+			safespawn(key[keysCnt], newsname("%s", cfgLine_[l]->naked), dbg, linesCnt_, cfgLine_, l);
+			
 			//-- get out of subKey
 			l=key[keysCnt]->endLine;
 			keysCnt++;

@@ -41,7 +41,7 @@ struct sRoot : sObj {
 
 		for (int p=1; p<argc; p++) {
 			if (!getValuePair(argv[p], &orName[0], &orValS[0], '=')) fail("wrong parameter format in command line: %s", argv[p]);
-			if (_stricmp(orName, "cfgFile")==0) {
+			if (_stricmp(orName, "--cfgFile")==0) {
 				if (!getFullFileName(orValS, cfgFileFullName)) fail("could not set cfgFileFullName from override parameter: %s", orValS);
 			} else {
 				strcpy_s(cfgOverrideName[cfgOverrideCnt], XMLKEY_PARM_NAME_MAXLEN, orName);
@@ -56,13 +56,14 @@ struct sRoot : sObj {
 		try {
 			//-- 2. do stuff
 			//safespawn(clientCfg, newsname("client_Config"), nullptr, "C:\\Users\\gcaglion\\dev\\zzz\\ForecastData.xml");
-			safespawn(clientCfg, newsname("client_Config"), nullptr, "../../Client.xml");
+			safespawn(clientCfg, newsname("Root_Config"), defaultdbg, cfgFileFullName);
 
-			//safespawn(mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
+			safespawn(dbconn1, newsname("DBConn1"), defaultdbg, clientCfg, "/Forecaster/Data/Train/Dataset/TimeSerie/FXDB_DataSource/DBConnection");
+			delete dbconn1;
+			safespawn(mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
 
 			//safespawn(dbconn1, newsname("DBConn1"), nullptr, "History", "HistoryPwd", "Algo");
-			dbconn1=new sOraConnection(this, newsname("DBConn1"), defaultdbg, clientCfg, "/Forecaster/Data/Train/Dataset/TimeSerie/FXDB_DataSource/DBConnection");
-			safespawn(dbconn1, newsname("DBConn1"), defaultdbg, clientCfg, "/Forecaster/Data/Train/Dataset/TimeSerie/FXDB_DataSource/DBConnection");
+			//safespawn(dbconn1, newsname("DBConn1"), defaultdbg, clientCfg, "/Forecaster/Data/Train/Dataset/TimeSerie/FXDB_DataSource/DBConnection");
 			//safecall(clientCfg, setKey, "Forecaster");
 			//safespawn(forecastData, newsname("ForecastData"), defaultdbg, clientCfg, "/Forecaster/Data");
 			//safespawn(dshape1, newsname("Shape1"), nullptr, clientCfg, "Data/Shape");

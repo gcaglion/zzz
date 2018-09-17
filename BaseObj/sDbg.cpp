@@ -20,8 +20,7 @@ void sDbg::createOutFile(char* objName, void* objAddr, int objDepth) {
 	if (dbgtofile) {
 		sprintf_s(outfilename, MAX_PATH, "%s(%p)_Dbg.%s", objName, objAddr, (verbose) ? "log" : "err");
 		sprintf_s(outfilefullname, MAX_PATH, "%s/%s", outfilepath, outfilename);
-		fopen_s(&outfile, outfilefullname, "w");
-		if (errno!=0) out(DBG_MSG_FAIL, __func__, objDepth, "Error %d", errno);
+		if( fopen_s(&outfile, outfilefullname, "w") !=0) out(DBG_MSG_FAIL, __func__, objDepth, "Error %d", errno);
 	}
 }
 void sDbg::out(int msgtype, const char* callerFunc_, int stackLevel_, char* msgMask_, ...) {
