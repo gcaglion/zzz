@@ -1,0 +1,33 @@
+<Forecaster>
+	<Data>
+		<Shape>
+			SampleLen = 100
+			PredictionLen = 3
+			FeaturesCount = 4
+		</Shape>
+		<Train>
+			<Dataset>
+				<TimeSerie>
+					Date0 = 201706010000
+					HistoryLen = 1000
+					DataTransformation = DT_DELTALOG
+					BWCalc = true
+					StatisticalFeatures = TSF_MEAN, TSF_HISTVOL
+					<DataSource>
+						Type = FXDB_SOURCE
+						<FXData>
+							<DBConnection>
+								UserName = History
+								Password = HistoryPwd
+								ConnString = Algo
+							</DBConnection>
+							Symbol		= EURUSD
+							TimeFrame	= H1
+							Filled		= false
+						</FXData>
+					</DataSource>
+				</TimeSerie>
+			</Dataset>
+		</Train>
+	</Data>
+</Forecaster>
