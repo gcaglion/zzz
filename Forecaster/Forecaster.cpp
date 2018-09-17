@@ -12,7 +12,7 @@ sForecaster::sForecaster(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	//-- 2. do stuff and spawn sub-Keys
 	safespawn(data, newsname("Data"), defaultdbg, cfg, "Data");
 	//-- 3. Restore currentKey
-	cfg->currentKey=cfg->bkpKey;
+	cfg->currentKey=bkpKey;
 
 }
 

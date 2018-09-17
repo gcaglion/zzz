@@ -10,11 +10,11 @@ struct sCfgObj : sObj {
 
 	sCfg* cfg;
 	sCfgKey* cfgKey;
+	sCfgKey* bkpKey;
 
 	sCfgObj(sCfgObjParmsDef) : sObj(sObjParmsVal) {
 
 		cfg=cfg_;
-		cfg->bkpKey=cfg->currentKey;
 		safecall(cfg, setKey, keyDesc_);
 		cfgKey=cfg->currentKey;
 	}

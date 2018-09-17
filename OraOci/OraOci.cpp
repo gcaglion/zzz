@@ -22,7 +22,7 @@ sOraConnection::sOraConnection(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	//-- 2. do stuff and spawn sub-Keys
 	safecall(this, open);	//-- open connection
 	//-- 3. Restore currentKey
-	cfg->currentKey=cfg->bkpKey;
+	cfg->currentKey=bkpKey;
 
 }
 sOraConnection::~sOraConnection() {

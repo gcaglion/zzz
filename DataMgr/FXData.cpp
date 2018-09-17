@@ -9,18 +9,15 @@ sFXData::sFXData(sCfgObjParmsDef, sOraConnection* db_, char* symbol_, char* tf_,
 }
 sFXData::sFXData(sCfgObjParmsDef) : sDataSource(sCfgObjParmsVal, FXDB_SOURCE, FXDataFeaturesCnt, true, FXHIGH, FXLOW) {
 
-	//-- 0. Backup currentKey
-	sCfgKey* bkpKey=cfg->currentKey;
-	//-- 1. set Key 
- safecall(cfg, setKey, keyDesc_);
-	//-- 2. get Parameters
+	//-- 1. get Parameters
 	safecall(cfg->currentKey, getParm, &Symbol, "Symbol");
 	safecall(cfg->currentKey, getParm, &TimeFrame, "TimeFrame");
 	safecall(cfg->currentKey, getParm, &IsFilled, "IsFilled");
-	//-- 3. spawn sub-Keys
+	//-- 2. do stuff and spawn sub-Keys
 	safespawn(db, newsname("DBConnection"), nullptr, cfg, "DBConnection");
-	//-- 4. Restore currentKey
+	//-- 3. Restore currentKey
 	cfg->currentKey=bkpKey;
+
 }
 sFXData::~sFXData() {
 	free(Symbol);

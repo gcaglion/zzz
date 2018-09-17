@@ -30,9 +30,9 @@ struct sDbg {
 	Bool dbgtoscreen;
 	Bool timing;
 	Bool pauseOnError;
-	char outfilepath[MAX_PATH];
-	char outfilename[MAX_PATH];
-	char outfilefullname[MAX_PATH];
+	char* outfilepath;
+	char* outfilename;
+	char* outfilefullname;
 	FILE* outfile;
 	char msg[DBG_MSG_MAXLEN];
 	char stack[DBG_STACK_MAXLEN];

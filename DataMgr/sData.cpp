@@ -11,7 +11,7 @@ sDataShape::sDataShape(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &featuresCnt, "FeaturesCount");
 	//-- 2. do stuff and spawn sub-Keys
 	//-- 4. Restore currentKey
-	cfg->currentKey=cfg->bkpKey;
+	cfg->currentKey=bkpKey;
 	
 
 }
@@ -30,11 +30,12 @@ sData::sData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &ActionDo[VALID], "Validation/Do");
 	//-- 2. do stuff and spawn sub-Keys
 	safespawn(shape, newsname("Shape"), nullptr, cfg, "Shape");
+//	safecall(cfg, setKey, "../");
 	if (ActionDo[TRAIN]) safespawn(ds[TRAIN], newsname("Train_Data"), nullptr, cfg, "Train/DataSet");
 	if (ActionDo[TEST])  safespawn(ds[TEST], newsname("Test_Data"), nullptr, cfg, "Test/DataSet");
 	if (ActionDo[VALID]) safespawn(ds[VALID], newsname("Validation_Data"), nullptr, cfg, "Validation/DataSet");	
 	//-- 3. Restore currentKey
-	cfg->currentKey=cfg->bkpKey;
+	cfg->currentKey=bkpKey;
 
 }
 sData::~sData() {

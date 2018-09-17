@@ -6,18 +6,37 @@ sCfgKey::sCfgKey(sObjParmsDef, int linesCnt_, sCfgLine** cfgLine_, int startLine
 	endLine=(startLine<0)?linesCnt_:cfgLine_[startLine]->partner;
 	keysCnt=0; parmsCnt=0;
 
+	//Bool dbg_verbose_=-1; Bool dbg_dbgtoscreen_=-1; Bool dbg_dbgtofile_=-1; char* dbg_outfilepath_ = nullptr;
+	//sCfgParm* tmpParm;
+	sDbg* overrideDbg;
+
 	//-- scan key entries
 	for (int l=startLine+1; l<endLine; l++) {
 
 		//-- check for subkeys
 		if (cfgLine_[l]->type==cfgLine_KeyStart) {
 
-			//-- check for key-specific Debugger for the current subKey
-			setDbg();
+			//setDbg();
 
 			//-- spawn subKey with updated debugger
 			safespawn(key[keysCnt], newsname("%s", cfgLine_[l]->naked), dbg, linesCnt_, cfgLine_, l);
-			
+
+			//-- if what we just spawned is a Debugger key, update overrideDbg
+			if (_stricmp(key[keysCnt]->name->base, "Debugger")==0) {
+				//-- clone current dbg into overrideDbg
+				overrideDbg=clonedbg(dbg);
+				//-- update overrideDBG parms from xml
+				safecall(this, getParm, &overrideDbg->verbose, "Debugger/Verbose", (int*)nullptr, true);
+				safecall(this, getParm, &overrideDbg->dbgtoscreen, "Debugger/ScreenOutput", (int*)nullptr, true);
+				safecall(this, getParm, &overrideDbg->dbgtofile, "Debugger/FileOutput", (int*)nullptr, true);
+				safecall(this, getParm, &overrideDbg->outfilepath, "Debugger/OutFilePath", (int*)nullptr, true);
+				//-- delete current dbg, unless it's inherited by parent
+				if (dbg!=parent->dbg) delete dbg;
+				//-- overrideDbg becomes the actual dbg
+				dbg=overrideDbg;
+				dbg->createOutFile(name->base, this, depth);
+			}
+
 			//-- get out of subKey
 			l=key[keysCnt]->endLine;
 			keysCnt++;

@@ -43,9 +43,9 @@ struct sRoot : sObj {
 			//safespawn(clientCfg, newsname("client_Config"), nullptr, "C:\\Users\\gcaglion\\dev\\zzz\\ForecastData.xml");
 			safespawn(clientCfg, newsname("Root_Config"), defaultdbg, cfgFileFullName);
 
-			//safespawn(mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
-			sName* n=new sName("dshape1");
-			dshape1=new sDataShape(this, n, nullptr, clientCfg, "/Forecaster/Data/Shape");
+			safespawn(mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
+			//sName* n=new sName("dshape1");
+			//dshape1=new sDataShape(this, n, nullptr, clientCfg, "/Forecaster/Data/Shape");
 			//safespawn(dshape2, newsname("Shape2"), nullptr, clientCfg, "/Forecaster/Data/Shape");
 			//safespawn(forecastData, newsname("Main_Forecaster_Data"), defaultdbg, clientCfg, "/Forecaster/Data");
 

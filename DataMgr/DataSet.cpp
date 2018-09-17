@@ -62,12 +62,14 @@ sDataSet::sDataSet(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &selectedFeature, "SelectedFeatures", &selectedFeaturesCnt);
 	safecall(cfgKey, getParm, &BWFeature, "BWFeatures", new int);
 	//-- 2. do stuff and spawn sub-Keys
-	safecall(cfg, setKey, "../../../Shape");
+	safecall(cfg, setKey, "../../Shape");
 	safecall(cfg->currentKey, getParm, &sampleLen, "SampleLen");
 	safecall(cfg->currentKey, getParm, &targetLen, "PredictionLen");
+
+	cfg->currentKey=cfgKey;
 	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), nullptr, cfg, "TimeSerie");
 	//-- 3. Restore currentKey
-	cfg->currentKey=cfg->bkpKey;
+	cfg->currentKey=bkpKey;
 
 	sDataSet_post();
 

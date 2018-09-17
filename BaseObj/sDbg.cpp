@@ -1,12 +1,16 @@
 #include "sDbg.h"
 
 sDbg::sDbg(Bool verbose_, Bool dbgtoscreen_, Bool dbgtofile_, char* outfilepath_) {
+	outfilepath=(char*)malloc(MAX_PATH);
+	outfilename=(char*)malloc(MAX_PATH);
+	outfilefullname=(char*)malloc(MAX_PATH);
 	verbose=verbose_; dbgtoscreen=dbgtoscreen_, dbgtofile=dbgtofile_;
 	if(outfilepath_!=nullptr) strcpy_s(outfilepath, MAX_PATH, outfilepath_);
 	stack[0]='\0';
 	outfile=nullptr;
 }
 sDbg::~sDbg() {
+	free(outfilepath); free(outfilename); free(outfilefullname);
 	if (outfile!=nullptr) {
 		fflush(outfile);
 		fseek(outfile, 0, SEEK_END); // seek to end of file
