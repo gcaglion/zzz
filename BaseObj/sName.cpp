@@ -7,8 +7,6 @@ sName::sName(const char* mask_, ...) {
 	va_start(va_args, mask_);
 	vsprintf_s(base, ObjNameMaxLen, mask_, va_args);
 	va_end(va_args);
-	//-- Also sets depth
-	//depth=1;
 }
 
 sName::~sName() {}
