@@ -1,6 +1,6 @@
 #include "sData.h"
 
-sData::sData(sCfgObjParmsDef, sDataShape* shape_, Bool doTrain, Bool doTest, Bool doValidation) : sCfgObj(sCfgObjParmsVal) {
+sData::sData(sCfgObjParmsDef, sDataShape* shape_, bool doTrain, bool doTest, bool doValidation) : sCfgObj(sCfgObjParmsVal) {
 	shape=shape_;
 	ActionDo[TRAIN]=doTrain; ActionDo[TEST]=doTest; ActionDo[VALID]=doValidation;
 }

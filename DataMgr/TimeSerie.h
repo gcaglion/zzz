@@ -27,7 +27,7 @@ typedef struct sTimeSerie : sCfgObj {
 	int featuresCnt;
 	int len;
 	int dt;	// data transformation
-	Bool BWcalc;	// Bar width calc
+	bool BWcalc;	// Bar width calc
 	int tsfCnt;
 	int* tsf;
 
@@ -40,9 +40,9 @@ typedef struct sTimeSerie : sCfgObj {
 	char** dtime;	//-- may always be useful...
 	numtype* bd;	//-- host   base data ( 1 X featuresCnt )
 	char* bdtime;	
-	Bool hasTR=false;
+	bool hasTR=false;
 	numtype* d_tr;
-	Bool hasTRS=false;
+	bool hasTRS=false;
 	numtype* d_trs;
 
 	//-- constructors / destructor
@@ -67,8 +67,8 @@ typedef struct sTimeSerie : sCfgObj {
 	EXPORT void dump(char* dumpFileName="C:/temp/TSdump.csv");
 
 private:
-	Bool LoadOHLCVdata(char* date0);
-	Bool setDataSource(sCfg* cfg);
+	bool LoadOHLCVdata(char* date0);
+	bool setDataSource(sCfg* cfg);
 
 } tTimeSerie;
 

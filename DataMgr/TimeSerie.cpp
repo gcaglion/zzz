@@ -39,9 +39,9 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef, sFileData* dataSource_, int steps_, int 
 	featuresCnt=featuresCnt_;
 }
 
-Bool sTimeSerie::setDataSource(sCfg* cfg) {
+bool sTimeSerie::setDataSource(sCfg* cfg) {
 
-	Bool found=false;
+	bool found=false;
 	sFXData* fxData;
 	sFileData* fileData;
 	tMT4Data* mt4Data;

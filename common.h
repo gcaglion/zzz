@@ -10,15 +10,6 @@ typedef float numtype;
 #define USE_ORCL
 #define USE_GPU
 
-#ifdef __cplusplus
-#define Bool bool
-#else
-typedef int Bool;
-#define true 1
-#define false 0
-#define nullptr 0
-#endif
-
 #ifndef EXPORT
 #define EXPORT __declspec(dllexport)
 #endif

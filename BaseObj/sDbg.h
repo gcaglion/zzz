@@ -25,11 +25,11 @@
 #include "sDbgMacros.h"
 
 struct sDbg {
-	Bool verbose;
-	Bool dbgtofile;
-	Bool dbgtoscreen;
-	Bool timing;
-	Bool pauseOnError;
+	bool verbose;
+	bool dbgtofile;
+	bool dbgtoscreen;
+	bool timing;
+	bool pauseOnError;
 	char* outfilepath;
 	char* outfilename;
 	char* outfilefullname;
@@ -38,7 +38,7 @@ struct sDbg {
 	char stack[DBG_STACK_MAXLEN];
 
 	EXPORT void out(int msgtype, const char* callerFunc_, int stackLevel_, char* msgMask_, ...);
-	EXPORT sDbg(Bool verbose_, Bool dbgtoscreen_, Bool dbgtofile_, char* outfilepath_);
+	EXPORT sDbg(bool verbose_, bool dbgtoscreen_, bool dbgtofile_, char* outfilepath_);
 	EXPORT ~sDbg();	
 	EXPORT void createOutFile(char* objName, void* objAddr, int objDepth);
 

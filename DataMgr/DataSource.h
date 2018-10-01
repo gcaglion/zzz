@@ -9,11 +9,11 @@ struct sDataSource : sCfgObj {
 	
 	int type;
 	int featuresCnt;
-	Bool calcBW;
+	bool calcBW;
 	int BWfeatureH;
 	int BWfeatureL;
 
-	sDataSource(sCfgObjParmsDef, int type_, int featuresCnt_, Bool calcBW_, int BWfeatureH_, int BWfeatureL_);
+	sDataSource(sCfgObjParmsDef, int type_, int featuresCnt_, bool calcBW_, int BWfeatureH_, int BWfeatureL_);
 	~sDataSource();
 
 	void load(char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar) {

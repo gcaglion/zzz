@@ -6,7 +6,7 @@ sCfgKey::sCfgKey(sObjParmsDef, int linesCnt_, sCfgLine** cfgLine_, int startLine
 	endLine=(startLine<0)?linesCnt_:cfgLine_[startLine]->partner;
 	keysCnt=0; parmsCnt=0;
 
-	//Bool dbg_verbose_=-1; Bool dbg_dbgtoscreen_=-1; Bool dbg_dbgtofile_=-1; char* dbg_outfilepath_ = nullptr;
+	//bool dbg_verbose_=-1; bool dbg_dbgtoscreen_=-1; bool dbg_dbgtofile_=-1; char* dbg_outfilepath_ = nullptr;
 	//sCfgParm* tmpParm;
 	sDbg* overrideDbg;
 
@@ -55,7 +55,7 @@ sCfgKey::~sCfgKey(){}
 void sCfgKey::setDbg() {
 
 	//-- key-specific debugger parameters are initialized to defaults
-	Bool dbg_verbose_=DEFAULT_DBG_VERBOSITY; Bool dbg_dbgtoscreen_=DEFAULT_DBG_TO_SCREEN; Bool dbg_dbgtofile_=DEFAULT_DBG_TO_FILE;
+	bool dbg_verbose_=DEFAULT_DBG_VERBOSITY; bool dbg_dbgtoscreen_=DEFAULT_DBG_TO_SCREEN; bool dbg_dbgtofile_=DEFAULT_DBG_TO_FILE;
 	char* dbg_outfilepath_ = new char[MAX_PATH]; dbg_outfilepath_[0]='\0';
 
 	sObj* dbgKey=nullptr;

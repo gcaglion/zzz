@@ -10,7 +10,7 @@ struct sFileData : sDataSource {
 	int fieldSep;
 	int featuresCnt;
 
-	EXPORT sFileData(sCfgObjParmsDef, FILE* srcFile_, int fieldSep_=COMMA_SEPARATOR, Bool calcBW_=false, int BWfeatureH_=1, int BWfeatureL_=2);
+	EXPORT sFileData(sCfgObjParmsDef, FILE* srcFile_, int fieldSep_=COMMA_SEPARATOR, bool calcBW_=false, int BWfeatureH_=1, int BWfeatureL_=2);
 	EXPORT sFileData(sCfgObjParmsDef);
 	EXPORT ~sFileData();
 

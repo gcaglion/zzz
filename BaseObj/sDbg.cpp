@@ -1,6 +1,6 @@
 #include "sDbg.h"
 
-sDbg::sDbg(Bool verbose_, Bool dbgtoscreen_, Bool dbgtofile_, char* outfilepath_) {
+sDbg::sDbg(bool verbose_, bool dbgtoscreen_, bool dbgtofile_, char* outfilepath_) {
 	outfilepath=(char*)malloc(MAX_PATH);
 	outfilename=(char*)malloc(MAX_PATH);
 	outfilefullname=(char*)malloc(MAX_PATH);

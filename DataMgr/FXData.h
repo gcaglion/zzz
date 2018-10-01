@@ -14,9 +14,9 @@ struct sFXData : sDataSource {
 	sOraConnection* db;
 	char* Symbol = new char[FX_SYMBOL_MAXLEN];
 	char* TimeFrame = new char[FX_TIMEFRAME_MAXLEN];
-	Bool IsFilled;
+	bool IsFilled;
 
-	EXPORT sFXData(sCfgObjParmsDef, sOraConnection* db_, char* symbol_, char* tf_, Bool isFilled_);
+	EXPORT sFXData(sCfgObjParmsDef, sOraConnection* db_, char* symbol_, char* tf_, bool isFilled_);
 	EXPORT sFXData(sCfgObjParmsDef);
 	EXPORT ~sFXData();
 	

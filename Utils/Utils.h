@@ -5,7 +5,7 @@
 
 EXPORT bool getFullFileName(const char* iName, char* oName, const char* currPath_=nullptr);
 EXPORT char* MyGetCurrentDirectory();
-EXPORT Bool getCurrentPath(char* oPath);
+EXPORT bool getCurrentPath(char* oPath);
 EXPORT int getCharCnt(const char* str, char c);
 EXPORT void getCharPos(const char* str, char c, int charCnt, int** oCharPos);
 EXPORT int cslToArray(const char* csl, char Separator, char** StrList);
@@ -19,8 +19,8 @@ EXPORT int argcnt(const char* mask);
 //EXPORT void UpperCase(const char* istr, char* ostr);
 EXPORT void removeQuotes(char* istr, char* ostr);
 EXPORT void stripChar(char* istr, char c);
-EXPORT Bool getValuePair(char* istr, char* oName, char* oVal, char eqSign);
-EXPORT Bool isnumber(char* str);
-EXPORT Bool isInList(int soughtVal, int listLen, int* list);
+EXPORT bool getValuePair(char* istr, char* oName, char* oVal, char eqSign);
+EXPORT bool isnumber(char* str);
+EXPORT bool isInList(int soughtVal, int listLen, int* list);
 EXPORT void gettimestamp(char* timeS, size_t timeSsize);
 

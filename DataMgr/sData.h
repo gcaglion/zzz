@@ -17,13 +17,13 @@ struct sData : sCfgObj {
 	sDataShape* shape;
 
 	//-- actions
-	Bool ActionDo[3];
+	bool ActionDo[3];
 	char ActionDesc[3][XMLKEY_NAME_MAXLEN]={ "Train","Test","Validation" };
 
 	//-- DataSets (each include its own source TimeSerie)
 	sDataSet* ds[3];
 
-	EXPORT sData(sCfgObjParmsDef, sDataShape* shape_, Bool doTrain, Bool doTest, Bool doValidation);
+	EXPORT sData(sCfgObjParmsDef, sDataShape* shape_, bool doTrain, bool doTest, bool doValidation);
 	EXPORT sData(sCfgObjParmsDef);
 	EXPORT ~sData();
 

@@ -19,7 +19,7 @@
 	} \
 }
 void sCfgParm::decode(int elementId, int* oVal) { 
-	Bool success=false;
+	bool success=false;
 
 	//-- DataSource_enums
 	optionLookup(FXDB_SOURCE, elementId);

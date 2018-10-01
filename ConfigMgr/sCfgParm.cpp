@@ -11,12 +11,12 @@ sCfgParm::~sCfgParm() {
 	free(valS);
 }
 //--
-Bool sCfgParm::getVal(int* oVal, int* oValsCnt) { return(getVal(&oVal));}
-Bool sCfgParm::getVal(char** oVal, int* oValsCnt) { return(getVal(&oVal));}
-Bool sCfgParm::getVal(numtype* oVal, int* oValsCnt) { return(getVal(&oVal));}
-Bool sCfgParm::getVal(bool* oVal, int* oValsCnt) { return(getVal(&oVal));}
+bool sCfgParm::getVal(int* oVal, int* oValsCnt) { return(getVal(&oVal));}
+bool sCfgParm::getVal(char** oVal, int* oValsCnt) { return(getVal(&oVal));}
+bool sCfgParm::getVal(numtype* oVal, int* oValsCnt) { return(getVal(&oVal));}
+bool sCfgParm::getVal(bool* oVal, int* oValsCnt) { return(getVal(&oVal));}
 //--
-Bool sCfgParm::getVal(int** oVal, int* oValsCnt) {
+bool sCfgParm::getVal(int** oVal, int* oValsCnt) {
 	if(oValsCnt!=nullptr) (*oValsCnt)=valScnt;
 	for (int v=0; v<valScnt; v++) {
 		if (isnumber(valS[v])) {
@@ -27,21 +27,21 @@ Bool sCfgParm::getVal(int** oVal, int* oValsCnt) {
 	}
 	return true;
 }
-Bool sCfgParm::getVal(char*** oVal, int* oValsCnt) {
+bool sCfgParm::getVal(char*** oVal, int* oValsCnt) {
 	if (oValsCnt!=nullptr) (*oValsCnt)=valScnt;
 	for (int v=0; v<valScnt; v++) {
 		strcpy_s((*oVal[v]), XMLKEY_PARM_VAL_MAXLEN, valS[v]);
 	}
 	return true;
 }
-Bool sCfgParm::getVal(numtype** oVal, int* oValsCnt) {
+bool sCfgParm::getVal(numtype** oVal, int* oValsCnt) {
 	if (oValsCnt!=nullptr) (*oValsCnt)=valScnt;
 	for (int v=0; v<valScnt; v++) {
 		oVal[0][v]=(numtype)atof(valS[v]);
 	}
 	return true;
 }
-Bool sCfgParm::getVal(bool** oVal, int* oValsCnt) {
+bool sCfgParm::getVal(bool** oVal, int* oValsCnt) {
 	if (oValsCnt!=nullptr) (*oValsCnt)=valScnt;
 	for (int v=0; v<valScnt; v++) {
 		oVal[0][v] = (_stricmp(valS[v], "TRUE")==0);
