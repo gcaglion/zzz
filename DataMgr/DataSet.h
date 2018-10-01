@@ -7,7 +7,7 @@
 
 typedef struct sDataSet : sCfgObj {
 
-	tTimeSerie* sourceTS=nullptr;
+	tTimeSerie* sourceTS;
 
 	int sampleLen;
 	int targetLen;
@@ -20,19 +20,19 @@ typedef struct sDataSet : sCfgObj {
 	int batchCnt;
 
 	//-- sample, target, prediction are stored in  order (Sample-Bar-Feature)
-	numtype* sample=nullptr;
-	numtype* target=nullptr;
-	numtype* prediction=nullptr;
+	numtype* sample;
+	numtype* target;
+	numtype* prediction;
 	//-- network training requires BFS ordering
-	numtype* sampleBFS=nullptr;
-	numtype* targetBFS=nullptr;
-	numtype* predictionBFS=nullptr;
+	numtype* sampleBFS;
+	numtype* targetBFS;
+	numtype* predictionBFS;
 	//-- network inference requires SFB ordering to get first-step prediction
-	numtype* targetSFB=nullptr;
-	numtype* predictionSFB=nullptr;
+	numtype* targetSFB;
+	numtype* predictionSFB;
 	//-- one-step only target+prediction (required by run() ) ???????
-	numtype* target0=nullptr;
-	numtype* prediction0=nullptr;
+	numtype* target0;
+	numtype* prediction0;
 
 	//-- constructor / destructor
 	EXPORT sDataSet(sCfgObjParmsDef, int sampleLen_, int targetLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, int* datafileBWFeature_);
@@ -50,6 +50,4 @@ typedef struct sDataSet : sCfgObj {
 private:
 	void sDataSet_pre();
 	void sDataSet_post();
-	void sDataSet_common();
-	void sDataSet_malloc();
 } tDataSet;

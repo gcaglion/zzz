@@ -158,6 +158,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DataSet.cpp" />
+    <ClCompile Include="DataShape.cpp" />
     <ClCompile Include="DataSource.cpp" />
     <ClCompile Include="FileData.cpp" />
     <ClCompile Include="FXData.cpp" />
@@ -166,6 +167,7 @@
     <ClCompile Include="TimeSerie.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="DataShape.h" />
     <ClInclude Include="sData.h" />
     <ClInclude Include="DataSet.h" />
     <ClInclude Include="DataSource.h" />

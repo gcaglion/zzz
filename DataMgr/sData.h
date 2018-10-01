@@ -3,29 +3,13 @@
 #include "../BaseObj/sObj.h"
 #include "../ConfigMgr/sCfg.h"
 #include "DataSet.h"
+#include "DataShape.h"
 
 
 //-- Actions on data
 #define TRAIN 0
 #define TEST  1
 #define VALID 2
-
-struct sDataShape : sCfgObj {
-
-	//-- basic properties
-	int sampleLen;
-	int predictionLen;
-	int featuresCnt;
-
-	//-- these are set within Cores
-	int inputCnt;
-	int outputCnt;
-
-	EXPORT sDataShape(sCfgObjParmsDef, int sampleLen_, int predictionLen_, int featuresCnt_);
-	EXPORT sDataShape(sCfgObjParmsDef);
-	EXPORT ~sDataShape();
-
-};
 
 struct sData : sCfgObj {
 

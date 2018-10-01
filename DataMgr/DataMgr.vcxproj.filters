@@ -36,6 +36,9 @@
     <ClCompile Include="sData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DataShape.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataSource.h">
@@ -69,6 +72,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DataShape.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
