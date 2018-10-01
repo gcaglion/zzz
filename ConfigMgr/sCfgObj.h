@@ -15,8 +15,14 @@ struct sCfgObj : sObj {
 	sCfgObj(sCfgObjParmsDef) : sObj(sObjParmsVal) {
 
 		cfg=cfg_;
+		//-- 0. backup cfg currentKey into Object bkpKey
+		bkpKey=cfg->currentKey;
+		//-- 1. set cfg currentKey
 		safecall(cfg, setKey, keyDesc_);
+		//-- 2. set Object cfgKey
 		cfgKey=cfg->currentKey;
+		//-- 3. restore cfg currentKey
+		//cfg->currentKey=bkpKey;
 	}
 
 	~sCfgObj(){}

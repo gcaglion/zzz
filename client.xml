@@ -53,6 +53,31 @@
 			Do	= true
 			<DataSet>
 				<TimeSerie>
+					Date0				= 201512300000
+					HistoryLen			= 100
+					DataTransformation	= DT_DELTALOG
+					BWCalc				= true
+					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
+					<FXDB_DataSource>
+						Symbol				= EURUSD
+						TimeFrame			= H1
+						IsFilled			= false
+						<DBConnection>
+							UserName	= History
+							Password	= HistoryPwd
+							ConnString	= Algo
+						</DBConnection>
+					</FXDB_DataSource>
+				</TimeSerie>
+				BatchSamplesCount	= 50
+				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+				BWFeatures			= 1,2
+			</DataSet>
+		</Test>
+		<Test.XXX>
+			Do	= true
+			<DataSet>
+				<TimeSerie>
 					Date0				= 201612300000abc
 					HistoryLen			= 100
 					DataTransformation	= DT_DELTALOG
@@ -70,7 +95,7 @@
 				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 				BWFeatures			= 1,2
 			</DataSet>
-		</Test>
+		</Test.XXX>
 	</Data>
 	<Engine>
 		<Debugger>

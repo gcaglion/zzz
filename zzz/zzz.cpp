@@ -99,7 +99,7 @@ private:
 		char orValS[XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
 
 		//-- set default cfgFilaName
-		getFullFileName("Client.xml", cfgFileFullName);
+		getFullFileName("../Client.xml", cfgFileFullName);
 
 		for (int p=1; p<argc; p++) {
 			if (!getValuePair(argv[p], &orName[0], &orValS[0], '=')) fail("wrong parameter format in command line: %s", argv[p]);
