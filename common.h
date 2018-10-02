@@ -2,6 +2,7 @@
 
 #include <Windows.h>
 #include <stdio.h>
+#include <stdexcept>
 
 typedef float numtype;
 #define DATE_FORMAT "YYYYMMDDHHMI"

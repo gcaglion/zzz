@@ -49,19 +49,19 @@ bool sTimeSerie::setDataSource(sCfg* cfg) {
 	safecall(cfg, setKey, "File_DataSource", true, &found);	//-- ignore error
 	if (found) {
 		safecall(cfg, setKey, "../"); //-- get back;
-		safespawn(fileData, newsname("File_DataSource"), nullptr, cfg, "File_DataSource");
+		safespawn(false, fileData, newsname("File_DataSource"), nullptr, cfg, "File_DataSource");
 		sourceData=fileData;
 	} else {
 		safecall(cfg, setKey, "FXDB_DataSource", true, &found);	//-- ignore error
 		if (found) {
 			safecall(cfg, setKey, "../"); //-- get back;
-			safespawn(fxData, newsname("FXDB_DataSource"), nullptr, cfg, "FXDB_DataSource");
+			safespawn(false, fxData, newsname("FXDB_DataSource"), nullptr, cfg, "FXDB_DataSource");
 			sourceData=fxData;
 		} else {
 			safecall(cfg, setKey, "MT4_DataSource", true, &found);	//-- ignore error
 			if (found) {
 				safecall(cfg, setKey, "../"); //-- get back;
-				safespawn(mt4Data, newsname("MT4_DataSource"), nullptr, cfg, "MT4_DataSource");
+				safespawn(false, mt4Data, newsname("MT4_DataSource"), nullptr, cfg, "MT4_DataSource");
 				sourceData=mt4Data;
 			}
 		}

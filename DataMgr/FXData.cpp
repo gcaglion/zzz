@@ -14,7 +14,7 @@ sFXData::sFXData(sCfgObjParmsDef) : sDataSource(sCfgObjParmsVal, FXDB_SOURCE, FX
 	safecall(cfg->currentKey, getParm, &TimeFrame, "TimeFrame");
 	safecall(cfg->currentKey, getParm, &IsFilled, "IsFilled");
 	//-- 2. do stuff and spawn sub-Keys
-	safespawn(db, newsname("DBConnection"), nullptr, cfg, "DBConnection");
+	safespawn(false, db, newsname("DBConnection"), nullptr, cfg, "DBConnection");
 	//-- 3. Restore currentKey
 	cfg->currentKey=bkpKey;
 

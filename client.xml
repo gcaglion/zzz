@@ -16,14 +16,13 @@
 			FeaturesCount	= 4
 		</Shape>
 		<Train>
-			<Debugger>
-				Verbose = false
-				ScreenOutput  = true
-				FileOutput	= true
-				OutFilePath  = C:\temp\logs
-			</Debugger>
-			Do	= true
 			<DataSet>
+				<Debugger>
+					Verbose = false
+					ScreenOutput  = true
+					FileOutput	= true
+					OutFilePath  = C:\temp\logs
+				</Debugger>
 				<TimeSerie>
 					Date0				= 201712300000
 					HistoryLen			= 505

@@ -1,31 +1,24 @@
 #include "sData.h"
 
-sData::sData(sCfgObjParmsDef, sDataShape* shape_, bool doTrain, bool doTest, bool doValidation) : sCfgObj(sCfgObjParmsVal) {
+sData::sData(sCfgObjParmsDef, sDataShape* shape_, sDataSet* trainDS_, sDataSet* testDS_, sDataSet* validDS_) : sCfgObj(sCfgObjParmsVal) {
 	shape=shape_;
-	ActionDo[TRAIN]=doTrain; ActionDo[TEST]=doTest; ActionDo[VALID]=doValidation;
+	trainDS=trainDS_; testDS=testDS_; validDS=validDS_;
 }
 sData::sData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
-	//-- 0. backup currentKey
-	bkpKey=cfg->currentKey;
 	//-- 1. get Parameters
-	safecall(cfgKey, getParm, &ActionDo[TRAIN], "Train/Do");
-	safecall(cfgKey, getParm, &ActionDo[TEST], "Test/Do");
-	safecall(cfgKey, getParm, &ActionDo[VALID], "Validation/Do");
 	//-- 2. do stuff and spawn sub-Keys
-	safespawn(shape, newsname("Shape"), nullptr, cfg, "Shape");
-	if (ActionDo[TRAIN]) safespawn(ds[TRAIN], newsname("Train_Data"), nullptr, cfg, "Train/DataSet");
-	if (ActionDo[TEST])  safespawn(ds[TEST], newsname("Test_Data"), nullptr, cfg, "Test/DataSet");
-	if (ActionDo[VALID]) safespawn(ds[VALID], newsname("Validation_Data"), nullptr, cfg, "Validation/DataSet");	
+	safespawn(false, shape, newsname("Shape"), nullptr, cfg, "Shape");
+	doTraining		= safespawn(true, trainDS, newsname("TrainDataSet"), defaultdbg, cfg, "Train/DataSet");
+	doTest			= safespawn(true, testDS,  newsname("TestData"),  defaultdbg, cfg, "Test/DataSet");
+	doValidation	= safespawn(true, validDS, newsname("ValidDataset"), defaultdbg, cfg, "Validation/DataSet");
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 
 }
 sData::~sData() {
-	for (int a=0; a<3; a++) {
-		if (ActionDo[a]) {
-			delete ds[a];
-		}
-	}
+	delete trainDS;
+	delete testDS;
+	delete validDS;
 	delete shape;
 }

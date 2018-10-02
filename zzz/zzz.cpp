@@ -40,20 +40,20 @@ struct sRoot : sObj {
 	void execute() {
 		try {
 			//-- 2. do stuff
-			//safespawn(clientCfg, newsname("client_Config"), nullptr, "C:\\Users\\gcaglion\\dev\\zzz\\ForecastData.xml");
-			safespawn(clientCfg, newsname("Root_Config"), defaultdbg, cfgFileFullName);
+			//safespawn(false, clientCfg, newsname("client_Config"), nullptr, "C:\\Users\\gcaglion\\dev\\zzz\\ForecastData.xml");
+			safespawn(false, clientCfg, newsname("Root_Config"), defaultdbg, cfgFileFullName);
 
-			safespawn(mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
+			safespawn(false, mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
 			//sName* n=new sName("dshape1");
 			//dshape1=new sDataShape(this, n, nullptr, clientCfg, "/Forecaster/Data/Shape");
-			//safespawn(dshape2, newsname("Shape2"), nullptr, clientCfg, "/Forecaster/Data/Shape");
-			//safespawn(forecastData, newsname("Main_Forecaster_Data"), defaultdbg, clientCfg, "/Forecaster/Data");
+			//safespawn(false, dshape2, newsname("Shape2"), nullptr, clientCfg, "/Forecaster/Data/Shape");
+			//safespawn(false, forecastData, newsname("Main_Forecaster_Data"), defaultdbg, clientCfg, "/Forecaster/Data");
 
-			//safespawn(dbconn1, newsname("DBConn1"), nullptr, "History", "HistoryPwd", "Algo");
-			//safespawn(dbconn1, newsname("DBConn1"), defaultdbg, clientCfg, "/Forecaster/Data/Train/Dataset/TimeSerie/FXDB_DataSource/DBConnection");
+			//safespawn(false, dbconn1, newsname("DBConn1"), nullptr, "History", "HistoryPwd", "Algo");
+			//safespawn(false, dbconn1, newsname("DBConn1"), defaultdbg, clientCfg, "/Forecaster/Data/Train/Dataset/TimeSerie/FXDB_DataSource/DBConnection");
 			//safecall(clientCfg, setKey, "Forecaster");
-			//safespawn(forecastData, newsname("ForecastData"), defaultdbg, clientCfg, "/Forecaster/Data");
-			//safespawn(dshape1, newsname("Shape1"), nullptr, clientCfg, "Data/Shape");
+			//safespawn(false, forecastData, newsname("ForecastData"), defaultdbg, clientCfg, "/Forecaster/Data");
+			//safespawn(false, dshape1, newsname("Shape1"), nullptr, clientCfg, "Data/Shape");
 
 /*			safecall(clientCfg, setKey, "Forecaster/Data/Train/Dataset");
 			safecall(clientCfg, setKey, "/Forecaster/Data/Train/Dataset");
@@ -66,11 +66,11 @@ struct sRoot : sObj {
 			safecall(clientCfg, getParm, &PredictionLen, "PredictionLen");
 			safecall(clientCfg, getParm, &FeaturesCnt, "FeaturesCount");
 
-			safespawn(forecastData, newsname("Forecaster_Data"), nullptr, clientCfg, "/Forecaster/Data");
+			safespawn(false, forecastData, newsname("Forecaster_Data"), nullptr, clientCfg, "/Forecaster/Data");
 
-			//safespawn(fxData1, newsname("fxData1"), nullptr, clientCfg, "FXDB_DataSource");
+			//safespawn(false, fxData1, newsname("fxData1"), nullptr, clientCfg, "FXDB_DataSource");
 
-			//safespawn(trainTS, newsname("TrainingTimeSerie"), nullptr, clientCfg, "TimeSerie");
+			//safespawn(false, trainTS, newsname("TrainingTimeSerie"), nullptr, clientCfg, "TimeSerie");
 			
 			safecall(clientCfg, setKey, "../Train/Dataset");
 			safecall(clientCfg, setKey, "TimeSerie/DataSource");
@@ -78,13 +78,13 @@ struct sRoot : sObj {
 
 			safecall(clientCfg, setKey, "../Test/Dataset");
 
-			safespawn(XMLparms, tParmsSource, "C:\\Users\\gcaglion\\dev\\cudaNN\\Client\\Client.xml", argc, argv, true);
+			safespawn(false, XMLparms, tParmsSource, "C:\\Users\\gcaglion\\dev\\cudaNN\\Client\\Client.xml", argc, argv, true);
 			//-- 2. create Forecaster Data from parms
-			safespawn(fData, tData, XMLparms, ".Forecaster.Data");
+			safespawn(false, fData, tData, XMLparms, ".Forecaster.Data");
 			//-- 3. create Forecaster Engine from parms
-			safespawn(fEngine, tEngine, XMLparms, ".Forecaster.Engine", fData->shape);
+			safespawn(false, fEngine, tEngine, XMLparms, ".Forecaster.Engine", fData->shape);
 			//-- 4. create Forecaster Persistor
-			safespawn(fPersistor, tLogger, XMLparms, ".Forecaster.Persistor");
+			safespawn(false, fPersistor, tLogger, XMLparms, ".Forecaster.Persistor");
 */
 		}
 		catch (std::exception exc) {

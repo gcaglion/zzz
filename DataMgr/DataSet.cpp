@@ -67,7 +67,7 @@ sDataSet::sDataSet(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfg->currentKey, getParm, &targetLen, "PredictionLen");
 
 	cfg->currentKey=cfgKey;
-	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), nullptr, cfg, "TimeSerie");
+	safespawn(false, sourceTS, newsname("%s_TimeSerie", name->base), nullptr, cfg, "TimeSerie");
 
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
