@@ -84,30 +84,3 @@ void sOraConnection::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pR
 
 
 }
-
-/*
-int main() {
-
-	const std::string userName = "History";
-	const std::string password = "HistoryPwd";
-	const std::string connectString = "Algo";
-	
-	Environment *env = Environment::createEnvironment();
-
-//	#if (OCCI_MAJOR_VERSION > 9)
-//		env->setCacheSortedFlush(true);  // benefit of performance, if available
-//	#endif
-
-	Connection *conn = env->createConnection(userName, password, connectString);
-	Statement *stmt = conn->createStatement("SELECT * from history.eurusd_h1");
-	ResultSet *rs = stmt->executeQuery();
-	rs->next();
-	int cnt=rs->getInt(1);
-	stmt->closeResultSet(rs);
-	conn->terminateStatement(stmt);
-	env->terminateConnection(conn);
-	Environment::terminateEnvironment(env);
-
-	return 0;
-}
-*/

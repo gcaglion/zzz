@@ -46,8 +46,11 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Forecaster", "Forecaster\Forecaster.vcxproj", "{48D3AE88-9883-42C2-BF97-679F8F8D7477}"
 	ProjectSection(ProjectDependencies) = postProject
 		{AE353517-C9AD-46A5-9D6D-E4647A635BC3} = {AE353517-C9AD-46A5-9D6D-E4647A635BC3}
+		{2FA796DB-3BDD-4EBB-8CE1-8E165395264A} = {2FA796DB-3BDD-4EBB-8CE1-8E165395264A}
 		{C6AC62F7-6DD0-4992-AC60-80A113B0197F} = {C6AC62F7-6DD0-4992-AC60-80A113B0197F}
 	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Logger", "Logger\Logger.vcxproj", "{2FA796DB-3BDD-4EBB-8CE1-8E165395264A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -113,6 +116,14 @@ Global
 		{48D3AE88-9883-42C2-BF97-679F8F8D7477}.Release|x64.Build.0 = Release|x64
 		{48D3AE88-9883-42C2-BF97-679F8F8D7477}.Release|x86.ActiveCfg = Release|Win32
 		{48D3AE88-9883-42C2-BF97-679F8F8D7477}.Release|x86.Build.0 = Release|Win32
+		{2FA796DB-3BDD-4EBB-8CE1-8E165395264A}.Debug|x64.ActiveCfg = Debug|x64
+		{2FA796DB-3BDD-4EBB-8CE1-8E165395264A}.Debug|x64.Build.0 = Debug|x64
+		{2FA796DB-3BDD-4EBB-8CE1-8E165395264A}.Debug|x86.ActiveCfg = Debug|Win32
+		{2FA796DB-3BDD-4EBB-8CE1-8E165395264A}.Debug|x86.Build.0 = Debug|Win32
+		{2FA796DB-3BDD-4EBB-8CE1-8E165395264A}.Release|x64.ActiveCfg = Release|x64
+		{2FA796DB-3BDD-4EBB-8CE1-8E165395264A}.Release|x64.Build.0 = Release|x64
+		{2FA796DB-3BDD-4EBB-8CE1-8E165395264A}.Release|x86.ActiveCfg = Release|Win32
+		{2FA796DB-3BDD-4EBB-8CE1-8E165395264A}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
