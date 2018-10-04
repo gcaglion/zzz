@@ -1,7 +1,7 @@
 #include "sOraDB.h"
 #include "OraOciCommon.h"
 
-sOraDB::sOraDB(sCfgObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_, bool autoOpen) : sCfgObj(sCfgObjParmsVal) {
+sOraDB::sOraDB(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_, bool autoOpen) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	//-- 1. get Parameters
 	strcpy_s(DBUserName, DBUSERNAME_MAXLEN, DBUserName_);
 	strcpy_s(DBPassword, DBPASSWORD_MAXLEN, DBPassword_);
@@ -82,3 +82,33 @@ void sOraDB::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pRecCount,
 
 
 }
+void sOraDB::SaveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
+
+	Statement* stmt = ((Connection*)conn)->createStatement("insert into TrainLog(ProcessId, ThreadId, Epoch, MSE_T, MSE_V) values(:P01, :P02, :P03, :P04, :P05)");
+
+	stmt->setMaxIterations(MAX_INSERT_BATCH_COUNT);
+	
+	stmt->setDataBuffer(4, mseT, OCCIFLOAT, sizeof(numtype), idLen);
+	stmt->setDataBuffer(5, mseV, OCCIFLOAT, sizeof(numtype), dnameLen);
+
+	for (int epoch=0; epoch<mseCnt; epoch++) {
+
+
+		stmt->setNumber(1, pid);
+		stmt->setNumber(2, tid);
+		stmt->setNumber(3, epoch);
+		stmt->setNumber(4, mseT[epoch]);
+		stmt->setNumber(5, mseV[epoch]);
+
+		if (epoch>0 && (epoch%MAX_INSERT_BATCH_COUNT)==0) {
+			stmt->executeUpdate();
+		}
+
+	}
+
+}
+void sOraDB::SaveRun(int pid, int tid, int setid, int npid, int ntid, int runCnt, int featuresCnt, int* feature, numtype* prediction, numtype* actual) {}
+void sOraDB::SaveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
+void sOraDB::LoadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
+void sOraDB::SaveClient(int pid, char* clientName, DWORD startTime, DWORD duration, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {}
+void sOraDB::Commit() {}

@@ -5,6 +5,16 @@
 #include "../DataMgr/TimeSerie.h"
 #include "../Forecaster/Forecaster.h"
 
+numtype MyRndDbl(numtype min, numtype max) {
+	unsigned int number;
+	int err;
+	numtype ret;
+
+	err = rand_s(&number);
+	ret = min+(numtype)number/((numtype)UINT_MAX+1) * (max-min);
+	return ret;
+}
+
 struct sRoot : sObj {
 
 	//-- 1. declarations
@@ -20,7 +30,7 @@ struct sRoot : sObj {
 	sFXData* fxData1;
 	sDataShape* dshape1;
 	sDataShape* dshape2;
-	sForecaster* mainForecaster=nullptr;
+	sForecaster* mainForecaster;
 
 	//tData*			fData=nullptr;		//-- Forecaster data
 	//tEngine*		fEngine=nullptr;	//-- Forecaster engine
@@ -39,7 +49,8 @@ struct sRoot : sObj {
 	void execute() {
 		try {
 			//-- 2. do stuff
-			//safespawn(false, clientCfg, newsname("client_Config"), nullptr, "C:\\Users\\gcaglion\\dev\\zzz\\ForecastData.xml");
+
+			safespawn(false, clientCfg, newsname("client_Config"), nullptr, "C:\\Users\\gcaglion\\dev\\zzz\\ForecastData.xml");
 			safespawn(false, clientCfg, newsname("Root_Config"), defaultdbg, cfgFileFullName);
 
 			safespawn(false, mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
@@ -131,9 +142,17 @@ private:
 
 int main(int argc, char* argv[]) {
 
-	int p1=1;
-	char* p2="aaa";
-
+	int pid=99;
+	int epochs=2000;
+	int tid=pid;
+	numtype* trainMSE = (numtype*)malloc(epochs*sizeof(numtype));
+	numtype* validMSE = (numtype*)malloc(epochs*sizeof(numtype));
+	for (int e=0; e<epochs; e++) {
+		trainMSE[e]=MyRndDbl(0, 10);
+		validMSE[e]=MyRndDbl(0, 10);
+	}
+	sOraDB* oradb1= new sOraDB(nullptr, newsname("TestOraDB"), defaultdbg, "LogUser", "LogPwd", "Algo", true);
+	oradb1->SaveMSE(pid, tid, epochs, trainMSE, validMSE);
 
 	//-- 1. create root object. root constructor does everything else
 	sRoot* root=nullptr;

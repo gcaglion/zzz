@@ -42,3 +42,11 @@ void sLogger::ffname_malloc() {
 	fileFullName=(char**)malloc(5*sizeof(char*));
 	for (int f=0; f<5; f++) fileFullName[f]=(char*)malloc(MAX_PATH);
 }
+
+void sLogger::SaveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
+}
+void sLogger::SaveRun(int pid, int tid, int setid, int npid, int ntid, int runCnt, int featuresCnt, int* feature, numtype* prediction, numtype* actual) {}
+void sLogger::SaveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
+void sLogger::LoadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
+void sLogger::SaveClient(int pid, char* clientName, DWORD startTime, DWORD duration, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {}
+void sLogger::Commit() {}

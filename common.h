@@ -1,5 +1,8 @@
 #pragma once
 
+#define _CRT_RAND_S
+#include <stdlib.h>
+
 #include <Windows.h>
 #include <stdio.h>
 #include <stdexcept>
