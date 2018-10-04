@@ -84,28 +84,40 @@ void sOraDB::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pRecCount,
 }
 void sOraDB::SaveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
 
-	Statement* stmt = ((Connection*)conn)->createStatement("insert into TrainLog(ProcessId, ThreadId, Epoch, MSE_T, MSE_V) values(:P01, :P02, :P03, :P04, :P05)");
-
-	stmt->setMaxIterations(MAX_INSERT_BATCH_COUNT);
-	
-	stmt->setDataBuffer(4, mseT, OCCIFLOAT, sizeof(numtype), idLen);
-	stmt->setDataBuffer(5, mseV, OCCIFLOAT, sizeof(numtype), dnameLen);
-
+	Statement* stmt = ((Connection*)conn)->createStatement("insert into MyLog_MSE(ProcessId, ThreadId, Epoch, MSE_T, MSE_V) values(:P01, :P02, :P03, :P04, :P05)");
+/*
+	int epoch=0;
+	try {
+		stmt->setInt(1, pid);
+		stmt->setInt(2, tid);
+		stmt->setInt(3, epoch);
+		stmt->setFloat(4, 0.1f);
+		stmt->setFloat(5, 0.2f);
+		stmt->executeUpdate();
+	}
+	catch (SQLException ex)
+	{
+		printf("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+	}
+*/
+	stmt->setMaxIterations(mseCnt);
 	for (int epoch=0; epoch<mseCnt; epoch++) {
-
-
-		stmt->setNumber(1, pid);
-		stmt->setNumber(2, tid);
-		stmt->setNumber(3, epoch);
-		stmt->setNumber(4, mseT[epoch]);
-		stmt->setNumber(5, mseV[epoch]);
-
-		if (epoch>0 && (epoch%MAX_INSERT_BATCH_COUNT)==0) {
-			stmt->executeUpdate();
-		}
-
+		stmt->setInt(1, pid);
+		stmt->setInt(2, tid);
+		stmt->setInt(3, epoch);
+		stmt->setFloat(4, mseT[epoch]);
+		stmt->setFloat(5, mseV[epoch]);
+		if(epoch<(mseCnt-1)) stmt->addIteration();
+	}
+	try {
+		stmt->executeUpdate();
+	} catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
 	}
 
+	//stmt->setDataBuffer(4, mseT, OCCIFLOAT, sizeof(numtype), ntl);
+	//stmt->setDataBuffer(5, mseV, OCCIFLOAT, sizeof(numtype), ntl);
+	
 }
 void sOraDB::SaveRun(int pid, int tid, int setid, int npid, int ntid, int runCnt, int featuresCnt, int* feature, numtype* prediction, numtype* actual) {}
 void sOraDB::SaveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
