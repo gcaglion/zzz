@@ -26,10 +26,10 @@ sCfgKey::sCfgKey(sObjParmsDef, int linesCnt_, sCfgLine** cfgLine_, int startLine
 				//-- clone current dbg into overrideDbg
 				overrideDbg=clonedbg(dbg);
 				//-- update overrideDBG parms from xml
-				safecall(this, getParm, &overrideDbg->verbose, "Debugger/Verbose", (int*)nullptr, true);
-				safecall(this, getParm, &overrideDbg->dbgtoscreen, "Debugger/ScreenOutput", (int*)nullptr, true);
-				safecall(this, getParm, &overrideDbg->dbgtofile, "Debugger/FileOutput", (int*)nullptr, true);
-				safecall(this, getParm, &overrideDbg->outfilepath, "Debugger/OutFilePath", (int*)nullptr, true);
+				safecall(this, getParm, &overrideDbg->verbose, "Debugger/Verbose", true);
+				safecall(this, getParm, &overrideDbg->dbgtoscreen, "Debugger/ScreenOutput", true);
+				safecall(this, getParm, &overrideDbg->dbgtofile, "Debugger/FileOutput", true);
+				safecall(this, getParm, &overrideDbg->outfilepath, "Debugger/OutFilePath", true);
 				//-- delete current dbg, unless it's inherited by parent
 				if (dbg!=parent->dbg) delete dbg;
 				//-- overrideDbg becomes the actual dbg
@@ -64,10 +64,10 @@ void sCfgKey::setDbg() {
 	if (dbgKey!=nullptr) {
 		//-- if <Debugger> sub-key is found, override default parameters
 
-		safecall(this, getParm, &dbg_verbose_, "Debugger/Verbose", (int*)nullptr, true);
-		safecall(this, getParm, &dbg_dbgtoscreen_, "Debugger/ScreenOutput", (int*)nullptr, true);
-		safecall(this, getParm, &dbg_dbgtofile_, "Debugger/FileOutput", (int*)nullptr, true);
-		safecall(this, getParm, &dbg_outfilepath_, "Debugger/OutFilePath", (int*)nullptr, true);
+		safecall(this, getParm, &dbg_verbose_, "Debugger/Verbose", true);
+		safecall(this, getParm, &dbg_dbgtoscreen_, "Debugger/ScreenOutput", true);
+		safecall(this, getParm, &dbg_dbgtofile_, "Debugger/FileOutput", true);
+		safecall(this, getParm, &dbg_outfilepath_, "Debugger/OutFilePath", true);
 	}
 
 	//-- sObj always sets dbg (to default, parent's, or the one passed)

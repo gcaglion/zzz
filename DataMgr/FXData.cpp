@@ -1,7 +1,7 @@
 #include "FXData.h"
 
 //=== sFXData
-sFXData::sFXData(sCfgObjParmsDef, sOraConnection* db_, char* symbol_, char* tf_, bool isFilled_) : sDataSource(sCfgObjParmsVal, FXDB_SOURCE, FXDataFeaturesCnt, true, FXHIGH, FXLOW) {
+sFXData::sFXData(sCfgObjParmsDef, sOraDB* db_, char* symbol_, char* tf_, bool isFilled_) : sDataSource(sCfgObjParmsVal, FXDB_SOURCE, FXDataFeaturesCnt, true, FXHIGH, FXLOW) {
 	db=db_;
 	strcpy_s(Symbol, FX_SYMBOL_MAXLEN, symbol_);
 	strcpy_s(TimeFrame, FX_TIMEFRAME_MAXLEN, tf_);

@@ -59,8 +59,8 @@ sDataSet::sDataSet(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	//-- 1. get Parameters
 	safecall(cfgKey, getParm, &batchSamplesCnt, "BatchSamplesCount");
-	safecall(cfgKey, getParm, &selectedFeature, "SelectedFeatures", &selectedFeaturesCnt);
-	safecall(cfgKey, getParm, &BWFeature, "BWFeatures", new int);
+	safecall(cfgKey, getParm, &selectedFeature, "SelectedFeatures", false, &selectedFeaturesCnt);
+	safecall(cfgKey, getParm, &BWFeature, "BWFeatures", false, new int);
 	//-- 2. do stuff and spawn sub-Keys
 	safecall(cfg, setKey, "../../Shape");
 	safecall(cfg->currentKey, getParm, &sampleLen, "SampleLen");

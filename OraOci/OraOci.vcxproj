@@ -162,12 +162,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="OraOci.cpp" />
+    <ClCompile Include="sOraDB.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="OraData.h" />
-    <ClInclude Include="OraOci.h" />
-    <ClInclude Include="sOraConn.h" />
+    <ClInclude Include="OraOciCommon.h" />
+    <ClInclude Include="sOraDB.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

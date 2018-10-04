@@ -1,51 +1,49 @@
-#include "OraOci.h"
-#undef fail
-#include <occi.h> 
-using namespace oracle::occi;
-#include <string>
-#include "../BaseObj/sDbgMacros.h"
+#include "sOraDB.h"
+#include "OraOciCommon.h"
 
-sOraConnection::sOraConnection(sCfgObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_) : sCfgObj(sCfgObjParmsVal) {
+sOraDB::sOraDB(sCfgObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_, bool autoOpen) : sCfgObj(sCfgObjParmsVal) {
 	//-- 1. get Parameters
 	strcpy_s(DBUserName, DBUSERNAME_MAXLEN, DBUserName_);
 	strcpy_s(DBPassword, DBPASSWORD_MAXLEN, DBPassword_);
 	strcpy_s(DBConnString, DBCONNSTRING_MAXLEN, DBConnString_);
 	//-- 2. open connection
-	safecall(this, open);
+	if(autoOpen) safecall(this, open);
 }
-sOraConnection::sOraConnection(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
+sOraDB::sOraDB(sCfgObjParmsDef, bool autoOpen) : sCfgObj(sCfgObjParmsVal) {
 
 	//-- 1. get Parameters
 	safecall(cfgKey, getParm, &DBUserName, "UserName");
 	safecall(cfgKey, getParm, &DBPassword, "Password");
 	safecall(cfgKey, getParm, &DBConnString, "ConnString");
 	//-- 2. do stuff and spawn sub-Keys
-	safecall(this, open);	//-- open connection
-	//-- 3. Restore currentKey
+	if (autoOpen) safecall(this, open);	//-- open connection
+							//-- 3. Restore currentKey
 	cfg->currentKey=bkpKey;
 
 }
-sOraConnection::~sOraConnection() {
+sOraDB::~sOraDB() {
 	close();
 }
 
-void sOraConnection::open() {
+void sOraDB::open() {
 	try {
 		env = Environment::createEnvironment();
 		conn = ((Environment*)env)->createConnection(DBUserName, DBPassword, DBConnString);
-	} catch (SQLException exc) {
+	}
+	catch (SQLException exc) {
 		fail("%s FAILURE : %s . SQL Exception: %s", name->base, cmd, exc.what());
 	}
 
 }
-void sOraConnection::close() {
+void sOraDB::close() {
 	((Environment*)env)->terminateConnection(((Connection*)conn));
 	Environment::terminateEnvironment(((Environment*)env));
 }
-void sOraConnection::commit() {
+void sOraDB::commit() {
 	((Connection*)conn)->commit();
 }
-void sOraConnection::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar) {
+
+void sOraDB::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar) {
 	int i;
 	Statement* stmt=nullptr;
 	ResultSet *rset;

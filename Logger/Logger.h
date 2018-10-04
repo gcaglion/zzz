@@ -2,13 +2,14 @@
 
 #include "../common.h"
 #include "../BaseObj/sObj.h"
+#include "../ConfigMgr/sCfgObj.h"
+#include "../OraOci/sOraDB.h"
 
-// Logs Destinations
-#define LOG_TO_TEXT   1
-#define LOG_TO_ORCL	  2
-
-typedef struct sLogger : sObj {
-	int dest;
+typedef struct sLogger : sCfgObj {
+	sOraDB* db;
+	FILE* fileH[5];
+	char** fileFullName;	// one file for each log (Client, MSE, Run, Internals, Image)
+	//char fileFullName[5][MAX_PATH];	// one file for each log (Client, MSE, Run, Internals, Image)
 	bool saveNothing;
 	bool saveClient;
 	bool saveMSE;
@@ -16,8 +17,10 @@ typedef struct sLogger : sObj {
 	bool saveInternals;
 	bool saveImage;
 
-	sLogger(sObjParmsDef, int dest_, bool saveNothing_=false, bool saveClient_=true, bool saveMSE_=true, bool saveRun_=true, bool saveInternals_=false, bool saveImage_=false);
-	~sLogger();
+	//EXPORT sLogger(sObjParmsDef, sOraConnection* db_, bool saveNothing_=false, bool saveClient_=true, bool saveMSE_=true, bool saveRun_=true, bool saveInternals_=false, bool saveImage_=false);
+	//EXPORT sLogger(sObjParmsDef, FILE* fileH_, bool saveNothing_=false, bool saveClient_=true, bool saveMSE_=true, bool saveRun_=true, bool saveInternals_=false, bool saveImage_=false);
+	EXPORT sLogger(sCfgObjParmsDef);
+	EXPORT ~sLogger();
 
 	EXPORT void SaveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {}
 	EXPORT void SaveRun(int pid, int tid, int setid, int npid, int ntid, int runCnt, int featuresCnt, int* feature, numtype* prediction, numtype* actual) {}
@@ -26,4 +29,6 @@ typedef struct sLogger : sObj {
 	EXPORT void SaveClient(int pid, char* clientName, DWORD startTime, DWORD duration, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {}
 	EXPORT void Commit() {}
 
+private:
+	void ffname_malloc();
 } tLogger;

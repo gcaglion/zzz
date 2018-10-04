@@ -15,7 +15,7 @@ struct sCfgKey : sObj {
 	sCfgKey(sObjParmsDef, int linesCnt_, sCfgLine** cfgLine_, int startLine_);
 	~sCfgKey();
 
-	template<typename T> EXPORT void getParm(T* pvar, const char* parmDesc, int* oValsCnt_=nullptr, bool ignoreError=false) {
+	template<typename T> EXPORT void getParm(T* pvar, const char* parmDesc, bool ignoreError=false, int* oValsCnt_=nullptr) {
 		sObj* parmObj=nullptr;
 
 		//-- call sObj findChild on parmDesc

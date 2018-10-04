@@ -79,7 +79,7 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &steps, "HistoryLen");
 	safecall(cfgKey, getParm, &dt, "DataTransformation");
 	safecall(cfgKey, getParm, &BWcalc, "BWCalc");
-	safecall(cfgKey, getParm, &tsf, "StatisticalFeatures", &tsfCnt);
+	safecall(cfgKey, getParm, &tsf, "StatisticalFeatures", false, &tsfCnt);
 
 	//-- 2. Find and set DataSource
 	if(!setDataSource(cfg)) fail("No Valid DataSource Parameters Key found.");

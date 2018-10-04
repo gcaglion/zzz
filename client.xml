@@ -73,28 +73,6 @@
 				BWFeatures			= 1,2
 			</DataSet>
 		</Test>
-		<Test.XXX>
-			Do	= true
-			<DataSet>
-				<TimeSerie>
-					Date0				= 201612300000abc
-					HistoryLen			= 100
-					DataTransformation	= DT_DELTALOG
-					BWCalc				= true
-					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
-					<File_DataSource>
-						FileName = C:/temp/SunSpots.txt
-						FieldSep = TAB_SEPARATOR
-						CalcBW = true
-						BWfeatureH = 4
-						BWfeatureL = 5
-					</File_DataSource>
-				</TimeSerie>
-				BatchSamplesCount	= 50
-				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-				BWFeatures			= 1,2
-			</DataSet>
-		</Test.XXX>
 	</Data>
 	<Engine>
 		<Debugger>
@@ -256,17 +234,21 @@
 	<Persistor>
 		saveNothing		= false
 		saveClient		= true
-		saveMSE			  = true
-		saveRun			  = true
+		saveMSE			= true
+		saveRun			= true
 		saveInternals	= false
-		saveImage		  = true
-		Destination      = ORCL_DEST
+		saveImage		= true
 		<DestDB>
-			UserName			  = cuLogUser
-			Password		= LogPwd
+			UserName	= LogUser
+			Password	= LogPwd
 			ConnString	= Algo
 		</DestDB>
-		<DestFiles>      
+		<DestFiles>
+			Client		= c:\temp\logs\Persistor\Client.log
+			MSE			= c:\temp\logs\Persistor\MSE.log
+			Run			= c:\temp\logs\Persistor\Run.log
+			Internals	= c:\temp\logs\Persistor\Internals.log
+			Image		= c:\temp\logs\Persistor\Image.log
 		</DestFiles>
 	</Persistor>
 </Forecaster>

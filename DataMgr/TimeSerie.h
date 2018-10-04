@@ -7,10 +7,6 @@
 #include "FileData.h"
 #include "MT4Data.h"
 
-#ifdef USE_ORCL
-#include "../OraOci/OraOci.h"
-#endif 
-
 #define MAX_DATA_FEATURES 128
 #define MAX_TSF_CNT	32
 

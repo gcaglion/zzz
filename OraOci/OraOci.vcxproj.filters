@@ -15,18 +15,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="OraOci.cpp">
+    <ClCompile Include="sOraDB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="OraOci.h">
+    <ClInclude Include="OraOciCommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sOraConn.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OraData.h">
+    <ClInclude Include="sOraDB.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

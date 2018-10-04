@@ -18,7 +18,6 @@ struct sRoot : sObj {
 	sTimeSerie* trainTS;
 	sDataSet* trainDS;
 	sFXData* fxData1;
-	sOraConnection* dbconn1;
 	sDataShape* dshape1;
 	sDataShape* dshape2;
 	sForecaster* mainForecaster=nullptr;
