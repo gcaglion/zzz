@@ -37,8 +37,8 @@ struct sCfgObj : sObj {
 
 //-- 1. get Parameters
 //-- 2. do stuff and spawn sub-Keys
-//-- 3. Restore currentKey
-cfg->currentKey=cfg->bkpKey;
+//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
+cfg->currentKey=bkpKey;
 
 ==============================================================================
 

@@ -18,10 +18,16 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Algebra.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Algebra.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0C5B056C-F33D-4BA0-8572-AC1E3DEF3FBD}</ProjectGuid>
+    <ProjectGuid>{EDE1D4BF-A838-40B5-B022-FF99CA0A93E2}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>OraUtils</RootNamespace>
+    <RootNamespace>MyAlgebra</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -91,22 +97,15 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;ORAUTILS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ORACLE_HOME2)\precomp\public</AdditionalIncludeDirectories>
-      <ShowIncludes>true</ShowIncludes>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;_WINDOWS;_USRDLL;MYALGEBRA_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(CUDA_PATH)\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OutDir);$(ORACLE_HOME2)\oci\lib\msvc;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>BaseObj.lib;winmm.lib;oci.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>s0.lib; DebuggerParms.lib;;MyCU.lib;cudart.lib;winmm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);$(CUDA_PATH)\lib\$(Platform)</AdditionalLibraryDirectories>
     </Link>
-    <PreBuildEvent>
-      <Command>set ORACLE_HOME=$(ORACLE_HOME2)
-$(ORACLE_HOME2)\bin\proc $(ProjectName).pc $(ProjectName).c SQLCHECK=SEMANTICS userid=LogUser/LogPwd@Algo THREADS=YES DYNAMIC=ANSI TYPE_CODE=ORACLE
-</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -114,22 +113,15 @@ $(ORACLE_HOME2)\bin\proc $(ProjectName).pc $(ProjectName).c SQLCHECK=SEMANTICS u
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;_USRDLL;ORAUTILS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ORACLE_HOME1)\precomp\public</AdditionalIncludeDirectories>
-      <ShowIncludes>false</ShowIncludes>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;_WINDOWS;_USRDLL;MYALGEBRA_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(CUDA_PATH)\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(OutDir);$(ORACLE_HOME1)\oci\lib\msvc;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>BaseObj.lib;winmm.lib;oci.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>s0.lib; DebuggerParms.lib;;MyCU.lib;cudart.lib;winmm.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(OutDir);$(CUDA_PATH)\lib\$(Platform)</AdditionalLibraryDirectories>
     </Link>
-    <PreBuildEvent>
-      <Command>set ORACLE_HOME=$(ORACLE_HOME1)
-$(ORACLE_HOME1)\bin\proc $(ProjectName).pc $(ProjectName).c THREADS=YES DYNAMIC=ANSI TYPE_CODE=ORACLE
-</Command>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -139,8 +131,7 @@ $(ORACLE_HOME1)\bin\proc $(ProjectName).pc $(ProjectName).c THREADS=YES DYNAMIC=
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;ORAUTILS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;MYALGEBRA_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -157,8 +148,7 @@ $(ORACLE_HOME1)\bin\proc $(ProjectName).pc $(ProjectName).c THREADS=YES DYNAMIC=
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;ORAUTILS_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;_USRDLL;MYALGEBRA_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -167,15 +157,6 @@ $(ORACLE_HOME1)\bin\proc $(ProjectName).pc $(ProjectName).c THREADS=YES DYNAMIC=
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <None Include="OraUtils.pc" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="OraUtils.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="OraUtils.c" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
