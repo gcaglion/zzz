@@ -173,16 +173,18 @@ struct sAlgebra : public sObj {
 	EXPORT void x2h(numtype* destAddr, numtype* srcAddr, int size, bool useStreams=false);
 	EXPORT void h2x(numtype* destAddr, numtype* srcAddr, int size, bool useStreams=false);
 
-	bool myMalloc(numtype** var, int size);
-	bool getMcol_cpu(int Ay, int Ax, numtype* A, int col, numtype* oCol);
-	bool MbyM_std(int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, numtype* C);
-	bool Vinit(int size, numtype* v, numtype start, numtype inc);
-	bool VbyV2V(int Vlen, numtype* V1, numtype* V2, numtype* oV);
-	bool Vdiff(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov);
-	bool Vadd(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov);
+	EXPORT bool myMalloc(numtype** var, int size);
+	EXPORT bool getMcol_cpu(int Ay, int Ax, numtype* A, int col, numtype* oCol);
+	EXPORT bool MbyM_std(int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, numtype* C);
+	EXPORT bool Vinit(int size, numtype* v, numtype start, numtype inc);
+	EXPORT bool VbyV2V(int Vlen, numtype* V1, numtype* V2, numtype* oV);
+	EXPORT bool Vdiff(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov);
+	EXPORT bool Vadd(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov);
+	EXPORT bool myFree(numtype* var);
 
 } ;
 
+/*
 EXPORT void Mprint(int my, int mx, numtype* sm, const char* msg=nullptr, int smy0=-1, int smx0=-1, int smy=-1, int smx=-1);
 EXPORT void Msub(int my, int mx, numtype* INm, numtype* OUTsm, int smy0, int smx0, int smy, int smx);
 EXPORT int Vsum(int Vlen, int* V);
@@ -227,5 +229,5 @@ EXPORT bool VVVcomp(int Vlen, numtype* V1, numtype* V2, numtype* oV, bool usegpu
 EXPORT bool Vdiffcomp(int Vlen, numtype* V1, numtype scale1, numtype* V2, numtype scale2, numtype* oV, bool usegpu);
 EXPORT bool MbyMcomp(void* cublasH, int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, numtype* C, numtype* T, bool usegpu);
 EXPORT bool MbyMcompare(void* cublasH, int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, int Cy, int Cx, numtype* C, numtype* T);
-
+*/
 

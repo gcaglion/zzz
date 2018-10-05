@@ -1,7 +1,7 @@
 #include "sCoreLayout.h"
 
-sCoreLayout::sCoreLayout(sCfgObjParmsDef, int id_, sDataShape* dataShape_) : sCfgObj(sCfgObjParmsVal) {
-	id=id_; dataShape=dataShape;
+sCore::sCore(sCfgObjParmsDef, int id_, sDataShape* dataShape_) : sCfgObj(sCfgObjParmsVal) {
+	id=id_; baseDataShape=dataShape_;
 
 	//-- 0. mallocs
 	parentId=(int*)malloc(CORE_MAX_PARENTS*sizeof(int));
@@ -19,10 +19,11 @@ sCoreLayout::sCoreLayout(sCfgObjParmsDef, int id_, sDataShape* dataShape_) : sCf
 
 
 }
-sCoreLayout::~sCoreLayout() {
+sCore::~sCore() {
 	free(parentId);
 	free(parentConnType);
 	for (int p=0; p<CORE_MAX_PARENTS; p++) free(parentDesc[p]); 
 	free(parentDesc);
 }
 
+void sCore::init(int coreId_, sDataShape* dataShape_, void* coreParms_) {}

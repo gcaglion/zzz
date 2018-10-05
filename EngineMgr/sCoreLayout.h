@@ -2,10 +2,11 @@
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "../DataMgr/DataShape.h"
+#include "Core_enums.h"
 
 #define CORE_MAX_PARENTS	32
 
-struct sCoreLayout : sCfgObj {
+struct sCore : sCfgObj {
 	int id;
 	int type;
 	int layer=-1;
@@ -13,10 +14,11 @@ struct sCoreLayout : sCfgObj {
 	int* parentId;
 	int* parentConnType;
 
-	sDataShape* dataShape;
+	sDataShape* baseDataShape;
 
-	EXPORT sCoreLayout(sCfgObjParmsDef, int id_, sDataShape* dataShape_);
-	EXPORT ~sCoreLayout();
+	EXPORT sCore(sCfgObjParmsDef, int id_, sDataShape* dataShape_);
+	EXPORT ~sCore();
+	virtual void init(int coreId_, sDataShape* dataShape_, void* coreParms_);
 
 private:
 	char** parentDesc;

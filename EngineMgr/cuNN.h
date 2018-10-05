@@ -2,10 +2,10 @@
 
 #include "..\common.h"
 #include "../ConfigMgr/sCfgObj.h"
-#include "sCore.h"
 #include "../Algebra/Algebra.h"
+#include "../DataMgr/DataShape.h"
 #include "../DataMgr/DataSet.h"
-//#include "../Core/Core.h"
+#include "sCoreLayout.h"
 #include "NN_parms.h"
 #include "NN_enums.h"
 
@@ -75,9 +75,9 @@ typedef struct sNN : sCore {
 	DWORD WUstart, WUtimeTot=0, WUcnt=0; float WUtimeAvg;
 	DWORD TRstart, TRtimeTot=0, TRcnt=0; float TRtimeAvg;
 
-	void sNN_common(sDataShape* baseShape);
-	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* coreLayout_);
-	EXPORT sNN(sCfgObjParmsDef, sDataShape* baseShape, sNNparms* NNparms_);
+	void init(int coreId_, sDataShape* dataShape_, void* NNparms_);
+
+	EXPORT sNN(sCfgObjParmsDef, int coreId_, sDataShape* dataShape_, void* NNparms_);
 	EXPORT ~sNN();
 
 	EXPORT void setActivationFunction(int* func_);

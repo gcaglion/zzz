@@ -2,6 +2,7 @@
 
 //-- Engine stuff
 
+/*
 void sEngine::addCore(int coreId) {
 
 	switch (coreLayout[coreId]->type) {
@@ -22,7 +23,7 @@ void sEngine::addCore(int coreId) {
 		break;
 	}
 }
-
+*/
 sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParmsVal) {
 
 	dataShape=dataShape_;
@@ -40,10 +41,9 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 		safecall(cfgKey, getParm, &coresCnt, "Custom/CoresCount");
 		//-- 1. malloc one core and one coreLayout for each core
 		core=(sCore**)malloc(coresCnt*sizeof(sCore*));
-		coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
 		//-- 2. create layout, set base coreLayout properties for each Core (type, desc, connType, outputCnt)
 		for (c=0; c<coresCnt; c++) {
-			safespawn(false, coreLayout[c], newsname("Core_%d_Layout",c), defaultdbg, cfg, (newsname("Core%d", c))->base, c, dataShape);
+			safespawn(false, core[c], newsname("Core%d",c), defaultdbg, cfg, (newsname("Core%d", c))->base, c, dataShape);
 		}
 		break;
 	case ENGINE_WNN:
@@ -61,8 +61,8 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 
 	//-- 3. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
 	for (c=0; c<coresCnt; c++) {
-		setCoreLayer(coreLayout[c]);
-		layerCoresCnt[coreLayout[c]->layer]++;
+		setCoreLayer(core[c]);
+		layerCoresCnt[core[c]->layer]++;
 	}
 	//-- 4. determine layersCnt, and InputCnt for each Core
 	for (int l=0; l<MAX_ENGINE_LAYERS; l++) {
@@ -71,35 +71,35 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 				//-- do nothing. keep core shape same as engine shape
 			} else {
 				//-- change sampleLen
-				coreLayout[c]->dataShape->sampleLen=layerCoresCnt[l-1]*coreLayout[c]->dataShape->predictionLen;
+				core[c]->baseDataShape->sampleLen=layerCoresCnt[l-1]*core[c]->baseDataShape->predictionLen;
 			}
 		}
 		if (c==0) break;
 		layersCnt++;
 	}
 
-	//-- 5. add each core
+	//-- 5. init each core
 	for (c=0; c<coresCnt; c++) {
-		safecall(parms->backupKey());
-		safecall(addCore(parms, c));
-		safecall(parms->restoreKey());
-	}//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
+		core[c]->init(c, dataShape, nullptr);
+	}
+	
+	//-- 6. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 
 }
 
 sEngine::~sEngine() {
 	free(core);
-	free(coreLayout);
+	//free(coreLayout);
 	free(layerCoresCnt);
 }
 
-void sEngine::sesCoreLayer(sCoreLayout* c) {
+void sEngine::setCoreLayer(sCore* c) {
 	int ret=0;
 	int maxParentLayer=-1;
 	for (int p=0; p<c->parentsCnt; p++) {
-		sCoreLayout* parent=coreLayout[c->parentId[p]];
-		sesCoreLayer(parent);
+		sCore* parent=core[c->parentId[p]];
+		setCoreLayer(parent);
 		if (parent->layer>maxParentLayer) {
 			maxParentLayer=parent->layer;
 		}

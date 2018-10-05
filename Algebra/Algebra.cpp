@@ -4,6 +4,7 @@
 #include "../MyCU/MyCU.h"
 #endif
 
+/*
 EXPORT void Mprint(int my, int mx, numtype* sm, const char* msg, int smy0, int smx0, int smy, int smx) {
 
 	if (smy==-1) smy=my;
@@ -66,7 +67,7 @@ EXPORT bool Vcopy(int vlen, numtype* v1, numtype* v2) {
 	return true;
 #endif
 }
-/*EXPORT bool Vadd(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov) {
+EXPORT bool Vadd(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov) {
 #ifdef USE_GPU
 	return (Vadd_cu(vlen, v1, scale1, v2, scale2, ov));
 #else
@@ -74,8 +75,7 @@ EXPORT bool Vcopy(int vlen, numtype* v1, numtype* v2) {
 	return true;
 #endif
 }
-*/
-/*EXPORT bool Vdiff(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov) {
+EXPORT bool Vdiff(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov) {
 #ifdef USE_GPU
 	return (Vdiff_cu(vlen, v1, scale1, v2, scale2, ov));
 #else
@@ -83,7 +83,7 @@ EXPORT bool Vcopy(int vlen, numtype* v1, numtype* v2) {
 	return true;
 #endif
 }
-*/EXPORT bool Vssum(int vlen, numtype* v, numtype* ovssum) {
+EXPORT bool Vssum(int vlen, numtype* v, numtype* ovssum) {
 	//-- if using GPU, the sum scalar also resides in GPU
 #ifdef USE_GPU
 	return(Vssum_cu(vlen, v, ovssum));
@@ -93,7 +93,7 @@ EXPORT bool Vcopy(int vlen, numtype* v1, numtype* v2) {
 	return true;
 #endif
 }
-/*EXPORT bool Vinit(int size, numtype* v, numtype start, numtype inc) {
+EXPORT bool Vinit(int size, numtype* v, numtype start, numtype inc) {
 #ifdef USE_GPU
 	return(Vinit_cu(size, v, start, inc));
 #else
@@ -101,30 +101,30 @@ EXPORT bool Vcopy(int vlen, numtype* v1, numtype* v2) {
 	return true;
 #endif
 }
-*/EXPORT bool VinitRnd(int Vlen, numtype* V, numtype rndmin, numtype rndmax, void* cuRandH) {
+EXPORT bool VinitRnd(int Vlen, numtype* V, numtype rndmin, numtype rndmax, void* cuRandH) {
 #ifdef USE_GPU
 	return(VinitRnd_cu(Vlen, V, rndmin, rndmax, cuRandH));
 #else
 	time_t t;
 	srand((unsigned)time(&t));
 
-	/* Print 5 random numbers from 0 to 49 */
+	//-- Print 5 random numbers from 0 to 49
 	for (int i = 0; i < Vlen; i++) {
 		V[i] = rndmin+(numtype)rand()/((numtype)RAND_MAX+1) * (rndmax-rndmin);
 		//printf("rand[%d]=%f\n", i, V[i]);
 	}
-/*
+
 	unsigned int number=1234;
 	int err;
 	for (int i=0; i<Vlen; i++) {
 		err = rand_s(&number);
 		V[i] = rndmin+(numtype)number/((numtype)UINT_MAX+1) * (rndmax-rndmin);
 	}
-*/
+
 	return true;
 #endif
 }
-/*EXPORT bool VbyV2V(int Vlen, numtype* V1, numtype* V2, numtype* oV) {
+EXPORT bool VbyV2V(int Vlen, numtype* V1, numtype* V2, numtype* oV) {
 #ifdef USE_GPU
 	return(VbyV2V_cu(Vlen, V1, V2, oV));
 #else
@@ -132,7 +132,7 @@ EXPORT bool Vcopy(int vlen, numtype* v1, numtype* v2) {
 	return true;
 #endif
 }
-*/
+
 EXPORT bool Mtranspose(void* cublasH, int my, int mx, numtype* m, numtype* otm) {
 #ifdef USE_GPU
 	return(cuMtr_cublas(cublasH, my, mx, m, otm));
@@ -145,7 +145,7 @@ EXPORT bool Mtranspose(void* cublasH, int my, int mx, numtype* m, numtype* otm) 
 	return true;
 #endif
 }
-/*EXPORT bool MbyM_std(int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, numtype* C) {
+EXPORT bool MbyM_std(int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, numtype* C) {
 
 	int m1y=Ay, m1x=Ax, m1i; numtype* m1=A;
 	int m2y=By, m2x=Bx, m2i; numtype* m2=B;
@@ -172,9 +172,9 @@ EXPORT bool Mtranspose(void* cublasH, int my, int mx, numtype* m, numtype* otm) 
 	//printf("\n");
 	return true;
 }
-*/
 
-/*//-- memory initializatin
+
+//-- memory initializatin
 EXPORT bool myMalloc(numtype** var, int size) {
 #ifdef USE_GPU
 	return (Malloc_cu(var, size));
@@ -182,7 +182,7 @@ EXPORT bool myMalloc(numtype** var, int size) {
 	(*var) = (numtype*)malloc(size*sizeof(numtype));
 	return true;
 #endif
-}*/
+}
 EXPORT bool myFree(numtype* var) {
 	#ifdef USE_GPU
 		return (Free_cu(var));
@@ -384,6 +384,7 @@ bool MbyMcompare(void* cublasH, int Ay, int Ax, numtype Ascale, bool Atr, numtyp
 	return false;
 #endif
 }
+*/
 
 //-- class constructor/destructor
 sAlgebra::sAlgebra(sObjParmsDef) : sObj(sObjParmsVal) {
@@ -528,6 +529,14 @@ bool sAlgebra::Vadd(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype 
 	return (Vadd_cu(vlen, v1, scale1, v2, scale2, ov));
 #else
 	for (int i=0; i<vlen; i++) ov[i]=v2[i]*scale2+v1[i]*scale1;
+	return true;
+#endif
+}
+bool sAlgebra::myFree(numtype* var) {
+#ifdef USE_GPU
+	return (Free_cu(var));
+#else
+	free(var);
 	return true;
 #endif
 }
