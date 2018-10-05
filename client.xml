@@ -239,7 +239,7 @@
 		saveInternals	= false
 		saveImage		= true
 		<DestDB>
-			UserName	= LogUser
+			UserName	= CULogUser
 			Password	= LogPwd
 			ConnString	= Algo
 		</DestDB>

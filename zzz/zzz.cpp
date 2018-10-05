@@ -31,6 +31,7 @@ struct sRoot : sObj {
 	sDataShape* dshape1;
 	sDataShape* dshape2;
 	sForecaster* mainForecaster;
+	sOraDB* oradb1;
 
 	//tData*			fData=nullptr;		//-- Forecaster data
 	//tEngine*		fEngine=nullptr;	//-- Forecaster engine
@@ -46,56 +47,56 @@ struct sRoot : sObj {
 		CLoverride(argc_, argv_);
 	}
 
+	void testDML() {
+		int pid=99;
+		int epochs=2000;
+		int tid=pid;
+		numtype* trainMSE = (numtype*)malloc(epochs*sizeof(numtype));
+		numtype* validMSE = (numtype*)malloc(epochs*sizeof(numtype));
+		for (int e=0; e<epochs; e++) {
+			trainMSE[e]=MyRndDbl(0, 10);
+			validMSE[e]=MyRndDbl(0, 10);
+		}
+		safespawn(false, oradb1, newsname("TestOraDB"), defaultdbg, "CULogUser", "LogPwd", "Algo", true);
+		safecall(oradb1, saveMSE, pid, tid, epochs, trainMSE, validMSE);
+		
+		int setid=0, npid=pid, ntid=tid, barsCnt=1000, featuresCnt=4;
+		int feature[4]={ 0,1,2,3 };
+		numtype* prediction= (numtype*)malloc(barsCnt*featuresCnt*sizeof(numtype));
+		numtype* actual    = (numtype*)malloc(barsCnt*featuresCnt*sizeof(numtype));
+
+		int i=0;
+		for (int b=0; b<barsCnt; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				prediction[i]=MyRndDbl(0, 10);
+				actual[i]=MyRndDbl(0, 10);
+				i++;
+			}
+		}
+		safecall(oradb1, saveRun, pid, tid, setid, npid, ntid, barsCnt, featuresCnt, feature, prediction, actual);
+
+		int Wcnt=35150;
+		numtype* W = (numtype*)malloc(Wcnt*sizeof(numtype));
+		//for (int i=0; i<Wcnt; i++) W[i]=MyRndDbl(0, 1);
+		//safecall(oradb1, SaveW, pid, tid, 2000, Wcnt, W);
+		pid=73624;
+		tid=76992;
+		int epoch=-1;
+		safecall(oradb1, loadW, pid, tid, epoch, Wcnt, W);
+
+	}
+
 	void execute() {
 		try {
 			//-- 2. do stuff
+
+			testDML();
 
 			safespawn(false, clientCfg, newsname("client_Config"), nullptr, "C:\\Users\\gcaglion\\dev\\zzz\\ForecastData.xml");
 			safespawn(false, clientCfg, newsname("Root_Config"), defaultdbg, cfgFileFullName);
 
 			safespawn(false, mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
-			//sName* n=new sName("dshape1");
-			//dshape1=new sDataShape(this, n, nullptr, clientCfg, "/Forecaster/Data/Shape");
-			//safespawn(false, dshape2, newsname("Shape2"), nullptr, clientCfg, "/Forecaster/Data/Shape");
-			//safespawn(false, forecastData, newsname("Main_Forecaster_Data"), defaultdbg, clientCfg, "/Forecaster/Data");
 
-			//safespawn(false, dbconn1, newsname("DBConn1"), nullptr, "History", "HistoryPwd", "Algo");
-			//safespawn(false, dbconn1, newsname("DBConn1"), defaultdbg, clientCfg, "/Forecaster/Data/Train/Dataset/TimeSerie/FXDB_DataSource/DBConnection");
-			//safecall(clientCfg, setKey, "Forecaster");
-			//safespawn(false, forecastData, newsname("ForecastData"), defaultdbg, clientCfg, "/Forecaster/Data");
-			//safespawn(false, dshape1, newsname("Shape1"), nullptr, clientCfg, "Data/Shape");
-
-/*			safecall(clientCfg, setKey, "Forecaster/Data/Train/Dataset");
-			safecall(clientCfg, setKey, "/Forecaster/Data/Train/Dataset");
-			safecall(clientCfg, setKey, "///Forecaster/Data/Train/Dataset");
-			safecall(clientCfg, setKey, "../");
-			safecall(clientCfg, setKey, "Dataset");
-			safecall(clientCfg, setKey, "../../Shape");
-
-			safecall(clientCfg, getParm, &sampleLen, "SampleLen");
-			safecall(clientCfg, getParm, &PredictionLen, "PredictionLen");
-			safecall(clientCfg, getParm, &FeaturesCnt, "FeaturesCount");
-
-			safespawn(false, forecastData, newsname("Forecaster_Data"), nullptr, clientCfg, "/Forecaster/Data");
-
-			//safespawn(false, fxData1, newsname("fxData1"), nullptr, clientCfg, "FXDB_DataSource");
-
-			//safespawn(false, trainTS, newsname("TrainingTimeSerie"), nullptr, clientCfg, "TimeSerie");
-			
-			safecall(clientCfg, setKey, "../Train/Dataset");
-			safecall(clientCfg, setKey, "TimeSerie/DataSource");
-			safecall(clientCfg, getParm, &dsType, "Type");
-
-			safecall(clientCfg, setKey, "../Test/Dataset");
-
-			safespawn(false, XMLparms, tParmsSource, "C:\\Users\\gcaglion\\dev\\cudaNN\\Client\\Client.xml", argc, argv, true);
-			//-- 2. create Forecaster Data from parms
-			safespawn(false, fData, tData, XMLparms, ".Forecaster.Data");
-			//-- 3. create Forecaster Engine from parms
-			safespawn(false, fEngine, tEngine, XMLparms, ".Forecaster.Engine", fData->shape);
-			//-- 4. create Forecaster Persistor
-			safespawn(false, fPersistor, tLogger, XMLparms, ".Forecaster.Persistor");
-*/
 		}
 		catch (std::exception exc) {
 			fail("Exception=%s", exc.what());
@@ -141,18 +142,6 @@ private:
 
 
 int main(int argc, char* argv[]) {
-
-	int pid=99;
-	int epochs=2000;
-	int tid=pid;
-	numtype* trainMSE = (numtype*)malloc(epochs*sizeof(numtype));
-	numtype* validMSE = (numtype*)malloc(epochs*sizeof(numtype));
-	for (int e=0; e<epochs; e++) {
-		trainMSE[e]=MyRndDbl(0, 10);
-		validMSE[e]=MyRndDbl(0, 10);
-	}
-	sOraDB* oradb1= new sOraDB(nullptr, newsname("TestOraDB"), defaultdbg, "LogUser", "LogPwd", "Algo", true);
-	oradb1->SaveMSE(pid, tid, epochs, trainMSE, validMSE);
 
 	//-- 1. create root object. root constructor does everything else
 	sRoot* root=nullptr;

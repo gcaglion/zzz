@@ -42,7 +42,7 @@ void sOraDB::close() {
 void sOraDB::commit() {
 	((Connection*)conn)->commit();
 }
-
+//-- Read
 void sOraDB::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar) {
 	int i;
 	Statement* stmt=nullptr;
@@ -82,24 +82,53 @@ void sOraDB::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pRecCount,
 
 
 }
-void sOraDB::SaveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
+void sOraDB::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+	char sql[SQL_MAXLEN];
+	Statement* stmt=nullptr;
+	ResultSet *rset;
 
-	Statement* stmt = ((Connection*)conn)->createStatement("insert into MyLog_MSE(ProcessId, ThreadId, Epoch, MSE_T, MSE_V) values(:P01, :P02, :P03, :P04, :P05)");
-/*
-	int epoch=0;
-	try {
-		stmt->setInt(1, pid);
-		stmt->setInt(2, tid);
-		stmt->setInt(3, epoch);
-		stmt->setFloat(4, 0.1f);
-		stmt->setFloat(5, 0.2f);
-		stmt->executeUpdate();
+	//-- if a specific epoch is not provided, we first need to find the last epoch
+	if (epoch==-1) {
+		sprintf_s(sql, SQL_MAXLEN, "select max(epoch) from CoreImage_NN where processId = %d and ThreadId = %d", pid, tid);
+		try {
+			stmt = ((Connection*)conn)->createStatement(sql);
+			rset = stmt->executeQuery();
+			if (rset->next() && !rset->isNull(1)) {
+				epoch=rset->getInt(1);
+			} else {
+				fail("Could not find max epoch for processId=%d, ThreadId=%d", pid, tid);
+			}
+		} catch (SQLException ex) {
+			fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+		}
+		stmt->closeResultSet(rset);
+		((Connection*)conn)->terminateStatement(stmt);
 	}
-	catch (SQLException ex)
-	{
-		printf("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+
+	//-- once we have the epoch, we load Ws for that pid, tid, epoch
+	int i=0;
+	sprintf_s(sql, SQL_MAXLEN, "select WId, W from CoreImage_NN where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1,2", pid, tid, epoch);
+	try{
+		stmt = ((Connection*)conn)->createStatement(sql);
+		rset = stmt->executeQuery();
+		while (rset->next()&&i<Wcnt) {
+			W[i] = rset->getFloat(2);
+			i++;
+		}
+	} catch(SQLException ex){
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
 	}
-*/
+
+	//-- close result set and terminate statement before exiting
+	stmt->closeResultSet(rset);
+	((Connection*)conn)->terminateStatement(stmt);
+
+}
+//-- Write
+void sOraDB::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
+
+	Statement* stmt = ((Connection*)conn)->createStatement("insert into TrainLog(ProcessId, ThreadId, Epoch, MSE_T, MSE_V) values(:P01, :P02, :P03, :P04, :P05)");
+
 	stmt->setMaxIterations(mseCnt);
 	for (int epoch=0; epoch<mseCnt; epoch++) {
 		stmt->setInt(1, pid);
@@ -109,6 +138,7 @@ void sOraDB::SaveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV)
 		stmt->setFloat(5, mseV[epoch]);
 		if(epoch<(mseCnt-1)) stmt->addIteration();
 	}
+
 	try {
 		stmt->executeUpdate();
 	} catch (SQLException ex) {
@@ -119,8 +149,66 @@ void sOraDB::SaveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV)
 	//stmt->setDataBuffer(5, mseV, OCCIFLOAT, sizeof(numtype), ntl);
 	
 }
-void sOraDB::SaveRun(int pid, int tid, int setid, int npid, int ntid, int runCnt, int featuresCnt, int* feature, numtype* prediction, numtype* actual) {}
-void sOraDB::SaveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
-void sOraDB::LoadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
-void sOraDB::SaveClient(int pid, char* clientName, DWORD startTime, DWORD duration, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {}
-void sOraDB::Commit() {}
+void sOraDB::saveRun(int pid, int tid, int setid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, numtype* prediction, numtype* actual) {
+
+	int runCnt=barsCnt*featuresCnt;
+	Statement* stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, SetId, NetProcessId, NetThreadId, Pos, FeatureId, PredictedTRS, ActualTRS, ErrorTRS) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10)");
+	stmt->setMaxIterations(runCnt);
+
+	int i=0;
+	for (int b=0; b<barsCnt; b++) {
+		for (int f=0; f<featuresCnt; f++) {
+			stmt->setInt(1, pid);
+			stmt->setInt(2, tid);
+			stmt->setInt(3, setid);
+			stmt->setInt(4, npid);
+			stmt->setInt(5, ntid);
+			stmt->setInt(6, b);
+			stmt->setInt(7, feature[f]);
+			stmt->setFloat(8, prediction[i]);
+			stmt->setFloat(9, actual[i]);
+			stmt->setFloat(10, fabs(actual[i]-prediction[i]));
+			i++;
+			if (i<(runCnt-1)) stmt->addIteration();
+		}
+	}
+
+	try {
+		stmt->executeUpdate();
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+	}
+
+}
+void sOraDB::saveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+
+	Statement* stmt = ((Connection*)conn)->createStatement("insert into CoreImage_NN (ProcessId, ThreadId, Epoch, WId, W) values(:P01, :P02, :P03, :P04, :P05)");
+
+	stmt->setMaxIterations(Wcnt);
+	for (int i=0; i<Wcnt; i++) {
+		stmt->setInt(1, pid);
+		stmt->setInt(2, tid);
+		stmt->setInt(3, epoch);
+		stmt->setInt(4, i);
+		stmt->setFloat(5, W[i]);
+		if (i<(Wcnt-1)) stmt->addIteration();
+	}
+
+	try {
+		stmt->executeUpdate();
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+	}
+}
+void sOraDB::saveClient(int pid, char* clientName, DWORD startTime, DWORD duration, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {
+	char stmtS[SQL_MAXLEN]; sprintf_s(stmtS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, ClientName, ClientStart, SimulationLen, Duration, SimulationStart, DoTraining, DoTrainRun, DoTestRun) values(%d, '%s', sysdate, %d, %ld, to_date('%s','YYYYMMDDHH24MI'), %d, %d, %d)", pid, clientName, simulLen, (DWORD)(duration/1000), simulStart, (doTrain) ? 1 : 0, (doTrainRun) ? 1 : 0, (doTestRun) ? 1 : 0);
+	Statement* stmt = ((Connection*)conn)->createStatement(stmtS);
+	try {
+		stmt->executeUpdate();
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+	}
+}
