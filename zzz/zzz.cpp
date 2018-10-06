@@ -90,11 +90,11 @@ struct sRoot : sObj {
 		try {
 			//-- 2. do stuff
 
-			testDML();
+			//testDML();
 
-			safespawn(false, clientCfg, newsname("client_Config"), nullptr, "C:\\Users\\gcaglion\\dev\\zzz\\ForecastData.xml");
+			//safespawn(false, clientCfg, newsname("client_Config"), nullptr, "C:\\Users\\gcaglion\\dev\\zzz\\ForecastData.xml");
+
 			safespawn(false, clientCfg, newsname("Root_Config"), defaultdbg, cfgFileFullName);
-
 			safespawn(false, mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
 
 		}

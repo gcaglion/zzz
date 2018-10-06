@@ -6,11 +6,11 @@
 #include "../DataMgr/FXData_enums.h"
 #include "../DataMgr/DBConnection_enums.h"
 #include "../DataMgr/TimeSerie_enums.h"
-/*#include "../Logger/Logger_enums.h"
-#include "../Engine/Engine_enums.h"
-#include "../Core/Core_enums.h"
-#include "../cuNN/NN_enums.h"
-*/
+#include "../Logger/Logger_enums.h"
+#include "../EngineMgr/Engine_enums.h"
+#include "../EngineMgr/Core_enums.h"
+#include "../EngineMgr/NN_enums.h"
+
 
 #define optionLookup(option, e) { \
 	if (_stricmp(valS[elementId], #option)==0) { \
@@ -25,7 +25,7 @@ void sCfgParm::decode(int elementId, int* oVal) {
 	optionLookup(FXDB_SOURCE, elementId);
 	optionLookup(FILE_SOURCE, elementId);
 	optionLookup(MT4_SOURCE, elementId);
-/*
+
 	//-- Logger enums
 	optionLookup(ORCL_DEST, elementId);
 	optionLookup(FILE_DEST, elementId);
@@ -33,18 +33,18 @@ void sCfgParm::decode(int elementId, int* oVal) {
 	optionLookup(DEFAULT_DBG_VERBOSITY, elementId);
 	optionLookup(DEFAULT_DBG_TIMING, elementId);
 	optionLookup(DEFAULT_DBG_PAUSERR, elementId);
-	optionLookup(DBG_DEST_FILE, elementId);
-	optionLookup(DBG_DEST_SCREEN, elementId);
-	optionLookup(DBG_DEST_BOTH, elementId);
+//	optionLookup(DBG_DEST_FILE, elementId);
+//	optionLookup(DBG_DEST_SCREEN, elementId);
+//	optionLookup(DBG_DEST_BOTH, elementId);
 	//-- FileData_enums
 	optionLookup(COMMA_SEPARATOR, elementId);
 	optionLookup(TAB_SEPARATOR, elementId);
 	optionLookup(SPACE_SEPARATOR, elementId);
-	optionLookup(FILE_MODE_READ, elementId);
 	//-- FileInfo enums
-	optionLookup(FILE_MODE_WRITE, elementId);
-	optionLookup(FILE_MODE_APPEND, elementId);
-*/
+//	optionLookup(FILE_MODE_READ, elementId);
+//	optionLookup(FILE_MODE_WRITE, elementId);
+//	optionLookup(FILE_MODE_APPEND, elementId);
+
 	//-- FXData enums
 	optionLookup(FXOPEN, elementId);
 	optionLookup(FXHIGH, elementId);
@@ -64,7 +64,7 @@ void sCfgParm::decode(int elementId, int* oVal) {
 	optionLookup(TSF_TURNINGPOINTS, elementId);
 	optionLookup(TSF_SHE, elementId);
 	optionLookup(TSF_HISTVOL, elementId);
-/*
+
 	//-- Engine enums
 	optionLookup(ENGINE_XIE, elementId);
 	optionLookup(ENGINE_WNN, elementId);
@@ -91,7 +91,6 @@ void sCfgParm::decode(int elementId, int* oVal) {
 	optionLookup(BP_QUICKPROP, elementId);
 	optionLookup(BP_SCGD, elementId);
 	optionLookup(BP_LM, elementId);
-	*/
 
 	fail("could not decode value %s for parameter %s", valS[elementId], name->full);
 

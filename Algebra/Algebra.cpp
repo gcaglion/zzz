@@ -4,7 +4,7 @@
 #include "../MyCU/MyCU.h"
 #endif
 
-/*
+
 EXPORT void Mprint(int my, int mx, numtype* sm, const char* msg, int smy0, int smx0, int smy, int smx) {
 
 	if (smy==-1) smy=my;
@@ -384,7 +384,7 @@ bool MbyMcompare(void* cublasH, int Ay, int Ax, numtype Ascale, bool Atr, numtyp
 	return false;
 #endif
 }
-*/
+
 
 //-- class constructor/destructor
 sAlgebra::sAlgebra(sObjParmsDef) : sObj(sObjParmsVal) {
@@ -537,6 +537,115 @@ bool sAlgebra::myFree(numtype* var) {
 	return (Free_cu(var));
 #else
 	free(var);
+	return true;
+#endif
+}
+bool sAlgebra::Vcopy(int vlen, numtype* v1, numtype* v2) {
+#ifdef USE_GPU
+	return(Vcopy_cu(vlen, v1, v2));
+#else
+	for (int i=0; i<vlen; i++) v2[i]=v1[i];
+	return true;
+#endif
+}
+
+//-- Activation Functions
+bool sAlgebra::Tanh(int Vlen, numtype* in, numtype* out) {
+#ifdef USE_GPU 
+	return(Tanh_cu(Vlen, in, out));
+#else 
+	for (int i=0; i<Vlen; i++) out[i]=(numtype)tanh(in[i]);
+	return true;
+#endif 
+}
+bool sAlgebra::dTanh(int Vlen, numtype* in, numtype* out) {
+#ifdef USE_GPU 
+	return (dTanh_cu(Vlen, in, out));
+#else 
+	for (int i=0; i<Vlen; i++) out[i]=(numtype)(1-pow(tanh(in[i]), 2));
+	return true;
+#endif 
+}
+bool sAlgebra::Exp4(int Vlen, numtype* in, numtype* out) {
+#ifdef USE_GPU 
+	return(Exp4_cu(Vlen, in, out));
+#else 
+	for (int i=0; i<Vlen; i++) out[i]=(numtype)(1/(1+exp(-4*in[i])));
+	return true;
+#endif
+}
+bool sAlgebra::dExp4(int Vlen, numtype* in, numtype* out) {
+#ifdef USE_GPU 
+	return(dExp4_cu(Vlen, in, out));
+#else 
+	for (int i=0; i<Vlen; i++) out[i]=(numtype)(4*exp(4*in[i])/(pow(exp(4*in[i])+1, 2)));
+	return true;
+#endif
+}
+bool sAlgebra::Relu(int Vlen, numtype* in, numtype* out) {
+#ifdef USE_GPU 
+	return(Relu_cu(Vlen, in, out));
+#else 
+	for (int i=0; i<Vlen; i++) out[i]=(numtype)(((in[i] > 0) ? 1 : 0));
+	return true;
+#endif 
+}
+bool sAlgebra::dRelu(int Vlen, numtype* in, numtype* out) {
+#ifdef USE_GPU 
+	return(dRelu_cu(Vlen, in, out));
+#else 
+	for (int i=0; i<Vlen; i++) out[i]=(numtype)(((in[i] > 0) ? in[i] : 0));
+	return true;
+#endif 
+}
+bool sAlgebra::SoftPlus(int Vlen, numtype* in, numtype* out) {
+#ifdef USE_GPU 
+	return(SoftPlus_cu(Vlen, in, out));
+#else 
+	for (int i=0; i<Vlen; i++) out[i]=(numtype)(log(1+exp(in[i])));
+	return true;
+#endif 
+}
+bool sAlgebra::dSoftPlus(int Vlen, numtype* in, numtype* out) {
+#ifdef USE_GPU 
+	return(dSoftPlus_cu(Vlen, in, out));
+#else 
+	for (int i=0; i<Vlen; i++) out[i]=(numtype)(1/(1+exp(-in[i])));
+	return true;
+#endif 
+}
+
+//-- Vector functions
+bool sAlgebra::Vssum(int vlen, numtype* v, numtype* ovssum) {
+	//-- if using GPU, the sum scalar also resides in GPU
+#ifdef USE_GPU
+	return(Vssum_cu(vlen, v, ovssum));
+#else
+	(*ovssum)=0;
+	for (int i=0; i<vlen; i++) (*ovssum)+=v[i]*v[i];
+	return true;
+#endif
+}
+bool sAlgebra::VinitRnd(int Vlen, numtype* V, numtype rndmin, numtype rndmax, void* cuRandH) {
+#ifdef USE_GPU
+	return(VinitRnd_cu(Vlen, V, rndmin, rndmax, cuRandH));
+#else
+	time_t t;
+	srand((unsigned)time(&t));
+
+	//-- Print 5 random numbers from 0 to 49
+	for (int i = 0; i < Vlen; i++) {
+		V[i] = rndmin+(numtype)rand()/((numtype)RAND_MAX+1) * (rndmax-rndmin);
+		//printf("rand[%d]=%f\n", i, V[i]);
+	}
+
+	unsigned int number=1234;
+	int err;
+	for (int i=0; i<Vlen; i++) {
+		err = rand_s(&number);
+		V[i] = rndmin+(numtype)number/((numtype)UINT_MAX+1) * (rndmax-rndmin);
+	}
+
 	return true;
 #endif
 }

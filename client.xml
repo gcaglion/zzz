@@ -3,6 +3,7 @@
 #Empty lines are ignored, too
 
 <Forecaster>
+	MyList = abc, def, ghijkl, mnopqras
 	<Debugger>
 		Verbose = false
 		ScreenOutput  = true

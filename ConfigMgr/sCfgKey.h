@@ -19,7 +19,6 @@ struct sCfgKey : sObj {
 		sObj* parmObj=nullptr;
 
 		//-- call sObj findChild on parmDesc
-		findChild(parmDesc, &parmObj);
 		safecall(this, findChild, parmDesc, &parmObj);
 		if (parmObj==nullptr) {
 			if (!ignoreError) fail("XML parameter not found. keyDesc=%s, parmDesc=%s", name->full, parmDesc);

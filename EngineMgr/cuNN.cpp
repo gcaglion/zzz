@@ -205,7 +205,7 @@ void sNN::FF() {
 		//-- feed back to context neurons
 		FF2start=timeGetTime(); FF2cnt++;
 		if (parms->useContext) {
-			Vcopy(nodesCnt[l+1], &F[levelFirstNode[l+1]], &F[ctxStart[l]]);
+			Alg->Vcopy(nodesCnt[l+1], &F[levelFirstNode[l+1]], &F[ctxStart[l]]);
 		}
 		FF2timeTot+=((DWORD)(timeGetTime()-FF2start));
 	}
@@ -222,20 +222,20 @@ void sNN::Activate(int level) {
 
 	switch (parms->ActivationFunction[level]) {
 	case NN_ACTIVATION_TANH:
-		retf=Tanh(nc, va, vF);
-		retd=dTanh(nc, va, vdF);
+		retf=Alg->Tanh(nc, va, vF);
+		retd=Alg->dTanh(nc, va, vdF);
 		break;
 	case NN_ACTIVATION_EXP4:
-		retf=Exp4(nc, va, vF);
-		retd=dExp4(nc, va, vdF);
+		retf=Alg->Exp4(nc, va, vF);
+		retd=Alg->dExp4(nc, va, vdF);
 		break;
 	case NN_ACTIVATION_RELU:
-		retf=Relu(nc, va, vF);
-		retd=dRelu(nc, va, vdF);
+		retf=Alg->Relu(nc, va, vF);
+		retd=Alg->dRelu(nc, va, vdF);
 		break;
 	case NN_ACTIVATION_SOFTPLUS:
-		retf=SoftPlus(nc, va, vF);
-		retd=dSoftPlus(nc, va, vdF);
+		retf=Alg->SoftPlus(nc, va, vF);
+		retd=Alg->dSoftPlus(nc, va, vdF);
 		break;
 	default:
 		retf=-1;
@@ -250,9 +250,9 @@ void sNN::calcErr() {
 	safecall(Vssum(nodesCnt[outputLevel], e, se));										// se=ssum(e) 
 	safecall(Vadd(1, tse, 1, se, 1, tse));												// tse+=se;
 	*/
-	Vdiff(nodesCnt[outputLevel], &F[levelFirstNode[outputLevel]], 1, u, 1, e);	// e=F[2]-u
-	Vssum(nodesCnt[outputLevel], e, se);										// se=ssum(e) 
-	Vadd(1, tse, 1, se, 1, tse);												// tse+=se;
+	Alg->Vdiff(nodesCnt[outputLevel], &F[levelFirstNode[outputLevel]], 1, u, 1, e);	// e=F[2]-u
+	Alg->Vssum(nodesCnt[outputLevel], e, se);										// se=ssum(e) 
+	Alg->Vadd(1, tse, 1, se, 1, tse);												// tse+=se;
 }
 
 void sNN::mallocNeurons() {
@@ -280,12 +280,12 @@ void sNN::initNeurons(){
 	}
 }
 void sNN::destroyNeurons() {
-	myFree(a);
-	myFree(F);
-	myFree(dF);
-	myFree(edF);
-	myFree(e);
-	myFree(u);
+	Alg->myFree(a);
+	Alg->myFree(F);
+	Alg->myFree(dF);
+	Alg->myFree(edF);
+	Alg->myFree(e);
+	Alg->myFree(u);
 }
 void sNN::createWeights() {
 	//-- malloc weights (on either CPU or GPU)
@@ -295,10 +295,10 @@ void sNN::createWeights() {
 	safecall(Alg, myMalloc, &dJdW, weightsCntTotal);
 }
 void sNN::destroyWeights() {
-	myFree(W);
-	myFree(prevW);
-	myFree(dW);
-	myFree(dJdW);
+	Alg->myFree(W);
+	Alg->myFree(prevW);
+	Alg->myFree(dW);
+	Alg->myFree(dJdW);
 }
 
 void sNN::BP_std(){
@@ -359,7 +359,7 @@ void sNN::WU_std(){
 	//safecall(Vdiff(weightsCntTotal, dW, parms->LearningMomentum, dJdW, parms->LearningRate, dW));
 
 	//-- 2. update W = W + dW for current batch
-	Vadd(weightsCntTotal, W, 1, dW, 1, W);
+	Alg->Vadd(weightsCntTotal, W, 1, dW, 1, W);
 	//safecall(Vadd(weightsCntTotal, W, 1, dW, 1, W));
 
 }
@@ -443,7 +443,7 @@ void sNN::train(tDataSet* trainSet) {
 	free(mseV); mseV=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
 
 	//---- 0.2. Init W
-	for (l=0; l<(outputLevel); l++) VinitRnd(weightsCnt[l], &W[levelFirstWeight[l]], -1/sqrtf((numtype)nodesCnt[l]), 1/sqrtf((numtype)nodesCnt[l]), Alg->cuRandH);
+	for (l=0; l<(outputLevel); l++) Alg->VinitRnd(weightsCnt[l], &W[levelFirstWeight[l]], -1/sqrtf((numtype)nodesCnt[l]), 1/sqrtf((numtype)nodesCnt[l]), Alg->cuRandH);
 	//safecall(dumpArray(weightsCntTotal, &W[0], "C:/temp/referenceW/initW.txt"));
 	//safecall(loadArray(weightsCntTotal, &W[0], "C:/temp/referenceW/initW_4F.txt"));
 
@@ -458,7 +458,7 @@ void sNN::train(tDataSet* trainSet) {
 		epoch_starttime=timeGetTime();
 
 		//-- 1.0. reset epoch tse
-		Vinit(1, tse, 0, 0);
+		Alg->Vinit(1, tse, 0, 0);
 		//safecall(Vinit(1, tse, 0, 0));
 
 		//-- 1.1. train one batch at a time
@@ -482,7 +482,7 @@ void sNN::train(tDataSet* trainSet) {
 
 	//-- 2. test run. need this to make sure all batches pass through the net with the latest weights, and training targets
 	TRstart=timeGetTime(); TRcnt++;
-	Vinit(1, tse, 0, 0);
+	Alg->Vinit(1, tse, 0, 0);
 	//safecall(Vinit(1, tse, 0, 0));
 	for (b=0; b<batchCnt; b++) ForwardPass(trainSet, b, true);
 	//for (b=0; b<batchCnt; b++) safecall(ForwardPass(trainSet, b, true));

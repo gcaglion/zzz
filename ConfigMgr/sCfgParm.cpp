@@ -30,7 +30,7 @@ bool sCfgParm::getVal(int** oVal, int* oValsCnt) {
 bool sCfgParm::getVal(char*** oVal, int* oValsCnt) {
 	if (oValsCnt!=nullptr) (*oValsCnt)=valScnt;
 	for (int v=0; v<valScnt; v++) {
-		strcpy_s((*oVal[v]), XMLKEY_PARM_VAL_MAXLEN, valS[v]);
+		strcpy_s((*oVal)[v], XMLKEY_PARM_VAL_MAXLEN, valS[v]);
 	}
 	return true;
 }

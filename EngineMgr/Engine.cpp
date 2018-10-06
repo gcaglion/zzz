@@ -2,28 +2,6 @@
 
 //-- Engine stuff
 
-/*
-void sEngine::addCore(int coreId) {
-
-	switch (coreLayout[coreId]->type) {
-	case CORE_NN:
-		core[coreId]=new sNN()
-		safespawn(false, core[coreId], newsname("Core%d-NN", coreId), defaultdbg,  tNN, parms, coreLayout[coreId]);
-		break;
-	case CORE_GA:
-		sprintf_s(cdesc, CORE_MAX_DESC_LEN, "Core%d(GA)", coreId);
-		//safespawn(core[coreId], tGA, parms, coreLayout[coreId]);
-		break;
-	case CORE_SVM: 
-		break;
-	case CORE_SOM: 
-		break;
-	default:
-		fail("coreId %d : invalid coreType: %d", coreLayout[coreId]->Id, coreLayout[coreId]->type);
-		break;
-	}
-}
-*/
 sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParmsVal) {
 
 	dataShape=dataShape_;
@@ -43,7 +21,7 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 		core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 		//-- 2. create layout, set base coreLayout properties for each Core (type, desc, connType, outputCnt)
 		for (c=0; c<coresCnt; c++) {
-			safespawn(false, core[c], newsname("Core%d",c), defaultdbg, cfg, (newsname("Core%d", c))->base, c, dataShape);
+			safespawn(false, core[c], newsname("Core%d",c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, c, dataShape);
 		}
 		break;
 	case ENGINE_WNN:

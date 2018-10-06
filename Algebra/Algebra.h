@@ -181,6 +181,21 @@ struct sAlgebra : public sObj {
 	EXPORT bool Vdiff(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov);
 	EXPORT bool Vadd(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov);
 	EXPORT bool myFree(numtype* var);
+	EXPORT bool Vcopy(int vlen, numtype* v1, numtype* v2);
+
+	//-- Activation Functions
+	EXPORT bool Tanh(int Vlen, numtype* in, numtype* out);
+	EXPORT bool dTanh(int Vlen, numtype* in, numtype* out);
+	EXPORT bool Exp4(int Vlen, numtype* in, numtype* out);
+	EXPORT bool dExp4(int Vlen, numtype* in, numtype* out);
+	EXPORT bool Relu(int Vlen, numtype* in, numtype* out);
+	EXPORT bool dRelu(int Vlen, numtype* in, numtype* out);
+	EXPORT bool SoftPlus(int Vlen, numtype* in, numtype* out);
+	EXPORT bool dSoftPlus(int Vlen, numtype* in, numtype* out);
+
+	//-- Vector functions
+	EXPORT bool Vssum(int vlen, numtype* v, numtype* ovssum);
+	EXPORT bool VinitRnd(int Vlen, numtype* V, numtype rndmin, numtype rndmax, void* cuRandH);
 
 } ;
 
@@ -195,7 +210,6 @@ EXPORT void Vscale(int Vlen, int* V, float s);
 
 //-- vector functions
 EXPORT bool Vscale(int vlen, numtype* v, numtype s);
-EXPORT bool Vcopy(int vlen, numtype* v1, numtype* v2);
 EXPORT bool Vadd(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov);
 EXPORT bool Vdiff(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov);
 EXPORT bool Vssum(int vlen, numtype* v, numtype* ovssum);
