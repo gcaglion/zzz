@@ -52,7 +52,7 @@ typedef struct sNN : sCore {
 	numtype* F;
 	numtype* dF;
 	numtype* edF;
-	numtype* W=nullptr;
+	numtype* W;
 	numtype* prevW;
 	numtype* dW;
 	numtype* dJdW;

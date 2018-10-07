@@ -23,7 +23,6 @@ void sNN::init(int coreId_, sDataShape* dataShape_, void* NNparms_) {
 
 	//-- set Layout. We don't have batchSampleCnt, so we set it at 1. train() and run() will set it later
 	setLayout(1);
-
 	//-- weights can be set now, as they are not affected by batchSampleCnt
 	safecall(this, createWeights);
 
@@ -56,7 +55,7 @@ void sNN::parmsInit(void* NNparms_) {
 		safecall(cfgKey, getParm, &parms->NetSaveFreq, "Training/NetSaveFrequency");
 		safecall(cfgKey, getParm, &parms->StopOnDivergence, "Training/StopOnDivergence");
 		safecall(cfgKey, getParm, &parms->BP_Algo, "Training/BP_Algo");
-
+		
 		switch (parms->BP_Algo) {
 			//--... TO DO ...
 		case BP_STD:
@@ -97,7 +96,6 @@ sNN::~sNN() {
 	//	free(levelFirstWeight);
 	//	free(ActivationFunction);
 
-	delete Alg;
 }
 
 void sNN::setLayout(int batchSamplesCnt_) {

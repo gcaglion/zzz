@@ -17,6 +17,7 @@
 			FeaturesCount	= 4
 		</Shape>
 		<Train>
+			Do	= true
 			<DataSet>
 				<Debugger>
 					Verbose = false
@@ -50,11 +51,11 @@
 			Do	= false
 		</Validation>
 		<Test>
-			Do	= true
+			Do	= false
 			<DataSet>
 				<TimeSerie>
 					Date0				= 201512300000
-					HistoryLen			= 100
+					HistoryLen			= 105
 					DataTransformation	= DT_DELTALOG
 					BWCalc				= true
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN

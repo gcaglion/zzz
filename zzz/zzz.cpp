@@ -127,6 +127,7 @@ private:
 
 //-- client closure
 #define terminate(success_, ...) { \
+	delete root; \
 	int ret; \
 	if(success_){ \
 		printf("Client success. \n"); \

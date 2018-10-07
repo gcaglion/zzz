@@ -85,7 +85,6 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 
 sEngine::~sEngine() {
 	free(core);
-	//free(coreLayout);
 	free(layerCoresCnt);
 }
 
