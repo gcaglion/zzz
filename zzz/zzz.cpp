@@ -125,20 +125,19 @@ private:
 
 };
 
-//-- client closures
-#define clientFail(failmsg){ \
-	delete root; \
-	printf("Client failed: %s\n", failmsg); \
-	system("pause"); \
-	return -1; \
+//-- client closure
+#define terminate(success_, ...) { \
+	int ret; \
+	if(success_){ \
+		printf("Client success. \n"); \
+		ret = 0; \
+	} else { \
+		printf("Client failed: %s\n", __VA_ARGS__); \
+		ret = -1; \
+	} \
+	printf("Press any key..."); getchar(); \
+	return ret; \
 }
-#define clientSuccess(){ \
-	delete root; \
-	printf("Client success. \n"); \
-	system("pause"); \
-	return 0; \
-}
-
 
 int main(int argc, char* argv[]) {
 
@@ -149,11 +148,8 @@ int main(int argc, char* argv[]) {
 		root->execute();
 	}
 	catch (std::exception exc) {
-		clientFail("Exception thrown by root. See stack.");
+		terminate(false, "Exception thrown by root. See stack.");
 	}
 
-	clientSuccess();
-
-
-	return 0;
+	terminate(true);
 }
