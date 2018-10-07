@@ -18,7 +18,7 @@ struct sCore : sCfgObj {
 
 	EXPORT sCore(sCfgObjParmsDef, int id_, sDataShape* dataShape_);
 	EXPORT ~sCore();
-	virtual void init(int coreId_, sDataShape* dataShape_, void* coreParms_);
+	void init(int coreId_, sDataShape* dataShape_, void* coreParms_);
 
 private:
 	char** parentDesc;

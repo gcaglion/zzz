@@ -26,4 +26,4 @@ sCore::~sCore() {
 	free(parentDesc);
 }
 
-void sCore::init(int coreId_, sDataShape* dataShape_, void* coreParms_) {}
+//void sCore::init(int coreId_, sDataShape* dataShape_, void* coreParms_) {}

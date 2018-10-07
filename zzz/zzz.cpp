@@ -46,6 +46,7 @@ struct sRoot : sObj {
 
 		CLoverride(argc_, argv_);
 	}
+	~sRoot() {}
 
 	void testDML() {
 		int pid=99;
@@ -91,8 +92,6 @@ struct sRoot : sObj {
 			//-- 2. do stuff
 
 			//testDML();
-
-			//safespawn(false, clientCfg, newsname("client_Config"), nullptr, "C:\\Users\\gcaglion\\dev\\zzz\\ForecastData.xml");
 
 			safespawn(false, clientCfg, newsname("Root_Config"), defaultdbg, cfgFileFullName);
 			safespawn(false, mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");

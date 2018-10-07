@@ -8,10 +8,11 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
 
 	//-- 1. get Parameters
+	safecall(cfgKey, getParm, &type, "Type");
+
 	//-- 2. do stuff and spawn sub-Keys
 	int c;
 
-	safecall(cfgKey, getParm, &type, "Type");
 
 	switch (type) {
 	case ENGINE_CUSTOM:
@@ -58,7 +59,23 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 
 	//-- 5. init each core
 	for (c=0; c<coresCnt; c++) {
-		core[c]->init(c, dataShape, nullptr);
+		switch (core[c]->type) {
+		case CORE_NN:
+			((sNN*)core[c])->init(c, dataShape, nullptr);
+			break;
+		case CORE_GA:
+			//((sGA*)core[c])->init(c, dataShape, nullptr);
+			break;
+		case CORE_SVM:
+			//((sVM*)core[c])->init(c, dataShape, nullptr);
+			break;
+		case CORE_SOM:
+			//((sOM*)core[c])->init(c, dataShape, nullptr);
+			break;
+		default:
+			fail("Invalid Core Type: %d", type);
+			break;
+		}
 	}
 	
 	//-- 6. restore cfg->currentKey from sCfgObj->bkpKey

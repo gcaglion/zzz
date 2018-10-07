@@ -52,7 +52,7 @@ typedef struct sNN : sCore {
 	numtype* F;
 	numtype* dF;
 	numtype* edF;
-	numtype* W;
+	numtype* W=nullptr;
 	numtype* prevW;
 	numtype* dW;
 	numtype* dJdW;
@@ -86,6 +86,8 @@ typedef struct sNN : sCore {
 
 
 private:
+	void parmsInit(void* NNparms_);
+	//--
 	void setLayout(int batchSamplesCnt_);
 	void FF();
 	void Activate(int level);

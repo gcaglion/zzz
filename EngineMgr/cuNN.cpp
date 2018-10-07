@@ -5,6 +5,12 @@ void sNN::init(int coreId_, sDataShape* dataShape_, void* NNparms_) {
 	pid=GetCurrentProcessId();
 	tid=GetCurrentThreadId();
 
+	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
+	safespawn(false, Alg, newsname("%s_Algebra", name->base), dbg);
+
+	//-- 0. set NN Parms
+	safecall(this, parmsInit, NNparms_);
+
 	parms->MaxEpochs=0;	//-- we need this so destructor does not fail when NN object is used to run-only
 
 	//-- set input and output basic dimensions (batchsize not considered yet)
@@ -21,9 +27,6 @@ void sNN::init(int coreId_, sDataShape* dataShape_, void* NNparms_) {
 	//-- weights can be set now, as they are not affected by batchSampleCnt
 	safecall(this, createWeights);
 
-	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
-	safespawn(false, Alg, newsname("%s_Algebra", name->base), dbg);
-
 	//-- x. set scaleMin / scaleMax
 	scaleMin=(numtype*)malloc(parms->levelsCnt*sizeof(int));
 	scaleMax=(numtype*)malloc(parms->levelsCnt*sizeof(int));
@@ -38,9 +41,7 @@ void sNN::init(int coreId_, sDataShape* dataShape_, void* NNparms_) {
 
 }
 
-sNN::sNN(sCfgObjParmsDef, int coreId_, sDataShape* dataShape_, void* NNparms_) : sCore(sCfgObjParmsVal, coreId_, dataShape_) {
-	
-	//-- 0. set NN Parms
+void sNN::parmsInit(void* NNparms_) {
 	if (NNparms_!=nullptr) {
 		parms=(sNNparms*)NNparms_;
 	} else {
@@ -59,8 +60,8 @@ sNN::sNN(sCfgObjParmsDef, int coreId_, sDataShape* dataShape_, void* NNparms_) :
 		switch (parms->BP_Algo) {
 			//--... TO DO ...
 		case BP_STD:
-			safecall(cfgKey, getParm, &parms->LearningRate, "BP_Std.LearningRate");
-			safecall(cfgKey, getParm, &parms->LearningMomentum, "BP_Std.LearningMomentum");
+			safecall(cfgKey, getParm, &parms->LearningRate, "Training/BP_Std/LearningRate");
+			safecall(cfgKey, getParm, &parms->LearningMomentum, "Training/BP_Std/LearningMomentum");
 			break;
 		case BP_QUICKPROP:
 			break;
@@ -73,8 +74,12 @@ sNN::sNN(sCfgObjParmsDef, int coreId_, sDataShape* dataShape_, void* NNparms_) :
 			fail("invalid BP_Algo: %d", parms->BP_Algo);
 		}
 	}
+}
+
+sNN::sNN(sCfgObjParmsDef, int coreId_, sDataShape* dataShape_, void* NNparms_) : sCore(sCfgObjParmsVal, coreId_, dataShape_) {
+	
 	//-- 1. initialize NN
-	init(coreId_, dataShape_, parms);
+	init(coreId_, dataShape_, NNparms_);
 
 }
 sNN::~sNN() {
