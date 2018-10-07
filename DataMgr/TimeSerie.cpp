@@ -87,8 +87,8 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	//-- 3. common stuff (mallocs, ...)
 	sTimeSeriecommon(steps, sourceData->featuresCnt, tsfCnt, tsf);
 	//-- 4. load data
-	if (sourceData->type==FXDB_SOURCE) ((sFXData*)sourceData)->load(date0, steps, dtime, d, bdtime, bd);
-	if (sourceData->type==FILE_SOURCE) ((sFileData*)sourceData)->load(date0, steps, dtime, d, bdtime, bd);
+	//if (sourceData->type==FXDB_SOURCE) ((sFXData*)sourceData)->load(date0, steps, dtime, d, bdtime, bd);
+	sourceData->load(date0, steps, dtime, d, bdtime, bd);
 	//-- 5. transform
 	safecall(this, transform, dt);
 
@@ -120,17 +120,6 @@ sTimeSerie::~sTimeSerie() {
 }
 
 //-- sTimeSerie, other methods
-/*void sTimeSerie::load(sFXData* tsFXData_, char* pDate0) {
-	fxData=tsFXData_;
-	sourceType=FXDB_SOURCE;
-	safecall(fxData, load, pDate0, steps, dtime, d, bdtime, bd);
-}
-void sTimeSerie::load(sFileData* tsFileData, char* pDate0) {
-	fail("pDate0=%s", pDate0);
-}
-void sTimeSerie::load(tMT4Data* tsMT4Data, char* pDate0) {
-	safeThrow("", 0);
-}*/
 void sTimeSerie::dump(char* dumpFileName) {
 	int s, f;
 

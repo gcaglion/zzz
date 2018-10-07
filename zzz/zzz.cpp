@@ -17,29 +17,8 @@ numtype MyRndDbl(numtype min, numtype max) {
 
 struct sRoot : sObj {
 
-	//-- 1. declarations
 	sCfg* clientCfg;
-	char cfgFileFullName[MAX_PATH];
-	int cfgOverrideCnt=0;
-	char cfgOverrideName[XMLLINE_MAXCNT][XMLKEY_PARM_NAME_MAXLEN];
-	char cfgOverrideValS[XMLKEY_PARM_MAXCNT][XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
-	//--
-	sData* forecastData;
-	sTimeSerie* trainTS;
-	sDataSet* trainDS;
-	sFXData* fxData1;
-	sDataShape* dshape1;
-	sDataShape* dshape2;
 	sForecaster* mainForecaster;
-	sOraDB* oradb1;
-
-	//tData*			fData=nullptr;		//-- Forecaster data
-	//tEngine*		fEngine=nullptr;	//-- Forecaster engine
-	//tLogger*		fPersistor=nullptr;	//-- Forecaster Persistor
-
-	int sampleLen, PredictionLen, FeaturesCnt;
-	int dsType;
-	
 
 	sRoot(int argc_=0, char* argv_[]=nullptr) : sObj(nullptr, newsname("RootObj"), nullptr) {
 		dbg->pauseOnError=true;
@@ -48,7 +27,55 @@ struct sRoot : sObj {
 	}
 	~sRoot() {}
 
+	void execute() {
+		try {
+			//-- Do stuff
+
+			//-- 1. load clientCfg main XML configuration
+			safespawn(false, clientCfg, newsname("Root_Config"), defaultdbg, cfgFileFullName);
+			//-- 2. create main Forecaster object from clientCfg
+			safespawn(false, mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
+			
+			//-- 3.	Load Training_Start[]
+			//-- 4. Save Client Log (elapsedTime is 0)
+			//-- 5. Prepare, Train, Run for each Training_Start
+			for (int siml = 0; siml<fParms->SimulationLength; siml++) {
+			}
+
+		}
+		catch (std::exception exc) {
+			fail("Exception=%s", exc.what());
+		}
+	}
+
+private:
+	//-- variables
+	char cfgFileFullName[MAX_PATH];
+	int cfgOverrideCnt=0;
+	char cfgOverrideName[XMLLINE_MAXCNT][XMLKEY_PARM_NAME_MAXLEN];
+	char cfgOverrideValS[XMLKEY_PARM_MAXCNT][XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
+	//-- functions
+	void CLoverride(int argc, char* argv[]) {
+		char orName[XMLKEY_PARM_NAME_MAXLEN];
+		char orValS[XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
+
+		//-- set default cfgFilaName
+		getFullFileName("../Client.xml", cfgFileFullName);
+
+		for (int p=1; p<argc; p++) {
+			if (!getValuePair(argv[p], &orName[0], &orValS[0], '=')) fail("wrong parameter format in command line: %s", argv[p]);
+			if (_stricmp(orName, "--cfgFile")==0) {
+				if (!getFullFileName(orValS, cfgFileFullName)) fail("could not set cfgFileFullName from override parameter: %s", orValS);
+			} else {
+				strcpy_s(cfgOverrideName[cfgOverrideCnt], XMLKEY_PARM_NAME_MAXLEN, orName);
+				strcpy_s(cfgOverrideValS[cfgOverrideCnt], XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT, orValS);
+				cfgOverrideCnt++;
+			}
+		}
+	}
 	void testDML() {
+		sOraDB* oradb1;
+
 		int pid=99;
 		int epochs=2000;
 		int tid=pid;
@@ -60,7 +87,7 @@ struct sRoot : sObj {
 		}
 		safespawn(false, oradb1, newsname("TestOraDB"), defaultdbg, "CULogUser", "LogPwd", "Algo", true);
 		safecall(oradb1, saveMSE, pid, tid, epochs, trainMSE, validMSE);
-		
+
 		int setid=0, npid=pid, ntid=tid, barsCnt=1000, featuresCnt=4;
 		int feature[4]={ 0,1,2,3 };
 		numtype* prediction= (numtype*)malloc(barsCnt*featuresCnt*sizeof(numtype));
@@ -85,42 +112,6 @@ struct sRoot : sObj {
 		int epoch=-1;
 		safecall(oradb1, loadW, pid, tid, epoch, Wcnt, W);
 
-	}
-
-	void execute() {
-		try {
-			//-- 2. do stuff
-
-			//testDML();
-
-			safespawn(false, clientCfg, newsname("Root_Config"), defaultdbg, cfgFileFullName);
-			safespawn(false, mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
-
-		}
-		catch (std::exception exc) {
-			fail("Exception=%s", exc.what());
-		}
-	}
-
-private:
-
-	void CLoverride(int argc, char* argv[]) {
-		char orName[XMLKEY_PARM_NAME_MAXLEN];
-		char orValS[XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
-
-		//-- set default cfgFilaName
-		getFullFileName("../Client.xml", cfgFileFullName);
-
-		for (int p=1; p<argc; p++) {
-			if (!getValuePair(argv[p], &orName[0], &orValS[0], '=')) fail("wrong parameter format in command line: %s", argv[p]);
-			if (_stricmp(orName, "--cfgFile")==0) {
-				if (!getFullFileName(orValS, cfgFileFullName)) fail("could not set cfgFileFullName from override parameter: %s", orValS);
-			} else {
-				strcpy_s(cfgOverrideName[cfgOverrideCnt], XMLKEY_PARM_NAME_MAXLEN, orName);
-				strcpy_s(cfgOverrideValS[cfgOverrideCnt], XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT, orValS);
-				cfgOverrideCnt++;
-			}
-		}
 	}
 
 };
@@ -152,5 +143,5 @@ int main(int argc, char* argv[]) {
 		terminate(false, "Exception thrown by root. See stack.");
 	}
 
-	terminate(true);
+	terminate(true,"");
 }
