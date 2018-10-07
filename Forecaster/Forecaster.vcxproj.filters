@@ -18,9 +18,15 @@
     <ClInclude Include="Forecaster.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MTwrapper.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Forecaster.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MTwrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

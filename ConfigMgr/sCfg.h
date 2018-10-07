@@ -11,7 +11,6 @@ struct sCfg : sObj {
 	sCfgLine* cfgLine[XMLLINE_MAXCNT];
 	sCfgKey* rootKey;
 	sCfgKey* currentKey;
-	//sCfgKey* bkpKey;
 
 	EXPORT sCfg(sObjParmsDef, const char* cfgFileFullName, int overridesCnt=0, char** overrideName=nullptr, char** overrideValS=nullptr);
 	EXPORT ~sCfg();

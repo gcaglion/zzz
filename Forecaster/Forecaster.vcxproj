@@ -163,9 +163,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Forecaster.h" />
+    <ClInclude Include="MTwrapper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Forecaster.cpp" />
+    <ClCompile Include="MTwrapper.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

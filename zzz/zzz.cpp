@@ -32,7 +32,7 @@ struct sRoot : sObj {
 			//-- Do stuff
 
 			//-- 1. load clientCfg main XML configuration
-			safespawn(false, clientCfg, newsname("Root_Config"), defaultdbg, cfgFileFullName);
+			safespawn(false, clientCfg, newsname("Root_Config"), dbg, cfgFileFullName);
 			//-- 2. create main Forecaster object from clientCfg
 			safespawn(false, mainForecaster, newsname("Main_Forecaster"), defaultdbg, clientCfg, "/Forecaster");
 			
