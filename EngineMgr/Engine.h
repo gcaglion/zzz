@@ -24,6 +24,7 @@ struct sEngine : sCfgObj {
 	EXPORT ~sEngine();
 
 	EXPORT void setCoreLayer(sCore* c);
-	EXPORT void train(sDataSet* trainDS);
+	EXPORT void train(sDataSet* trainDS_);
+	EXPORT void infer(sDataSet* testDS_);
 
 };

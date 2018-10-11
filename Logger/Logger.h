@@ -28,6 +28,7 @@ typedef struct sLogger : sCfgObj {
 	EXPORT void loadW(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void saveClient(int pid, char* clientName, DWORD startTime, DWORD duration, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun);
 	EXPORT void commit();
+	EXPORT void getDates();
 
 private:
 	void ffname_malloc();

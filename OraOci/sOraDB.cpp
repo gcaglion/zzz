@@ -124,6 +124,31 @@ void sOraDB::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	((Connection*)conn)->terminateStatement(stmt);
 
 }
+void sOraDB::getDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char** oDate) {
+	// Retrieves plain ordered list of NewDateTime starting from StartDate onwards for <DatesCount> records
+	int i;
+	Statement* stmt=nullptr;
+	ResultSet *rset;
+	char sql[SQL_MAXLEN];
+
+	try {
+		sprintf_s(sql, SQL_MAXLEN, "select to_char(NewDateTime, 'YYYYMMDDHH24MI') from History.%s_%s%s where NewDateTime>=to_date('%s','YYYYMMDDHH24MI') order by 1", symbol_, timeframe_, (isFilled_)?"_FILLED ":"", StartDate);
+		stmt = ((Connection*)conn)->createStatement(sql);
+		rset = stmt->executeQuery();
+
+		i=0;
+		while (rset->next()&&i<DatesCount) {
+			strcpy_s(oDate[i], 12+1, rset->getString(1).c_str());
+			i++;
+		}
+
+		stmt->closeResultSet(rset);
+		((Connection*)conn)->terminateStatement(stmt);
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+	}
+}
 //-- Write
 void sOraDB::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
 

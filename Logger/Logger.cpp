@@ -20,7 +20,7 @@ sLogger::sLogger(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 		safecall(cfgKey, getParm, &saveInternalsFlag, "SaveInternals", true);
 		safecall(cfgKey, getParm, &saveImageFlag, "SaveImage", true);
 		//-- get destination DB
-		if (!safespawn(true, db, newsname("PersistorDB"), defaultdbg, cfg, "DestDB")) db=nullptr;
+		if (!safespawn(true, db, newsname("PersistorDB"), defaultdbg, cfg, "DestDB", false)) db=nullptr;
 		//-- get destination files
 		safecall(cfgKey, getParm, &fileFullName[0], "Client", true);
 		safecall(cfgKey, getParm, &fileFullName[1], "MSE", true);
@@ -50,3 +50,5 @@ void sLogger::saveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
 void sLogger::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
 void sLogger::saveClient(int pid, char* clientName, DWORD startTime, DWORD duration, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {}
 void sLogger::commit() {}
+
+void sLogger::getDates(sFXData* SourceParms, char* StartDate, int DatesCount, char** oDate){}
