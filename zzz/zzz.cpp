@@ -39,8 +39,6 @@ struct sRoot : sObj {
 			//-- 3.	Load Training_Start[]
 			//-- 4. Save Client Log (elapsedTime is 0)
 			//-- 5. Prepare, Train, Run for each Training_Start
-			for (int siml = 0; siml<fParms->SimulationLength; siml++) {
-			}
 
 		}
 		catch (std::exception exc) {
