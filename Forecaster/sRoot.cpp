@@ -153,11 +153,11 @@ void sRoot::getStartDates(sDataSet* ds, int len, char** oDates){
 	switch (ds->sourceTS->sourceData->type) {
 	case FXDB_SOURCE:
 		fxsrc = (sFXData*)ds->sourceTS->sourceData;
-		forecaster->persistor->getStartDates(fxsrc->Symbol, fxsrc->TimeFrame, fxsrc->IsFilled, ds->sourceTS->date0, len, oDates);
+		forecaster->persistor->db->getStartDates(fxsrc->Symbol, fxsrc->TimeFrame, fxsrc->IsFilled, ds->sourceTS->date0, len, oDates);
 		break;
 	case FILE_SOURCE:
 		filesrc = (sFileData*)ds->sourceTS->sourceData;
-		forecaster->persistor->getStartDates(filesrc->srcFile, filesrc->fieldSep, filesrc->featuresCnt, ds->sourceTS->date0, len, oDates);
+		forecaster->persistor->file->getStartDates(filesrc, ds->sourceTS->date0, len, oDates);
 		break;
 	case MT4_SOURCE:
 		mt4src = (sMT4Data*)ds->sourceTS->sourceData;

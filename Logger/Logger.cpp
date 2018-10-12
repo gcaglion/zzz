@@ -1,11 +1,5 @@
 #include "Logger.h"
 
-/*sLogger::sLogger(sObjParmsDef, sOraConnection* db_, bool saveNothing_, bool saveClient_, bool saveMSE_, bool saveRun_, bool saveInternals_, bool saveImage_) : sCfgObj(sCfgObjParmsVal) {
-	dest=LOG_TO_ORCL; db=db_;  saveNothing=saveNothing_; saveClient=saveClient_; saveMSE=saveMSE_; saveRun=saveRun_; saveInternals=saveInternals_; saveImage=saveImage_;
-}
-sLogger::sLogger(sObjParmsDef, FILE* fileH_, bool saveNothing_, bool saveClient_, bool saveMSE_, bool saveRun_, bool saveInternals_, bool saveImage_) : sObj(sObjParmsVal) {
-	dest=LOG_TO_TEXT; fileH=fileH_;  saveNothing=saveNothing_; saveClient=saveClient_; saveMSE=saveMSE_; saveRun=saveRun_; saveInternals=saveInternals_; saveImage=saveImage_;
-}*/
 sLogger::sLogger(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	saveNothingFlag=false; saveClientFlag=true; saveMSEFlag=true; saveRunFlag=true; saveInternalsFlag=false; saveImageFlag=false;
 	ffname_malloc();
@@ -50,5 +44,3 @@ void sLogger::saveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
 void sLogger::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
 void sLogger::saveClient(int pid, char* clientName, DWORD startTime, DWORD duration, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {}
 void sLogger::commit() {}
-
-void sLogger::getDates(sFXData* SourceParms, char* StartDate, int DatesCount, char** oDate){}
