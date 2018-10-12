@@ -25,9 +25,27 @@ void sRoot::execute(int what) {
 		safespawn(false, clientCfg, newsname("clientCfg_Root"), dbg, clientCfgFileFullName);
 		safespawn(false, forecasterCfg, newsname("forecasterCfg_Root"), dbg, forecasterCfgFileFullName);
 
-		//-- 4.1. save client Log (elapsedTime is 0)
-		//-- 4.2. spawn forecaster
+		//-- 2. save client Log (elapsedTime is 0)
+
+		//-- 3. create client persistor
+		safespawn(false, clientPersistor, newsname("Client_Persistor"), defaultdbg, clientCfg, "/Client/Persistor");
+		
+		//-- 4.	get Simulation Length
+		safecall(clientCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
+		
+		//-- 5. malloc simulation start dates for each Dataset
+		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationTrainStartDate[d]=(char*)malloc(12+1);
+		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationValidStartDate[d]=(char*)malloc(12+1);
+		simulationTestStartDate =(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationTestStartDate[d] =(char*)malloc(12+1);
+
+		//-- 6. spawn forecaster
 		safespawn(false, forecaster, newsname("mainForecaster"), defaultdbg, forecasterCfg, "/Forecaster");
+
+		//-- 7. get simulation start dates
+		getStartDates(forecaster->data->trainDS, simulationLength, simulationTrainStartDate);
+		getStartDates(forecaster->data->testDS, simulationLength, simulationTestStartDate);
+		getStartDates(forecaster->data->validDS, simulationLength, simulationValidStartDate);
+
 		//-- 4.3. do actions (train/test/validate) according to configuration
 		if (forecaster->data->doTraining) {
 			safecall(forecaster->engine, train, forecaster->data->trainDS);
@@ -38,16 +56,8 @@ void sRoot::execute(int what) {
 
 		//-- 4.4. delete forecaster
 
-		/*		//-- create client persistor
-				safespawn(false, clientPersistor, newsname("Client_Persistor"), defaultdbg, clientCfg, "Persistor");
-				//-- 3.	get Simulation Length
-				safecall(clientCfg->currentKey, getParm, &simulationLength, "SimulationLength");
-				//-- 4. malloc, then get Simulation start dates for each Dataset
-				simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationTrainStartDate[d]=(char*)malloc(12+1);
-				simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationValidStartDate[d]=(char*)malloc(12+1);
-				simulationTestStartDate =(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationTestStartDate[d] =(char*)malloc(12+1);
 
-		//-- 4. for each simulation
+	/*	//-- 4. for each simulation
 		for (int d=0; d<simulationLength; d++) {
 
 			//-- 4.1. save client Log (elapsedTime is 0)
@@ -84,6 +94,7 @@ void sRoot::CLoverride(int argc, char* argv[]) {
 		char orValS[XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
 
 		//-- set default forecasterCfgFileFullName
+		getFullFileName("../Client.xml", clientCfgFileFullName);
 		getFullFileName("../Forecaster.xml", forecasterCfgFileFullName);
 
 		for (int p=1; p<argc; p++) {
@@ -137,6 +148,26 @@ void sRoot::testDML() {
 		safecall(oradb1, loadW, pid, tid, epoch, Wcnt, W);
 
 	}
+void sRoot::getStartDates(sDataSet* ds, int len, char** oDates){
+	sFXData* fxsrc; sFileData* filesrc; sMT4Data* mt4src;
+	switch (ds->sourceTS->sourceData->type) {
+	case FXDB_SOURCE:
+		fxsrc = (sFXData*)ds->sourceTS->sourceData;
+		forecaster->persistor->getStartDates(fxsrc->Symbol, fxsrc->TimeFrame, fxsrc->IsFilled, ds->sourceTS->date0, len, oDates);
+		break;
+	case FILE_SOURCE:
+		filesrc = (sFileData*)ds->sourceTS->sourceData;
+		forecaster->persistor->getStartDates(filesrc->srcFile, filesrc->fieldSep, filesrc->featuresCnt, ds->sourceTS->date0, len, oDates);
+		break;
+	case MT4_SOURCE:
+		mt4src = (sMT4Data*)ds->sourceTS->sourceData;
+		//--.............
+		break;
+	default:
+		fail("Invalid ds->sourceTS->sourceData->type (%d)", ds->sourceTS->sourceData->type);
+		break;
+	}
+}
 
 //-- MetaTrader calls
 bool MTcreateForecasterEnv(char* baseConfigFileFullName, int overridesCnt, char* overridesFullString, char* oRootObjPointerString) {

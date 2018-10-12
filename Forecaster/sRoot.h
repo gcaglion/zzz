@@ -10,8 +10,10 @@ struct sRoot : sObj {
 	sCfg* forecasterCfg;
 	sForecaster* forecaster;
 	
-	sRoot(int argc_=0, char* argv_[]=nullptr);
-	~sRoot();
+	EXPORT sRoot(int argc_=0, char* argv_[]=nullptr);
+	EXPORT ~sRoot();
+
+	EXPORT void execute(int what);		//-- main container with try/catch block
 
 private:
 	//-- variables
@@ -26,10 +28,9 @@ private:
 
 	//-- functions
 
-	void execute(int what);		//-- main container with try/catch block
 	void loadCfg();	//-- load XML configurations for client and forecaster
 	void createForecaster();	//-- create main Forecaster object from forecasterCfg
-
+	void getStartDates(sDataSet* ds, int len, char** oDates);
 
 	static numtype MyRndDbl(numtype min, numtype max);
 	void CLoverride(int argc, char* argv[]);

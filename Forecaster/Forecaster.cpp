@@ -20,7 +20,7 @@ sForecaster::sForecaster(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 }
 sForecaster::~sForecaster(){}
 
-void sForecaster::getForecast() {
+void sForecaster::getForecast(char* trainDate0_, char* testDate0_, char* validDate0_) {
 
 }
 

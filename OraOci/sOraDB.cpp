@@ -124,7 +124,7 @@ void sOraDB::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	((Connection*)conn)->terminateStatement(stmt);
 
 }
-void sOraDB::getDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char** oDate) {
+void sOraDB::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char** oDate) {
 	// Retrieves plain ordered list of NewDateTime starting from StartDate onwards for <DatesCount> records
 	int i;
 	Statement* stmt=nullptr;

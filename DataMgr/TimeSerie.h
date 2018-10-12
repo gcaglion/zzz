@@ -14,10 +14,7 @@ typedef struct sTimeSerie : sCfgObj {
 
 	//-- data source
 	sDataSource* sourceData=nullptr;
-/*	sFXData* fxData=nullptr;
-	sFileData* fileData=nullptr;
-	tMT4Data* mt4Data=nullptr;
-*/
+
 	char* date0 = new char[XMLKEY_PARM_VAL_MAXLEN];
 	int steps;
 	int featuresCnt;
@@ -50,10 +47,6 @@ typedef struct sTimeSerie : sCfgObj {
 	EXPORT sTimeSerie(sCfgObjParmsDef);
 	EXPORT ~sTimeSerie();
 	
-//	EXPORT void load(sFXData* tsFXData, char* pDate0);
-//	EXPORT void load(sFileData* tsFileData, char* pDate0);
-//	EXPORT void load(tMT4Data* tsMT4Data, char* pDate0);
-
 	EXPORT void transform(int dt_);
 	EXPORT void scale(numtype scaleMin_, numtype scaleMax_);
 
@@ -63,7 +56,6 @@ typedef struct sTimeSerie : sCfgObj {
 	EXPORT void dump(char* dumpFileName="C:/temp/TSdump.csv");
 
 private:
-	bool LoadOHLCVdata(char* date0);
 	bool setDataSource(sCfg* cfg);
 
 } tTimeSerie;

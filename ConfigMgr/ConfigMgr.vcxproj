@@ -157,6 +157,7 @@
     <ClCompile Include="sCfg.cpp" />
     <ClCompile Include="sCfgKey.cpp" />
     <ClCompile Include="sCfgLine.cpp" />
+    <ClCompile Include="sCfgObj.cpp" />
     <ClCompile Include="sCfgParm.cpp" />
     <ClCompile Include="parmDecoder.cpp" />
   </ItemGroup>

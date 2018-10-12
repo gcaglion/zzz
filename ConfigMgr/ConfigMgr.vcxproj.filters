@@ -30,6 +30,9 @@
     <ClCompile Include="sCfgParm.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sCfgObj.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sCfgLine.h">
