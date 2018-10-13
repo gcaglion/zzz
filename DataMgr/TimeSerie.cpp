@@ -39,13 +39,14 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef, sFileData* dataSource_, int steps_, int 
 	featuresCnt=featuresCnt_;
 }
 
-bool sTimeSerie::setDataSource(sCfg* cfg) {
+void sTimeSerie::setDataSource(sCfg* cfg) {
 
 	bool found=false;
 	sFXData* fxData;
 	sFileData* fileData;
 	tMT4Data* mt4Data;
 
+	//-- first, find and set
 	safecall(cfg, setKey, "File_DataSource", true, &found);	//-- ignore error
 	if (found) {
 		safecall(cfg, setKey, "../"); //-- get back;
@@ -66,7 +67,11 @@ bool sTimeSerie::setDataSource(sCfg* cfg) {
 			}
 		}
 	}
-	return found;
+	if(!found) fail("No Valid DataSource Parameters Key found.");
+
+	//-- then, open
+	safecall(sourceData, open);
+
 }
 
 sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
@@ -81,14 +86,12 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &BWcalc, "BWCalc");
 	safecall(cfgKey, getParm, &tsf, "StatisticalFeatures", false, &tsfCnt);
 
-	//-- 2. Find and set DataSource
-	if(!setDataSource(cfg)) fail("No Valid DataSource Parameters Key found.");
-
+	//-- 2. Find, set, open DataSource
+	safecall(this, setDataSource, cfg);
 	//-- 3. common stuff (mallocs, ...)
 	sTimeSeriecommon(steps, sourceData->featuresCnt, tsfCnt, tsf);
 	//-- 4. load data
-	//if (sourceData->type==FXDB_SOURCE) ((sFXData*)sourceData)->load(date0, steps, dtime, d, bdtime, bd);
-	sourceData->load(date0, steps, dtime, d, bdtime, bd);
+	safecall(sourceData, load, date0, steps, dtime, d, bdtime, bd);
 	//-- 5. transform
 	safecall(this, transform, dt);
 

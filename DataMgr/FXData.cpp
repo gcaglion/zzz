@@ -32,7 +32,6 @@ void sFXData::load(char* pDate0, int pRecCount, char** oBarTime, float* oBarData
 
 
 }
-/*void sFXData::open() {
+void sFXData::open() {
 	safecall(db, open);
 }
-*/

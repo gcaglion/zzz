@@ -19,7 +19,7 @@ struct sFXData : sDataSource {
 	EXPORT sFXData(sCfgObjParmsDef);
 	EXPORT ~sFXData();
 	
-	//EXPORT void open();
+	EXPORT void open();
 	EXPORT void load(char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar);
 
 };

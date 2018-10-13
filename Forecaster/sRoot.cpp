@@ -7,9 +7,8 @@ sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), null
 	}
 sRoot::~sRoot() {}
 
-void sRoot::execute(int what) {
+void sRoot::tester() {
 
-	int d;
 	int simulationLength;
 	char** simulationTrainStartDate;
 	char** simulationValidStartDate;
@@ -17,30 +16,47 @@ void sRoot::execute(int what) {
 
 	try {
 
-		//-- 1. load client and Forecaster XML configurations
-		safespawn(false, clientCfg, newsname("clientCfg_Root"), dbg, clientCfgFileFullName);
+		//-- 1. load tester and Forecaster XML configurations
+		safespawn(false, testerCfg, newsname("testerCfg_Root"), dbg, testerCfgFileFullName);
 		safespawn(false, forecasterCfg, newsname("forecasterCfg_Root"), dbg, forecasterCfgFileFullName);
 
-		//-- 2. save client Log (elapsedTime is 0)
+		//-- 2. save tester Log (elapsedTime is 0)
 
-		//-- 3. create client persistor
-		safespawn(false, clientPersistor, newsname("Client_Persistor"), defaultdbg, clientCfg, "/Client/Persistor");
+		//-- 3. create tester persistor
+		safespawn(false, testerPersistor, newsname("Client_Persistor"), defaultdbg, testerCfg, "/Client/Persistor");
 		
 		//-- 4.	get Simulation Length
-		safecall(clientCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
+		safecall(testerCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
 		
 		//-- 5. malloc simulation start dates for each Dataset
-		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationTrainStartDate[d]=(char*)malloc(DATE_FORMAT_LEN);
-		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationValidStartDate[d]=(char*)malloc(DATE_FORMAT_LEN);
-		simulationTestStartDate =(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationTestStartDate[d] =(char*)malloc(DATE_FORMAT_LEN);
+		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*));
+		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*));
+		simulationTestStartDate =(char**)malloc(simulationLength*sizeof(char*));
+		for (int d=0; d<simulationLength; d++) {
+			simulationTrainStartDate[d]=(char*)malloc(DATE_FORMAT_LEN);
+			simulationValidStartDate[d]=(char*)malloc(DATE_FORMAT_LEN);
+			simulationTestStartDate[d] =(char*)malloc(DATE_FORMAT_LEN);
+		}
 
 		//-- 6. spawn forecaster
 		safespawn(false, forecaster, newsname("mainForecaster"), defaultdbg, forecasterCfg, "/Forecaster");
 
-		//-- 7. get simulation start dates
-		if (forecaster->data->doTraining) safecall(this, getStartDates, forecaster->data->trainDS, simulationLength, simulationTrainStartDate);
-		if (forecaster->data->doInference) safecall(this, getStartDates, forecaster->data->testDS, simulationLength, simulationTestStartDate);
-		if (forecaster->data->doValidation) safecall(this, getStartDates, forecaster->data->validDS, simulationLength, simulationValidStartDate);
+		//-- 7. for each used dataset,
+		if (forecaster->data->doTraining) {
+			//-- 7.1. get simulation start dates
+			safecall(this, getStartDates, forecaster->data->trainDS, simulationLength, simulationTrainStartDate);
+			//-- 7.2. get source data into datasets
+		}
+		if (forecaster->data->doInference) {
+			//-- 7.1. get simulation start dates
+			safecall(this, getStartDates, forecaster->data->testDS, simulationLength, simulationTestStartDate);
+		}
+		if (forecaster->data->doValidation) {
+			//-- 7.1. get simulation start dates
+			safecall(this, getStartDates, forecaster->data->validDS, simulationLength, simulationValidStartDate);
+		}
+
+
 
 		//-- 4.3. do actions (train/test/validate) according to configuration
 		if (forecaster->data->doTraining) safecall(forecaster->engine, train, forecaster->data->trainDS);		
@@ -52,7 +68,7 @@ void sRoot::execute(int what) {
 	/*	//-- 4. for each simulation
 		for (int d=0; d<simulationLength; d++) {
 
-			//-- 4.1. save client Log (elapsedTime is 0)
+			//-- 4.1. save tester Log (elapsedTime is 0)
 			//-- 4.2. spawn forecaster
 			safespawn(false, forecaster, newsname("Forecaster_%d_%s", d, simulationStartDate[d]), defaultdbg, forecasterCfg, "/Forecaster");
 
@@ -86,7 +102,7 @@ void sRoot::CLoverride(int argc, char* argv[]) {
 		char orValS[XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
 
 		//-- set default forecasterCfgFileFullName
-		getFullFileName("../Client.xml", clientCfgFileFullName);
+		getFullFileName("../Tester.xml", testerCfgFileFullName);
 		getFullFileName("../Forecaster.xml", forecasterCfgFileFullName);
 
 		for (int p=1; p<argc; p++) {

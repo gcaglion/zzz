@@ -4,8 +4,8 @@
 
 struct sRoot : sObj {
 
-	sCfg* clientCfg;
-	sLogger* clientPersistor;
+	sCfg* testerCfg;
+	sLogger* testerPersistor;
 
 	sCfg* forecasterCfg;
 	sForecaster* forecaster;
@@ -13,27 +13,22 @@ struct sRoot : sObj {
 	EXPORT sRoot(int argc_=0, char* argv_[]=nullptr);
 	EXPORT ~sRoot();
 
-	EXPORT void execute(int what);		//-- main container with try/catch block
+	EXPORT void tester();
 
 private:
 	//-- variables
-	char clientCfgFileFullName[MAX_PATH];
+	char testerCfgFileFullName[MAX_PATH];
 	char forecasterCfgFileFullName[MAX_PATH];
 	//-- overrides are for forecasterCfg only
 	int cfgOverrideCnt=0;
 	char cfgOverrideName[XMLLINE_MAXCNT][XMLKEY_PARM_NAME_MAXLEN];
 	char cfgOverrideValS[XMLKEY_PARM_MAXCNT][XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
-	//--
-
 
 	//-- functions
-
-	void loadCfg();	//-- load XML configurations for client and forecaster
-	void createForecaster();	//-- create main Forecaster object from forecasterCfg
 	void getStartDates(sDataSet* ds, int len, char** oDates);
-
-	static numtype MyRndDbl(numtype min, numtype max);
 	void CLoverride(int argc, char* argv[]);
+	//--
+	static numtype MyRndDbl(numtype min, numtype max);
 	void testDML();
 
 };
