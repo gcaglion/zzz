@@ -3,7 +3,7 @@
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
 
-#include "../DataMgr/FileData.h"
+#include "../DataMgr/sFileData.h"
 
 #define FILEDB_MAX_FILES	16
 

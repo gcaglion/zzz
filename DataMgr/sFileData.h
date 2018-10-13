@@ -3,7 +3,6 @@
 #include "DataSource.h"
 #include "FileData_enums.h"
 #include "../ConfigMgr/sCfgObj.h"
-#include "../ConfigMgr/sCfg.h"
 
 struct sFileData : sDataSource {
 	FILE* srcFile;
@@ -14,7 +13,8 @@ struct sFileData : sDataSource {
 	EXPORT sFileData(sCfgObjParmsDef);
 	EXPORT ~sFileData();
 
-	void load(const char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar);
+	EXPORT void open();
+	EXPORT void load(const char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar);
 
 private:
 	void getFeaturesCnt(int* oFeaturesCnt_);

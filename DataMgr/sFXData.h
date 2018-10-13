@@ -2,7 +2,6 @@
 #include "../common.h"
 #include "DataSource.h"
 #include "FXData_enums.h"
-#include "../ConfigMgr/sCfg.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "../OraOci/sOraDB.h"
 
@@ -20,8 +19,8 @@ struct sFXData : sDataSource {
 	EXPORT sFXData(sCfgObjParmsDef);
 	EXPORT ~sFXData();
 	
-	void load(char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar);
-
+	//EXPORT void open();
+	EXPORT void load(char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar);
 
 };
 

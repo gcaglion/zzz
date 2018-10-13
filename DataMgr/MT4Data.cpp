@@ -1,4 +1,4 @@
-#include "MT4Data.h"
+#include "sMT4Data.h"
 
 sMT4Data::sMT4Data(sCfgObjParmsDef, int accountId_) : sDataSource(sCfgObjParmsVal, MT4_SOURCE, FXDATA_FEATURESCNT, true, FXHIGH, FXLOW) {
 	accountId=accountId_;

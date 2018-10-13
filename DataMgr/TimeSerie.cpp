@@ -14,8 +14,8 @@ void sTimeSerie::sTimeSeriecommon(int steps_, int featuresCnt_, int tsfCnt_, int
 	}
 	scaleM=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	scaleP=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	dtime=(char**)malloc(len*sizeof(char*)); for (int i=0; i<len; i++) dtime[i]=(char*)malloc(12+1);
-	bdtime=(char*)malloc(12+1);
+	dtime=(char**)malloc(len*sizeof(char*)); for (int i=0; i<len; i++) dtime[i]=(char*)malloc(DATE_FORMAT_LEN);
+	bdtime=(char*)malloc(DATE_FORMAT_LEN);
 	d=(numtype*)malloc(len*sizeof(numtype));
 	bd=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	d_tr=(numtype*)malloc(len*sizeof(numtype));
@@ -100,8 +100,8 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	}
 	scaleM=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	scaleP=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	dtime=(char**)malloc(len*sizeof(char*)); for (int i=0; i<len; i++) dtime[i]=(char*)malloc(12+1);
-	bdtime=(char*)malloc(12+1);
+	dtime=(char**)malloc(len*sizeof(char*)); for (int i=0; i<len; i++) dtime[i]=(char*)malloc(DATE_FORMAT_LEN);
+	bdtime=(char*)malloc(DATE_FORMAT_LEN);
 	d=(numtype*)malloc(len*sizeof(numtype));
 	bd=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	d_tr=(numtype*)malloc(len*sizeof(numtype));

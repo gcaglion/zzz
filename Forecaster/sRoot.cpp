@@ -15,10 +15,6 @@ void sRoot::execute(int what) {
 	char** simulationValidStartDate;
 	char** simulationTestStartDate;
 
-	//-- get fxdata info
-
-	//--
-
 	try {
 
 		//-- 1. load client and Forecaster XML configurations
@@ -34,25 +30,21 @@ void sRoot::execute(int what) {
 		safecall(clientCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
 		
 		//-- 5. malloc simulation start dates for each Dataset
-		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationTrainStartDate[d]=(char*)malloc(12+1);
-		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationValidStartDate[d]=(char*)malloc(12+1);
-		simulationTestStartDate =(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationTestStartDate[d] =(char*)malloc(12+1);
+		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationTrainStartDate[d]=(char*)malloc(DATE_FORMAT_LEN);
+		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationValidStartDate[d]=(char*)malloc(DATE_FORMAT_LEN);
+		simulationTestStartDate =(char**)malloc(simulationLength*sizeof(char*)); for (d=0; d<simulationLength; d++)	simulationTestStartDate[d] =(char*)malloc(DATE_FORMAT_LEN);
 
 		//-- 6. spawn forecaster
 		safespawn(false, forecaster, newsname("mainForecaster"), defaultdbg, forecasterCfg, "/Forecaster");
 
 		//-- 7. get simulation start dates
-		getStartDates(forecaster->data->trainDS, simulationLength, simulationTrainStartDate);
-		getStartDates(forecaster->data->testDS, simulationLength, simulationTestStartDate);
-		getStartDates(forecaster->data->validDS, simulationLength, simulationValidStartDate);
+		if (forecaster->data->doTraining) safecall(this, getStartDates, forecaster->data->trainDS, simulationLength, simulationTrainStartDate);
+		if (forecaster->data->doInference) safecall(this, getStartDates, forecaster->data->testDS, simulationLength, simulationTestStartDate);
+		if (forecaster->data->doValidation) safecall(this, getStartDates, forecaster->data->validDS, simulationLength, simulationValidStartDate);
 
 		//-- 4.3. do actions (train/test/validate) according to configuration
-		if (forecaster->data->doTraining) {
-			safecall(forecaster->engine, train, forecaster->data->trainDS);
-		}
-		if (forecaster->data->doInference) {
-			safecall(forecaster->engine, infer, forecaster->data->testDS);
-		}
+		if (forecaster->data->doTraining) safecall(forecaster->engine, train, forecaster->data->trainDS);		
+		if (forecaster->data->doInference) safecall(forecaster->engine, infer, forecaster->data->testDS);
 
 		//-- 4.4. delete forecaster
 
@@ -109,55 +101,65 @@ void sRoot::CLoverride(int argc, char* argv[]) {
 		}
 	}
 void sRoot::testDML() {
-		sOraDB* oradb1;
 
-		int pid=99;
-		int epochs=2000;
-		int tid=pid;
-		numtype* trainMSE = (numtype*)malloc(epochs*sizeof(numtype));
-		numtype* validMSE = (numtype*)malloc(epochs*sizeof(numtype));
-		for (int e=0; e<epochs; e++) {
-			trainMSE[e]=MyRndDbl(0, 10);
-			validMSE[e]=MyRndDbl(0, 10);
-		}
-		safespawn(false, oradb1, newsname("TestOraDB"), defaultdbg, "CULogUser", "LogPwd", "Algo", true);
-		safecall(oradb1, saveMSE, pid, tid, epochs, trainMSE, validMSE);
+	sOraDB* oradb1;
+	safespawn(false, oradb1, newsname("TestOraDB"), defaultdbg, "CULogUser", "LogPwd", "Algo", true);
+	sOraDB* oradb2;
+	safespawn(false, oradb2, newsname("TestOraHistory"), defaultdbg, "History", "HistoryPwd", "Algo", true);
 
-		int setid=0, npid=pid, ntid=tid, barsCnt=1000, featuresCnt=4;
-		int feature[4]={ 0,1,2,3 };
-		numtype* prediction= (numtype*)malloc(barsCnt*featuresCnt*sizeof(numtype));
-		numtype* actual    = (numtype*)malloc(barsCnt*featuresCnt*sizeof(numtype));
+	int sdatecnt=10;
+	char** sdate=(char**)malloc(sdatecnt*sizeof(char*)); for (int i=0; i<sdatecnt; i++) sdate[i]=(char*)malloc(DATE_FORMAT_LEN);
+	oradb1->getStartDates("EURUSD", "H1", false, "201612300000", sdatecnt, sdate);
 
-		int i=0;
-		for (int b=0; b<barsCnt; b++) {
-			for (int f=0; f<featuresCnt; f++) {
-				prediction[i]=MyRndDbl(0, 10);
-				actual[i]=MyRndDbl(0, 10);
-				i++;
-			}
-		}
-		safecall(oradb1, saveRun, pid, tid, setid, npid, ntid, barsCnt, featuresCnt, feature, prediction, actual);
 
-		int Wcnt=35150;
-		numtype* W = (numtype*)malloc(Wcnt*sizeof(numtype));
-		//for (int i=0; i<Wcnt; i++) W[i]=MyRndDbl(0, 1);
-		//safecall(oradb1, SaveW, pid, tid, 2000, Wcnt, W);
-		pid=73624;
-		tid=76992;
-		int epoch=-1;
-		safecall(oradb1, loadW, pid, tid, epoch, Wcnt, W);
-
+	int pid=99;
+	int epochs=2000;
+	int tid=pid;
+	numtype* trainMSE = (numtype*)malloc(epochs*sizeof(numtype));
+	numtype* validMSE = (numtype*)malloc(epochs*sizeof(numtype));
+	for (int e=0; e<epochs; e++) {
+		trainMSE[e]=MyRndDbl(0, 10);
+		validMSE[e]=MyRndDbl(0, 10);
 	}
+	safecall(oradb1, saveMSE, pid, tid, epochs, trainMSE, validMSE);
+
+	int setid=0, npid=pid, ntid=tid, barsCnt=1000, featuresCnt=4;
+	int feature[4]={ 0,1,2,3 };
+	numtype* prediction= (numtype*)malloc(barsCnt*featuresCnt*sizeof(numtype));
+	numtype* actual    = (numtype*)malloc(barsCnt*featuresCnt*sizeof(numtype));
+
+	int i=0;
+	for (int b=0; b<barsCnt; b++) {
+		for (int f=0; f<featuresCnt; f++) {
+			prediction[i]=MyRndDbl(0, 10);
+			actual[i]=MyRndDbl(0, 10);
+			i++;
+		}
+	}
+	safecall(oradb1, saveRun, pid, tid, setid, npid, ntid, barsCnt, featuresCnt, feature, prediction, actual);
+
+	int Wcnt=35150;
+	numtype* W = (numtype*)malloc(Wcnt*sizeof(numtype));
+	//for (int i=0; i<Wcnt; i++) W[i]=MyRndDbl(0, 1);
+	//safecall(oradb1, SaveW, pid, tid, 2000, Wcnt, W);
+	pid=73624;
+	tid=76992;
+	int epoch=-1;
+	safecall(oradb1, loadW, pid, tid, epoch, Wcnt, W);
+
+}
 void sRoot::getStartDates(sDataSet* ds, int len, char** oDates){
 	sFXData* fxsrc; sFileData* filesrc; sMT4Data* mt4src;
 	switch (ds->sourceTS->sourceData->type) {
 	case FXDB_SOURCE:
 		fxsrc = (sFXData*)ds->sourceTS->sourceData;
-		forecaster->persistor->db->getStartDates(fxsrc->Symbol, fxsrc->TimeFrame, fxsrc->IsFilled, ds->sourceTS->date0, len, oDates);
+		safecall(forecaster->persistor->db, open);
+		safecall(forecaster->persistor->db, getStartDates, fxsrc->Symbol, fxsrc->TimeFrame, fxsrc->IsFilled, ds->sourceTS->date0, len, oDates);
 		break;
 	case FILE_SOURCE:
 		filesrc = (sFileData*)ds->sourceTS->sourceData;
-		forecaster->persistor->file->getStartDates(filesrc, ds->sourceTS->date0, len, oDates);
+		safecall(filesrc, open);
+		safecall(forecaster->persistor->file, getStartDates, filesrc, ds->sourceTS->date0, len, oDates);
 		break;
 	case MT4_SOURCE:
 		mt4src = (sMT4Data*)ds->sourceTS->sourceData;

@@ -176,11 +176,11 @@
     <ClInclude Include="DataSource.h" />
     <ClInclude Include="DataSource_enums.h" />
     <ClInclude Include="DBConnection_enums.h" />
-    <ClInclude Include="FileData.h" />
+    <ClInclude Include="sFileData.h" />
     <ClInclude Include="FileData_enums.h" />
-    <ClInclude Include="FXData.h" />
+    <ClInclude Include="sFXData.h" />
     <ClInclude Include="FXData_enums.h" />
-    <ClInclude Include="MT4data.h" />
+    <ClInclude Include="sMT4data.h" />
     <ClInclude Include="TimeSerie.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

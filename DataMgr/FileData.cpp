@@ -1,4 +1,4 @@
-#include "FileData.h"
+#include "sFileData.h"
 
 //=== sFileData
 sFileData::sFileData(sCfgObjParmsDef, FILE* srcFile_, int fieldSep_, bool calcBW_, int BWfeatureH_, int BWfeatureL_) : sDataSource(sCfgObjParmsVal, FILE_SOURCE, NULL, calcBW_, BWfeatureH_, BWfeatureL_) {
@@ -16,6 +16,9 @@ void sFileData::getFeaturesCnt(int* oFeaturesCnt_) {
 	//.................
 }
 
+void sFileData::open() {
+	fail("Not implemented!");
+}
 void sFileData::load(const char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar) {
 	fail("Not implemented!");
 }

@@ -26,7 +26,7 @@
 					OutFilePath  = C:\temp\logs
 				</Debugger>
 				<TimeSerie>
-					Date0				= 201712300000
+					Date0				= 201612300000
 					HistoryLen			= 505
 					DataTransformation	= DT_DELTALOG
 					BWCalc				= true

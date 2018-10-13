@@ -1,4 +1,4 @@
-#include "FXData.h"
+#include "sFXData.h"
 
 //=== sFXData
 sFXData::sFXData(sCfgObjParmsDef, sOraDB* db_, char* symbol_, char* tf_, bool isFilled_) : sDataSource(sCfgObjParmsVal, FXDB_SOURCE, FXDataFeaturesCnt, true, FXHIGH, FXLOW) {
@@ -32,3 +32,7 @@ void sFXData::load(char* pDate0, int pRecCount, char** oBarTime, float* oBarData
 
 
 }
+/*void sFXData::open() {
+	safecall(db, open);
+}
+*/

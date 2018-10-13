@@ -3,9 +3,9 @@
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "TimeSerie_enums.h"
-#include "FXData.h"
-#include "FileData.h"
-#include "MT4Data.h"
+#include "sFXData.h"
+#include "sFileData.h"
+#include "sMT4Data.h"
 
 #define MAX_DATA_FEATURES 128
 #define MAX_TSF_CNT	32

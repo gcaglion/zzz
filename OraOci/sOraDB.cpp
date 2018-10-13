@@ -1,5 +1,6 @@
 #include "sOraDB.h"
 #include "OraOciCommon.h"
+#include <iostream>
 
 sOraDB::sOraDB(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_, bool autoOpen) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	//-- 1. get Parameters
@@ -27,8 +28,8 @@ sOraDB::~sOraDB() {
 
 void sOraDB::open() {
 	try {
-		env = Environment::createEnvironment();
-		conn = ((Environment*)env)->createConnection(DBUserName, DBPassword, DBConnString);
+		if(env==nullptr) env = Environment::createEnvironment();
+		if (conn==nullptr) conn = ((Environment*)env)->createConnection(DBUserName, DBPassword, DBConnString);
 	}
 	catch (SQLException exc) {
 		fail("%s FAILURE : %s . SQL Exception: %s", name->base, cmd, exc.what());
@@ -56,7 +57,7 @@ void sOraDB::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pRecCount,
 
 		i=pRecCount-1;
 		while (rset->next()&&i>=0) {
-			strcpy_s(oBarTime[i], 12+1, rset->getString(1).c_str());
+			strcpy_s(oBarTime[i], DATE_FORMAT_LEN, rset->getString(1).c_str());
 			oBarData[5*i+0] = rset->getFloat(2);
 			oBarData[5*i+1] = rset->getFloat(3);
 			oBarData[5*i+2] = rset->getFloat(4);
@@ -66,7 +67,7 @@ void sOraDB::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pRecCount,
 		}
 		//-- one more fetch to get baseBar
 		if (rset->next()) {
-			strcpy_s(oBaseTime, 12+1, rset->getString(1).c_str());
+			strcpy_s(oBaseTime, DATE_FORMAT_LEN, rset->getString(1).c_str());
 			for (int f=0; f<5; f++) {
 				oBaseBar[f] = rset->getFloat(f+2);
 			}
@@ -138,7 +139,7 @@ void sOraDB::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char
 
 		i=0;
 		while (rset->next()&&i<DatesCount) {
-			strcpy_s(oDate[i], 12+1, rset->getString(1).c_str());
+			strcpy_s(oDate[i], DATE_FORMAT_LEN, rset->getString(1).c_str());
 			i++;
 		}
 

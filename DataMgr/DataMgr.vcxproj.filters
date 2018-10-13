@@ -50,19 +50,10 @@
     <ClInclude Include="DBConnection_enums.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FileData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FileData_enums.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FXData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="FXData_enums.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MT4data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DataSet.h">
@@ -75,6 +66,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DataShape.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sFileData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sMT4data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sFXData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
