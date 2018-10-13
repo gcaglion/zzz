@@ -3,7 +3,6 @@
 #include "..\common.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "../Algebra/Algebra.h"
-//#include "../DataMgr/DataShape.h"
 #include "../DataMgr/DataSet.h"
 #include "sCore.h"
 #include "NN_parms.h"
@@ -73,7 +72,7 @@ struct sNN : sCore {
 
 	void init(sDataShape* dataShape_, void* NNparms_);
 
-	EXPORT sNN(sCfgObjParmsDef, sDataShape* dataShape_, void* NNparms_);
+	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sDataShape* dataShape_, void* NNparms_);
 	EXPORT ~sNN();
 
 	EXPORT void setActivationFunction(int* func_);
@@ -88,7 +87,7 @@ private:
 	void FF();
 	void Activate(int level);
 	void calcErr();
-	void ForwardPass(tDataSet* ds, int batchId, bool haveTargets);
+	void ForwardPass(sDataSet* ds, int batchId, bool haveTargets);
 	bool epochMetCriteria(int epoch, DWORD starttime, bool displayProgress=true);
 	void BP_std();
 	void WU_std();

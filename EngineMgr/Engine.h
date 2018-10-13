@@ -4,8 +4,12 @@
 #include "../DataMgr/DataShape.h"
 #include "../DataMgr/DataSet.h"
 #include "sCore.h"
+#include "sCoreParms.h"
 #include "Engine_enums.h"
-#include "cuNN.h"
+#include "sNN.h"
+#include "sGA.h"
+#include "sSVM.h"
+#include "sSOM.h"
 
 #define MAX_ENGINE_LAYERS	8
 #define MAX_ENGINE_CORES	32
@@ -38,11 +42,13 @@ struct sEngine : sCfgObj {
 
 	sDataShape* dataShape;
 	sCore** core;
+	sCoreLayout** coreLayout;
+	sCoreParms** coreParms;
 
 	EXPORT sEngine(sCfgObjParmsDef, sDataShape* dataShape_);
 	EXPORT ~sEngine();
 
-	EXPORT void setCoreLayer(sCore* c);
+	EXPORT void setCoreLayer(sCoreLayout* cl);
 	EXPORT void train(sDataSet* trainDS_);
 	EXPORT void infer(sDataSet* testDS_);
 

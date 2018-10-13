@@ -99,37 +99,43 @@
 		<Custom>
 			CoresCount	= 5
 			<Core0>
-				Type			= CORE_NN
-				Parents			= 
-				ParentsConnType	= 
-				<Topology>
-					LevelRatio			= 1,1,1,0.5
-					LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-					UseContext			= true
-					UseBias				= false
-				</Topology>
-				<Training>
-					MaxEpochs			= 50
-					TargetMSE			= 0.0001
-					NetSaveFrequency	= 10
-					StopOnDivergence	= true
-					BP_Algo				= BP_STD
-					<BP_Std>
-						LearningRate		= 0.01
-						LearningMomentum	= 0.4
-					</BP_Std>
-					<BP_Qing>
-					</BP_Qing>
-					<BP_Qprop>
-					</BP_Qprop>
-					<BP_RProp>
-					</BP_RProp>
-				</Training>
+				Type	= CORE_NN
+				<Layout>
+					Parents			= 
+					ParentsConnType	= 
+				</Layout>
+				<Parameters>
+					<Topology>
+						LevelRatio			= 1,1,1,0.5
+						LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+						UseContext			= true
+						UseBias				= false
+					</Topology>
+					<Training>
+						MaxEpochs			= 50
+						TargetMSE			= 0.0001
+						NetSaveFrequency	= 10
+						StopOnDivergence	= true
+						BP_Algo				= BP_STD
+						<BP_Std>
+							LearningRate		= 0.01
+							LearningMomentum	= 0.4
+						</BP_Std>
+						<BP_Qing>
+						</BP_Qing>
+						<BP_Qprop>
+						</BP_Qprop>
+						<BP_RProp>
+						</BP_RProp>
+					</Training>
+				</Parameters>
 			</Core0>
 			<Core1>
 				Type			= CORE_NN
-				Parents			= 
-				ParentsConnType	= 
+				<Layout>
+					Parents			= 
+					ParentsConnType	= 
+				</Layout>
 				<Topology>
 					LevelRatio			= 1,1,1,0.5
 					LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
@@ -156,8 +162,10 @@
 			</Core1>
 			<Core2>
 				Type			= CORE_GA
-				Parents			= Core0
-				ParentsConnType	= CONN_DENSE
+				<Layout>
+					Parents			= Core0
+					ParentsConnType	= CONN_DENSE
+				</Layout>
 				<Topology>
 					LevelRatio			= 1,1,1,0.5
 					LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
@@ -184,8 +192,10 @@
 			</Core2>
 			<Core3>
 				Type			= CORE_SVM
-				Parents			= Core1
-				ParentsConnType	= CONN_DENSE
+				<Layout>
+					Parents			= Core1
+					ParentsConnType	= CONN_DENSE
+				</Layout>
 				<Topology>
 					LevelRatio			= 1,1,1,0.5
 					LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
@@ -212,8 +222,10 @@
 			</Core3>
 			<Core4>			
 				Type			= CORE_NN
-				Parents			= Core2, Core3
-				ParentsConnType	= CONN_DENSE, CONN_LINEAR
+				<Layout>
+					Parents			= Core2, Core3
+					ParentsConnType	= CONN_DENSE, CONN_LINEAR
+				</Layout>
 				<Topology>
 					LevelRatio			= 1,1,1,0.5
 					LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH

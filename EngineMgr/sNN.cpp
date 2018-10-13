@@ -1,4 +1,4 @@
-#include "cuNN.h"
+#include "sNN.h"
 
 void sNN::init(sDataShape* dataShape_, void* NNparms_) {
 
@@ -70,7 +70,7 @@ void sNN::parmsInit(void* NNparms_) {
 	}
 }
 
-sNN::sNN(sCfgObjParmsDef, sDataShape* dataShape_, void* NNparms_) : sCore(sCfgObjParmsVal, dataShape_) {
+sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sDataShape* dataShape_, void* NNparms_) : sCore(sCfgObjParmsVal, layout_, dataShape_) {
 	
 	//-- 1. initialize NN
 	init(dataShape_, NNparms_);

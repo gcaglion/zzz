@@ -11,17 +11,19 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 	safecall(cfgKey, getParm, &type, "Type");
 
 	//-- 2. do stuff and spawn sub-Keys
-	int c;
+	int l, c;
 
 	switch (type) {
 	case ENGINE_CUSTOM:
 		//-- 0. coresCnt
 		safecall(cfgKey, getParm, &coresCnt, "Custom/CoresCount");
-		//-- 1. malloc one core and one coreLayout for each core
-		core=(sCore**)malloc(coresCnt*sizeof(sCore*));
-		//-- 2. create layout, set base coreLayout properties for each Core (type, desc, connType, outputCnt)
+		//-- 1. malloc one coreLayout and one coreParms for each core
+		coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
+		coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
+		//-- 2. for each Core, create layout and parms, setting base coreLayout properties  (type, desc, connType, outputCnt)
 		for (c=0; c<coresCnt; c++) {
-			safespawn(false, core[c], newsname("Core%d",c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, dataShape);
+			safespawn(false, coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Custom/CoreLayout%d", c))->base, dataShape);
+			safespawn(false, coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Custom/CoreLayout%d", c))->base, dataShape);
 		}
 		break;
 	case ENGINE_WNN:
@@ -39,11 +41,11 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 
 	//-- 3. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
 	for (c=0; c<coresCnt; c++) {
-		setCoreLayer(core[c]);
-		layerCoresCnt[core[c]->layer]++;
+		setCoreLayer(coreLayout[c]);
+		layerCoresCnt[coreLayout[c]->layer]++;
 	}
 	//-- 4. determine layersCnt, and InputCnt for each Core
-	for (int l=0; l<MAX_ENGINE_LAYERS; l++) {
+	for (l=0; l<MAX_ENGINE_LAYERS; l++) {
 		for (c=0; c<layerCoresCnt[l]; c++) {
 			if (l==0) {
 				//-- do nothing. keep core shape same as engine shape
@@ -56,24 +58,29 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 		layersCnt++;
 	}
 
-	//-- 5. init each core
-	for (c=0; c<coresCnt; c++) {
-		switch (core[c]->type) {
-		case CORE_NN:
-			((sNN*)core[c])->init(dataShape, nullptr);
-			break;
-		case CORE_GA:
-			//((sGA*)core[c])->init(c, dataShape, nullptr);
-			break;
-		case CORE_SVM:
-			//((sVM*)core[c])->init(c, dataShape, nullptr);
-			break;
-		case CORE_SOM:
-			//((sOM*)core[c])->init(c, dataShape, nullptr);
-			break;
-		default:
-			fail("Invalid Core Type: %d", type);
-			break;
+	//-- 5. spawn each core, layer by layer
+	for (l=0; l<layersCnt; l++){
+		for (c=0; c<coresCnt; c++) {
+			if (core[c]->layout->layer==l) {
+				switch (core[c]->type) {
+				case CORE_NN:
+					//((sNN*)core[c])->init(dataShape, nullptr);
+					core[c] = new sNN(this, newsname("Core%d_NN", c), defaultdbg, cfg, (newsname("Custom/Core%d_NN", c))->base, core[c]->layout, dataShape);
+					break;
+				case CORE_GA:
+					//((sGA*)core[c])->init(c, dataShape, nullptr);
+					break;
+				case CORE_SVM:
+					//((sVM*)core[c])->init(c, dataShape, nullptr);
+					break;
+				case CORE_SOM:
+					//((sOM*)core[c])->init(c, dataShape, nullptr);
+					break;
+				default:
+					fail("Invalid Core Type: %d", type);
+					break;
+				}
+			}
 		}
 	}
 	
@@ -87,18 +94,18 @@ sEngine::~sEngine() {
 	free(layerCoresCnt);
 }
 
-void sEngine::setCoreLayer(sCore* c) {
+void sEngine::setCoreLayer(sCoreLayout* cl) {
 	int ret=0;
 	int maxParentLayer=-1;
-	for (int p=0; p<c->parentsCnt; p++) {
-		sCore* parent=core[c->parentId[p]];
+	for (int p=0; p<cl->parentsCnt; p++) {
+		sCoreLayout* parent=coreLayout[cl->parentId[p]];
 		setCoreLayer(parent);
 		if (parent->layer>maxParentLayer) {
 			maxParentLayer=parent->layer;
 		}
 		ret=maxParentLayer+1;
 	}
-	c->layer=ret;
+	cl->layer=ret;
 }
 
 void sEngine::layerTrain(int pid, int pTestId, int pLayer, bool loadW, sDataSet* trainDS_, sTrainParams* tp) {
