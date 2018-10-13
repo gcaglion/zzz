@@ -8,7 +8,6 @@
 #define CORE_MAX_PARENTS	32
 
 struct sCore : sCfgObj {
-	int id;
 	int type;
 	int layer=-1;
 	int parentsCnt;
@@ -20,7 +19,7 @@ struct sCore : sCfgObj {
 	sDataSet* inputDS;
 	sDataSet* outputDS;
 
-	EXPORT sCore(sCfgObjParmsDef, int id_, sDataShape* dataShape_);
+	EXPORT sCore(sCfgObjParmsDef, sDataShape* dataShape_);
 	EXPORT ~sCore();
 
 	void loadInput(sDataSet* inputDS_);

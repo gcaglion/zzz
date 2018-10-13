@@ -21,7 +21,7 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 		core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 		//-- 2. create layout, set base coreLayout properties for each Core (type, desc, connType, outputCnt)
 		for (c=0; c<coresCnt; c++) {
-			safespawn(false, core[c], newsname("Core%d",c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, c, dataShape);
+			safespawn(false, core[c], newsname("Core%d",c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, dataShape);
 		}
 		break;
 	case ENGINE_WNN:
@@ -60,7 +60,7 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 	for (c=0; c<coresCnt; c++) {
 		switch (core[c]->type) {
 		case CORE_NN:
-			((sNN*)core[c])->init(c, dataShape, nullptr);
+			((sNN*)core[c])->init(dataShape, nullptr);
 			break;
 		case CORE_GA:
 			//((sGA*)core[c])->init(c, dataShape, nullptr);
@@ -150,7 +150,23 @@ void sEngine::train(sDataSet* trainDS_) {
 	for (int l=0; l<layersCnt; l++) {
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layer==l) {
-//				core[c]->train(trainDS_);
+				switch (core[c]->type) {
+				case CORE_NN:
+					((sNN*)core[c])->train(trainDS_);
+					break;
+				case CORE_GA:
+					//((sGA*)core[c])->train(trainDS_);
+					break;
+				case CORE_SVM:
+					//((sVM*)core[c])->train(trainDS_);
+					break;
+				case CORE_SOM:
+					//((sOM*)core[c])->train(trainDS_);
+					break;
+				default:
+					fail("Invalid Core Type: %d", type);
+					break;
+				}
 			}
 		}
 	}

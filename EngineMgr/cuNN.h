@@ -3,13 +3,13 @@
 #include "..\common.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "../Algebra/Algebra.h"
-#include "../DataMgr/DataShape.h"
+//#include "../DataMgr/DataShape.h"
 #include "../DataMgr/DataSet.h"
-#include "sCoreLayout.h"
+#include "sCore.h"
 #include "NN_parms.h"
 #include "NN_enums.h"
 
-typedef struct sNN : sCore {
+struct sNN : sCore {
 
 	//-- MyAlgebra common structures
 	sAlgebra* Alg;
@@ -21,12 +21,8 @@ typedef struct sNN : sCore {
 	//-- NNParms
 	sNNparms* parms;
 
-	//-- inner layout
-//	int sampleLen;
-//	int predictionLen; 
-//	int featuresCnt;
 	int batchCnt_;
-	//--
+
 	int* nodesCnt;
 	int nodesCntTotal;
 	int outputLevel;
@@ -75,9 +71,9 @@ typedef struct sNN : sCore {
 	DWORD WUstart, WUtimeTot=0, WUcnt=0; float WUtimeAvg;
 	DWORD TRstart, TRtimeTot=0, TRcnt=0; float TRtimeAvg;
 
-	void init(int coreId_, sDataShape* dataShape_, void* NNparms_);
+	void init(sDataShape* dataShape_, void* NNparms_);
 
-	EXPORT sNN(sCfgObjParmsDef, int coreId_, sDataShape* dataShape_, void* NNparms_);
+	EXPORT sNN(sCfgObjParmsDef, sDataShape* dataShape_, void* NNparms_);
 	EXPORT ~sNN();
 
 	EXPORT void setActivationFunction(int* func_);
@@ -105,5 +101,5 @@ private:
 	void destroyNeurons();
 	void destroyWeights();
 
-} tNN;
+};
 

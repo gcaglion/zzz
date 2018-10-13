@@ -33,7 +33,7 @@
     <ClInclude Include="Core_enums.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sCoreLayout.h">
+    <ClInclude Include="sCore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,7 +44,7 @@
     <ClCompile Include="cuNN.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sCoreLayout.cpp">
+    <ClCompile Include="sCore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

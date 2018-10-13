@@ -166,12 +166,12 @@
     <ClInclude Include="Engine_enums.h" />
     <ClInclude Include="NN_enums.h" />
     <ClInclude Include="NN_parms.h" />
-    <ClInclude Include="sCoreLayout.h" />
+    <ClInclude Include="sCore.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="cuNN.cpp" />
     <ClCompile Include="Engine.cpp" />
-    <ClCompile Include="sCoreLayout.cpp" />
+    <ClCompile Include="sCore.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,6 +1,6 @@
 #include "cuNN.h"
 
-void sNN::init(int coreId_, sDataShape* dataShape_, void* NNparms_) {
+void sNN::init(sDataShape* dataShape_, void* NNparms_) {
 
 	pid=GetCurrentProcessId();
 	tid=GetCurrentThreadId();
@@ -70,10 +70,10 @@ void sNN::parmsInit(void* NNparms_) {
 	}
 }
 
-sNN::sNN(sCfgObjParmsDef, int coreId_, sDataShape* dataShape_, void* NNparms_) : sCore(sCfgObjParmsVal, coreId_, dataShape_) {
+sNN::sNN(sCfgObjParmsDef, sDataShape* dataShape_, void* NNparms_) : sCore(sCfgObjParmsVal, dataShape_) {
 	
 	//-- 1. initialize NN
-	init(coreId_, dataShape_, NNparms_);
+	init(dataShape_, NNparms_);
 
 }
 sNN::~sNN() {

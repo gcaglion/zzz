@@ -3,7 +3,7 @@
 #include "../ConfigMgr/sCfgObj.h"
 #include "../DataMgr/DataShape.h"
 #include "../DataMgr/DataSet.h"
-#include "sCoreLayout.h"
+#include "sCore.h"
 #include "Engine_enums.h"
 #include "cuNN.h"
 
