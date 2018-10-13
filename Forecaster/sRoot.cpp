@@ -65,24 +65,6 @@ void sRoot::tester() {
 		//-- 4.4. delete forecaster
 
 
-	/*	//-- 4. for each simulation
-		for (int d=0; d<simulationLength; d++) {
-
-			//-- 4.1. save tester Log (elapsedTime is 0)
-			//-- 4.2. spawn forecaster
-			safespawn(false, forecaster, newsname("Forecaster_%d_%s", d, simulationStartDate[d]), defaultdbg, forecasterCfg, "/Forecaster");
-
-			//-- 4.3. do actions (train/test/validate) according to configuration
-			//-- 4.4. delete forecaster
-		}
-
-		//-- 6. free simulationStartDate[]
-		for (d=0; d<simulationLength; d++) {
-			free(simulationTrainStartDate[d]);
-			free(simulationValidStartDate[d]);
-			free(simulationTestStartDate[d]);
-		}
-*/
 	}
 	catch (std::exception exc) {
 		fail("Exception=%s", exc.what());

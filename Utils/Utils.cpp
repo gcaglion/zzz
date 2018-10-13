@@ -1,6 +1,5 @@
 #include "Utils.h"
 
-//=== generic (non-classed)
 bool fexist(const char* fname_) {
 	FILE* f;
 	bool success;
@@ -232,3 +231,9 @@ EXPORT void gettimestamp(char* timeS, size_t timeSsize) {
 	ReleaseMutex(TimeMutex);
 }
 
+EXPORT void gotoxy(int x, int y) {
+	COORD coord;
+	coord.X = x;
+	coord.Y = y;
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}

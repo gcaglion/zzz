@@ -13,7 +13,6 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 	//-- 2. do stuff and spawn sub-Keys
 	int c;
 
-
 	switch (type) {
 	case ENGINE_CUSTOM:
 		//-- 0. coresCnt
@@ -102,7 +101,59 @@ void sEngine::setCoreLayer(sCore* c) {
 	c->layer=ret;
 }
 
+void sEngine::layerTrain(int pid, int pTestId, int pLayer, bool loadW, sDataSet* trainDS_, sTrainParams* tp) {
+	int t;
+	int ret = 0;
+	int ThreadCount = layerCoresCnt[pLayer];
+	HANDLE* HTrain = (HANDLE*)malloc(ThreadCount*sizeof(HANDLE));
+	DWORD* kaz = (DWORD*)malloc(ThreadCount*sizeof(DWORD));
+	LPDWORD* tid = (LPDWORD*)malloc(ThreadCount*sizeof(LPDWORD)); for (int i = 0; i < ThreadCount; i++) tid[i] = &kaz[i];
+	HANDLE SMutex = CreateMutex(NULL, FALSE, NULL);
+
+	gotoxy(0, 2+pLayer+((pLayer>0) ? layerCoresCnt[pLayer-1] : 0));  printf("Training Layer %d\n", pLayer);
+	t = 0;
+	for (int n = 0; n<layerCoresCnt[pLayer]; n++) {
+		tp[t].LayerId = pLayer;
+		tp[t].CoreId = n;
+		tp[t].CorePos = 2+t+pLayer+((pLayer>0) ? layerCoresCnt[pLayer-1] : 0);
+		tp[t].ScreenMutex = SMutex;
+		tp[t].TotCores = layerCoresCnt[pLayer];
+		tp[t].SampleCount = trainDS_->samplesCnt;
+		tp[t].useValidation = false;	//******************************//
+		tp[t].useExistingW = loadW;
+
+		//-- Create Thread
+		HTrain[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)core[n], &tp[t], 0, tid[t]);
+
+		//-- Store Engine Handler
+		tp[t].TrainInfo.ProcessId = pid;
+		tp[t].TrainInfo.TestId = pTestId;
+		tp[t].TrainInfo.ThreadId = (*tid[t]);
+		//pEngineParms->Core[pLayer][n].CoreLog[d].ThreadId = (*tid[t]);
+		t++;
+	}
+	//-- we need to train all the nets in one layer, in order to have the inputs to the next layer
+	WaitForMultipleObjects(t, HTrain, TRUE, INFINITE);
+
+	//-- check for training failure
+	for (int ti = 0; ti<t; ti++) if (tp[ti].TrainSuccess!=0) ret = -1;
+
+	//-- free(s)
+	free(HTrain); free(kaz); free(tid);
+
+}
+
 void sEngine::train(sDataSet* trainDS_) {
+
+	//-- 1. 
+
+	for (int l=0; l<layersCnt; l++) {
+		for (int c=0; c<coresCnt; c++) {
+			if (core[c]->layer==l) {
+//				core[c]->train(trainDS_);
+			}
+		}
+	}
 	//-- 1.  
 	//-- 2. 
 	//-- 3. 
@@ -112,3 +163,6 @@ void sEngine::train(sDataSet* trainDS_) {
 	//-- 7. 
 }
 void sEngine::infer(sDataSet* testDS_){}
+
+//-- private stuff
+

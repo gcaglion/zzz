@@ -22,10 +22,10 @@ typedef struct sNN : sCore {
 	sNNparms* parms;
 
 	//-- inner layout
-	int sampleLen;
-	int predictionLen; 
-	int featuresCnt;
-	int batchCnt;
+//	int sampleLen;
+//	int predictionLen; 
+//	int featuresCnt;
+	int batchCnt_;
 	//--
 	int* nodesCnt;
 	int nodesCntTotal;
@@ -81,8 +81,8 @@ typedef struct sNN : sCore {
 	EXPORT ~sNN();
 
 	EXPORT void setActivationFunction(int* func_);
-	EXPORT void train(tDataSet* trainSet);
-	EXPORT void run(tDataSet* runSet);
+	EXPORT void train(sDataSet* trainSet);
+	EXPORT void run(sDataSet* runSet);
 
 
 private:

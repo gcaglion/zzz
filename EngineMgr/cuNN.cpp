@@ -13,11 +13,6 @@ void sNN::init(int coreId_, sDataShape* dataShape_, void* NNparms_) {
 
 	parms->MaxEpochs=0;	//-- we need this so destructor does not fail when NN object is used to run-only
 
-	//-- set input and output basic dimensions (batchsize not considered yet)
-	sampleLen=baseDataShape->sampleLen;
-	predictionLen=baseDataShape->predictionLen;
-	featuresCnt=baseDataShape->featuresCnt;
-
 	//-- bias still not working(!) Better abort until it does
 	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
 
@@ -114,8 +109,8 @@ void sNN::setLayout(int batchSamplesCnt_) {
 	parms->batchSamplesCnt=batchSamplesCnt_;
 
 	//-- 0.3. set nodesCnt (single sample)
-	nodesCnt[0] = sampleLen*featuresCnt*parms->batchSamplesCnt;
-	nodesCnt[outputLevel] = predictionLen*featuresCnt*parms->batchSamplesCnt;
+	nodesCnt[0] = baseDataShape->sampleLen*baseDataShape->featuresCnt*parms->batchSamplesCnt;
+	nodesCnt[outputLevel] = baseDataShape->predictionLen*baseDataShape->featuresCnt*parms->batchSamplesCnt;
 	for (nl = 0; nl<(levelsCnt-2); nl++) nodesCnt[nl+1] = (int)floor(nodesCnt[nl]*parms->levelRatio[nl]);
 
 	//-- add context neurons
@@ -414,7 +409,7 @@ bool sNN::epochMetCriteria(int epoch, DWORD starttime, bool displayProgress) {
 	numtype tse_h;	// total squared error copid on host at the end of each eopch
 
 	Alg->d2h(&tse_h, tse, sizeof(numtype));
-	mseT[epoch]=tse_h/nodesCnt[outputLevel]/batchCnt;
+	mseT[epoch]=tse_h/nodesCnt[outputLevel]/batchCnt_;
 	mseV[epoch]=0;	// TO DO !
 	if(displayProgress) printf("\rpid=%d, tid=%d, epoch %d, Training TSE=%f, MSE=%1.10f, duration=%d ms", pid, tid, epoch, tse_h, mseT[epoch], (timeGetTime()-starttime));
 	if (mseT[epoch]<parms->TargetMSE) return true;
@@ -425,7 +420,7 @@ bool sNN::epochMetCriteria(int epoch, DWORD starttime, bool displayProgress) {
 
 	return false;
 }
-void sNN::train(tDataSet* trainSet) {
+void sNN::train(sDataSet* trainSet) {
 	int l;
 	DWORD epoch_starttime;
 	DWORD training_starttime=timeGetTime();
@@ -433,7 +428,7 @@ void sNN::train(tDataSet* trainSet) {
 
 	//-- set batch count and batchSampleCnt for the network from dataset
 	parms->batchSamplesCnt=trainSet->batchSamplesCnt;
-	batchCnt=trainSet->batchCnt;
+	batchCnt_=trainSet->batchCnt;
 	//-- set Layout. This should not change weightsCnt[] at all, just nodesCnt[]
 	setLayout(parms->batchSamplesCnt);
 
@@ -465,7 +460,7 @@ void sNN::train(tDataSet* trainSet) {
 		//safecall(Vinit(1, tse, 0, 0));
 
 		//-- 1.1. train one batch at a time
-		for (b=0; b<batchCnt; b++) {
+		for (b=0; b<batchCnt_; b++) {
 
 			//-- forward pass, with targets
 			ForwardPass(trainSet, b, true);
@@ -487,7 +482,7 @@ void sNN::train(tDataSet* trainSet) {
 	TRstart=timeGetTime(); TRcnt++;
 	Alg->Vinit(1, tse, 0, 0);
 	//safecall(Vinit(1, tse, 0, 0));
-	for (b=0; b<batchCnt; b++) ForwardPass(trainSet, b, true);
+	for (b=0; b<batchCnt_; b++) ForwardPass(trainSet, b, true);
 	//for (b=0; b<batchCnt; b++) safecall(ForwardPass(trainSet, b, true));
 	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
 
@@ -516,11 +511,11 @@ void sNN::train(tDataSet* trainSet) {
 	destroyNeurons();
 
 }
-void sNN::run(tDataSet* runSet) {
+void sNN::run(sDataSet* runSet) {
 
 	//-- set Neurons Layout based on batchSampleCount of run set
 	parms->batchSamplesCnt=runSet->batchSamplesCnt;
-	batchCnt=runSet->batchCnt;
+	batchCnt_=runSet->batchCnt;
 	setLayout(runSet->batchSamplesCnt);
 
 	//-- malloc + init neurons
@@ -531,7 +526,7 @@ void sNN::run(tDataSet* runSet) {
 	safecall(Alg, Vinit, 1, tse, 0, 0);
 
 	//-- batch run
-	for (int b=0; b<batchCnt; b++) {
+	for (int b=0; b<batchCnt_; b++) {
 
 		//-- 1.1.1.  load samples/targets onto GPU
 		Alg->h2d(&F[(parms->useBias) ? 1 : 0], &runSet->sampleBFS[b*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
@@ -554,14 +549,14 @@ void sNN::run(tDataSet* runSet) {
 	//-- calc and display final epoch MSE
 	numtype tse_h;	// total squared error copid on host at the end of the run
 	Alg->d2h(&tse_h, tse, sizeof(numtype));
-	numtype mseR=tse_h/nodesCnt[outputLevel]/batchCnt;
+	numtype mseR=tse_h/nodesCnt[outputLevel]/batchCnt_;
 	printf("\npid=%d, tid=%d, Run final MSE=%1.10f\n", pid, tid, mseR);
 
 	//-- convert prediction from BFS to SFB (fol all batches at once)
-	runSet->BFS2SFBfull(runSet->targetLen, runSet->predictionBFS, runSet->predictionSFB);
+	runSet->BFS2SFBfull(runSet->shape->predictionLen, runSet->predictionBFS, runSet->predictionSFB);
 	//-- extract first bar only from target/prediction SFB
-	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->targetLen, runSet->targetSFB, 0, runSet->target0, true);
-	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->targetLen, runSet->predictionSFB, 0, runSet->prediction0, true);
+	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->shape->predictionLen, runSet->targetSFB, 0, runSet->target0, true);
+	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->shape->predictionLen, runSet->predictionSFB, 0, runSet->prediction0, true);
 
 
 	//-- feee neurons()

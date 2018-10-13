@@ -10,6 +10,25 @@
 #define MAX_ENGINE_LAYERS	8
 #define MAX_ENGINE_CORES	32
 
+struct sEngineHandle {
+	int ProcessId;
+	int TestId;
+	//int DatasetId;
+	int ThreadId;
+};
+
+struct sTrainParams {
+	//sEngine* EngineParms;
+	int LayerId; int CoreId; int DatasetId;
+	int CorePos; int TotCores; HANDLE ScreenMutex;
+	bool useValidation;
+	bool useExistingW;
+	int SampleCount; double** SampleT; double** TargetT; double** SampleV; double** TargetV;
+	sEngineHandle TrainInfo;
+	int TrainSuccess;
+	int ActualEpochs;
+};
+
 struct sEngine : sCfgObj {
 
 	int type;
@@ -27,4 +46,8 @@ struct sEngine : sCfgObj {
 	EXPORT void train(sDataSet* trainDS_);
 	EXPORT void infer(sDataSet* testDS_);
 
+private:
+	void layerTrain(int pid, int pTestId, int pLayer, bool loadW, sDataSet* trainDS_, sTrainParams* tp);
+
 };
+

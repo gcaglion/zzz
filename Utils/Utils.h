@@ -24,3 +24,4 @@ EXPORT bool isnumber(char* str);
 EXPORT bool isInList(int soughtVal, int listLen, int* list);
 EXPORT void gettimestamp(char* timeS, size_t timeSsize);
 
+EXPORT void gotoxy(int x, int y);

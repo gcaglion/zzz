@@ -3,14 +3,17 @@
 #include "../common.h"
 #include "../configMgr/sCfgObj.h"
 #include "../configMgr/sCfgKey.h"
+#include "DataShape.h"
 #include "TimeSerie.h"
 
 typedef struct sDataSet : sCfgObj {
 
+	sDataShape* shape;
+
 	tTimeSerie* sourceTS;
 
-	int sampleLen;
-	int targetLen;
+//	int sampleLen;
+//	int targetLen;
 	int selectedFeaturesCnt;
 	int* selectedFeature;
 	int* BWFeature;
@@ -35,8 +38,8 @@ typedef struct sDataSet : sCfgObj {
 	numtype* prediction0;
 
 	//-- constructor / destructor
-	EXPORT sDataSet(sCfgObjParmsDef, int sampleLen_, int targetLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, int* datafileBWFeature_);
-	EXPORT sDataSet(sCfgObjParmsDef);
+	EXPORT sDataSet(sCfgObjParmsDef, sDataShape* shape_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, int* datafileBWFeature_);
+	EXPORT sDataSet(sCfgObjParmsDef, sDataShape* shape_);
 	EXPORT ~sDataSet();
 
 	bool isSelected(int ts_f);

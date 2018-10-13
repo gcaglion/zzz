@@ -24,7 +24,7 @@ void sTimeSerie::sTimeSeriecommon(int steps_, int featuresCnt_, int tsfCnt_, int
 }
 
 //-------- To fix --------------
-sTimeSerie::sTimeSerie(sCfgObjParmsDef, int steps_, int featuresCnt_) : sCfgObj(sCfgObjParmsVal) {
+/*sTimeSerie::sTimeSerie(sCfgObjParmsDef, int steps_, int featuresCnt_) : sCfgObj(sCfgObjParmsVal) {
 	sTimeSeriecommon(steps_, featuresCnt_, 0, nullptr);
 }
 sTimeSerie::sTimeSerie(sCfgObjParmsDef, sFXData* dataSource_, int steps_, char* date0_, int dt_) : sCfgObj(sCfgObjParmsVal) {
@@ -38,7 +38,7 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef, sFXData* dataSource_, int steps_, char* 
 sTimeSerie::sTimeSerie(sCfgObjParmsDef, sFileData* dataSource_, int steps_, int featuresCnt_, char* date0_, int dt_) : sCfgObj(sCfgObjParmsVal) {
 	featuresCnt=featuresCnt_;
 }
-
+*/
 void sTimeSerie::setDataSource(sCfg* cfg) {
 
 	bool found=false;
