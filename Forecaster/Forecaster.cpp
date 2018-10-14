@@ -10,9 +10,9 @@ sForecaster::sForecaster(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	//-- 1. get Parameters
 	//-- 2. do stuff and spawn sub-Keys
-	safespawn(false, data, newsname("Data"), defaultdbg, cfg, "Data");
-	safespawn(false, engine, newsname("Engine"), defaultdbg, cfg, "Engine", data->shape);
-	safespawn(false, persistor, newsname("Persistor"), defaultdbg, cfg, "Persistor");
+	safespawn(data, newsname("Data"), defaultdbg, cfg, "Data");
+	safespawn(engine, newsname("Engine"), defaultdbg, cfg, "Engine", data->shape);
+	safespawn(persistor, newsname("Persistor"), defaultdbg, cfg, "Persistor");
 
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;

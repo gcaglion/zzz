@@ -9,7 +9,10 @@
 #include "../Logger/Logger_enums.h"
 #include "../EngineMgr/Engine_enums.h"
 #include "../EngineMgr/Core_enums.h"
-#include "../EngineMgr/NN_enums.h"
+#include "../EngineMgr/sNNenums.h"
+#include "../EngineMgr/sGAenums.h"
+#include "../EngineMgr/sSVMenums.h"
+#include "../EngineMgr/sSOMenums.h"
 
 
 #define optionLookup(option, e) { \

@@ -17,6 +17,9 @@ struct sLogger : sCfgObj {
 	bool saveRunFlag;
 	bool saveInternalsFlag;
 	bool saveImageFlag;
+	//--
+	bool saveToDB;
+	bool saveToFile;
 
 	EXPORT sLogger(sCfgObjParmsDef);
 	EXPORT ~sLogger();

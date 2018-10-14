@@ -60,7 +60,7 @@ sDataSet::sDataSet(sCfgObjParmsDef, sDataShape* shape_) : sCfgObj(sCfgObjParmsVa
 	safecall(cfgKey, getParm, &selectedFeature, "SelectedFeatures", false, &selectedFeaturesCnt);
 	safecall(cfgKey, getParm, &BWFeature, "BWFeatures", false, new int);
 	//-- 2. do stuff and spawn sub-Keys
-	safespawn(false, sourceTS, newsname("%s_TimeSerie", name->base), nullptr, cfg, "TimeSerie");
+	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), nullptr, cfg, "TimeSerie");
 
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;

@@ -1,9 +1,12 @@
 #pragma once
 #include "../common.h"
+#include "../ConfigMgr/sCfgObj.h"
+#include "../EngineMgr/sCoreParms.h"
+#include "sNNenums.h"
 
 #define MAX_LEVELS 128
 
-struct sNNparms {
+struct sNNparms : sCoreParms {
 
 	//-- topology
 	int levelsCnt;
@@ -23,13 +26,13 @@ struct sNNparms {
 	float LearningRate;
 	float LearningMomentum;
 
-	sNNparms() {
+	sNNparms(sCfgObjParmsDef);
+	sNNparms(sObjParmsDef);
+	~sNNparms();
+
+private:
+	void mallocs() {
 		levelRatio=(float*)malloc((MAX_LEVELS-2)*sizeof(float));
 		ActivationFunction=(int*)malloc(MAX_LEVELS*sizeof(int));
 	}
-	~sNNparms() {
-		free(levelRatio);
-		free(ActivationFunction);
-	}
-
 };

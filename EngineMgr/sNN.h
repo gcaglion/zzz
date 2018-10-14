@@ -5,11 +5,20 @@
 #include "../Algebra/Algebra.h"
 #include "../DataMgr/DataSet.h"
 #include "sCore.h"
-#include "NN_parms.h"
-#include "NN_enums.h"
+#include "sNNparms.h"
+#include "sNNenums.h"
 
 struct sNN : sCore {
 
+	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
+	EXPORT ~sNN();
+
+	EXPORT void setActivationFunction(int* func_);
+	EXPORT void train(sDataSet* trainSet);
+	EXPORT void run(sDataSet* runSet);
+
+
+private:
 	//-- MyAlgebra common structures
 	sAlgebra* Alg;
 
@@ -70,18 +79,6 @@ struct sNN : sCore {
 	DWORD WUstart, WUtimeTot=0, WUcnt=0; float WUtimeAvg;
 	DWORD TRstart, TRtimeTot=0, TRcnt=0; float TRtimeAvg;
 
-	void init(sDataShape* dataShape_, void* NNparms_);
-
-	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sDataShape* dataShape_, void* NNparms_);
-	EXPORT ~sNN();
-
-	EXPORT void setActivationFunction(int* func_);
-	EXPORT void train(sDataSet* trainSet);
-	EXPORT void run(sDataSet* runSet);
-
-
-private:
-	void parmsInit(void* NNparms_);
 	//--
 	void setLayout(int batchSamplesCnt_);
 	void FF();

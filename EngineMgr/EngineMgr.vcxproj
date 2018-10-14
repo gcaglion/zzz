@@ -162,23 +162,33 @@
   <ItemGroup>
     <ClInclude Include="Core_enums.h" />
     <ClInclude Include="sGA.h" />
+    <ClInclude Include="sGAenums.h" />
+    <ClInclude Include="sGAparms.h" />
     <ClInclude Include="sNN.h" />
     <ClInclude Include="Engine.h" />
     <ClInclude Include="Engine_enums.h" />
-    <ClInclude Include="NN_enums.h" />
-    <ClInclude Include="NN_parms.h" />
+    <ClInclude Include="sNNenums.h" />
+    <ClInclude Include="sNNparms.h" />
     <ClInclude Include="sCore.h" />
     <ClInclude Include="sCoreLayout.h" />
     <ClInclude Include="sCoreParms.h" />
     <ClInclude Include="sSOM.h" />
+    <ClInclude Include="sSOMenums.h" />
+    <ClInclude Include="sSOMparms.h" />
     <ClInclude Include="sSVM.h" />
+    <ClInclude Include="sSVMenums.h" />
+    <ClInclude Include="sSVMparms.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="sGA.cpp" />
     <ClCompile Include="sNN.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="sCore.cpp" />
     <ClCompile Include="sCoreLayout.cpp" />
     <ClCompile Include="sCoreParms.cpp" />
+    <ClCompile Include="sNNparms.cpp" />
+    <ClCompile Include="sSOM.cpp" />
+    <ClCompile Include="sSVM.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

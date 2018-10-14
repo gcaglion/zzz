@@ -48,12 +48,12 @@ struct sEngine : sCfgObj {
 	EXPORT sEngine(sCfgObjParmsDef, sDataShape* dataShape_);
 	EXPORT ~sEngine();
 
-	EXPORT void setCoreLayer(sCoreLayout* cl);
 	EXPORT void train(sDataSet* trainDS_);
 	EXPORT void infer(sDataSet* testDS_);
 
 private:
 	void layerTrain(int pid, int pTestId, int pLayer, bool loadW, sDataSet* trainDS_, sTrainParams* tp);
+	void setCoreLayer(sCoreLayout* cl);
 
 };
 

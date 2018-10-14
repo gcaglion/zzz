@@ -27,32 +27,24 @@ struct sObj {
 
 	EXPORT void findChild(const char* relChildName, sObj** retObj);
 
-	template<typename objT, class ...constructorArgs> EXPORT bool _spawn(const char* callerFunc_, objT** childVar_, sName* childSname_, sDbg* childDbg_, bool ignoreError_, constructorArgs... childCargs) {
-		bool ret;
+	template<typename objT, class ...constructorArgs> EXPORT void _spawn(const char* callerFunc_, objT** childVar_, sName* childSname_, sDbg* childDbg_, constructorArgs... childCargs) {
+
 		//-- build command svard
 		cmdSvard=new svard(childCargs...);
 		sprintf_s(cmd, CmdMaxLen, "%s = new %s(%s)", childSname_->base, typeid(objT).name(), cmdSvard->fullval);
 
 		try {
 			info("%s TRYING  : %s", name->base, cmd);
-				(*childVar_) = new objT(this, childSname_, childDbg_, childCargs...);
-				ret=true;
+			(*childVar_) = new objT(this, childSname_, childDbg_, childCargs...);
 			info("%s SUCCESS : %s", name->base, cmd);
 		}
 		catch (std::exception exc) {
-			ret=false;
-			if (ignoreError_) {
-				info("%s FAILURE : %s . Exception: %s", name->base, cmd, exc.what());
-			} else {
-				fail("%s FAILURE : %s . Exception: %s", name->base, cmd, exc.what());
-			}
+			fail("%s FAILURE : %s . Exception: %s", name->base, cmd, exc.what());
 		}
-		return ret;
 	}
-
 };
 
-#define safespawn(ignoreError_, childVar_, childSname_, childDbg_, ...) _spawn(__func__, &childVar_, childSname_, childDbg_, ignoreError_, __VA_ARGS__)
+#define safespawn(childVar_, childSname_, childDbg_, ...) _spawn(__func__, &childVar_, childSname_, childDbg_, __VA_ARGS__)
 #define safecall(obj_, met_, ...){ \
 	cmdSvard=new svard(__VA_ARGS__); \
 	sprintf_s(cmd, CmdMaxLen, "%s->%s(%s)", obj_->name->base, Quote(met_), cmdSvard->fullval); \

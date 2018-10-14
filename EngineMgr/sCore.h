@@ -8,15 +8,13 @@
 #include "Core_enums.h"
 
 struct sCore : sCfgObj {
-	int type;
 
 	sCoreParms* parms;
 	sCoreLayout* layout;
-	sDataShape* baseDataShape;
 	sDataSet* inputDS;
 	sDataSet* outputDS;
 
-	EXPORT sCore(sCfgObjParmsDef, sCoreLayout* layout_, sDataShape* dataShape_);
+	EXPORT sCore(sCfgObjParmsDef, sCoreLayout* layout_);
 	EXPORT ~sCore();
 
 	//-- methods common for all core subclasses

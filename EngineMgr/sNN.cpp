@@ -1,19 +1,17 @@
 #include "sNN.h"
 
-void sNN::init(sDataShape* dataShape_, void* NNparms_) {
-
+sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_) {
+	
 	pid=GetCurrentProcessId();
 	tid=GetCurrentThreadId();
+	parms=NNparms_;
 
 	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
-	safespawn(false, Alg, newsname("%s_Algebra", name->base), dbg);
-
-	//-- 0. set NN Parms
-	safecall(this, parmsInit, NNparms_);
+	safespawn(Alg, newsname("%s_Algebra", name->base), dbg);
 
 	parms->MaxEpochs=0;	//-- we need this so destructor does not fail when NN object is used to run-only
 
-	//-- bias still not working(!) Better abort until it does
+						//-- bias still not working(!) Better abort until it does
 	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
 
 	//-- set Layout. We don't have batchSampleCnt, so we set it at 1. train() and run() will set it later
@@ -32,48 +30,6 @@ void sNN::init(sDataShape* dataShape_, void* NNparms_) {
 	//-- 4. we need to malloc these here (issue when running with no training...)
 	mseT=(numtype*)malloc(1*sizeof(numtype));
 	mseV=(numtype*)malloc(1*sizeof(numtype));
-
-}
-
-void sNN::parmsInit(void* NNparms_) {
-	if (NNparms_!=nullptr) {
-		parms=(sNNparms*)NNparms_;
-	} else {
-		parms=new sNNparms();
-		safecall(cfgKey, getParm, &parms->levelRatio, "Topology/LevelRatio", false, &parms->levelsCnt); parms->levelsCnt+=2;
-		safecall(cfgKey, getParm, &parms->ActivationFunction, "Topology/LevelActivation", false, new int);
-		safecall(cfgKey, getParm, &parms->useContext, "Topology/UseContext");
-		safecall(cfgKey, getParm, &parms->useBias, "Topology/UseBias");
-
-		safecall(cfgKey, getParm, &parms->MaxEpochs, "Training/MaxEpochs");
-		safecall(cfgKey, getParm, &parms->TargetMSE, "Training/TargetMSE");
-		safecall(cfgKey, getParm, &parms->NetSaveFreq, "Training/NetSaveFrequency");
-		safecall(cfgKey, getParm, &parms->StopOnDivergence, "Training/StopOnDivergence");
-		safecall(cfgKey, getParm, &parms->BP_Algo, "Training/BP_Algo");
-		
-		switch (parms->BP_Algo) {
-			//--... TO DO ...
-		case BP_STD:
-			safecall(cfgKey, getParm, &parms->LearningRate, "Training/BP_Std/LearningRate");
-			safecall(cfgKey, getParm, &parms->LearningMomentum, "Training/BP_Std/LearningMomentum");
-			break;
-		case BP_QUICKPROP:
-			break;
-		case BP_RPROP: break;
-		case BP_QING:
-			break;
-		case BP_SCGD: break;
-		case BP_LM: break;
-		default:
-			fail("invalid BP_Algo: %d", parms->BP_Algo);
-		}
-	}
-}
-
-sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sDataShape* dataShape_, void* NNparms_) : sCore(sCfgObjParmsVal, layout_, dataShape_) {
-	
-	//-- 1. initialize NN
-	init(dataShape_, NNparms_);
 
 }
 sNN::~sNN() {
@@ -109,8 +65,8 @@ void sNN::setLayout(int batchSamplesCnt_) {
 	parms->batchSamplesCnt=batchSamplesCnt_;
 
 	//-- 0.3. set nodesCnt (single sample)
-	nodesCnt[0] = baseDataShape->sampleLen*baseDataShape->featuresCnt*parms->batchSamplesCnt;
-	nodesCnt[outputLevel] = baseDataShape->predictionLen*baseDataShape->featuresCnt*parms->batchSamplesCnt;
+	nodesCnt[0] = layout->shape->sampleLen*layout->shape->featuresCnt*parms->batchSamplesCnt;
+	nodesCnt[outputLevel] = layout->shape->predictionLen*layout->shape->featuresCnt*parms->batchSamplesCnt;
 	for (nl = 0; nl<(levelsCnt-2); nl++) nodesCnt[nl+1] = (int)floor(nodesCnt[nl]*parms->levelRatio[nl]);
 
 	//-- add context neurons
@@ -149,7 +105,6 @@ void sNN::setLayout(int batchSamplesCnt_) {
 	}
 
 }
-
 void sNN::setActivationFunction(int* func_) {
 	for (int l=0; l<parms->levelsCnt; l++) {
 		parms->ActivationFunction[l]=func_[l];

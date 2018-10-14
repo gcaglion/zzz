@@ -17,13 +17,13 @@ void sRoot::tester() {
 	try {
 
 		//-- 1. load tester and Forecaster XML configurations
-		safespawn(false, testerCfg, newsname("testerCfg_Root"), dbg, testerCfgFileFullName);
-		safespawn(false, forecasterCfg, newsname("forecasterCfg_Root"), dbg, forecasterCfgFileFullName);
+		safespawn(testerCfg, newsname("testerCfg_Root"), dbg, testerCfgFileFullName);
+		safespawn(forecasterCfg, newsname("forecasterCfg_Root"), dbg, forecasterCfgFileFullName);
 
 		//-- 2. save tester Log (elapsedTime is 0)
 
 		//-- 3. create tester persistor
-		safespawn(false, testerPersistor, newsname("Client_Persistor"), defaultdbg, testerCfg, "/Client/Persistor");
+		safespawn(testerPersistor, newsname("Client_Persistor"), defaultdbg, testerCfg, "/Client/Persistor");
 		
 		//-- 4.	get Simulation Length
 		safecall(testerCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
@@ -39,7 +39,7 @@ void sRoot::tester() {
 		}
 
 		//-- 6. spawn forecaster
-		safespawn(false, forecaster, newsname("mainForecaster"), defaultdbg, forecasterCfg, "/Forecaster");
+		safespawn(forecaster, newsname("mainForecaster"), defaultdbg, forecasterCfg, "/Forecaster");
 
 		//-- 7. for each used dataset,
 		if (forecaster->data->doTraining) {
@@ -101,9 +101,9 @@ void sRoot::CLoverride(int argc, char* argv[]) {
 void sRoot::testDML() {
 
 	sOraDB* oradb1;
-	safespawn(false, oradb1, newsname("TestOraDB"), defaultdbg, "CULogUser", "LogPwd", "Algo", true);
+	safespawn(oradb1, newsname("TestOraDB"), defaultdbg, "CULogUser", "LogPwd", "Algo", true);
 	sOraDB* oradb2;
-	safespawn(false, oradb2, newsname("TestOraHistory"), defaultdbg, "History", "HistoryPwd", "Algo", true);
+	safespawn(oradb2, newsname("TestOraHistory"), defaultdbg, "History", "HistoryPwd", "Algo", true);
 
 	int sdatecnt=10;
 	char** sdate=(char**)malloc(sdatecnt*sizeof(char*)); for (int i=0; i<sdatecnt; i++) sdate[i]=(char*)malloc(DATE_FORMAT_LEN);

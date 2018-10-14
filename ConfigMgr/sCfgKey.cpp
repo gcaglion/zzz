@@ -19,7 +19,7 @@ sCfgKey::sCfgKey(sObjParmsDef, int linesCnt_, sCfgLine** cfgLine_, int startLine
 			//setDbg();
 
 			//-- spawn subKey with updated debugger
-			safespawn(false, key[keysCnt], newsname("%s", cfgLine_[l]->naked), dbg, linesCnt_, cfgLine_, l);
+			safespawn(key[keysCnt], newsname("%s", cfgLine_[l]->naked), dbg, linesCnt_, cfgLine_, l);
 
 			//-- if what we just spawned is a Debugger key, update overrideDbg
 			if (_stricmp(key[keysCnt]->name->base, "Debugger")==0) {
@@ -44,7 +44,7 @@ sCfgKey::sCfgKey(sObjParmsDef, int linesCnt_, sCfgLine** cfgLine_, int startLine
 
 		//-- check for key parameters
 		if (cfgLine_[l]->type==cfgLine_Parm) {
-			safespawn(false, parm[parmsCnt], newsname("%s", cfgLine_[l]->pname), dbg, cfgLine_[l]->pname, cfgLine_[l]->pval);
+			safespawn(parm[parmsCnt], newsname("%s", cfgLine_[l]->pname), dbg, cfgLine_[l]->pname, cfgLine_[l]->pval);
 			parmsCnt++;
 		}
 	}

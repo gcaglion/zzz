@@ -21,12 +21,6 @@
     <ClInclude Include="Engine_enums.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="NN_enums.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="NN_parms.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Core_enums.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -51,6 +45,30 @@
     <ClInclude Include="sSOM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sNNparms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sGAparms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sNNenums.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sSOMenums.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sSVMenums.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sGAenums.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sSOMparms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sSVMparms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Engine.cpp">
@@ -66,6 +84,18 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sNN.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sNNparms.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sGA.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sSOM.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sSVM.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

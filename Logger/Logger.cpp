@@ -7,20 +7,24 @@ sLogger::sLogger(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 
 	safecall(cfgKey, getParm, &saveNothingFlag, "SaveNothing", true);
-	if(!saveNothingFlag) {
+	if (!saveNothingFlag) {
 		safecall(cfgKey, getParm, &saveClientFlag, "SaveClient", true);
 		safecall(cfgKey, getParm, &saveMSEFlag, "SaveMSE", true);
 		safecall(cfgKey, getParm, &saveRunFlag, "SaveRun", true);
 		safecall(cfgKey, getParm, &saveInternalsFlag, "SaveInternals", true);
 		safecall(cfgKey, getParm, &saveImageFlag, "SaveImage", true);
+		safecall(cfgKey, getParm, &saveToDB, "saveToDB", true);
+		safecall(cfgKey, getParm, &saveToFile, "saveToFile", true);
 		//-- get destination DB
-		if (!safespawn(true, db, newsname("PersistorDB"), defaultdbg, cfg, "DestDB", false)) db=nullptr;
+		if (saveToDB) safespawn(db, newsname("PersistorDB"), defaultdbg, cfg, "DestDB", false);
 		//-- get destination files
-		safecall(cfgKey, getParm, &fileFullName[0], "Client", true);
-		safecall(cfgKey, getParm, &fileFullName[1], "MSE", true);
-		safecall(cfgKey, getParm, &fileFullName[2], "Run", true);
-		safecall(cfgKey, getParm, &fileFullName[3], "Internals", true);
-		safecall(cfgKey, getParm, &fileFullName[4], "Image", true);
+		if (saveToFile) {
+			safecall(cfgKey, getParm, &fileFullName[0], "Client", true);
+			safecall(cfgKey, getParm, &fileFullName[1], "MSE", true);
+			safecall(cfgKey, getParm, &fileFullName[2], "Run", true);
+			safecall(cfgKey, getParm, &fileFullName[3], "Internals", true);
+			safecall(cfgKey, getParm, &fileFullName[4], "Image", true);
+		}
 	}
 	//-- 2. do stuff and spawn sub-Keys
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey

@@ -8,7 +8,7 @@ sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName, int overridesCnt, char** o
 	//-- create one cfgLine object for each line in file, including comments
 	linesCnt=0;
 	while (fgets(_line, XMLLINE_MAXLEN, cfgFile)!=NULL) {
-		safespawn(false, cfgLine[linesCnt], newsname("line_%d", linesCnt), nullptr, _line, overridesCnt, overrideName, overrideValS);
+		safespawn(cfgLine[linesCnt], newsname("line_%d", linesCnt), nullptr, _line, overridesCnt, overrideName, overrideValS);
 		linesCnt++;
 	}
 
@@ -16,7 +16,7 @@ sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName, int overridesCnt, char** o
 	parse();
 
 	//-- create root key (just one per file), and set it as current
-	safespawn(false, rootKey, newsname("rootKey"), dbg, linesCnt, cfgLine, -1);
+	safespawn(rootKey, newsname("rootKey"), dbg, linesCnt, cfgLine, -1);
 	currentKey=rootKey;
 
 }
