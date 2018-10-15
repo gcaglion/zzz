@@ -1,10 +1,6 @@
 #pragma once
 
 #include "../common.h"
-#include <cuda_runtime.h>
-#include <cublas_v2.h>
-#include <curand.h>
-#include <stdio.h>
 
 #define CUDA_BLOCK_SIZE 64
 #define MAX_STREAMS 2

@@ -1,10 +1,5 @@
 #include "Algebra.h"
 
-#ifdef USE_GPU
-#include "../MyCU/MyCU.h"
-#endif
-
-
 EXPORT void Mprint(int my, int mx, numtype* sm, const char* msg, int smy0, int smx0, int smy, int smx) {
 
 	if (smy==-1) smy=my;
@@ -336,7 +331,7 @@ bool Vcompare(int vlen, numtype* v1, numtype* v2) {
 	}
 	return ret;
 }
-
+/*
 bool MbyMcompare(void* cublasH, int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, int Cy, int Cx, numtype* C, numtype* T) {
 #ifdef USE_GPU
 	DWORD start;
@@ -384,7 +379,7 @@ bool MbyMcompare(void* cublasH, int Ay, int Ax, numtype Ascale, bool Atr, numtyp
 	return false;
 #endif
 }
-
+*/
 
 //-- class constructor/destructor
 sAlgebra::sAlgebra(sObjParmsDef) : sObj(sObjParmsVal) {
@@ -395,11 +390,10 @@ sAlgebra::sAlgebra(sObjParmsDef) : sObj(sObjParmsVal) {
 	for (int i=0; i<MAX_STREAMS; i++) cuStream[i]=new void*;
 
 #ifdef USE_GPU
-	safecall(initCUDA());
-	safecall(initCUDA());
-	safecall(initCUBLAS(cublasH));
-	safecall(initCURand(cuRandH));
-	safecall(initCUstreams(cuStream));
+	silentcallB(initCUDA);
+	silentcallB(initCUBLAS, cublasH);
+	silentcallB(initCURand, cuRandH);
+	silentcallB(initCUstreams, cuStream);
 #endif
 	//-- init shared scalar
 	safecall(this, myMalloc, &ss, 1);
@@ -417,9 +411,9 @@ bool sAlgebra::getMcol_cpu(int Ay, int Ax, numtype* A, int col, numtype* oCol) {
 void sAlgebra::getMcol(int Ay, int Ax, numtype* A, int col, numtype* oCol, bool forceCPU) {
 #ifdef USE_GPU
 	if (forceCPU) {
-		safecall(getMcol_cpu(Ay, Ax, A, col, oCol));
+		silentcallB(getMcol_cpu, Ay, Ax, A, col, oCol);
 	} else {
-		safecall(getMcol_cu(cublasH, Ay, Ax, A, col, oCol));
+		silentcallB(getMcol_cu, cublasH, Ay, Ax, A, col, oCol);
 	}
 #else
 	this->getMcol_cpu(Ay, Ax, A, col, oCol);
@@ -428,9 +422,9 @@ void sAlgebra::getMcol(int Ay, int Ax, numtype* A, int col, numtype* oCol, bool 
 void sAlgebra::MbyM(int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, numtype* C, bool forceCPU) {
 #ifdef USE_GPU
 	if(forceCPU) {
-		safecall(MbyM_std(Ay, Ax, Ascale, Atr, A, By, Bx, Bscale, Btr, B, C));
+		silentcallB(MbyM_std, Ay, Ax, Ascale, Atr, A, By, Bx, Bscale, Btr, B, C);
 	} else {
-		safecall(MbyM_cu(cublasH, Ay, Ax, Ascale, Atr, A, By, Bx, Bscale, Btr, B, C));
+		silentcallB(MbyM_cu, cublasH, Ay, Ax, Ascale, Atr, A, By, Bx, Bscale, Btr, B, C);
 	}
 #else
 	MbyM_std(Ay, Ax, Ascale, Atr, A, By, Bx, Bscale, Btr, B, C);
@@ -438,28 +432,28 @@ void sAlgebra::MbyM(int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By
 }
 void sAlgebra::h2d(numtype* destAddr, numtype* srcAddr, int size, bool useStreams) {
 #ifdef USE_GPU
-	safecall(h2d_cu(destAddr, srcAddr, size, ((useStreams)?cuStream:nullptr)) );
+	silentcallB(h2d_cu, destAddr, srcAddr, size, ((useStreams)?cuStream:nullptr) );
 #else
 	memcpy_s(destAddr, size, srcAddr, size);
 #endif
 }
 void sAlgebra::d2h(numtype* destAddr, numtype* srcAddr, int size, bool useStreams) {
 #ifdef USE_GPU
-	safecall(d2h_cu(destAddr, srcAddr, size, ((useStreams) ? cuStream : nullptr)));
+	silentcallB(d2h_cu, destAddr, srcAddr, size, ((useStreams) ? cuStream : nullptr));
 #else
 	memcpy_s(destAddr, size, srcAddr, size);
 #endif
 }
 void sAlgebra::x2h(numtype* destAddr, numtype* srcAddr, int size, bool useStreams) {
 #ifdef USE_GPU
-	safecall(d2h_cu(destAddr, srcAddr, size, ((useStreams) ? cuStream : nullptr)));
+	silentcallB(d2h_cu, destAddr, srcAddr, size, ((useStreams) ? cuStream : nullptr));
 #else
 	memcpy_s(destAddr, size, srcAddr, size);
 #endif
 }
 void sAlgebra::h2x(numtype* destAddr, numtype* srcAddr, int size, bool useStreams) {
 #ifdef USE_GPU
-	safecall(h2d_cu(destAddr, srcAddr, size, ((useStreams) ? cuStream : nullptr)));
+	silentcallB(h2d_cu, destAddr, srcAddr, size, ((useStreams) ? cuStream : nullptr));
 #else
 	memcpy_s(destAddr, size, srcAddr, size);
 #endif

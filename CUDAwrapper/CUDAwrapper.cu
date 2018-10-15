@@ -1,4 +1,10 @@
 #include "CUDAwrapper.h"
+//--
+#include <cuda_runtime.h>
+#include <cublas_v2.h>
+#include <curand.h>
+#include <stdio.h>
+//--
 
 void swap(int* v1, int* v2) {
 	int tmp=(*v1);

@@ -7,7 +7,7 @@
 #include <math.h>
 
 #ifdef USE_GPU
-#include "../MyCU/MyCUparms.h"	//-- defines MAX_STREAMS
+#include "../CUDAwrapper/CUDAwrapper.h"	//-- defines MAX_STREAMS
 #else
 #define MAX_STREAMS 1
 #endif

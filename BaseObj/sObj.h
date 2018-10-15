@@ -56,3 +56,19 @@ struct sObj {
 		fail("%s FAILURE : %s . Exception: %s", name->base, cmd, exc.what()); \
 	}\
 }
+
+//-- the following call a bool function not belonging to an sObj object
+#define safecallB(bfunc_, ...) { \
+	cmdSvard=new svard(__VA_ARGS__); \
+	sprintf_s(cmd, CmdMaxLen, "%s(%s)", #bfunc_, cmdSvard->fullval); \
+	info("%s TRYING  : %s", name->base, cmd); \
+	if((bfunc_(__VA_ARGS__))) { \
+		info("%s SUCCESS : %s", name->base, cmd); \
+	} else { \
+		fail("%s FAILURE : %s", name->base, cmd); \
+	} \
+}
+
+#define silentcallB(bfunc_, ...)  if(!(bfunc_(__VA_ARGS__))) fail("%s FAILURE : %s(%s)", name->base, #bfunc_, __VA_ARGS__)
+
+
