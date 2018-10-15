@@ -98,7 +98,6 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 	cfg->currentKey=bkpKey;
 
 }
-
 sEngine::~sEngine() {
 	free(core);
 	free(layerCoresCnt);
@@ -112,7 +111,7 @@ void sEngine::train(sDataSet* trainDS_) {
 	for (int l=0; l<layersCnt; l++) {
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
-				core[c]->train(trainDS_);
+				safecall(core[c], train, trainDS_);
 			}
 		}
 	}

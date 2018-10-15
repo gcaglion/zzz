@@ -17,15 +17,16 @@ sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfg
 	//-- set Layout. We don't have batchSampleCnt, so we set it at 1. train() and run() will set it later
 	setLayout(1);
 	//-- weights can be set now, as they are not affected by batchSampleCnt
-	safecall(this, createWeights);
+	createWeights();
+	//safecall(this, createWeights);
 
 	//-- x. set scaleMin / scaleMax
 	scaleMin=(numtype*)malloc(parms->levelsCnt*sizeof(int));
 	scaleMax=(numtype*)malloc(parms->levelsCnt*sizeof(int));
 
 	//-- 3. malloc device-based scalar value, to be used by reduction functions (sum, ssum, ...)
-	safecall(Alg, myMalloc, &se, 1);
-	safecall(Alg, myMalloc, &tse, 1);
+	Alg->myMalloc(&se, 1);
+	Alg->myMalloc(&tse, 1);
 
 	//-- 4. we need to malloc these here (issue when running with no training...)
 	mseT=(numtype*)malloc(1*sizeof(numtype));
@@ -43,9 +44,8 @@ sNN::~sNN() {
 	free(levelFirstNode);
 	free(ctxStart);
 
-	//	free(weightsCnt);
-	//	free(levelFirstWeight);
-	//	free(ActivationFunction);
+	free(weightsCnt);
+	free(levelFirstWeight);
 
 }
 
@@ -145,13 +145,11 @@ void sNN::FF() {
 
 		//-- actual feed forward ( W10[nc1 X nc0] X F0[nc0 X batchSize] => a1 [nc1 X batchSize] )
 		FF0start=timeGetTime(); FF0cnt++;
-		//safecall(Alg->MbyM(Ay, Ax, 1, false, A, By, Bx, 1, false, B, C));
 		Alg->MbyM(Ay, Ax, 1, false, A, By, Bx, 1, false, B, C);
 		FF0timeTot+=((DWORD)(timeGetTime()-FF0start));
 
 		//-- activation sets F[l+1] and dF[l+1]
 		FF1start=timeGetTime(); FF1cnt++;
-		//safecall(Activate(l+1));
 		Activate(l+1);
 		FF1timeTot+=((DWORD)(timeGetTime()-FF1start));
 
@@ -199,10 +197,6 @@ void sNN::Activate(int level) {
 }
 void sNN::calcErr() {
 	//-- sets e, bte; adds squared sum(e) to tse
-	/*safecall(Vdiff(nodesCnt[outputLevel], &F[levelFirstNode[outputLevel]], 1, u, 1, e));	// e=F[2]-u
-	safecall(Vssum(nodesCnt[outputLevel], e, se));										// se=ssum(e) 
-	safecall(Vadd(1, tse, 1, se, 1, tse));												// tse+=se;
-	*/
 	Alg->Vdiff(nodesCnt[outputLevel], &F[levelFirstNode[outputLevel]], 1, u, 1, e);	// e=F[2]-u
 	Alg->Vssum(nodesCnt[outputLevel], e, se);										// se=ssum(e) 
 	Alg->Vadd(1, tse, 1, se, 1, tse);												// tse+=se;
@@ -210,25 +204,25 @@ void sNN::calcErr() {
 
 void sNN::mallocNeurons() {
 	//-- malloc neurons (on either CPU or GPU)
-	safecall(Alg, myMalloc, &a, nodesCntTotal);
-	safecall(Alg, myMalloc, &F, nodesCntTotal);
-	safecall(Alg, myMalloc, &dF, nodesCntTotal);
-	safecall(Alg, myMalloc, &edF, nodesCntTotal);
-	safecall(Alg, myMalloc, &e, nodesCnt[outputLevel]);
-	safecall(Alg, myMalloc, &u, nodesCnt[outputLevel]);
+	Alg->myMalloc(&a, nodesCntTotal);
+	Alg->myMalloc(&F, nodesCntTotal);
+	Alg->myMalloc(&dF, nodesCntTotal);
+	Alg->myMalloc(&edF, nodesCntTotal);
+	Alg->myMalloc(&e, nodesCnt[outputLevel]);
+	Alg->myMalloc(&u, nodesCnt[outputLevel]);
 }
 void sNN::initNeurons(){
 	//--
-	safecall(Alg, Vinit, nodesCntTotal, F, 0, 0);
+	Alg->Vinit(nodesCntTotal, F, 0, 0);
 	//---- the following are needed by cublas version of MbyM
-	safecall(Alg, Vinit, nodesCntTotal, a, 0, 0);
-	safecall(Alg, Vinit, nodesCntTotal, dF, 0, 0);
-	safecall(Alg, Vinit , nodesCntTotal, edF, 0, 0);
+	Alg->Vinit(nodesCntTotal, a, 0, 0);
+	Alg->Vinit(nodesCntTotal, dF, 0, 0);
+	Alg->Vinit(nodesCntTotal, edF, 0, 0);
 
 	if (parms->useBias) {
 		for (int l=0; l<outputLevel; l++) {
 			//-- set every bias node's F=1
-			safecall(Alg, Vinit, 1, &F[levelFirstNode[l]], 1, 0);
+			Alg->Vinit(1, &F[levelFirstNode[l]], 1, 0);
 		}
 	}
 }
@@ -242,10 +236,10 @@ void sNN::destroyNeurons() {
 }
 void sNN::createWeights() {
 	//-- malloc weights (on either CPU or GPU)
-	safecall(Alg, myMalloc, &W, weightsCntTotal);
-	safecall(Alg, myMalloc, &prevW, weightsCntTotal);
-	safecall(Alg, myMalloc, &dW, weightsCntTotal);
-	safecall(Alg, myMalloc, &dJdW, weightsCntTotal);
+	Alg->myMalloc(&W, weightsCntTotal);
+	Alg->myMalloc(&prevW, weightsCntTotal);
+	Alg->myMalloc(&dW, weightsCntTotal);
+	Alg->myMalloc(&dJdW, weightsCntTotal);
 }
 void sNN::destroyWeights() {
 	Alg->myFree(W);
@@ -262,7 +256,6 @@ void sNN::BP_std(){
 		if (l==(outputLevel)) {
 			//-- top level only
 			Alg->VbyV2V(nodesCnt[l], e, &dF[levelFirstNode[l]], &edF[levelFirstNode[l]]);	// edF(l) = e * dF(l)
-			//safecall(Alg, VbyV2V, nodesCnt[l], e, &dF[levelFirstNode[l]], &edF[levelFirstNode[l]]);	// edF(l) = e * dF(l)
 		} else {
 			//-- lower levels
 			Ay=nodesCnt[l+1]/parms->batchSamplesCnt;
@@ -278,8 +271,6 @@ void sNN::BP_std(){
 			Cstart=levelFirstNode[l];
 			C=&edF[Cstart];
 
-			//safecall(Alg->MbyM(Ay, Ax, 1, true, A, By, Bx, 1, false, B, C));	// edF(l) = edF(l+1) * WT(l)
-			//safecall(VbyV2V(nodesCnt[l], &edF[levelFirstNode[l]], &dF[levelFirstNode[l]], &edF[levelFirstNode[l]]));	// edF(l) = edF(l) * dF(l)
 			Alg->MbyM(Ay, Ax, 1, true, A, By, Bx, 1, false, B, C);	// edF(l) = edF(l+1) * WT(l)
 			Alg->VbyV2V(nodesCnt[l], &edF[levelFirstNode[l]], &dF[levelFirstNode[l]], &edF[levelFirstNode[l]]);	// edF(l) = edF(l) * dF(l)
 		}
@@ -300,7 +291,6 @@ void sNN::BP_std(){
 
 		// dJdW(l-1) = edF(l) * F(l-1)
 		Alg->MbyM(Ay, Ax, 1, false, A, By, Bx, 1, true, B, C);
-		//safecall(Alg->MbyM(Ay, Ax, 1, false, A, By, Bx, 1, true, B, C));
 
 	}
 
@@ -309,11 +299,9 @@ void sNN::WU_std(){
 
 	//-- 1. calc dW = LM*dW - LR*dJdW
 	Alg->Vdiff(weightsCntTotal, dW, parms->LearningMomentum, dJdW, parms->LearningRate, dW);
-	//safecall(Vdiff(weightsCntTotal, dW, parms->LearningMomentum, dJdW, parms->LearningRate, dW));
 
 	//-- 2. update W = W + dW for current batch
 	Alg->Vadd(weightsCntTotal, W, 1, dW, 1, W);
-	//safecall(Vadd(weightsCntTotal, W, 1, dW, 1, W));
 
 }
 void sNN::ForwardPass(sDataSet* ds, int batchId, bool haveTargets) {
@@ -321,10 +309,8 @@ void sNN::ForwardPass(sDataSet* ds, int batchId, bool haveTargets) {
 	//-- 1. load samples (and targets, if passed) from single batch in dataset onto input layer
 	LDstart=timeGetTime(); LDcnt++;
 	Alg->h2d(&F[(parms->useBias) ? 1 : 0], &ds->sampleBFS[batchId*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
-	//safecall(Alg, h2d, &F[(parms->useBias) ? 1 : 0], &ds->sampleBFS[batchId*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
 	if (haveTargets) {
 		Alg->h2d(&u[0], &ds->targetBFS[batchId*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
-		//safecall(Alg, h2d, &u[0], &ds->targetBFS[batchId*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
 	}
 	LDtimeTot+=((DWORD)(timeGetTime()-LDstart));
 
@@ -338,7 +324,6 @@ void sNN::ForwardPass(sDataSet* ds, int batchId, bool haveTargets) {
 	CEstart=timeGetTime(); CEcnt++;
 	if (haveTargets) {
 		calcErr();
-		//safecall(calcErr());
 	}
 	CEtimeTot+=((DWORD)(timeGetTime()-CEstart));
 
@@ -348,14 +333,12 @@ void sNN::BackwardPass(tDataSet* ds, int batchId, bool updateWeights) {
 	//-- 1. BackPropagate, calc dJdW for for current batch
 	BPstart=timeGetTime(); BPcnt++;
 	BP_std();
-	//safecall(BP_std());
 	BPtimeTot+=((DWORD)(timeGetTime()-BPstart));
 
 	//-- 2. Weights Update for current batch
 	WUstart=timeGetTime(); WUcnt++;
 	if (updateWeights) {
 		WU_std();
-		//safecall(WU_std());
 	}
 	WUtimeTot+=((DWORD)(timeGetTime()-WUstart));
 
@@ -388,8 +371,8 @@ void sNN::train(sDataSet* trainSet) {
 	setLayout(parms->batchSamplesCnt);
 
 	//-- 0. malloc + init neurons
-	safecall(this, mallocNeurons);
-	safecall(this, initNeurons);
+	mallocNeurons();
+	initNeurons();
 
 	//-- malloc mse[maxepochs], always host-side. We need to free them, first (see issue when running without training...)
 	free(mseT); mseT=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
@@ -397,12 +380,12 @@ void sNN::train(sDataSet* trainSet) {
 
 	//---- 0.2. Init W
 	for (l=0; l<(outputLevel); l++) Alg->VinitRnd(weightsCnt[l], &W[levelFirstWeight[l]], -1/sqrtf((numtype)nodesCnt[l]), 1/sqrtf((numtype)nodesCnt[l]), Alg->cuRandH);
-	//safecall(dumpArray(weightsCntTotal, &W[0], "C:/temp/referenceW/initW.txt"));
-	//safecall(loadArray(weightsCntTotal, &W[0], "C:/temp/referenceW/initW_4F.txt"));
+	//dumpArray(weightsCntTotal, &W[0], "C:/temp/referenceW/initW.txt"));
+	//loadArray(weightsCntTotal, &W[0], "C:/temp/referenceW/initW_4F.txt"));
 
 	//---- 0.3. Init dW, dJdW
-	safecall(Alg, Vinit, weightsCntTotal, dW, 0, 0);
-	safecall(Alg, Vinit, weightsCntTotal, dJdW, 0, 0);
+	Alg->Vinit(weightsCntTotal, dW, 0, 0);
+	Alg->Vinit(weightsCntTotal, dJdW, 0, 0);
 
 	//-- 1. for every epoch, train all batch with one Forward pass ( loadSamples(b)+FF()+calcErr() ), and one Backward pass (BP + calcdW + W update)
 	for (epoch=0; epoch<parms->MaxEpochs; epoch++) {
@@ -412,18 +395,15 @@ void sNN::train(sDataSet* trainSet) {
 
 		//-- 1.0. reset epoch tse
 		Alg->Vinit(1, tse, 0, 0);
-		//safecall(Vinit(1, tse, 0, 0));
 
 		//-- 1.1. train one batch at a time
 		for (b=0; b<batchCnt_; b++) {
 
 			//-- forward pass, with targets
 			ForwardPass(trainSet, b, true);
-			//safecall(ForwardPass(trainSet, b, true));
 
 			//-- backward pass, with weights update
 			BackwardPass(trainSet, b, true);
-			//safecall(BackwardPass(trainSet, b, true));
 
 		}
 
@@ -436,9 +416,7 @@ void sNN::train(sDataSet* trainSet) {
 	//-- 2. test run. need this to make sure all batches pass through the net with the latest weights, and training targets
 	TRstart=timeGetTime(); TRcnt++;
 	Alg->Vinit(1, tse, 0, 0);
-	//safecall(Vinit(1, tse, 0, 0));
 	for (b=0; b<batchCnt_; b++) ForwardPass(trainSet, b, true);
-	//for (b=0; b<batchCnt; b++) safecall(ForwardPass(trainSet, b, true));
 	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
 
 	//-- calc and display final epoch MSE
