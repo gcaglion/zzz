@@ -15,8 +15,8 @@ struct sFXData : sDataSource {
 	char* TimeFrame = new char[FX_TIMEFRAME_MAXLEN];
 	bool IsFilled;
 
-	EXPORT sFXData(sCfgObjParmsDef, sOraDB* db_, char* symbol_, char* tf_, bool isFilled_);
-	EXPORT sFXData(sCfgObjParmsDef);
+	EXPORT sFXData(sCfgObjParmsDef, sOraDB* db_, char* symbol_, char* tf_, bool isFilled_, bool autoOpen);
+	EXPORT sFXData(sCfgObjParmsDef, bool autoOpen);
 	EXPORT ~sFXData();
 	
 	EXPORT void open();

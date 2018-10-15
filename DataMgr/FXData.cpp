@@ -1,20 +1,20 @@
 #include "sFXData.h"
 
 //=== sFXData
-sFXData::sFXData(sCfgObjParmsDef, sOraDB* db_, char* symbol_, char* tf_, bool isFilled_) : sDataSource(sCfgObjParmsVal, FXDB_SOURCE, FXDataFeaturesCnt, true, FXHIGH, FXLOW) {
+sFXData::sFXData(sCfgObjParmsDef, sOraDB* db_, char* symbol_, char* tf_, bool isFilled_, bool autoOpen) : sDataSource(sCfgObjParmsVal, FXDB_SOURCE, FXDataFeaturesCnt, true, FXHIGH, FXLOW) {
 	db=db_;
 	strcpy_s(Symbol, FX_SYMBOL_MAXLEN, symbol_);
 	strcpy_s(TimeFrame, FX_TIMEFRAME_MAXLEN, tf_);
 	IsFilled=isFilled_;
 }
-sFXData::sFXData(sCfgObjParmsDef) : sDataSource(sCfgObjParmsVal, FXDB_SOURCE, FXDataFeaturesCnt, true, FXHIGH, FXLOW) {
+sFXData::sFXData(sCfgObjParmsDef, bool autoOpen) : sDataSource(sCfgObjParmsVal, FXDB_SOURCE, FXDataFeaturesCnt, true, FXHIGH, FXLOW) {
 
 	//-- 1. get Parameters
 	safecall(cfg->currentKey, getParm, &Symbol, "Symbol");
 	safecall(cfg->currentKey, getParm, &TimeFrame, "TimeFrame");
 	safecall(cfg->currentKey, getParm, &IsFilled, "IsFilled");
 	//-- 2. do stuff and spawn sub-Keys
-	safespawn(db, newsname("DBConnection"), nullptr, cfg, "DBConnection", false);
+	safespawn(db, newsname("DBConnection"), defaultdbg, cfg, "DBConnection", autoOpen);
 	//-- 3. Restore currentKey
 	cfg->currentKey=bkpKey;
 

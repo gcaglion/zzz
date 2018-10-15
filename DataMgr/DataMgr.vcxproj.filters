@@ -18,13 +18,7 @@
     <ClCompile Include="DataSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FileData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="FXData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MT4Data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DataSet.cpp">
@@ -37,6 +31,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="DataShape.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sMT4Data.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sFileData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

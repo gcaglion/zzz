@@ -1,11 +1,11 @@
 #include "sFileData.h"
 
 //=== sFileData
-sFileData::sFileData(sCfgObjParmsDef, FILE* srcFile_, int fieldSep_, bool calcBW_, int BWfeatureH_, int BWfeatureL_) : sDataSource(sCfgObjParmsVal, FILE_SOURCE, NULL, calcBW_, BWfeatureH_, BWfeatureL_) {
+sFileData::sFileData(sCfgObjParmsDef, FILE* srcFile_, int fieldSep_, bool calcBW_, int BWfeatureH_, int BWfeatureL_, bool autoOpen) : sDataSource(sCfgObjParmsVal, FILE_SOURCE, NULL, calcBW_, BWfeatureH_, BWfeatureL_) {
 	srcFile=srcFile_; fieldSep=fieldSep_;
 	safecall(this, getFeaturesCnt, &featuresCnt);
 }
-sFileData::sFileData(sCfgObjParmsDef) : sDataSource(sCfgObjParmsVal, FILE_SOURCE, NULL, NULL, NULL, NULL) {
+sFileData::sFileData(sCfgObjParmsDef, bool autoOpen) : sDataSource(sCfgObjParmsVal, FILE_SOURCE, NULL, NULL, NULL, NULL) {
 
 }
 sFileData::~sFileData(){}

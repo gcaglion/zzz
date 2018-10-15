@@ -37,8 +37,10 @@ void sOraDB::open() {
 
 }
 void sOraDB::close() {
-	((Environment*)env)->terminateConnection(((Connection*)conn));
-	Environment::terminateEnvironment(((Environment*)env));
+	if (env!=nullptr) {
+		if (conn!=nullptr) ((Environment*)env)->terminateConnection(((Connection*)conn));
+		Environment::terminateEnvironment(((Environment*)env));
+	}
 }
 void sOraDB::commit() {
 	((Connection*)conn)->commit();

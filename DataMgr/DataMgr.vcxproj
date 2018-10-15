@@ -163,9 +163,9 @@
     <ClCompile Include="DataSet.cpp" />
     <ClCompile Include="DataShape.cpp" />
     <ClCompile Include="DataSource.cpp" />
-    <ClCompile Include="FileData.cpp" />
+    <ClCompile Include="sFileData.cpp" />
     <ClCompile Include="FXData.cpp" />
-    <ClCompile Include="MT4Data.cpp" />
+    <ClCompile Include="sMT4Data.cpp" />
     <ClCompile Include="sData.cpp" />
     <ClCompile Include="TimeSerie.cpp" />
   </ItemGroup>
