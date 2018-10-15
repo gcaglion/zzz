@@ -422,7 +422,7 @@ void sAlgebra::getMcol(int Ay, int Ax, numtype* A, int col, numtype* oCol, bool 
 		safecall(getMcol_cu(cublasH, Ay, Ax, A, col, oCol));
 	}
 #else
-	safecall(this, getMcol_cpu, Ay, Ax, A, col, oCol);
+	this->getMcol_cpu(Ay, Ax, A, col, oCol);
 #endif
 }
 void sAlgebra::MbyM(int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, numtype* C, bool forceCPU) {
@@ -433,7 +433,7 @@ void sAlgebra::MbyM(int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By
 		safecall(MbyM_cu(cublasH, Ay, Ax, Ascale, Atr, A, By, Bx, Bscale, Btr, B, C));
 	}
 #else
-	safecall(this, MbyM_std, Ay, Ax, Ascale, Atr, A, By, Bx, Bscale, Btr, B, C);
+	MbyM_std(Ay, Ax, Ascale, Atr, A, By, Bx, Bscale, Btr, B, C);
 #endif
 }
 void sAlgebra::h2d(numtype* destAddr, numtype* srcAddr, int size, bool useStreams) {

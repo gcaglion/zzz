@@ -3,7 +3,7 @@
 sNNparms::sNNparms(sCfgObjParmsDef) : sCoreParms(sCfgObjParmsVal) {
 	mallocs();
 
-	safecall(cfgKey, getParm, &levelRatio, "Topology/LevelRatio", false, &levelsCnt); levelsCnt+=2;
+	safecall(cfgKey, getParm, &levelRatio, "Topology/LevelRatio", false, &levelsCnt); levelsCnt++;
 	safecall(cfgKey, getParm, &ActivationFunction, "Topology/LevelActivation", false, new int);
 	safecall(cfgKey, getParm, &useContext, "Topology/UseContext");
 	safecall(cfgKey, getParm, &useBias, "Topology/UseBias");

@@ -7,5 +7,7 @@
 #define MAX_LEVELS 128
 
 struct sSOMparms : sCoreParms {
-
+	sSOMparms(sCfgObjParmsDef);
+	sSOMparms(sObjParmsDef);
+	~sSOMparms();
 };

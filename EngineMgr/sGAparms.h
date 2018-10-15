@@ -7,5 +7,7 @@
 #define MAX_LEVELS 128
 
 struct sGAparms : sCoreParms {
-
+	sGAparms(sCfgObjParmsDef);
+	sGAparms(sObjParmsDef);
+	~sGAparms();
 };

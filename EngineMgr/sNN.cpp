@@ -9,7 +9,7 @@ sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfg
 	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
 	safespawn(Alg, newsname("%s_Algebra", name->base), dbg);
 
-	parms->MaxEpochs=0;	//-- we need this so destructor does not fail when NN object is used to run-only
+	//parms->MaxEpochs=0;	//-- we need this so destructor does not fail when NN object is used to run-only
 
 						//-- bias still not working(!) Better abort until it does
 	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");

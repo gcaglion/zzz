@@ -98,5 +98,14 @@
     <ClCompile Include="sSVM.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sGAparms.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sSOMparms.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sSVMparms.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

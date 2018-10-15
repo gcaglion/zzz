@@ -181,6 +181,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sGA.cpp" />
+    <ClCompile Include="sGAparms.cpp" />
     <ClCompile Include="sNN.cpp" />
     <ClCompile Include="Engine.cpp" />
     <ClCompile Include="sCore.cpp" />
@@ -188,7 +189,9 @@
     <ClCompile Include="sCoreParms.cpp" />
     <ClCompile Include="sNNparms.cpp" />
     <ClCompile Include="sSOM.cpp" />
+    <ClCompile Include="sSOMparms.cpp" />
     <ClCompile Include="sSVM.cpp" />
+    <ClCompile Include="sSVMparms.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

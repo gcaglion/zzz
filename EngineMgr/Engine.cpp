@@ -66,33 +66,30 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 			if (coreLayout[c]->layer==l) {
 				switch (coreLayout[c]->type) {
 				case CORE_NN:
-					NNcp=(sNNparms*)coreParms[c];
-					safespawn(coreParms[c], newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
-					NNc=(sNN*)core[c];
-					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", coreLayout[c], (sNNparms*)coreParms[c]);
+					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", coreLayout[c], NNcp);
+					core[c]=NNc; coreParms[c]=NNcp;
 					break;
 				case CORE_GA:
-					GAcp=(sGAparms*)coreParms[c];
-					safespawn(coreParms[c], newsname("Core%d_GAparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
-					GAc=(sGA*)core[c];
-					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, "../", coreLayout[c], (sGAparms*)coreParms[c]);
+					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, "../", coreLayout[c], GAcp);
+					core[c]=GAc; coreParms[c]=GAcp;
 					break;
 				case CORE_SVM:
-					SVMcp=(sSVMparms*)coreParms[c];
-					safespawn(coreParms[c], newsname("Core%d_SVMparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
-					SVMc=(sSVM*)core[c];
-					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, "../", coreLayout[c], (sSVMparms*)coreParms[c]);
+					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, "../", coreLayout[c], SVMcp);
+					core[c]=SVMc;  coreParms[c]=SVMcp;
 					break;
 				case CORE_SOM:
-					SOMcp=(sSOMparms*)coreParms[c];
-					safespawn(coreParms[c], newsname("Core%d_SOMparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
-					SOMc=(sSOM*)core[c];
-					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, "../", coreLayout[c], (sSOMparms*)coreParms[c]);
+					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, "../", coreLayout[c], SOMcp);
+					core[c]=SOMc; coreParms[c]=SOMcp;
 					break;
 				default:
 					fail("Invalid Core Type: %d", type);
 					break;
 				}
+				cfg->currentKey=cfgKey;
 			}
 		}
 	}
@@ -115,24 +112,7 @@ void sEngine::train(sDataSet* trainDS_) {
 	for (int l=0; l<layersCnt; l++) {
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
-				switch (core[c]->layout->type) {
-				case CORE_NN:
-					core[c]->train(trainDS_);
-					((sNN*)core[c])->train(trainDS_);
-					break;
-				case CORE_GA:
-					//((sGA*)core[c])->train(trainDS_);
-					break;
-				case CORE_SVM:
-					//((sVM*)core[c])->train(trainDS_);
-					break;
-				case CORE_SOM:
-					//((sOM*)core[c])->train(trainDS_);
-					break;
-				default:
-					fail("Invalid Core Type: %d", type);
-					break;
-				}
+				core[c]->train(trainDS_);
 			}
 		}
 	}

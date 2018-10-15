@@ -136,29 +136,31 @@
 					Parents			= 
 					ParentsConnType	= 
 				</Layout>
-				<Topology>
-					LevelRatio			= 1,1,1,0.5
-					LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-					UseContext			= true
-					UseBias				= false
-				</Topology>
-				<Training>
-					MaxEpochs			= 50
-					TargetMSE			= 0.0001
-					NetSaveFrequency	= 10
-					StopOnDivergence	= true
-					BP_Algo				= BP_STD
-					<BP_Std>
-						LearningRate		= 0.01
-						LearningMomentum	= 0.4
-					</BP_Std>
-					<BP_Qing>
-					</BP_Qing>
-					<BP_Qprop>
-					</BP_Qprop>
-					<BP_RProp>
-					</BP_RProp>
-				</Training>
+				<Parameters>
+					<Topology>
+						LevelRatio			= 1,1,1,0.5
+						LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+						UseContext			= true
+						UseBias				= false
+					</Topology>
+					<Training>
+						MaxEpochs			= 50
+						TargetMSE			= 0.0001
+						NetSaveFrequency	= 10
+						StopOnDivergence	= true
+						BP_Algo				= BP_STD
+						<BP_Std>
+							LearningRate		= 0.01
+							LearningMomentum	= 0.4
+						</BP_Std>
+						<BP_Qing>
+						</BP_Qing>
+						<BP_Qprop>
+						</BP_Qprop>
+						<BP_RProp>
+						</BP_RProp>
+					</Training>
+				</Parameters>
 			</Core1>
 			<Core2>
 				<Layout>
@@ -166,29 +168,31 @@
 					Parents			= Core0
 					ParentsConnType	= CONN_DENSE
 				</Layout>
-				<Topology>
-					LevelRatio			= 1,1,1,0.5
-					LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-					UseContext			= true
-					UseBias				= false
-				</Topology>
-				<Training>
-					MaxEpochs			= 50
-					TargetMSE			= 0.0001
-					NetSaveFrequency	= 10
-					StopOnDivergence	= true
-					BP_Algo				= BP_STD
-					<BP_Std>
-						LearningRate		= 0.01
-						LearningMomentum	= 0.4
-					</BP_Std>
-					<BP_Qing>
-					</BP_Qing>
-					<BP_Qprop>
-					</BP_Qprop>
-					<BP_RProp>
-					</BP_RProp>
-				</Training>
+				<Parameters>
+					<Topology>
+						LevelRatio			= 1,1,1,0.5
+						LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+						UseContext			= true
+						UseBias				= false
+					</Topology>
+					<Training>
+						MaxEpochs			= 50
+						TargetMSE			= 0.0001
+						NetSaveFrequency	= 10
+						StopOnDivergence	= true
+						BP_Algo				= BP_STD
+						<BP_Std>
+							LearningRate		= 0.01
+							LearningMomentum	= 0.4
+						</BP_Std>
+						<BP_Qing>
+						</BP_Qing>
+						<BP_Qprop>
+						</BP_Qprop>
+						<BP_RProp>
+						</BP_RProp>
+					</Training>
+				</Parameters>
 			</Core2>
 			<Core3>
 				<Layout>
@@ -196,29 +200,31 @@
 					Parents			= Core1
 					ParentsConnType	= CONN_DENSE
 				</Layout>
-				<Topology>
-					LevelRatio			= 1,1,1,0.5
-					LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-					UseContext			= true
-					UseBias				= false
-				</Topology>
-				<Training>
-					MaxEpochs			= 50
-					TargetMSE			= 0.0001
-					NetSaveFrequency	= 10
-					StopOnDivergence	= true
-					BP_Algo				= BP_STD
-					<BP_Std>
-						LearningRate		= 0.01
-						LearningMomentum	= 0.4
-					</BP_Std>
-					<BP_Qing>
-					</BP_Qing>
-					<BP_Qprop>
-					</BP_Qprop>
-					<BP_RProp>
-					</BP_RProp>
-				</Training>
+				<Parameters>
+					<Topology>
+						LevelRatio			= 1,1,1,0.5
+						LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+						UseContext			= true
+						UseBias				= false
+					</Topology>
+					<Training>
+						MaxEpochs			= 50
+						TargetMSE			= 0.0001
+						NetSaveFrequency	= 10
+						StopOnDivergence	= true
+						BP_Algo				= BP_STD
+						<BP_Std>
+							LearningRate		= 0.01
+							LearningMomentum	= 0.4
+						</BP_Std>
+						<BP_Qing>
+						</BP_Qing>
+						<BP_Qprop>
+						</BP_Qprop>
+						<BP_RProp>
+						</BP_RProp>
+					</Training>
+				</Parameters>
 			</Core3>
 			<Core4>			
 				<Layout>
@@ -226,29 +232,31 @@
 					Parents			= Core2, Core3
 					ParentsConnType	= CONN_DENSE, CONN_LINEAR
 				</Layout>
-				<Topology>
-					LevelRatio			= 1,1,1,0.5
-					LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-					UseContext			= true
-					UseBias				= false
-				</Topology>
-				<Training>
-					MaxEpochs			= 50
-					TargetMSE			= 0.0001
-					NetSaveFrequency	= 10
-					StopOnDivergence	= true
-					BP_Algo				= BP_STD
-					<BP_Std>
-						LearningRate		= 0.01
-						LearningMomentum	= 0.4
-					</BP_Std>
-					<BP_Qing>
-					</BP_Qing>
-					<BP_Qprop>
-					</BP_Qprop>
-					<BP_RProp>
-					</BP_RProp>
-				</Training>
+				<Parameters>
+					<Topology>
+						LevelRatio			= 1,1,1,0.5
+						LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+						UseContext			= true
+						UseBias				= false
+					</Topology>
+					<Training>
+						MaxEpochs			= 50
+						TargetMSE			= 0.0001
+						NetSaveFrequency	= 10
+						StopOnDivergence	= true
+						BP_Algo				= BP_STD
+						<BP_Std>
+							LearningRate		= 0.01
+							LearningMomentum	= 0.4
+						</BP_Std>
+						<BP_Qing>
+						</BP_Qing>
+						<BP_Qprop>
+						</BP_Qprop>
+						<BP_RProp>
+						</BP_RProp>
+					</Training>
+				</Parameters>
 			</Core4>
 		</Custom>
 		<XIE>

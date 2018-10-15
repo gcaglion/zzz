@@ -7,5 +7,7 @@
 #define MAX_LEVELS 128
 
 struct sSVMparms : sCoreParms {
-
+	sSVMparms(sCfgObjParmsDef);
+	sSVMparms(sObjParmsDef);
+	~sSVMparms();
 };
