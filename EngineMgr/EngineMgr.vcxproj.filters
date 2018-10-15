@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Engine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Engine_enums.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -69,11 +66,11 @@
     <ClInclude Include="sSVMparms.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Engine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sCore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -105,6 +102,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sSVMparms.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

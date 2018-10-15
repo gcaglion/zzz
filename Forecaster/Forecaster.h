@@ -3,8 +3,8 @@
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "../DataMgr/sData.h"
-#include "../EngineMgr/Engine.h"
-#include "../Logger/Logger.h"
+#include "../EngineMgr/sEngine.h"
+#include "../Logger/sLogger.h"
 
 struct sForecaster : sCfgObj {
 	

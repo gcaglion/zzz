@@ -1,4 +1,4 @@
-#include "Logger.h"
+#include "sLogger.h"
 
 sLogger::sLogger(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	saveNothingFlag=false; saveClientFlag=true; saveMSEFlag=true; saveRunFlag=true; saveInternalsFlag=false; saveImageFlag=false;

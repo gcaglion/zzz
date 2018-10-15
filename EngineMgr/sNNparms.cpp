@@ -2,9 +2,10 @@
 
 sNNparms::sNNparms(sCfgObjParmsDef) : sCoreParms(sCfgObjParmsVal) {
 	mallocs();
-
-	safecall(cfgKey, getParm, &levelRatio, "Topology/LevelRatio", false, &levelsCnt); levelsCnt++;
-	safecall(cfgKey, getParm, &ActivationFunction, "Topology/LevelActivation", false, new int);
+	int levelActsCnt;
+	safecall(cfgKey, getParm, &levelRatio, "Topology/LevelRatio", false, &levelsCnt); levelsCnt+=2;
+	safecall(cfgKey, getParm, &ActivationFunction, "Topology/LevelActivation", false, &levelActsCnt);
+	if (levelActsCnt!=(levelsCnt-1)) fail("Too few Level Activations specified (%d vs. %d)", levelActsCnt, levelsCnt-1);
 	safecall(cfgKey, getParm, &useContext, "Topology/UseContext");
 	safecall(cfgKey, getParm, &useBias, "Topology/UseBias");
 

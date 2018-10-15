@@ -165,7 +165,7 @@
     <ClInclude Include="sGAenums.h" />
     <ClInclude Include="sGAparms.h" />
     <ClInclude Include="sNN.h" />
-    <ClInclude Include="Engine.h" />
+    <ClInclude Include="sEngine.h" />
     <ClInclude Include="Engine_enums.h" />
     <ClInclude Include="sNNenums.h" />
     <ClInclude Include="sNNparms.h" />
@@ -183,7 +183,7 @@
     <ClCompile Include="sGA.cpp" />
     <ClCompile Include="sGAparms.cpp" />
     <ClCompile Include="sNN.cpp" />
-    <ClCompile Include="Engine.cpp" />
+    <ClCompile Include="sEngine.cpp" />
     <ClCompile Include="sCore.cpp" />
     <ClCompile Include="sCoreLayout.cpp" />
     <ClCompile Include="sCoreParms.cpp" />

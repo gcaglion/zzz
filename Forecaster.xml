@@ -97,7 +97,7 @@
 		</Debugger>		
 		Type 		= ENGINE_CUSTOM
 		<Custom>
-			CoresCount	= 5
+			CoresCount	= 1
 			<Core0>
 				<Layout>
 					Type	= CORE_NN
@@ -106,9 +106,9 @@
 				</Layout>
 				<Parameters>
 					<Topology>
-						LevelRatio			= 1,1,1,0.5
-						LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-						UseContext			= true
+						LevelRatio			= 1
+						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+						UseContext			= false
 						UseBias				= false
 					</Topology>
 					<Training>
@@ -118,7 +118,7 @@
 						StopOnDivergence	= true
 						BP_Algo				= BP_STD
 						<BP_Std>
-							LearningRate		= 0.01
+							LearningRate		= 0.001
 							LearningMomentum	= 0.4
 						</BP_Std>
 						<BP_Qing>
