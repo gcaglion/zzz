@@ -1,6 +1,6 @@
 #pragma once
 #include "../common.h"
-#include "DataSource.h"
+#include "sDataSource.h"
 #include "FXData_enums.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "../OraOci/sOraDB.h"

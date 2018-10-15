@@ -3,6 +3,7 @@
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "TimeSerie_enums.h"
+#include "sDataSource.h"
 #include "sFXData.h"
 #include "sFileData.h"
 #include "sMT4Data.h"
@@ -55,10 +56,11 @@ typedef struct sTimeSerie : sCfgObj {
 	EXPORT void TrS(int dt_, numtype scaleMin_, numtype scaleMax_);
 	EXPORT void unTrS(numtype scaleMin_, numtype scaleMax_);
 
-	EXPORT void dump(char* dumpFileName="C:/temp/TSdump.csv");
+	EXPORT void dump();
 
 private:
 	void setDataSource(sCfg* cfg);
+	char* dumpFileFullName;
 
 } tTimeSerie;
 

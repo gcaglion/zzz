@@ -160,7 +160,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DataSet.cpp" />
+    <ClCompile Include="sDataSet.cpp" />
     <ClCompile Include="DataShape.cpp" />
     <ClCompile Include="DataSource.cpp" />
     <ClCompile Include="sFileData.cpp" />
@@ -170,10 +170,10 @@
     <ClCompile Include="TimeSerie.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DataShape.h" />
+    <ClInclude Include="sDataShape.h" />
     <ClInclude Include="sData.h" />
-    <ClInclude Include="DataSet.h" />
-    <ClInclude Include="DataSource.h" />
+    <ClInclude Include="sDataSet.h" />
+    <ClInclude Include="sDataSource.h" />
     <ClInclude Include="DataSource_enums.h" />
     <ClInclude Include="DBConnection_enums.h" />
     <ClInclude Include="sFileData.h" />
@@ -181,7 +181,7 @@
     <ClInclude Include="sFXData.h" />
     <ClInclude Include="FXData_enums.h" />
     <ClInclude Include="sMT4data.h" />
-    <ClInclude Include="TimeSerie.h" />
+    <ClInclude Include="sTimeSerie.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

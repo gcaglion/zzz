@@ -21,9 +21,6 @@
     <ClCompile Include="FXData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataSet.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="TimeSerie.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -39,11 +36,11 @@
     <ClCompile Include="sFileData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sDataSet.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DataSource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DataSource_enums.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -56,16 +53,7 @@
     <ClInclude Include="FXData_enums.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DataSet.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="TimeSerie.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DataShape.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sFileData.h">
@@ -75,6 +63,18 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sFXData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sDataSet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sDataShape.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sDataSource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sTimeSerie.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

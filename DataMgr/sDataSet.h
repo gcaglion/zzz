@@ -3,8 +3,8 @@
 #include "../common.h"
 #include "../configMgr/sCfgObj.h"
 #include "../configMgr/sCfgKey.h"
-#include "DataShape.h"
-#include "TimeSerie.h"
+#include "sDataShape.h"
+#include "sTimeSerie.h"
 
 typedef struct sDataSet : sCfgObj {
 
@@ -12,8 +12,6 @@ typedef struct sDataSet : sCfgObj {
 
 	tTimeSerie* sourceTS;
 
-//	int sampleLen;
-//	int targetLen;
 	int selectedFeaturesCnt;
 	int* selectedFeature;
 	int* BWFeature;
@@ -48,9 +46,11 @@ typedef struct sDataSet : sCfgObj {
 	EXPORT void BFS2SBF(int batchId, int barCnt, numtype* fromBFS, numtype* toSBF);
 	EXPORT void BFS2SFB(int batchId, int barCnt, numtype* fromBFS, numtype* toSFB);
 	EXPORT void BFS2SFBfull(int barCnt, numtype* fromBFS, numtype* toSFB);
-	EXPORT void dump(char* dumpFileName=nullptr);
+	EXPORT void dump();
 
 private:
 	void sDataSet_pre();
 	void sDataSet_post();
+	char* dumpFileFullName;
+
 } tDataSet;

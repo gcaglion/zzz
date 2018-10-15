@@ -1,5 +1,5 @@
 //#include <vld.h>
-#include "TimeSerie.h"
+#include "sTimeSerie.h"
 
 //-- sTimeSerie, constructors / destructor
 void sTimeSerie::sTimeSeriecommon(int steps_, int featuresCnt_, int tsfCnt_, int* tsf_) {
@@ -20,7 +20,6 @@ void sTimeSerie::sTimeSeriecommon(int steps_, int featuresCnt_, int tsfCnt_, int
 	bd=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	d_tr=(numtype*)malloc(len*sizeof(numtype));
 	d_trs=(numtype*)malloc(len*sizeof(numtype));
-
 }
 
 //-------- To fix --------------
@@ -75,7 +74,7 @@ void sTimeSerie::setDataSource(sCfg* cfg) {
 }
 
 sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
-
+	dumpFileFullName=(char*)malloc(MAX_PATH); dumpFileFullName[0]='\0';
 	tsf=(int*)malloc(MAX_TSF_CNT*sizeof(int));
 	date0[0]='\0';
 
@@ -85,15 +84,7 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &dt, "DataTransformation");
 	safecall(cfgKey, getParm, &BWcalc, "BWCalc");
 	safecall(cfgKey, getParm, &tsf, "StatisticalFeatures", false, &tsfCnt);
-
-	//-- 2. Find, set, open DataSource
-	safecall(this, setDataSource, cfg);
-	//-- 3. common stuff (mallocs, ...)
-	sTimeSeriecommon(steps, sourceData->featuresCnt, tsfCnt, tsf);
-	//-- 4. load data
-	safecall(sourceData, load, date0, steps, dtime, d, bdtime, bd);
-	//-- 5. transform
-	safecall(this, transform, dt);
+	safecall(cfgKey, getParm, &dumpFileFullName, "DumpFileFullName", true);
 
 	len=steps*featuresCnt;
 	dmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
@@ -110,6 +101,16 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	d_tr=(numtype*)malloc(len*sizeof(numtype));
 	d_trs=(numtype*)malloc(len*sizeof(numtype));
 
+	//-- 2. Find, set, open DataSource
+	safecall(this, setDataSource, cfg);
+	//-- 3. common stuff (mallocs, ...)
+	sTimeSeriecommon(steps, sourceData->featuresCnt, tsfCnt, tsf);
+	//-- 4. load data
+	safecall(sourceData, load, date0, steps, dtime, d, bdtime, bd);
+	//-- 5. transform
+	safecall(this, transform, dt);
+
+	if (strlen(dumpFileFullName)>0) dump();
 }
 sTimeSerie::~sTimeSerie() {
 	free(d);
@@ -119,15 +120,15 @@ sTimeSerie::~sTimeSerie() {
 	for (int i=0; i<len; i++) free(dtime[i]);
 	free(dtime); free(bdtime);
 	free(tsf);
-
+	free(dumpFileFullName);
 }
 
 //-- sTimeSerie, other methods
-void sTimeSerie::dump(char* dumpFileName) {
+void sTimeSerie::dump() {
 	int s, f;
 
 	FILE* dumpFile;
-	if( fopen_s(&dumpFile, dumpFileName, "w") !=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
+	if (fopen_s(&dumpFile, dumpFileFullName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileFullName, errno);
 
 	fprintf(dumpFile, "i, datetime");
 	for (f=0; f<featuresCnt; f++) fprintf(dumpFile, ",F%d_orig,F%d_tr,F%d_trs", f, f, f);
@@ -173,7 +174,7 @@ void sTimeSerie::dump(char* dumpFileName) {
 		//fprintf(dumpFile, "scaleP:,,%f,,,%f,,,%f,,,%f,,,%f \n", scaleP[0], scaleP[1], scaleP[2], scaleP[3], scaleP[4]);
 	}
 
-	delete dumpFile;
+	fclose(dumpFile);
 
 }
 void sTimeSerie::transform(int dt_) {

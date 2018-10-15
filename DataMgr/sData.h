@@ -2,8 +2,8 @@
 #include "../common.h"
 #include "../BaseObj/sObj.h"
 #include "../ConfigMgr/sCfg.h"
-#include "DataSet.h"
-#include "DataShape.h"
+#include "sDataSet.h"
+#include "sDataShape.h"
 
 
 struct sData : sCfgObj {

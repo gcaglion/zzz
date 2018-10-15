@@ -1,9 +1,10 @@
-#include "DataSet.h"
+#include "sDataSet.h"
 
 //-- sDataSet, constructors  /destructor
 void sDataSet::sDataSet_pre() {
 	BWFeature=(int*)malloc(2*sizeof(int));
 	selectedFeature=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
+	dumpFileFullName=(char*)malloc(MAX_PATH); dumpFileFullName[0]='\0';
 }
 void sDataSet::sDataSet_post() {
 
@@ -59,14 +60,14 @@ sDataSet::sDataSet(sCfgObjParmsDef, sDataShape* shape_) : sCfgObj(sCfgObjParmsVa
 	safecall(cfgKey, getParm, &batchSamplesCnt, "BatchSamplesCount");
 	safecall(cfgKey, getParm, &selectedFeature, "SelectedFeatures", false, &selectedFeaturesCnt);
 	safecall(cfgKey, getParm, &BWFeature, "BWFeatures", false, new int);
+	safecall(cfgKey, getParm, &dumpFileFullName, "DumpFileFullName", true);
 	//-- 2. do stuff and spawn sub-Keys
 	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), nullptr, cfg, "TimeSerie");
-
+	
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 
 	sDataSet_post();
-
 }
 
 sDataSet::~sDataSet() {
@@ -80,17 +81,15 @@ sDataSet::~sDataSet() {
 	free(predictionBFS);
 	free(target0);
 	free(prediction0);
-
+	free(dumpFileFullName);
 	delete sourceTS;
 }
 //-- sDataSet, other methods
-void sDataSet::dump(char* dumpFileName_) {
+void sDataSet::dump() {
 	int s, i, b, f;
-	char dumpFileName[MAX_PATH];
-	sprintf_s(dumpFileName, MAX_PATH, ((dumpFileName==nullptr) ? "C:/temp/DataSet.log" : dumpFileName));
-
+	
 	FILE* dumpFile;
-	if( fopen_s(&dumpFile, dumpFileName, "w") !=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
+	if (fopen_s(&dumpFile, dumpFileFullName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileFullName, errno);
 
 	fprintf(dumpFile, "SampleId\t");
 	for (b=0; b<(shape->sampleLen); b++) {
