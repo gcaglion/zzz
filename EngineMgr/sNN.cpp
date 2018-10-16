@@ -349,8 +349,8 @@ void sNN::train(sDataSet* trainSet) {
 
 	//---- 0.2. Init W
 	for (l=0; l<(outputLevel); l++) Alg->VinitRnd(weightsCnt[l], &W[levelFirstWeight[l]], -1/sqrtf((numtype)nodesCnt[l]), 1/sqrtf((numtype)nodesCnt[l]), Alg->cuRandH);
-	//dumpArray(weightsCntTotal, &W[0], "C:/temp/referenceW/initW.txt"));
-	//loadArray(weightsCntTotal, &W[0], "C:/temp/referenceW/initW_4F.txt"));
+	//dumpArray(weightsCntTotal, &W[0], "C:/temp/referenceW/initW.txt");
+	//loadArray(weightsCntTotal, &W[0], "C:/temp/referenceW/initW.txt");
 
 	//---- 0.3. Init dW, dJdW
 	Alg->Vinit(weightsCntTotal, dW, 0, 0);

@@ -44,8 +44,8 @@
 						</DBConnection>
 					</FXDB_DataSource>
 				</TimeSerie>
-				BatchSamplesCount	= 1
-				SelectedFeatures	= FXHIGH, FXLOW
+				BatchSamplesCount	= 10
+				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 				BWFeatures			= 1,2
 			</DataSet>
 		</Train>
@@ -110,7 +110,7 @@
 					<Topology>
 						LevelRatio			= 0.5
 						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-						UseContext			= false
+						UseContext			= true
 						UseBias				= false
 					</Topology>
 					<Training>

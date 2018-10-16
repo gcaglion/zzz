@@ -68,13 +68,13 @@ void sOraDB::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pRecCount,
 			i--;
 		}
 		//-- one more fetch to get baseBar
-		if (rset->next()) {
+		//if (rset->next()) {
 			strcpy_s(oBaseTime, DATE_FORMAT_LEN, rset->getString(1).c_str());
 			for (int f=0; f<5; f++) {
 				oBaseBar[f] = rset->getFloat(f+2);
 			}
 			oBaseBar[0] = rset->getFloat(2);
-		}
+		//}
 
 		stmt->closeResultSet(rset);
 		((Connection*)conn)->terminateStatement(stmt);

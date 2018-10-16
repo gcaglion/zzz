@@ -199,6 +199,11 @@ struct sAlgebra : public sObj {
 
 } ;
 
+//-- stand-alone functions
+EXPORT bool dumpArray(int vlen, numtype* v, const char* fname);
+EXPORT bool dumpArrayH(int vlen, numtype* v, const char* fname);
+EXPORT bool loadArray(int vlen, numtype* v, const char* fname);
+
 /*
 EXPORT void Mprint(int my, int mx, numtype* sm, const char* msg=nullptr, int smy0=-1, int smx0=-1, int smy=-1, int smx=-1);
 EXPORT void Msub(int my, int mx, numtype* INm, numtype* OUTsm, int smy0, int smx0, int smy, int smx);
