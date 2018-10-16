@@ -10,4 +10,6 @@ struct sSOMparms : sCoreParms {
 	sSOMparms(sCfgObjParmsDef);
 	sSOMparms(sObjParmsDef);
 	~sSOMparms();
+
+	EXPORT void setScaleMinMax();
 };

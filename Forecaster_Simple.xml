@@ -12,8 +12,8 @@
 	</Debugger>
 	<Data>
 		<Shape>
-			SampleLen		= 100
-			PredictionLen	= 5
+			SampleLen		= 20
+			PredictionLen	= 3
 			FeaturesCount	= 4
 		</Shape>
 		<Train>
@@ -29,9 +29,9 @@
 				<TimeSerie>
 					DumpFileFullName = c:\temp\trainTS.dump
 					Date0				= 201612300000
-					HistoryLen			= 505
+					HistoryLen			= 503
 					DataTransformation	= DT_DELTA
-					BWCalc				= false
+					BWCalc				= true
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					<FXDB_DataSource>
 						Symbol				= EURUSD
@@ -44,8 +44,8 @@
 						</DBConnection>
 					</FXDB_DataSource>
 				</TimeSerie>
-				BatchSamplesCount	= 50
-				SelectedFeatures	= FXHIGH
+				BatchSamplesCount	= 1
+				SelectedFeatures	= FXHIGH, FXLOW
 				BWFeatures			= 1,2
 			</DataSet>
 		</Train>

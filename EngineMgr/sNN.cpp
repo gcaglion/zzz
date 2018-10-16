@@ -14,15 +14,11 @@ sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfg
 						//-- bias still not working(!) Better abort until it does
 	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
 
-	//-- set Layout. We don't have batchSampleCnt, so we set it at 1. train() and run() will set it later
-	setLayout(1);
+	//-- set Common Layout, independent by batchSampleCnt.
+	setCommonLayout();	
 	//-- weights can be set now, as they are not affected by batchSampleCnt
 	createWeights();
 	//safecall(this, createWeights);
-
-	//-- x. set scaleMin / scaleMax
-	scaleMin=(numtype*)malloc(parms->levelsCnt*sizeof(int));
-	scaleMax=(numtype*)malloc(parms->levelsCnt*sizeof(int));
 
 	//-- 3. malloc device-based scalar value, to be used by reduction functions (sum, ssum, ...)
 	Alg->myMalloc(&se, 1);
@@ -38,7 +34,6 @@ sNN::~sNN() {
 	Alg->myFree(tse);
 
 	free(mseT); free(mseV);
-	free(scaleMin); free(scaleMax);
 
 	free(nodesCnt);
 	free(levelFirstNode);
@@ -49,25 +44,24 @@ sNN::~sNN() {
 
 }
 
-void sNN::setLayout(int batchSamplesCnt_) {
-	int l, nl;
-	int levelsCnt=parms->levelsCnt;
-	outputLevel=levelsCnt-1;
-
+void sNN::setCommonLayout() {
+	outputLevel=parms->levelsCnt-1;
 	//-- allocate level-specific parameters
-	nodesCnt=(int*)malloc(levelsCnt*sizeof(int));
-	levelFirstNode=(int*)malloc(levelsCnt*sizeof(int));
-	ctxStart=(int*)malloc(levelsCnt*sizeof(int));
+	nodesCnt=(int*)malloc(parms->levelsCnt*sizeof(int));
+	levelFirstNode=(int*)malloc(parms->levelsCnt*sizeof(int));
+	ctxStart=(int*)malloc(parms->levelsCnt*sizeof(int));
 	weightsCnt=(int*)malloc((outputLevel)*sizeof(int));
 	levelFirstWeight=(int*)malloc((outputLevel)*sizeof(int));
+}
 
-	//-- 0.2. Input-layout->outputCnt moved here, so can be reset when called by run()
-	parms->batchSamplesCnt=batchSamplesCnt_;
+void sNN::setLayout(int batchSamplesCnt_) {
+	int l, nl;
+
 
 	//-- 0.3. set nodesCnt (single sample)
-	nodesCnt[0] = layout->shape->sampleLen*layout->shape->featuresCnt*parms->batchSamplesCnt;
-	nodesCnt[outputLevel] = layout->shape->predictionLen*layout->shape->featuresCnt*parms->batchSamplesCnt;
-	for (nl = 0; nl<(levelsCnt-2); nl++) nodesCnt[nl+1] = (int)floor(nodesCnt[nl]*parms->levelRatio[nl]);
+	nodesCnt[0] = layout->shape->sampleLen*layout->shape->featuresCnt*batchSamplesCnt_;
+	nodesCnt[outputLevel] = layout->shape->predictionLen*layout->shape->featuresCnt*batchSamplesCnt_;
+	for (nl = 0; nl<(parms->levelsCnt-2); nl++) nodesCnt[nl+1] = (int)floor(nodesCnt[nl]*parms->levelRatio[nl]);
 
 	//-- add context neurons
 	if (parms->useContext) {
@@ -80,17 +74,17 @@ void sNN::setLayout(int batchSamplesCnt_) {
 
 	//-- 0.2. calc nodesCntTotal
 	nodesCntTotal=0;
-	for (l=0; l<levelsCnt; l++) nodesCntTotal+=nodesCnt[l];
+	for (l=0; l<parms->levelsCnt; l++) nodesCntTotal+=nodesCnt[l];
 
 	//-- 0.3. weights count
 	weightsCntTotal=0;
 	for (l=0; l<(outputLevel); l++) {
-		weightsCnt[l]=nodesCnt[l]/parms->batchSamplesCnt*nodesCnt[l+1]/parms->batchSamplesCnt;
+		weightsCnt[l]=nodesCnt[l]/batchSamplesCnt_*nodesCnt[l+1]/batchSamplesCnt_;
 		weightsCntTotal+=weightsCnt[l];
 	}
 
 	//-- 0.4. set first node and first weight for each layer
-	for (l=0; l<levelsCnt; l++) {
+	for (l=0; l<parms->levelsCnt; l++) {
 		levelFirstNode[l]=0;
 		levelFirstWeight[l]=0;
 		for (int ll=0; ll<l; ll++) {
@@ -105,41 +99,14 @@ void sNN::setLayout(int batchSamplesCnt_) {
 	}
 
 }
-void sNN::setActivationFunction(int* func_) {
-	for (int l=0; l<parms->levelsCnt; l++) {
-		parms->ActivationFunction[l]=func_[l];
-		switch (parms->ActivationFunction[l]) {
-		case NN_ACTIVATION_TANH:
-			scaleMin[l] = -1;
-			scaleMax[l] = 1;
-			break;
-		case NN_ACTIVATION_EXP4:
-			scaleMin[l] = 0;
-			scaleMax[l] = 1;
-			break;
-		case NN_ACTIVATION_RELU:
-			scaleMin[l] = 0;
-			scaleMax[l] = 1;
-			break;
-		case NN_ACTIVATION_SOFTPLUS:
-			scaleMin[l] = 0;
-			scaleMax[l] = 1;
-			break;
-		default:
-			scaleMin[l] = -1;
-			scaleMax[l] = 1;
-			break;
-		}
-	}
-}
 
 void sNN::FF() {
 	for (int l=0; l<outputLevel; l++) {
-		int Ay=nodesCnt[l+1]/parms->batchSamplesCnt;
-		int Ax=nodesCnt[l]/parms->batchSamplesCnt;
+		int Ay=nodesCnt[l+1]/_batchSize;
+		int Ax=nodesCnt[l]/_batchSize;
 		numtype* A=&W[levelFirstWeight[l]];
-		int By=nodesCnt[l]/parms->batchSamplesCnt;
-		int Bx=parms->batchSamplesCnt;
+		int By=nodesCnt[l]/_batchSize;
+		int Bx=_batchSize;
 		numtype* B=&F[levelFirstNode[l]];
 		numtype* C=&a[levelFirstNode[l+1]];
 
@@ -235,6 +202,8 @@ void sNN::destroyNeurons() {
 	Alg->myFree(u);
 }
 void sNN::createWeights() {
+	//-- need to set weightsCntTotal, which will not be affected by batchSampleCnt
+	setLayout(1);
 	//-- malloc weights (on either CPU or GPU)
 	Alg->myMalloc(&W, weightsCntTotal);
 	Alg->myMalloc(&prevW, weightsCntTotal);
@@ -258,12 +227,12 @@ void sNN::BP_std(){
 			Alg->VbyV2V(nodesCnt[l], e, &dF[levelFirstNode[l]], &edF[levelFirstNode[l]]);	// edF(l) = e * dF(l)
 		} else {
 			//-- lower levels
-			Ay=nodesCnt[l+1]/parms->batchSamplesCnt;
-			Ax=nodesCnt[l]/parms->batchSamplesCnt;
+			Ay=nodesCnt[l+1]/_batchSize;
+			Ax=nodesCnt[l]/_batchSize;
 			Astart=levelFirstWeight[l];
 			A=&W[Astart];
-			By=nodesCnt[l+1]/parms->batchSamplesCnt;
-			Bx=parms->batchSamplesCnt;
+			By=nodesCnt[l+1]/_batchSize;
+			Bx=_batchSize;
 			Bstart=levelFirstNode[l+1];
 			B=&edF[Bstart];
 			Cy=Ax;	// because A gets transposed
@@ -276,12 +245,12 @@ void sNN::BP_std(){
 		}
 
 		//-- common	
-		Ay=nodesCnt[l]/parms->batchSamplesCnt;
-		Ax=parms->batchSamplesCnt;
+		Ay=nodesCnt[l]/_batchSize;
+		Ax=_batchSize;
 		Astart=levelFirstNode[l];
 		A=&edF[Astart];
-		By=nodesCnt[l-1]/parms->batchSamplesCnt;
-		Bx=parms->batchSamplesCnt;
+		By=nodesCnt[l-1]/_batchSize;
+		Bx=_batchSize;
 		Bstart=levelFirstNode[l-1];
 		B=&F[Bstart];
 		Cy=Ay;
@@ -347,7 +316,7 @@ bool sNN::epochMetCriteria(int epoch, DWORD starttime, bool displayProgress) {
 	numtype tse_h;	// total squared error copid on host at the end of each eopch
 
 	Alg->d2h(&tse_h, tse, sizeof(numtype));
-	mseT[epoch]=tse_h/nodesCnt[outputLevel]/batchCnt_;
+	mseT[epoch]=tse_h/nodesCnt[outputLevel]/_batchCnt;
 	mseV[epoch]=0;	// TO DO !
 	if(displayProgress) printf("\rpid=%d, tid=%d, epoch %d, Training TSE=%f, MSE=%1.10f, duration=%d ms", pid, tid, epoch, tse_h, mseT[epoch], (timeGetTime()-starttime));
 	if (mseT[epoch]<parms->TargetMSE) return true;
@@ -364,11 +333,11 @@ void sNN::train(sDataSet* trainSet) {
 	DWORD training_starttime=timeGetTime();
 	int epoch, b;
 
-	//-- set batch count and batchSampleCnt for the network from dataset
-	parms->batchSamplesCnt=trainSet->batchSamplesCnt;
-	batchCnt_=trainSet->batchCnt;
+	//-- set private _batchCnt and _batchSize for the network from dataset
+	_batchCnt=trainSet->batchCnt;
+	_batchSize=trainSet->batchSamplesCnt;
 	//-- set Layout. This should not change weightsCnt[] at all, just nodesCnt[]
-	setLayout(parms->batchSamplesCnt);
+	setLayout(_batchSize);
 
 	//-- 0. malloc + init neurons
 	mallocNeurons();
@@ -397,7 +366,7 @@ void sNN::train(sDataSet* trainSet) {
 		Alg->Vinit(1, tse, 0, 0);
 
 		//-- 1.1. train one batch at a time
-		for (b=0; b<batchCnt_; b++) {
+		for (b=0; b<trainSet->batchCnt; b++) {
 
 			//-- forward pass, with targets
 			ForwardPass(trainSet, b, true);
@@ -416,7 +385,7 @@ void sNN::train(sDataSet* trainSet) {
 	//-- 2. test run. need this to make sure all batches pass through the net with the latest weights, and training targets
 	TRstart=timeGetTime(); TRcnt++;
 	Alg->Vinit(1, tse, 0, 0);
-	for (b=0; b<batchCnt_; b++) ForwardPass(trainSet, b, true);
+	for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b, true);
 	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
 
 	//-- calc and display final epoch MSE
@@ -447,8 +416,6 @@ void sNN::train(sDataSet* trainSet) {
 void sNN::run(sDataSet* runSet) {
 
 	//-- set Neurons Layout based on batchSampleCount of run set
-	parms->batchSamplesCnt=runSet->batchSamplesCnt;
-	batchCnt_=runSet->batchCnt;
 	setLayout(runSet->batchSamplesCnt);
 
 	//-- malloc + init neurons
@@ -459,7 +426,7 @@ void sNN::run(sDataSet* runSet) {
 	safecall(Alg, Vinit, 1, tse, 0, 0);
 
 	//-- batch run
-	for (int b=0; b<batchCnt_; b++) {
+	for (int b=0; b<runSet->batchCnt; b++) {
 
 		//-- 1.1.1.  load samples/targets onto GPU
 		Alg->h2d(&F[(parms->useBias) ? 1 : 0], &runSet->sampleBFS[b*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
@@ -482,7 +449,7 @@ void sNN::run(sDataSet* runSet) {
 	//-- calc and display final epoch MSE
 	numtype tse_h;	// total squared error copid on host at the end of the run
 	Alg->d2h(&tse_h, tse, sizeof(numtype));
-	numtype mseR=tse_h/nodesCnt[outputLevel]/batchCnt_;
+	numtype mseR=tse_h/nodesCnt[outputLevel]/runSet->batchCnt;
 	printf("\npid=%d, tid=%d, Run final MSE=%1.10f\n", pid, tid, mseR);
 
 	//-- convert prediction from BFS to SFB (fol all batches at once)

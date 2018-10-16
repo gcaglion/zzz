@@ -41,7 +41,7 @@ typedef struct sDataSet : sCfgObj {
 	EXPORT ~sDataSet();
 
 	bool isSelected(int ts_f);
-	EXPORT void buildFromTS();
+	EXPORT void buildFromTS(float scaleMin_, float scaleMax_);
 	EXPORT void SBF2BFS(int batchId, int barCnt, numtype* fromSBF, numtype* toBFS);
 	EXPORT void BFS2SBF(int batchId, int barCnt, numtype* fromBFS, numtype* toSBF);
 	EXPORT void BFS2SFB(int batchId, int barCnt, numtype* fromBFS, numtype* toSFB);

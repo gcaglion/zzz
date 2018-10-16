@@ -40,7 +40,7 @@ typedef struct sTimeSerie : sCfgObj {
 	numtype* d_trs;
 
 	//-- constructors / destructor
-	EXPORT void sTimeSeriecommon(int steps_, int featuresCnt_, int tsfCnt_=0, int* tsf_=nullptr);
+	EXPORT void sTimeSeriecommon();
 
 /*	EXPORT sTimeSerie(sCfgObjParmsDef, int steps_, int featuresCnt_);
 	EXPORT sTimeSerie(sCfgObjParmsDef, sFXData* dataSource_, int steps_, char* date0_, int dt_);

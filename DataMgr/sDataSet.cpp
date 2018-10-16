@@ -10,9 +10,12 @@ void sDataSet::sDataSet_post() {
 
 	samplesCnt=sourceTS->steps-shape->sampleLen-shape->predictionLen;// +1;
 	if (samplesCnt<1) fail("Not Enough Data. samplesCnt=%d", samplesCnt);
-	batchCnt=samplesCnt/batchSamplesCnt;
-	if ((batchCnt*batchSamplesCnt)!=samplesCnt) fail("Wrong Batch Size. samplesCnt=%d, batchSamplesCnt=%d", samplesCnt, batchSamplesCnt);
-
+	float batchCntF=((float)samplesCnt/(float)batchSamplesCnt);
+	if((samplesCnt%batchSamplesCnt)!=0) {
+		fail("Wrong Batch Size. HistoryLen=%d, SampleLen=%d, PredictionLen=%d => samplesCnt=%d, batchSamplesCnt=%d => batchCnt=%.2f", sourceTS->steps, shape->sampleLen, shape->predictionLen, samplesCnt, batchSamplesCnt, batchCntF);
+	} else {
+		batchCnt=(int)floor(batchCntF);
+	}
 	sample=(numtype*)malloc(samplesCnt*shape->sampleLen*selectedFeaturesCnt*sizeof(numtype));
 	target=(numtype*)malloc(samplesCnt*shape->predictionLen*selectedFeaturesCnt*sizeof(numtype));
 	prediction=(numtype*)malloc(samplesCnt*shape->predictionLen*selectedFeaturesCnt*sizeof(numtype));
@@ -26,16 +29,6 @@ void sDataSet::sDataSet_post() {
 	target0=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
 	prediction0=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
 
-	//-- fill sample/target data right at creation time. TS has data in SBF format
-	buildFromTS();
-
-	for (int b=0; b<batchCnt; b++) {
-		//-- populate BFS sample/target for every batch
-		SBF2BFS(b, shape->sampleLen, sample, sampleBFS);
-		SBF2BFS(b, shape->predictionLen, target, targetBFS);
-		//-- populate SFB targets, too
-		BFS2SFB(b, shape->predictionLen, targetBFS, targetSFB);
-	}
 }
 
 sDataSet::sDataSet(sCfgObjParmsDef, sDataShape* shape_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, int* BWFeature_) : sCfgObj(sCfgObjParmsVal) {
@@ -150,12 +143,16 @@ bool sDataSet::isSelected(int ts_f) {
 	}
 	return false;
 }
-void sDataSet::buildFromTS() {
+void sDataSet::buildFromTS(float scaleMin_, float scaleMax_) {
 
 	int s, b, f;
-
 	int si, ti, sidx, tidx;
 	si=0; ti=0;
+	
+	//-- 1. scale transformed data in Timeserie. This populates sourceTS->d_trs
+	sourceTS->scale(scaleMin_, scaleMax_);
+
+	//-- 2. populate sample[], target[] from sourceTS->d_trs
 	for (s=0; s<samplesCnt; s++) {
 		//-- samples
 		sidx=s*sourceTS->featuresCnt;
@@ -180,6 +177,16 @@ void sDataSet::buildFromTS() {
 			}
 		}
 	}
+	
+	//-- 3. populate SFB targets and BFS sample/target for every batch
+	for (b=0; b<batchCnt; b++) {
+		SBF2BFS(b, shape->sampleLen, sample, sampleBFS);
+		SBF2BFS(b, shape->predictionLen, target, targetBFS);
+		BFS2SFB(b, shape->predictionLen, targetBFS, targetSFB);
+	}
+
+	//-- 4. if a DumpFileName was specified, then dump
+	if (strlen(dumpFileFullName)>0) safecall(this, dump);
 
 }
 void sDataSet::SBF2BFS(int batchId, int barCnt, numtype* fromSBF, numtype* toBFS) {

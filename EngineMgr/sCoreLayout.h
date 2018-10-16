@@ -2,7 +2,7 @@
 
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
-#include "../DataMgr/DataShape.h"
+#include "../DataMgr/sDataShape.h"
 
 #define CORE_MAX_PARENTS 32
 

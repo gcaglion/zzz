@@ -7,7 +7,6 @@
 
 #define FX_SYMBOL_MAXLEN XMLKEY_PARM_VAL_MAXLEN
 #define FX_TIMEFRAME_MAXLEN XMLKEY_PARM_VAL_MAXLEN
-#define FXDataFeaturesCnt	5	// Fixed, OHLCV
 
 struct sFXData : sDataSource {
 	sOraDB* db;

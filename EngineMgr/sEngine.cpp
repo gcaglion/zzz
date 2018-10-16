@@ -58,15 +58,20 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 		layersCnt++;
 	}
 
-	//-- 5. spawn each core, layer by layer
+	//-- 6. spawn each core, layer by layer
 	sNN* NNc; sGA* GAc; sSVM* SVMc; sSOM* SOMc;
 	sNNparms* NNcp; sGAparms* GAcp; sSVMparms* SVMcp; sSOMparms* SOMcp;
+	//-- 1. spawn core parameters
+	//-- 2. set core parameters' scaleMin/Max
+	//-- 3. spawn core
+	//-- note: levelsCnt must always be set when creating specific core parameter object (NNcp, GAcp, ...)
 	for (l=0; l<layersCnt; l++){
 		for (c=0; c<coresCnt; c++) {
 			if (coreLayout[c]->layer==l) {
 				switch (coreLayout[c]->type) {
 				case CORE_NN:
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					NNcp->setScaleMinMax();
 					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", coreLayout[c], NNcp);
 					core[c]=NNc; coreParms[c]=NNcp;
 					break;
@@ -94,12 +99,12 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 		}
 	}
 	
-	//-- 6. restore cfg->currentKey from sCfgObj->bkpKey
+	//-- 7. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 
 }
 sEngine::~sEngine() {
-	free(core);
+	free(core); free(coreLayout); free(coreParms);
 	free(layerCoresCnt);
 }
 
@@ -111,6 +116,7 @@ void sEngine::train(sDataSet* trainDS_) {
 	for (int l=0; l<layersCnt; l++) {
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
+				trainDS_->buildFromTS(coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 				safecall(core[c], train, trainDS_);
 			}
 		}

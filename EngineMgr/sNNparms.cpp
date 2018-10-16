@@ -45,3 +45,32 @@ sNNparms::~sNNparms() {
 	free(levelRatio);
 	free(ActivationFunction);
 }
+
+void sNNparms::setScaleMinMax() {
+	scaleMin=(numtype*)malloc(levelsCnt*sizeof(float));
+	scaleMax=(numtype*)malloc(levelsCnt*sizeof(float));
+	for (int l=0; l<levelsCnt; l++) {
+		switch (ActivationFunction[l]) {
+		case NN_ACTIVATION_TANH:
+			scaleMin[l] = -1;
+			scaleMax[l] = 1;
+			break;
+		case NN_ACTIVATION_EXP4:
+			scaleMin[l] = 0;
+			scaleMax[l] = 1;
+			break;
+		case NN_ACTIVATION_RELU:
+			scaleMin[l] = 0;
+			scaleMax[l] = 1;
+			break;
+		case NN_ACTIVATION_SOFTPLUS:
+			scaleMin[l] = 0;
+			scaleMax[l] = 1;
+			break;
+		default:
+			scaleMin[l] = -1;
+			scaleMax[l] = 1;
+			break;
+		}
+	}
+}

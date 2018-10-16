@@ -3,7 +3,7 @@
 #include "..\common.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "../Algebra/Algebra.h"
-#include "../DataMgr/DataSet.h"
+#include "../DataMgr/sDataSet.h"
 #include "sCore.h"
 #include "sNNparms.h"
 #include "sNNenums.h"
@@ -13,7 +13,6 @@ struct sNN : sCore {
 	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
 	EXPORT ~sNN();
 
-	EXPORT void setActivationFunction(int* func_);
 	EXPORT void train(sDataSet* trainSet);
 	EXPORT void run(sDataSet* runSet);
 
@@ -28,8 +27,6 @@ private:
 
 	//-- NNParms
 	sNNparms* parms;
-
-	int batchCnt_;
 
 	int* nodesCnt;
 	int nodesCntTotal;
@@ -80,6 +77,7 @@ private:
 	DWORD TRstart, TRtimeTot=0, TRcnt=0; float TRtimeAvg;
 
 	//--
+	void setCommonLayout();
 	void setLayout(int batchSamplesCnt_);
 	void FF();
 	void Activate(int level);
@@ -97,5 +95,8 @@ private:
 	void destroyNeurons();
 	void destroyWeights();
 
+private:
+	int _batchCnt;
+	int _batchSize;
 };
 

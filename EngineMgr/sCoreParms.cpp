@@ -1,4 +1,7 @@
 #include "sCoreParms.h"
 
 sCoreParms::sCoreParms(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {}
-sCoreParms::~sCoreParms() {}
+sCoreParms::~sCoreParms() {
+	free(scaleMin); 
+	free(scaleMax);
+}

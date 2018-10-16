@@ -2,10 +2,8 @@
 #include "sTimeSerie.h"
 
 //-- sTimeSerie, constructors / destructor
-void sTimeSerie::sTimeSeriecommon(int steps_, int featuresCnt_, int tsfCnt_, int* tsf_) {
+void sTimeSerie::sTimeSeriecommon() {
 
-	steps=steps_;
-	featuresCnt=featuresCnt_;
 	len=steps*featuresCnt;
 	dmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	dmax=(numtype*)malloc(featuresCnt*sizeof(numtype));
@@ -50,12 +48,14 @@ void sTimeSerie::setDataSource(sCfg* cfg) {
 	if (found) {
 		safecall(cfg, setKey, "../"); //-- get back;
 		safespawn(fileData, newsname("File_DataSource"), defaultdbg, cfg, "File_DataSource", true);
+		featuresCnt=fileData->featuresCnt;
 		sourceData=fileData;
 	} else {
 		safecall(cfg, setKey, "FXDB_DataSource", true, &found);	//-- ignore error
 		if (found) {
 			safecall(cfg, setKey, "../"); //-- get back;
 			safespawn(fxData, newsname("FXDB_DataSource"), defaultdbg, cfg, "FXDB_DataSource", true);
+			featuresCnt=FXDATA_FEATURESCNT;
 			sourceData=fxData;
 		} else {
 			safecall(cfg, setKey, "MT4_DataSource", true, &found);	//-- ignore error
@@ -86,31 +86,19 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &tsf, "StatisticalFeatures", false, &tsfCnt);
 	safecall(cfgKey, getParm, &dumpFileFullName, "DumpFileFullName", true);
 
-	len=steps*featuresCnt;
-	dmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	dmax=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	for (int f=0; f<featuresCnt; f++) {
-		dmin[f]=1e8; dmax[f]=-1e8;
-	}
-	scaleM=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	scaleP=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	dtime=(char**)malloc(len*sizeof(char*)); for (int i=0; i<len; i++) dtime[i]=(char*)malloc(DATE_FORMAT_LEN);
-	bdtime=(char*)malloc(DATE_FORMAT_LEN);
-	d=(numtype*)malloc(len*sizeof(numtype));
-	bd=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	d_tr=(numtype*)malloc(len*sizeof(numtype));
-	d_trs=(numtype*)malloc(len*sizeof(numtype));
-
-	//-- 2. Find, set, open DataSource
+	//-- 2.1. Find, set, open DataSource
 	safecall(this, setDataSource, cfg);
-	//-- 3. common stuff (mallocs, ...)
-	sTimeSeriecommon(steps, sourceData->featuresCnt, tsfCnt, tsf);
-	//-- 4. load data
+	//-- 2.2. common stuff (mallocs, ...)
+	sTimeSeriecommon();
+	//-- 2.3. load data
 	safecall(sourceData, load, date0, steps, dtime, d, bdtime, bd);
-	//-- 5. transform
+	//-- 2.4. transform
 	safecall(this, transform, dt);
-
+	//-- 2.5. dump
 	if (strlen(dumpFileFullName)>0) dump();
+
+	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
+	cfg->currentKey=bkpKey;
 }
 sTimeSerie::~sTimeSerie() {
 	free(d);

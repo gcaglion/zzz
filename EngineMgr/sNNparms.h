@@ -9,10 +9,10 @@
 struct sNNparms : sCoreParms {
 
 	//-- topology
-	int levelsCnt;
+	//int levelsCnt;
 	float* levelRatio;
 	int* ActivationFunction;	// can be different for each level
-	int batchSamplesCnt;	// usually referred to as Batch Size
+	//int batchSamplesCnt;	// usually referred to as Batch Size
 	bool useContext;
 	bool useBias;
 
@@ -29,6 +29,8 @@ struct sNNparms : sCoreParms {
 	sNNparms(sCfgObjParmsDef);
 	sNNparms(sObjParmsDef);
 	~sNNparms();
+
+	EXPORT void setScaleMinMax();
 
 private:
 	void mallocs() {

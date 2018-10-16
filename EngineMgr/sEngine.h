@@ -1,8 +1,8 @@
 #pragma once
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
-#include "../DataMgr/DataShape.h"
-#include "../DataMgr/DataSet.h"
+#include "../DataMgr/sDataShape.h"
+#include "../DataMgr/sDataSet.h"
 #include "sCore.h"
 #include "sCoreParms.h"
 #include "Engine_enums.h"

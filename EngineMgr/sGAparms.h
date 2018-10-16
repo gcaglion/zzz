@@ -10,4 +10,6 @@ struct sGAparms : sCoreParms {
 	sGAparms(sCfgObjParmsDef);
 	sGAparms(sObjParmsDef);
 	~sGAparms();
+
+	EXPORT void setScaleMinMax();
 };
