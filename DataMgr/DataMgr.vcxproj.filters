@@ -33,10 +33,10 @@
     <ClCompile Include="sMT4Data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sFileData.cpp">
+    <ClCompile Include="sDataSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sDataSet.cpp">
+    <ClCompile Include="sFileDataSrc.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,9 +56,6 @@
     <ClInclude Include="sData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sFileData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sMT4data.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -75,6 +72,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sTimeSerie.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sFileDataSrc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

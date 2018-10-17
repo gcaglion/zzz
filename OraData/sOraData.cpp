@@ -1,8 +1,8 @@
-#include "sOraDB.h"
-#include "OraOciCommon.h"
+#include "sOraData.h"
+#include "sOraDBcommon.h"
 #include <iostream>
 
-sOraDB::sOraDB(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_, bool autoOpen) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sOraData::sOraData(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_, bool autoOpen) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	//-- 1. get Parameters
 	strcpy_s(DBUserName, DBUSERNAME_MAXLEN, DBUserName_);
 	strcpy_s(DBPassword, DBPASSWORD_MAXLEN, DBPassword_);
@@ -10,7 +10,7 @@ sOraDB::sOraDB(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, c
 	//-- 2. open connection
 	if(autoOpen) safecall(this, open);
 }
-sOraDB::sOraDB(sCfgObjParmsDef, bool autoOpen) : sCfgObj(sCfgObjParmsVal) {
+sOraData::sOraData(sCfgObjParmsDef, bool autoOpen) : sCfgObj(sCfgObjParmsVal) {
 
 	//-- 1. get Parameters
 	safecall(cfgKey, getParm, &DBUserName, "UserName");
@@ -22,11 +22,11 @@ sOraDB::sOraDB(sCfgObjParmsDef, bool autoOpen) : sCfgObj(sCfgObjParmsVal) {
 	cfg->currentKey=bkpKey;
 
 }
-sOraDB::~sOraDB() {
+sOraData::~sOraData() {
 	close();
 }
 
-void sOraDB::open() {
+void sOraData::open() {
 	try {
 		if(env==nullptr) env = Environment::createEnvironment();
 		if (conn==nullptr) conn = ((Environment*)env)->createConnection(DBUserName, DBPassword, DBConnString);
@@ -36,17 +36,17 @@ void sOraDB::open() {
 	}
 
 }
-void sOraDB::close() {
+void sOraData::close() {
 	if (env!=nullptr) {
 		if (conn!=nullptr) ((Environment*)env)->terminateConnection(((Connection*)conn));
 		Environment::terminateEnvironment(((Environment*)env));
 	}
 }
-void sOraDB::commit() {
+void sOraData::commit() {
 	((Connection*)conn)->commit();
 }
 //-- Read
-void sOraDB::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar) {
+void sOraData::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar) {
 	int i;
 	Statement* stmt=nullptr;
 	ResultSet *rset;
@@ -85,7 +85,7 @@ void sOraDB::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pRecCount,
 
 
 }
-void sOraDB::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+void sOraData::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	char sql[SQL_MAXLEN];
 	Statement* stmt=nullptr;
 	ResultSet *rset;
@@ -127,7 +127,7 @@ void sOraDB::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	((Connection*)conn)->terminateStatement(stmt);
 
 }
-void sOraDB::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char** oDate) {
+void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char** oDate) {
 	// Retrieves plain ordered list of NewDateTime starting from StartDate onwards for <DatesCount> records
 	int i;
 	Statement* stmt=nullptr;
@@ -153,7 +153,7 @@ void sOraDB::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char
 	}
 }
 //-- Write
-void sOraDB::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
+void sOraData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
 
 	Statement* stmt = ((Connection*)conn)->createStatement("insert into TrainLog(ProcessId, ThreadId, Epoch, MSE_T, MSE_V) values(:P01, :P02, :P03, :P04, :P05)");
 
@@ -177,7 +177,7 @@ void sOraDB::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV)
 	//stmt->setDataBuffer(5, mseV, OCCIFLOAT, sizeof(numtype), ntl);
 	
 }
-void sOraDB::saveRun(int pid, int tid, int setid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, numtype* prediction, numtype* actual) {
+void sOraData::saveRun(int pid, int tid, int setid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, numtype* prediction, numtype* actual) {
 
 	int runCnt=barsCnt*featuresCnt;
 	Statement* stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, SetId, NetProcessId, NetThreadId, Pos, FeatureId, PredictedTRS, ActualTRS, ErrorTRS) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10)");
@@ -209,7 +209,7 @@ void sOraDB::saveRun(int pid, int tid, int setid, int npid, int ntid, int barsCn
 	}
 
 }
-void sOraDB::saveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+void sOraData::saveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 
 	Statement* stmt = ((Connection*)conn)->createStatement("insert into CoreImage_NN (ProcessId, ThreadId, Epoch, WId, W) values(:P01, :P02, :P03, :P04, :P05)");
 
@@ -230,7 +230,7 @@ void sOraDB::saveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
 	}
 }
-void sOraDB::saveClient(int pid, char* clientName, DWORD startTime, DWORD duration, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {
+void sOraData::saveClient(int pid, char* clientName, DWORD startTime, DWORD duration, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {
 	char stmtS[SQL_MAXLEN]; sprintf_s(stmtS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, ClientName, ClientStart, SimulationLen, Duration, SimulationStart, DoTraining, DoTrainRun, DoTestRun) values(%d, '%s', sysdate, %d, %ld, to_date('%s','YYYYMMDDHH24MI'), %d, %d, %d)", pid, clientName, simulLen, (DWORD)(duration/1000), simulStart, (doTrain) ? 1 : 0, (doTrainRun) ? 1 : 0, (doTestRun) ? 1 : 0);
 	Statement* stmt = ((Connection*)conn)->createStatement(stmtS);
 	try {

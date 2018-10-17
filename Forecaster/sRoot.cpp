@@ -62,7 +62,9 @@ void sRoot::tester() {
 		if (forecaster->data->doTraining) safecall(forecaster->engine, train, forecaster->data->trainDS);		
 		if (forecaster->data->doInference) safecall(forecaster->engine, infer, forecaster->data->testDS);
 
-		//-- 4.4. delete forecaster
+		//-- 4.4 save logs (completely rivisited in Logger_Rehaul branch)
+		forecaster->engine->saveMSE();
+		//-- 4.5. delete forecaster
 
 
 	}
@@ -100,9 +102,9 @@ void sRoot::CLoverride(int argc, char* argv[]) {
 	}
 void sRoot::testDML() {
 
-	sOraDB* oradb1;
+	sOraData* oradb1;
 	safespawn(oradb1, newsname("TestOraDB"), defaultdbg, "CULogUser", "LogPwd", "Algo", true);
-	sOraDB* oradb2;
+	sOraData* oradb2;
 	safespawn(oradb2, newsname("TestOraHistory"), defaultdbg, "History", "HistoryPwd", "Algo", true);
 
 	int sdatecnt=10;
@@ -147,7 +149,7 @@ void sRoot::testDML() {
 
 }
 void sRoot::getStartDates(sDataSet* ds, int len, char** oDates){
-	sFXData* fxsrc; sFileData* filesrc; sMT4Data* mt4src;
+	sFXData* fxsrc; sFileDataSrc* filesrc; sMT4Data* mt4src;
 	switch (ds->sourceTS->sourceData->type) {
 	case FXDB_SOURCE:
 		fxsrc = (sFXData*)ds->sourceTS->sourceData;
@@ -155,7 +157,7 @@ void sRoot::getStartDates(sDataSet* ds, int len, char** oDates){
 		safecall(forecaster->persistor->db, getStartDates, fxsrc->Symbol, fxsrc->TimeFrame, fxsrc->IsFilled, ds->sourceTS->date0, len, oDates);
 		break;
 	case FILE_SOURCE:
-		filesrc = (sFileData*)ds->sourceTS->sourceData;
+		filesrc = (sFileDataSrc*)ds->sourceTS->sourceData;
 		safecall(filesrc, open);
 		safecall(forecaster->persistor->file, getStartDates, filesrc, ds->sourceTS->date0, len, oDates);
 		break;

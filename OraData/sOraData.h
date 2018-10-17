@@ -12,11 +12,11 @@
 #define SQL_MAXLEN	4096
 #define MAX_INSERT_BATCH_COUNT 500
 
-struct sOraDB : sCfgObj {
+struct sOraData : sCfgObj {
 
-	EXPORT sOraDB(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_, bool autoOpen);
-	EXPORT sOraDB(sCfgObjParmsDef, bool autoOpen);
-	EXPORT ~sOraDB();
+	EXPORT sOraData(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_, bool autoOpen);
+	EXPORT sOraData(sCfgObjParmsDef, bool autoOpen);
+	EXPORT ~sOraData();
 	//--
 	EXPORT void open();
 	EXPORT void close();

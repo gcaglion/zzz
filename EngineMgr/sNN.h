@@ -10,20 +10,15 @@
 
 struct sNN : sCore {
 
-	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
+	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_, sCoreLogger* persistor_);
 	EXPORT ~sNN();
 
 	EXPORT void train(sDataSet* trainSet);
 	EXPORT void run(sDataSet* runSet);
 
-
 private:
 	//-- MyAlgebra common structures
 	sAlgebra* Alg;
-
-	//-- every instantiation has 1 process id and 1 thread id (TO BE CONFIRMED)
-	int pid;
-	int tid;
 
 	//-- NNParms
 	sNNparms* parms;
@@ -37,13 +32,9 @@ private:
 	int weightsCntTotal;
 	int* levelFirstWeight;
 
-	//-- training stuff
-	int ActualEpochs;
 	//-- error measuring
 	numtype* tse;	// total squared error.	Scalar. On GPU (if used)
 	numtype* se;	// squared sum error.	Scalar. On GPU (if used)
-	numtype* mseT;	// Training mean squared error, array indexed by epoch, always on host
-	numtype* mseV;	// Validation mean squared error, array indexed by epoch, always on host
 
 	//-- set at each level according to ActivationFunction
 	float* scaleMin;	

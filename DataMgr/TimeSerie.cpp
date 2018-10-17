@@ -32,7 +32,7 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef, sFXData* dataSource_, int steps_, char* 
 	//-- 3. transform
 	safecall(this, transform, dt_);
 }
-sTimeSerie::sTimeSerie(sCfgObjParmsDef, sFileData* dataSource_, int steps_, int featuresCnt_, char* date0_, int dt_) : sCfgObj(sCfgObjParmsVal) {
+sTimeSerie::sTimeSerie(sCfgObjParmsDef, sFileDataSrc* dataSource_, int steps_, int featuresCnt_, char* date0_, int dt_) : sCfgObj(sCfgObjParmsVal) {
 	featuresCnt=featuresCnt_;
 }
 */
@@ -40,7 +40,7 @@ void sTimeSerie::setDataSource(sCfg* cfg) {
 
 	bool found=false;
 	sFXData* fxData;
-	sFileData* fileData;
+	sFileDataSrc* fileData;
 	tMT4Data* mt4Data;
 
 	//-- first, find and set

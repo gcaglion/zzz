@@ -21,9 +21,11 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 		core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 		coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
 		coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
-		//-- 2. for each Core, create layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
+		coreLogger=(sCoreLogger**)malloc(coresCnt*sizeof(sCoreLogger*));
+		//-- 2. for each Core, create persistor and layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
 		for (c=0; c<coresCnt; c++) {
 			safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Custom/Core%d/Layout", c))->base, dataShape);
+			safespawn(coreLogger[c], newsname("CorePersistor%d", c), defaultdbg, cfg, (newsname("Custom/Core%d/Persistor", c))->base);
 		}
 		break;
 	case ENGINE_WNN:
@@ -72,22 +74,22 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 				case CORE_NN:
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
 					NNcp->setScaleMinMax();
-					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", coreLayout[c], NNcp);
+					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", coreLayout[c], NNcp, coreLogger[c]);
 					core[c]=NNc; coreParms[c]=NNcp;
 					break;
 				case CORE_GA:
 					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
-					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, "../", coreLayout[c], GAcp);
+					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, "../", coreLayout[c], GAcp, coreLogger[c]);
 					core[c]=GAc; coreParms[c]=GAcp;
 					break;
 				case CORE_SVM:
 					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
-					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, "../", coreLayout[c], SVMcp);
+					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, "../", coreLayout[c], SVMcp, coreLogger[c]);
 					core[c]=SVMc;  coreParms[c]=SVMcp;
 					break;
 				case CORE_SOM:
 					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
-					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, "../", coreLayout[c], SOMcp);
+					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, "../", coreLayout[c], SOMcp, coreLogger[c]);
 					core[c]=SOMc; coreParms[c]=SOMcp;
 					break;
 				default:
@@ -130,6 +132,9 @@ void sEngine::train(sDataSet* trainDS_) {
 	//-- 7. 
 }
 void sEngine::infer(sDataSet* testDS_){}
+void sEngine::saveMSE() {
+	for (int c=0; c<coresCnt; c++) if(core[c]->persistor->saveMSEFlag) core[c]->persistor->saveMSE(core[c]->pid, core[c]->tid, core[c]->mseCnt, core[c]->mseT, core[c]->mseV);
+}
 
 //-- private stuff
 void sEngine::setCoreLayer(sCoreLayout* cl) {

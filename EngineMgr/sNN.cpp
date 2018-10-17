@@ -1,9 +1,7 @@
 #include "sNN.h"
 
-sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_) {
+sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_, sCoreLogger* persistor_) : sCore(sCfgObjParmsVal, layout_, persistor_) {
 	
-	pid=GetCurrentProcessId();
-	tid=GetCurrentThreadId();
 	parms=NNparms_;
 
 	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
@@ -380,7 +378,7 @@ void sNN::train(sDataSet* trainSet) {
 		if (epochMetCriteria(epoch, epoch_starttime)) break;
 
 	}
-	ActualEpochs=epoch-((epoch>parms->MaxEpochs)?1:0);
+	mseCnt=epoch-((epoch>parms->MaxEpochs)?1:0);
 
 	//-- 2. test run. need this to make sure all batches pass through the net with the latest weights, and training targets
 	TRstart=timeGetTime(); TRcnt++;
@@ -389,11 +387,11 @@ void sNN::train(sDataSet* trainSet) {
 	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
 
 	//-- calc and display final epoch MSE
-	printf("\n"); epochMetCriteria(ActualEpochs-1, epoch_starttime); printf("\n");
+	printf("\n"); epochMetCriteria(mseCnt-1, epoch_starttime); printf("\n");
 
 
 /*	float elapsed_tot=(float)timeGetTime()-(float)training_starttime;
-	float elapsed_avg=elapsed_tot/ActualEpochs;
+	float elapsed_avg=elapsed_tot/mseCnt;
 	printf("\nTraining complete. Elapsed time: %0.1f seconds. Epoch average=%0.0f ms.\n", (elapsed_tot/(float)1000), elapsed_avg);
 	LDtimeAvg=(float)LDtimeTot/LDcnt; printf("LD count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", LDcnt, (LDtimeTot/(float)1000), LDtimeAvg);
 	FFtimeAvg=(float)FFtimeTot/FFcnt; printf("FF count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FFcnt, (FFtimeTot/(float)1000), FFtimeAvg);

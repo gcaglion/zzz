@@ -5,7 +5,7 @@
 #include "TimeSerie_enums.h"
 #include "sDataSource.h"
 #include "sFXData.h"
-#include "sFileData.h"
+#include "sFileDataSrc.h"
 #include "sMT4Data.h"
 
 #define MAX_DATA_FEATURES 128
@@ -44,7 +44,7 @@ typedef struct sTimeSerie : sCfgObj {
 
 /*	EXPORT sTimeSerie(sCfgObjParmsDef, int steps_, int featuresCnt_);
 	EXPORT sTimeSerie(sCfgObjParmsDef, sFXData* dataSource_, int steps_, char* date0_, int dt_);
-	EXPORT sTimeSerie(sCfgObjParmsDef, sFileData* dataSource_, int featuresCnt_, int steps_, char* date0_, int dt_);
+	EXPORT sTimeSerie(sCfgObjParmsDef, sFileDataSrc* dataSource_, int featuresCnt_, int steps_, char* date0_, int dt_);
 */
 
 	EXPORT sTimeSerie(sCfgObjParmsDef);

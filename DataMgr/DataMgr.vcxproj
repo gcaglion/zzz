@@ -102,7 +102,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>BaseObj.lib;ConfigMgr.lib;OraOci.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>BaseObj.lib;ConfigMgr.lib;OraData.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -120,7 +120,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>BaseObj.lib;ConfigMgr.lib;OraOci.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>BaseObj.lib;ConfigMgr.lib;OraData.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -163,7 +163,7 @@
     <ClCompile Include="sDataSet.cpp" />
     <ClCompile Include="DataShape.cpp" />
     <ClCompile Include="DataSource.cpp" />
-    <ClCompile Include="sFileData.cpp" />
+    <ClCompile Include="sFileDataSrc.cpp" />
     <ClCompile Include="FXData.cpp" />
     <ClCompile Include="sMT4Data.cpp" />
     <ClCompile Include="sData.cpp" />
@@ -176,7 +176,7 @@
     <ClInclude Include="sDataSource.h" />
     <ClInclude Include="DataSource_enums.h" />
     <ClInclude Include="DBConnection_enums.h" />
-    <ClInclude Include="sFileData.h" />
+    <ClInclude Include="sFileDataSrc.h" />
     <ClInclude Include="FileData_enums.h" />
     <ClInclude Include="sFXData.h" />
     <ClInclude Include="FXData_enums.h" />
