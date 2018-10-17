@@ -12,7 +12,7 @@
 	</Debugger>
 	<Data>
 		<Shape>
-			SampleLen		= 20
+			SampleLen		= 100
 			PredictionLen	= 3
 			FeaturesCount	= 4
 		</Shape>
@@ -28,7 +28,7 @@
 				</Debugger>
 				<TimeSerie>
 					DumpFileFullName = c:\temp\trainTS.dump
-					Date0				= 201612300000
+					Date0				= 201712300000
 					HistoryLen			= 503
 					DataTransformation	= DT_DELTA
 					BWCalc				= true
@@ -117,7 +117,7 @@
 						MaxEpochs			= 50
 						TargetMSE			= 0.0001
 						NetSaveFrequency	= 10
-						StopOnDivergence	= true
+						StopOnDivergence	= false
 						BP_Algo				= BP_STD
 						<BP_Std>
 							LearningRate		= 0.001
