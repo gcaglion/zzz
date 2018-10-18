@@ -4,15 +4,13 @@
 #include "../ConfigMgr/sCfgObj.h"
 #include "../DataMgr/sData.h"
 #include "../EngineMgr/sEngine.h"
-#include "../Logger/sLogger.h"
 
 struct sForecaster : sCfgObj {
 	
 	sData* data;
 	sEngine* engine;
-	sLogger* persistor;
 
-	EXPORT sForecaster(sCfgObjParmsDef, sData* data_, sEngine* engine_, sLogger* persistor_);
+	EXPORT sForecaster(sCfgObjParmsDef, sData* data_, sEngine* engine_);
 	EXPORT sForecaster(sCfgObjParmsDef);
 	EXPORT ~sForecaster();
 

@@ -24,12 +24,18 @@
     <ClInclude Include="sRoot.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sClientLogger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Forecaster.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sRoot.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sClientLogger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

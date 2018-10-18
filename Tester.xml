@@ -11,12 +11,9 @@
 	</ParmsCombinations>
 
 	<Persistor>
-		saveNothing		= false
-		saveClient		= true
-		saveMSE			= true
-		saveRun			= true
-		saveInternals	= false
-		saveImage		= true
+		saveClient	= true
+		saveToDB	= true
+		saveToFile	= true
 		<DestDB>
 			UserName	= CULogUser
 			Password	= LogPwd
@@ -24,10 +21,6 @@
 		</DestDB>
 		<DestFiles>
 			Client		= c:\temp\logs\Persistor\Client.log
-			MSE			= c:\temp\logs\Persistor\MSE.log
-			Run			= c:\temp\logs\Persistor\Run.log
-			Internals	= c:\temp\logs\Persistor\Internals.log
-			Image		= c:\temp\logs\Persistor\Image.log
 		</DestFiles>
 	</Persistor>
 

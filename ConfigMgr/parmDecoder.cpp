@@ -6,7 +6,7 @@
 #include "../DataMgr/FXData_enums.h"
 #include "../DataMgr/DBConnection_enums.h"
 #include "../DataMgr/TimeSerie_enums.h"
-#include "../Logger/Logger_enums.h"
+//#include "../Logger/Logger_enums.h"
 #include "../EngineMgr/Engine_enums.h"
 #include "../EngineMgr/Core_enums.h"
 #include "../EngineMgr/sNNenums.h"
@@ -25,13 +25,13 @@ void sCfgParm::decode(int elementId, int* oVal) {
 	bool success=false;
 
 	//-- DataSource_enums
-	optionLookup(FXDB_SOURCE, elementId);
+	optionLookup(DB_SOURCE, elementId);
 	optionLookup(FILE_SOURCE, elementId);
 	optionLookup(MT4_SOURCE, elementId);
 
 	//-- Logger enums
-	optionLookup(ORCL_DEST, elementId);
-	optionLookup(FILE_DEST, elementId);
+	//optionLookup(ORCL_DEST, elementId);
+	//optionLookup(FILE_DEST, elementId);
 	//-- Debugger enums
 	optionLookup(DEFAULT_DBG_VERBOSITY, elementId);
 	optionLookup(DEFAULT_DBG_TIMING, elementId);
@@ -43,10 +43,6 @@ void sCfgParm::decode(int elementId, int* oVal) {
 	optionLookup(COMMA_SEPARATOR, elementId);
 	optionLookup(TAB_SEPARATOR, elementId);
 	optionLookup(SPACE_SEPARATOR, elementId);
-	//-- FileInfo enums
-//	optionLookup(FILE_MODE_READ, elementId);
-//	optionLookup(FILE_MODE_WRITE, elementId);
-//	optionLookup(FILE_MODE_APPEND, elementId);
 
 	//-- FXData enums
 	optionLookup(FXOPEN, elementId);
