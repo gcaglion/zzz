@@ -28,7 +28,7 @@ private:
 	char cfgOverrideValS[XMLKEY_PARM_MAXCNT][XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
 
 	//-- functions
-	void getStartDates(sDataSet* ds, int len, char** oDates);
+	void getStartDates(sDataSet* ds, char* date00_, int len, char** oDates);
 	void CLoverride(int argc, char* argv[]);
 	//--
 	static numtype MyRndDbl(numtype min, numtype max);

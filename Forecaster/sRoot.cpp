@@ -11,8 +11,8 @@ void sRoot::tester() {
 
 	int simulationLength;
 	char** simulationTrainStartDate;
-	char** simulationValidStartDate;
 	char** simulationTestStartDate;
+	char** simulationValidStartDate;
 	sClientLogger* testerPersistor;
 
 	try {
@@ -21,55 +21,52 @@ void sRoot::tester() {
 		safespawn(testerCfg, newsname("testerCfg_Root"), dbg, testerCfgFileFullName);
 		safespawn(forecasterCfg, newsname("forecasterCfg_Root"), dbg, forecasterCfgFileFullName);
 
-		//-- 2. save tester Log (elapsedTime is 0)
-
 		//-- 3. create tester persistor
 		safespawn(testerPersistor, newsname("Client_Persistor"), defaultdbg, testerCfg, "/Client/Persistor");
 		
-		//-- 4.	get Simulation Length
+		//-- 4.	get Simulation Length and start date[0]
 		safecall(testerCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
-		
-		//-- 5. malloc simulation start dates for each Dataset
-		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*));
-		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*));
-		simulationTestStartDate =(char**)malloc(simulationLength*sizeof(char*));
-		for (int d=0; d<simulationLength; d++) {
-			simulationTrainStartDate[d]=(char*)malloc(DATE_FORMAT_LEN);
-			simulationValidStartDate[d]=(char*)malloc(DATE_FORMAT_LEN);
-			simulationTestStartDate[d] =(char*)malloc(DATE_FORMAT_LEN);
-		}
+		//--
+		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationTrainStartDate[s]=(char*)malloc(DATE_FORMAT_LEN);
+		simulationTestStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationTestStartDate[s]=(char*)malloc(DATE_FORMAT_LEN);
+		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationValidStartDate[s]=(char*)malloc(DATE_FORMAT_LEN);
+		//--
+		if (forecaster->data->doTraining) safecall(testerCfg->currentKey, getParm, &simulationTrainStartDate[0], "Client/TrainStartDate");
+		if (forecaster->data->doInference) safecall(testerCfg->currentKey, getParm, &simulationTestStartDate[0], "Client/TestStartDate");
+		if (forecaster->data->doValidation) safecall(testerCfg->currentKey, getParm, &simulationValidStartDate[0], "Client/ValidationStartDate");
 
-		//-- 6. spawn forecaster
+		//-- 5. spawn forecaster
 		safespawn(forecaster, newsname("mainForecaster"), defaultdbg, forecasterCfg, "/Forecaster");
 
-		//-- 7. for each used dataset,
-		if (forecaster->data->doTraining) {
-			//-- 7.1. get simulation start dates
-			safecall(this, getStartDates, forecaster->data->trainDS, simulationLength, simulationTrainStartDate);
-			//-- 7.2. get source data into datasets
-		}
-		if (forecaster->data->doInference) {
-			//-- 7.1. get simulation start dates
-			safecall(this, getStartDates, forecaster->data->testDS, simulationLength, simulationTestStartDate);
-		}
-		if (forecaster->data->doValidation) {
-			//-- 7.1. get simulation start dates
-			safecall(this, getStartDates, forecaster->data->validDS, simulationLength, simulationValidStartDate);
-		}
+		//-- 6. for each used dataset, get simulation start dates
+		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationValidStartDate[s]=(char*)malloc(DATE_FORMAT_LEN);
+		getStartDates(forecaster->data->trainDS, simulationTrainStartDate[0], simulationLength, simulationTrainStartDate);
+		getStartDates(forecaster->data->testDS, simulationTestStartDate[0], simulationLength, simulationTestStartDate);
+		getStartDates(forecaster->data->validDS, simulationValidStartDate[0], simulationLength, simulationValidStartDate);
 
-
-
-		//-- 4.3. do actions (train/test/validate) according to configuration
-		if (forecaster->data->doTraining) safecall(forecaster->engine, train, forecaster->data->trainDS);		
-		if (forecaster->data->doInference) safecall(forecaster->engine, infer, forecaster->data->testDS);
+			//-- 6. for each simulation
+			for (int s=0; s<simulationLength; s++) {
+				//-- 6.1. Training
+				if (forecaster->data->doTraining) {
+					//-- 6.1.1. set date0 in trainDS->TimeSerie, and load it
+					forecaster->data->trainDS->sourceTS->load(simulationTrainStartDate[s]);
+					//-- 6.1.2. do training (also populates datasets)
+					safecall(forecaster->engine, train, forecaster->data->trainDS);
+				}
+				//-- 6.2. Inference
+				if (forecaster->data->doInference) {
+					//-- 6.2.1. set date0 in testDS->TimeSerie, and load it
+					forecaster->data->testDS->sourceTS->load(simulationTestStartDate[s]);
+					//-- 6.2.2. do training (also populates datasets)
+					safecall(forecaster->engine, infer, forecaster->data->testDS);
+				}
+			}
 
 		//-- 4.4 save logs (completely rivisited in Logger_Rehaul branch)
-		forecaster->engine->saveMSE();
+
 		//-- 4.5. delete forecaster
 
-
-	}
-	catch (std::exception exc) {
+	} catch (std::exception exc) {
 		fail("Exception=%s", exc.what());
 	}
 }
@@ -149,16 +146,16 @@ void sRoot::testDML() {
 	safecall(oradb1, loadW, pid, tid, epoch, Wcnt, W);
 
 }
-void sRoot::getStartDates(sDataSet* ds, int len, char** oDates){
+void sRoot::getStartDates(sDataSet* ds, char* date00_, int len, char** oDates){
 	sFXDataSource* fxsrc; sGenericDataSource* filesrc; sMT4DataSource* mt4src;
 	switch (ds->sourceTS->sourceData->type) {
 	case DB_SOURCE:
 		fxsrc = (sFXDataSource*)ds->sourceTS->sourceData;
-		safecall(fxsrc, getStartDates, ds->sourceTS->date0, len, oDates);
+		safecall(fxsrc, getStartDates, date00_, len, oDates);
 		break;
 	case FILE_SOURCE:
 		filesrc = (sGenericDataSource*)ds->sourceTS->sourceData;
-		safecall(filesrc, getStartDates, ds->sourceTS->date0, len, oDates);
+		safecall(filesrc, getStartDates, date00_, len, oDates);
 		break;
 	case MT4_SOURCE:
 		mt4src = (sMT4DataSource*)ds->sourceTS->sourceData;

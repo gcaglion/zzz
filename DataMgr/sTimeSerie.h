@@ -16,7 +16,7 @@ typedef struct sTimeSerie : sCfgObj {
 	//-- data source
 	sDataSource* sourceData=nullptr;
 
-	char* date0 = new char[XMLKEY_PARM_VAL_MAXLEN];
+	char date0[DATE_FORMAT_LEN];
 	int steps;
 	int featuresCnt;
 	int len;
@@ -42,14 +42,10 @@ typedef struct sTimeSerie : sCfgObj {
 	//-- constructors / destructor
 	EXPORT void sTimeSeriecommon();
 
-/*	EXPORT sTimeSerie(sCfgObjParmsDef, int steps_, int featuresCnt_);
-	EXPORT sTimeSerie(sCfgObjParmsDef, sFXDataSource* dataSource_, int steps_, char* date0_, int dt_);
-	EXPORT sTimeSerie(sCfgObjParmsDef, sGenericDataSource* dataSource_, int featuresCnt_, int steps_, char* date0_, int dt_);
-*/
-
 	EXPORT sTimeSerie(sCfgObjParmsDef);
 	EXPORT ~sTimeSerie();
 	
+	EXPORT void load(char* date0_);
 	EXPORT void transform(int dt_);
 	EXPORT void scale(numtype scaleMin_, numtype scaleMax_);
 

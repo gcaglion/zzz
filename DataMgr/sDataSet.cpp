@@ -82,6 +82,7 @@ void sDataSet::dump() {
 	int s, i, b, f;
 	
 	FILE* dumpFile;
+	strcat_s(dumpFileFullName, MAX_PATH, sourceTS->date0);
 	if (fopen_s(&dumpFile, dumpFileFullName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileFullName, errno);
 
 	fprintf(dumpFile, "SampleId\t");
