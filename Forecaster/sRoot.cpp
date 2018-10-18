@@ -11,8 +11,8 @@ void sRoot::tester() {
 
 	int simulationLength;
 	char** simulationTrainStartDate;
-	char** simulationValidStartDate;
 	char** simulationTestStartDate;
+	char** simulationValidStartDate;
 	sClientLogger* testerPersistor;
 
 	try {
@@ -21,55 +21,58 @@ void sRoot::tester() {
 		safespawn(testerCfg, newsname("testerCfg_Root"), dbg, testerCfgFileFullName);
 		safespawn(forecasterCfg, newsname("forecasterCfg_Root"), dbg, forecasterCfgFileFullName);
 
-		//-- 2. save tester Log (elapsedTime is 0)
-
 		//-- 3. create tester persistor
 		safespawn(testerPersistor, newsname("Client_Persistor"), defaultdbg, testerCfg, "/Client/Persistor");
 		
-		//-- 4.	get Simulation Length
+		//-- 4.	get Simulation Length and start date
 		safecall(testerCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
-		
-		//-- 5. malloc simulation start dates for each Dataset
-		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*));
-		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*));
-		simulationTestStartDate =(char**)malloc(simulationLength*sizeof(char*));
-		for (int d=0; d<simulationLength; d++) {
-			simulationTrainStartDate[d]=(char*)malloc(DATE_FORMAT_LEN);
-			simulationValidStartDate[d]=(char*)malloc(DATE_FORMAT_LEN);
-			simulationTestStartDate[d] =(char*)malloc(DATE_FORMAT_LEN);
-		}
+		safecall(testerCfg->currentKey, getParm, &simulationTrainStartDate, "Client/TrainStartDate");
+		safecall(testerCfg->currentKey, getParm, &simulationTestStartDate, "Client/TestStartDate");
+		safecall(testerCfg->currentKey, getParm, &simulationValidStartDate, "Client/ValidationStartDate");
 
-		//-- 6. spawn forecaster
+		//-- 5. spawn forecaster
 		safespawn(forecaster, newsname("mainForecaster"), defaultdbg, forecasterCfg, "/Forecaster");
 
-		//-- 7. for each used dataset,
+		//-- 6. for each used dataset, get simulation start dates, then do actions (train/test/validate) 
 		if (forecaster->data->doTraining) {
-			//-- 7.1. get simulation start dates
+			//-- 6.1. malloc simulation start dates
+			simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*));
+			for (int d=0; d<simulationLength; d++) simulationTrainStartDate[d]=(char*)malloc(DATE_FORMAT_LEN);
+			//-- 6.2. get simulation start dates
 			safecall(this, getStartDates, forecaster->data->trainDS, simulationLength, simulationTrainStartDate);
-			//-- 7.2. get source data into datasets
+			
+			//-- 6.3. for each simulationTestStartDate, 
+			for (int s=0; s<simulationLength; s++) {
+				//-- 6.3.1. set date0 in TimeSerie, and load it
+				forecaster->data->trainDS->sourceTS->load(simulationTrainStartDate[s]);
+				//-- 6.3.2. do training (also populates datasets)
+				safecall(forecaster->engine, train, forecaster->data->trainDS);
+			}
+
 		}
 		if (forecaster->data->doInference) {
-			//-- 7.1. get simulation start dates
+			//-- 6.1. malloc simulation start dates
+			simulationTestStartDate=(char**)malloc(simulationLength*sizeof(char*));
+			for (int d=0; d<simulationLength; d++) simulationTestStartDate[d]=(char*)malloc(DATE_FORMAT_LEN);
+			//-- 6.2. get simulation start dates
 			safecall(this, getStartDates, forecaster->data->testDS, simulationLength, simulationTestStartDate);
+
+			//-- 6.3. for each simulationTestStartDate, 
+			for (int s=0; s<simulationLength; s++) {
+				//-- 6.3.1. set date0 in TimeSerie, and load it
+				forecaster->data->trainDS->sourceTS->load(simulationTestStartDate[s]);
+				//-- 6.3.2. do inference (also populates datasets)
+				safecall(forecaster->engine, infer, forecaster->data->trainDS);
+			}
+
 		}
-		if (forecaster->data->doValidation) {
-			//-- 7.1. get simulation start dates
-			safecall(this, getStartDates, forecaster->data->validDS, simulationLength, simulationValidStartDate);
-		}
-
-
-
-		//-- 4.3. do actions (train/test/validate) according to configuration
-		if (forecaster->data->doTraining) safecall(forecaster->engine, train, forecaster->data->trainDS);		
-		if (forecaster->data->doInference) safecall(forecaster->engine, infer, forecaster->data->testDS);
+			
 
 		//-- 4.4 save logs (completely rivisited in Logger_Rehaul branch)
-		forecaster->engine->saveMSE();
+
 		//-- 4.5. delete forecaster
 
-
-	}
-	catch (std::exception exc) {
+	} catch (std::exception exc) {
 		fail("Exception=%s", exc.what());
 	}
 }

@@ -20,22 +20,6 @@ void sTimeSerie::sTimeSeriecommon() {
 	d_trs=(numtype*)malloc(len*sizeof(numtype));
 }
 
-//-------- To fix --------------
-/*sTimeSerie::sTimeSerie(sCfgObjParmsDef, int steps_, int featuresCnt_) : sCfgObj(sCfgObjParmsVal) {
-	sTimeSeriecommon(steps_, featuresCnt_, 0, nullptr);
-}
-sTimeSerie::sTimeSerie(sCfgObjParmsDef, sFXDataSource* dataSource_, int steps_, char* date0_, int dt_) : sCfgObj(sCfgObjParmsVal) {
-	//-- 1. create
-	sTimeSeriecommon(steps_, FXDATA_FEATURESCNT, 0, nullptr);
-	//-- 2. load data
-	safecall(dataSource_, load, date0_, steps, dtime, d, bdtime, bd);	
-	//-- 3. transform
-	safecall(this, transform, dt_);
-}
-sTimeSerie::sTimeSerie(sCfgObjParmsDef, sGenericDataSource* dataSource_, int steps_, int featuresCnt_, char* date0_, int dt_) : sCfgObj(sCfgObjParmsVal) {
-	featuresCnt=featuresCnt_;
-}
-*/
 void sTimeSerie::setDataSource(sCfg* cfg) {
 
 	bool found=false;
@@ -72,14 +56,22 @@ void sTimeSerie::setDataSource(sCfg* cfg) {
 	safecall(sourceData, open);
 
 }
+void sTimeSerie::load(char* date0_) {
+	//-- 1. set date0
+	strcpy_s(date0, DATE_FORMAT_LEN, date0_);
+	//-- 2. load data
+	safecall(sourceData, load, date0, steps, dtime, d, bdtime, bd);
+	//-- 3. transform
+	safecall(this, transform, dt);
+	//-- 4. dump
+	if (strlen(dumpFileFullName)>0) dump();
+}
 
 sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	dumpFileFullName=(char*)malloc(MAX_PATH); dumpFileFullName[0]='\0';
 	tsf=(int*)malloc(MAX_TSF_CNT*sizeof(int));
-	date0[0]='\0';
 
 	//-- 1. common parameters
-	safecall(cfgKey, getParm, &date0, "Date0");
 	safecall(cfgKey, getParm, &steps, "HistoryLen");
 	safecall(cfgKey, getParm, &dt, "DataTransformation");
 	safecall(cfgKey, getParm, &BWcalc, "BWCalc");
@@ -90,12 +82,6 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(this, setDataSource, cfg);
 	//-- 2.2. common stuff (mallocs, ...)
 	sTimeSeriecommon();
-	//-- 2.3. load data
-	safecall(sourceData, load, date0, steps, dtime, d, bdtime, bd);
-	//-- 2.4. transform
-	safecall(this, transform, dt);
-	//-- 2.5. dump
-	if (strlen(dumpFileFullName)>0) dump();
 
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;

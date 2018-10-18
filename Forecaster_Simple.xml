@@ -28,7 +28,6 @@
 				</Debugger>
 				<TimeSerie>
 					DumpFileFullName = c:\temp\trainTS.dump
-					Date0				= 201712300000
 					HistoryLen			= 503
 					DataTransformation	= DT_DELTA
 					BWCalc				= true
@@ -67,7 +66,6 @@
 			Do	= false
 			<DataSet>
 				<TimeSerie>
-					Date0				= 201512300000
 					HistoryLen			= 105
 					DataTransformation	= DT_DELTALOG
 					BWCalc				= true
