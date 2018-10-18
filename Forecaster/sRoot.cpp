@@ -21,46 +21,54 @@ void sRoot::tester() {
 		safespawn(testerCfg, newsname("testerCfg_Root"), dbg, testerCfgFileFullName);
 		safespawn(forecasterCfg, newsname("forecasterCfg_Root"), dbg, forecasterCfgFileFullName);
 
-		//-- 3. create tester persistor
+		//-- 2. create tester persistor
 		safespawn(testerPersistor, newsname("Client_Persistor"), defaultdbg, testerCfg, "/Client/Persistor");
 		
-		//-- 4.	get Simulation Length and start date[0]
+		//-- 3.	get Simulation Length and start date[0]
 		safecall(testerCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
 		//--
 		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationTrainStartDate[s]=(char*)malloc(DATE_FORMAT_LEN);
 		simulationTestStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationTestStartDate[s]=(char*)malloc(DATE_FORMAT_LEN);
 		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationValidStartDate[s]=(char*)malloc(DATE_FORMAT_LEN);
-		//--
-		if (forecaster->data->doTraining) safecall(testerCfg->currentKey, getParm, &simulationTrainStartDate[0], "Client/TrainStartDate");
-		if (forecaster->data->doInference) safecall(testerCfg->currentKey, getParm, &simulationTestStartDate[0], "Client/TestStartDate");
-		if (forecaster->data->doValidation) safecall(testerCfg->currentKey, getParm, &simulationValidStartDate[0], "Client/ValidationStartDate");
 
-		//-- 5. spawn forecaster
+		//-- 4. spawn forecaster
 		safespawn(forecaster, newsname("mainForecaster"), defaultdbg, forecasterCfg, "/Forecaster");
 
-		//-- 6. for each used dataset, get simulation start dates
-		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationValidStartDate[s]=(char*)malloc(DATE_FORMAT_LEN);
-		getStartDates(forecaster->data->trainDS, simulationTrainStartDate[0], simulationLength, simulationTrainStartDate);
-		getStartDates(forecaster->data->testDS, simulationTestStartDate[0], simulationLength, simulationTestStartDate);
-		getStartDates(forecaster->data->validDS, simulationValidStartDate[0], simulationLength, simulationValidStartDate);
+		//-- 5. if the dataset is used, read startdate from client xml for each dataset
+		if (forecaster->data->doTraining) {
+			safecall(testerCfg->currentKey, getParm, &simulationTrainStartDate[0], "Client/TrainStartDate");
+			getStartDates(forecaster->data->trainDS, simulationTrainStartDate[0], simulationLength, simulationTrainStartDate);
+		}
+		if (forecaster->data->doInference) {
+			safecall(testerCfg->currentKey, getParm, &simulationTestStartDate[0], "Client/TestStartDate");
+			getStartDates(forecaster->data->testDS, simulationTestStartDate[0], simulationLength, simulationTestStartDate);
+		}
+		if (forecaster->data->doValidation) {
+			safecall(testerCfg->currentKey, getParm, &simulationValidStartDate[0], "Client/ValidationStartDate");
+			getStartDates(forecaster->data->validDS, simulationValidStartDate[0], simulationLength, simulationValidStartDate);
+		}
 
-			//-- 6. for each simulation
-			for (int s=0; s<simulationLength; s++) {
-				//-- 6.1. Training
-				if (forecaster->data->doTraining) {
-					//-- 6.1.1. set date0 in trainDS->TimeSerie, and load it
-					forecaster->data->trainDS->sourceTS->load(simulationTrainStartDate[s]);
-					//-- 6.1.2. do training (also populates datasets)
-					safecall(forecaster->engine, train, forecaster->data->trainDS);
-				}
-				//-- 6.2. Inference
-				if (forecaster->data->doInference) {
-					//-- 6.2.1. set date0 in testDS->TimeSerie, and load it
-					forecaster->data->testDS->sourceTS->load(simulationTestStartDate[s]);
-					//-- 6.2.2. do training (also populates datasets)
-					safecall(forecaster->engine, infer, forecaster->data->testDS);
-				}
+		//-- 6. for each simulation
+		for (int s=0; s<simulationLength; s++) {
+			//-- 6.1. Training
+			if (forecaster->data->doTraining) {
+				//-- 6.1.1. set date0 in trainDS->TimeSerie, and load it
+				safecall(forecaster->data->trainDS->sourceTS, load, simulationTrainStartDate[s]);
+				//-- 6.1.2. do training (also populates datasets)
+				safecall(forecaster->engine, train, forecaster->data->trainDS);
+				//-- 6.1.3. persist MSE logs
+				forecaster->engine->saveMSE();
+
 			}
+			//-- 6.2. Inference
+			if (forecaster->data->doInference) {
+				//-- 6.2.1. set date0 in testDS->TimeSerie, and load it
+				forecaster->data->testDS->sourceTS->load(simulationTestStartDate[s]);
+				//-- 6.2.2. do training (also populates datasets)
+				safecall(forecaster->engine, infer, forecaster->data->testDS);
+			}
+
+		}
 
 		//-- 4.4 save logs (completely rivisited in Logger_Rehaul branch)
 

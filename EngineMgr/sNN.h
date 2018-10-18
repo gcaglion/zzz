@@ -10,7 +10,7 @@
 
 struct sNN : sCore {
 
-	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_, sCoreLogger* persistor_);
+	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
 	EXPORT ~sNN();
 
 	EXPORT void train(sDataSet* trainSet);

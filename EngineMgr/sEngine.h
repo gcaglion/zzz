@@ -44,7 +44,6 @@ struct sEngine : sCfgObj {
 	sCore** core;
 	sCoreLayout** coreLayout;
 	sCoreParms** coreParms;
-	sCoreLogger** coreLogger;
 
 	EXPORT sEngine(sCfgObjParmsDef, sDataShape* dataShape_);
 	EXPORT ~sEngine();

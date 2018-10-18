@@ -18,7 +18,7 @@ sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
 
 	safecall(cfgKey, getParm, &saveToDB, "saveToDB");
 	//-- spawn destination OraData
-	if (saveToDB) safespawn(db, newsname("Persistor_OraData"), defaultdbg, cfg, "DestOraData", false);
+	if (saveToDB) safespawn(db, newsname("Persistor_OraData"), defaultdbg, cfg, "DestOraData", true);
 
 	safecall(cfgKey, getParm, &saveToFile, "saveToFile");
 	//-- spawn destination FileData
@@ -27,7 +27,7 @@ sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
 		safecall(cfgKey, getParm, &ffn[1], "DestFileData/Run");
 		safecall(cfgKey, getParm, &ffn[2], "DestFileData/Internals");
 		safecall(cfgKey, getParm, &ffn[3], "DestFileData/Image");
-		safespawn(file, newsname("Persistor_FileData"), defaultdbg, cfg, "DestFileData", FILE_MODE_WRITE, false, logsCnt, ffn);
+		safespawn(file, newsname("Persistor_FileData"), defaultdbg, cfg, "DestFileData", FILE_MODE_WRITE, true, logsCnt, ffn);
 	}
 
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
@@ -43,5 +43,13 @@ void sCoreLogger::mallocs() {
 	ffn=(char**)malloc(4*sizeof(char*));
 	for (int f=0; f<logsCnt; f++) ffn[f]=(char*)malloc(MAX_PATH);
 }
-void sCoreLogger::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV){}
 void sCoreLogger::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
+
+void sCoreLogger::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
+	if (saveToDB) {
+		safecall(db, saveMSE, pid, tid, mseCnt, mseT, mseV);
+	}
+	if (saveToFile) {
+		safecall(file, saveMSE, pid, tid, mseCnt, mseT, mseV);
+	}
+}

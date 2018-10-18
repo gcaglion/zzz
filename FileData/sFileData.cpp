@@ -3,7 +3,7 @@
 sFileData::sFileData(sCfgObjParmsDef, int openMode_, bool autoOpen_, int filesCnt_, char** fileFullName_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	filesCnt=filesCnt_;
 	mallocs();
-//	for (int f=0; f<filesCnt; f++) strcpy_s(fileFullName[f] = va_arg(fnames, char*);
+	for (int f=0; f<filesCnt; f++) strcpy_s(fileFullName[f], MAX_PATH, fileFullName_[f]);
 
 	if (autoOpen_) open(openMode_);
 }
@@ -37,6 +37,12 @@ void sFileData::close() {
 	for (int f=0; f<filesCnt; f++) fclose(fileH[f]);
 }
 void sFileData::getStartDates(sFileData* dateSource_, char* startDate_, int datesCnt_, char** oDate_) {}
+void sFileData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
+	fail("not implemented.");
+}
+void sFileData::saveRun(int pid, int tid, int setid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, numtype* prediction, numtype* actual) {
+	fail("not implemented.");
+}
 
 void sFileData::mallocs() {
 	fileFullName=(char**)malloc(filesCnt*sizeof(char*));

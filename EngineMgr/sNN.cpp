@@ -1,6 +1,6 @@
 #include "sNN.h"
 
-sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_, sCoreLogger* persistor_) : sCore(sCfgObjParmsVal, layout_, persistor_) {
+sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_) {
 	
 	parms=NNparms_;
 

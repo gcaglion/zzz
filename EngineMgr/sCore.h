@@ -18,7 +18,7 @@ struct sCore : sCfgObj {
 	sDataSet* inputDS;
 	sDataSet* outputDS;
 
-	EXPORT sCore(sCfgObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_);
+	EXPORT sCore(sCfgObjParmsDef, sCoreLayout* layout_);
 	EXPORT ~sCore();
 
 	//-- properties and methods common for all core subclasses

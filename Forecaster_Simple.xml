@@ -135,7 +135,7 @@
 					saveInternals	= false
 					saveImage		= true
 					saveToDB		= true
-					saveToFile		= true
+					saveToFile		= false
 					<DestOraData>
 						UserName	= CULogUser
 						Password	= LogPwd
