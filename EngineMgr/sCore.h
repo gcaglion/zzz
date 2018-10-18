@@ -25,6 +25,9 @@ struct sCore : sCfgObj {
 	int mseCnt;		// replaces ActualEpochs
 	numtype* mseT;	// Training mean squared error, array indexed by epoch, always on host
 	numtype* mseV;	// Validation mean squared error, array indexed by epoch, always on host
+	//--
+	static LRESULT trainThread(LPVOID parm, sDataSet* trainDS_);
+	static LRESULT inferThread(LPVOID parm, sDataSet* trainDS_);
 
 
 	//-- methods to be implemented indipendently by each subclass (sNN, sGA, ...)

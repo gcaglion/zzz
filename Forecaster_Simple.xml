@@ -19,7 +19,6 @@
 		<Train>
 			Do	= true
 			<DataSet>
-				DumpFileFullName = c:\temp\trainDS.dump
 				<Debugger>
 					Verbose = false
 					ScreenOutput  = true
@@ -46,6 +45,7 @@
 				BatchSamplesCount	= 10
 				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 				BWFeatures			= 1,2
+				DumpFileFullName = c:\temp\trainDS.dump
 			</DataSet>
 		</Train>
 		<Validation>
@@ -95,9 +95,9 @@
 			Dest			= DBG_DEST_BOTH
 			OutFileFullName	= C:\temp\logs\mainDebugger.log
 		</Debugger>		
-		Type 		= ENGINE_CUSTOM
+		Type 		= ENGINE_CUSTOM		
 		<Custom>
-			CoresCount	= 1
+			CoresCount	= 2
 			<Core0>
 				<Layout>
 					Type	= CORE_NN
@@ -150,6 +150,58 @@
 					</DestFileData>
 				</Persistor>
 			</Core0>
+			<Core1>
+				<Layout>
+					Type	= CORE_NN
+					Parents			= 
+					ParentsConnType	= 
+				</Layout>
+				<Parameters>
+					<Topology>
+						LevelRatio			= 0.5
+						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+						UseContext			= true
+						UseBias				= false
+					</Topology>
+					<Training>
+						MaxEpochs			= 50
+						TargetMSE			= 0.0001
+						NetSaveFrequency	= 10
+						StopOnDivergence	= false
+						BP_Algo				= BP_STD
+						<BP_Std>
+							LearningRate		= 0.001
+							LearningMomentum	= 0.4
+						</BP_Std>
+						<BP_Qing>
+						</BP_Qing>
+						<BP_Qprop>
+						</BP_Qprop>
+						<BP_RProp>
+						</BP_RProp>
+					</Training>
+				</Parameters>
+				<Persistor>
+					saveMSE			= true
+					saveRun			= true
+					saveInternals	= false
+					saveImage		= true
+					saveToDB		= true
+					saveToFile		= false
+					<DestOraData>
+						UserName	= CULogUser
+						Password	= LogPwd
+						ConnString	= Algo
+					</DestOraData>
+					<DestFileData>
+						Client		= c:\temp\logs\Persistor\Client.log
+						MSE			= c:\temp\logs\Persistor\MSE.log
+						Run			= c:\temp\logs\Persistor\Run.log
+						Internals	= c:\temp\logs\Persistor\Internals.log
+						Image		= c:\temp\logs\Persistor\Image.log
+					</DestFileData>
+				</Persistor>
+			</Core1>
 		</Custom>
 		<XIE>
 		</XIE>

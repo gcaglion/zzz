@@ -55,7 +55,7 @@ void sRoot::tester() {
 				//-- 6.1.1. set date0 in trainDS->TimeSerie, and load it
 				safecall(forecaster->data->trainDS->sourceTS, load, simulationTrainStartDate[s]);
 				//-- 6.1.2. do training (also populates datasets)
-				safecall(forecaster->engine, train, forecaster->data->trainDS);
+				safecall(forecaster->engine, train, s, forecaster->data->trainDS);
 				//-- 6.1.3. persist MSE logs
 				forecaster->engine->saveMSE();
 
@@ -65,7 +65,7 @@ void sRoot::tester() {
 				//-- 6.2.1. set date0 in testDS->TimeSerie, and load it
 				forecaster->data->testDS->sourceTS->load(simulationTestStartDate[s]);
 				//-- 6.2.2. do training (also populates datasets)
-				safecall(forecaster->engine, infer, forecaster->data->testDS);
+				safecall(forecaster->engine, infer, s, forecaster->data->testDS);
 			}
 
 		}

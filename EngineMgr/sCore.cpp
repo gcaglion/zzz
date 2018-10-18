@@ -14,3 +14,14 @@ sCore::sCore(sCfgObjParmsDef, sCoreLayout* layout_) : sCfgObj(sCfgObjParmsVal) {
 	
 }
 sCore::~sCore() {}
+
+LRESULT sCore::trainThread(LPVOID parm, sDataSet* trainDS_) {
+	sCore* pObject=reinterpret_cast<sCore*>(parm);
+	pObject->train(trainDS_);
+	return 0;
+}
+LRESULT sCore::inferThread(LPVOID parm, sDataSet* trainDS_) {
+	sCore* pObject=reinterpret_cast<sCore*>(parm);
+	pObject->train(trainDS_);
+	return 0;
+}

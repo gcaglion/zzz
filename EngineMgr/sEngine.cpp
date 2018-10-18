@@ -6,6 +6,7 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* dataShape_) : sCfgObj(sCfgObjParms
 
 	dataShape=dataShape_;
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
+	pid=GetCurrentProcessId();
 
 	//-- 1. get Parameters
 	safecall(cfgKey, getParm, &type, "Type");
@@ -109,17 +110,61 @@ sEngine::~sEngine() {
 }
 
 
-void sEngine::train(sDataSet* trainDS_) {
+void sEngine::train(int testid_, sDataSet* trainDS_) {
 
-	//-- 1. 
+	int t;
+	int ret = 0;
+	int ThreadCount;
+	HANDLE* HTrain;
+	DWORD* kaz;
+	LPDWORD* tid;
+	HANDLE SMutex = CreateMutex(NULL, FALSE, NULL);
 
+	//sTrainParams* tp = new sTrainParams();
 	for (int l=0; l<layersCnt; l++) {
+		ThreadCount=layerCoresCnt[l];
+		HTrain = (HANDLE*)malloc(ThreadCount*sizeof(HANDLE));
+		kaz = (DWORD*)malloc(ThreadCount*sizeof(DWORD));
+		tid = (LPDWORD*)malloc(ThreadCount*sizeof(LPDWORD)); for (int i = 0; i < ThreadCount; i++) tid[i] = &kaz[i];
+		gotoxy(0, 2+l+((l>0) ? layerCoresCnt[l-1] : 0));  printf("Training Layer %d\n", l);
+		t=0;
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
 				trainDS_->buildFromTS(coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
-				safecall(core[c], train, trainDS_);
+/*
+				tp[t].LayerId = l;
+				tp[t].CoreId = c;
+				tp[t].CorePos = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
+				tp[t].ScreenMutex = SMutex;
+				tp[t].TotCores = layerCoresCnt[l];
+				tp[t].SampleCount = trainDS_->samplesCnt;
+				tp[t].useValidation = false;	
+				tp[t].useExistingW = false;
+*/
+				//-- Create Thread
+				HTrain[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)sCore::trainThread(core[c], trainDS_), NULL, 0, tid[t]);
+
+				//-- Store Engine Handler
+				//tp[t].TrainInfo.ProcessId = pid;
+				//tp[t].TrainInfo.TestId = testid_;
+				//tp[t].TrainInfo.ThreadId = (*tid[t]);
+				t++;
+
 			}
 		}
+		//-- we need to train all the nets in one layer, in order to have the inputs to the next layer
+		WaitForMultipleObjects(t, HTrain, TRUE, INFINITE);
+
+		//-- check for training failure
+		//for (int ti = 0; ti<t; ti++) if (tp[ti].TrainSuccess!=0) ret = -1;
+
+		//-- free(s)
+		free(HTrain); free(kaz); free(tid);
+
+
+		//free(HTrain);
+		//free(kaz);
+		//for (int i = 0; i<ThreadCount; i++) free(tid[i]); free(tid);
 	}
 	//-- 1.  
 	//-- 2. 
@@ -129,7 +174,7 @@ void sEngine::train(sDataSet* trainDS_) {
 	//-- 6. 
 	//-- 7. 
 }
-void sEngine::infer(sDataSet* testDS_){}
+void sEngine::infer(int testid_, sDataSet* testDS_){}
 void sEngine::saveMSE() {
 	for (int c=0; c<coresCnt; c++) {
 		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->pid, core[c]->tid, core[c]->mseCnt, core[c]->mseT, core[c]->mseV);
@@ -149,45 +194,4 @@ void sEngine::setCoreLayer(sCoreLayout* cl) {
 		ret=maxParentLayer+1;
 	}
 	cl->layer=ret;
-}
-void sEngine::layerTrain(int pid, int pTestId, int pLayer, bool loadW, sDataSet* trainDS_, sTrainParams* tp) {
-	int t;
-	int ret = 0;
-	int ThreadCount = layerCoresCnt[pLayer];
-	HANDLE* HTrain = (HANDLE*)malloc(ThreadCount*sizeof(HANDLE));
-	DWORD* kaz = (DWORD*)malloc(ThreadCount*sizeof(DWORD));
-	LPDWORD* tid = (LPDWORD*)malloc(ThreadCount*sizeof(LPDWORD)); for (int i = 0; i < ThreadCount; i++) tid[i] = &kaz[i];
-	HANDLE SMutex = CreateMutex(NULL, FALSE, NULL);
-
-	gotoxy(0, 2+pLayer+((pLayer>0) ? layerCoresCnt[pLayer-1] : 0));  printf("Training Layer %d\n", pLayer);
-	t = 0;
-	for (int n = 0; n<layerCoresCnt[pLayer]; n++) {
-		tp[t].LayerId = pLayer;
-		tp[t].CoreId = n;
-		tp[t].CorePos = 2+t+pLayer+((pLayer>0) ? layerCoresCnt[pLayer-1] : 0);
-		tp[t].ScreenMutex = SMutex;
-		tp[t].TotCores = layerCoresCnt[pLayer];
-		tp[t].SampleCount = trainDS_->samplesCnt;
-		tp[t].useValidation = false;	//******************************//
-		tp[t].useExistingW = loadW;
-
-		//-- Create Thread
-		HTrain[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)core[n], &tp[t], 0, tid[t]);
-
-		//-- Store Engine Handler
-		tp[t].TrainInfo.ProcessId = pid;
-		tp[t].TrainInfo.TestId = pTestId;
-		tp[t].TrainInfo.ThreadId = (*tid[t]);
-		//pEngineParms->Core[pLayer][n].CoreLog[d].ThreadId = (*tid[t]);
-		t++;
-	}
-	//-- we need to train all the nets in one layer, in order to have the inputs to the next layer
-	WaitForMultipleObjects(t, HTrain, TRUE, INFINITE);
-
-	//-- check for training failure
-	for (int ti = 0; ti<t; ti++) if (tp[ti].TrainSuccess!=0) ret = -1;
-
-	//-- free(s)
-	free(HTrain); free(kaz); free(tid);
-
 }
