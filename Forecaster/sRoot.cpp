@@ -13,6 +13,7 @@ void sRoot::tester() {
 	char** simulationTrainStartDate;
 	char** simulationValidStartDate;
 	char** simulationTestStartDate;
+	sClientLogger* testerPersistor;
 
 	try {
 
@@ -149,20 +150,18 @@ void sRoot::testDML() {
 
 }
 void sRoot::getStartDates(sDataSet* ds, int len, char** oDates){
-	sFXData* fxsrc; sFileDataSrc* filesrc; sMT4Data* mt4src;
+	sFXDataSource* fxsrc; sGenericDataSource* filesrc; sMT4DataSource* mt4src;
 	switch (ds->sourceTS->sourceData->type) {
-	case FXDB_SOURCE:
-		fxsrc = (sFXData*)ds->sourceTS->sourceData;
-		safecall(forecaster->persistor->db, open);
-		safecall(forecaster->persistor->db, getStartDates, fxsrc->Symbol, fxsrc->TimeFrame, fxsrc->IsFilled, ds->sourceTS->date0, len, oDates);
+	case DB_SOURCE:
+		fxsrc = (sFXDataSource*)ds->sourceTS->sourceData;
+		safecall(fxsrc, getStartDates, ds->sourceTS->date0, len, oDates);
 		break;
 	case FILE_SOURCE:
-		filesrc = (sFileDataSrc*)ds->sourceTS->sourceData;
-		safecall(filesrc, open);
-		safecall(forecaster->persistor->file, getStartDates, filesrc, ds->sourceTS->date0, len, oDates);
+		filesrc = (sGenericDataSource*)ds->sourceTS->sourceData;
+		safecall(filesrc, getStartDates, ds->sourceTS->date0, len, oDates);
 		break;
 	case MT4_SOURCE:
-		mt4src = (sMT4Data*)ds->sourceTS->sourceData;
+		mt4src = (sMT4DataSource*)ds->sourceTS->sourceData;
 		//--.............
 		break;
 	default:

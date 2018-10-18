@@ -1,12 +1,15 @@
 #pragma once
 
 #include "Forecaster.h"
+#include "sClientLogger.h"
+
+#include "../DataMgr/sFXDataSource.h"
+#include "../DataMgr/sGenericDataSource.h"
+#include "../DataMgr/sMT4DataSource.h"
 
 struct sRoot : sObj {
 
 	sCfg* testerCfg;
-	sLogger* testerPersistor;
-
 	sCfg* forecasterCfg;
 	sForecaster* forecaster;
 	

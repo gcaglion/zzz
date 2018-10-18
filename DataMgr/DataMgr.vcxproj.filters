@@ -15,28 +15,28 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="DataSource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FXData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="TimeSerie.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DataShape.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sMT4Data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sDataSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sFileDataSrc.cpp">
+    <ClCompile Include="sDataSource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sDataShape.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sTimeSerie.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sFXDataSource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sMT4DataSource.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sGenericDataSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,12 +56,6 @@
     <ClInclude Include="sData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sMT4data.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sFXData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sDataSet.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -74,7 +68,13 @@
     <ClInclude Include="sTimeSerie.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sFileDataSrc.h">
+    <ClInclude Include="sFXDataSource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sMT4dataSource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sGenericDataSource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

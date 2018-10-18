@@ -1,6 +1,6 @@
-#These are ignored
-
-#Empty lines are ignored, too
+# These are ignored
+# Empty lines are ignored, too
+# To include another xml: <Include File=c:\temp\kaz.xml />
 
 <Forecaster>
 	MyList = abc, def, ghijkl, mnopqras
@@ -132,26 +132,24 @@
 					</Training>
 				</Parameters>
 				<Persistor>
-					saveNothing		= false		
-					saveClient		= true
 					saveMSE			= true
 					saveRun			= true
 					saveInternals	= false
 					saveImage		= true
 					saveToDB		= true
-					saveToFiles		= true
-					<DestDB>
+					saveToFile		= true
+					<DestOraData>
 						UserName	= CULogUser
 						Password	= LogPwd
 						ConnString	= Algo
-					</DestDB>
-					<DestFiles>
+					</DestOraData>
+					<DestFileData>
 						Client		= c:\temp\logs\Persistor\Client.log
 						MSE			= c:\temp\logs\Persistor\MSE.log
 						Run			= c:\temp\logs\Persistor\Run.log
 						Internals	= c:\temp\logs\Persistor\Internals.log
 						Image		= c:\temp\logs\Persistor\Image.log
-					</DestFiles>
+					</DestFileData>
 				</Persistor>
 			</Core0>
 		</Custom>
@@ -169,17 +167,17 @@
 		saveImage		= true
 		saveToDB		= true
 		saveToFiles		= true
-		<DestDB>
+		<DestOraData>
 			UserName	= CULogUser
 			Password	= LogPwd
 			ConnString	= Algo
-		</DestDB>
-		<DestFiles>
+		</DestOraData>
+		<DestFileData>
 			Client		= c:\temp\logs\Persistor\Client.log
 			MSE			= c:\temp\logs\Persistor\MSE.log
 			Run			= c:\temp\logs\Persistor\Run.log
 			Internals	= c:\temp\logs\Persistor\Internals.log
 			Image		= c:\temp\logs\Persistor\Image.log
-		</DestFiles>
+		</DestFileData>
 	</Persistor>
 </Forecaster>
