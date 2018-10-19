@@ -109,75 +109,86 @@ sEngine::~sEngine() {
 	free(layerCoresCnt);
 }
 
+DWORD __stdcall coreThreadTrain(LPVOID vargs_) {
+	sEngineTrainArgs* args = (sEngineTrainArgs*)vargs_;
+	args->core->train(args->coreTrainArgs);
+	return 1;
+}
 
 void sEngine::train(int testid_, sDataSet* trainDS_) {
 
+	int _pid=GetCurrentProcessId();
 	int t;
 	int ret = 0;
-	int ThreadCount;
+	int threadsCnt;
 	HANDLE* HTrain;
-	DWORD* kaz;
-	LPDWORD* tid;
+	sEngineTrainArgs** trainArgs;
+	void** trainDS;
+
 	HANDLE SMutex = CreateMutex(NULL, FALSE, NULL);
 
-	//sTrainParams* tp = new sTrainParams();
+	system("cls");
 	for (int l=0; l<layersCnt; l++) {
-		ThreadCount=layerCoresCnt[l];
-		HTrain = (HANDLE*)malloc(ThreadCount*sizeof(HANDLE));
-		kaz = (DWORD*)malloc(ThreadCount*sizeof(DWORD));
-		tid = (LPDWORD*)malloc(ThreadCount*sizeof(LPDWORD)); for (int i = 0; i < ThreadCount; i++) tid[i] = &kaz[i];
+		
+		threadsCnt=layerCoresCnt[l];
+		
+		//-- initialize layer-level structures
+		trainArgs=(sEngineTrainArgs**)malloc(threadsCnt*sizeof(sEngineTrainArgs*));
+		trainDS = (void**)malloc(threadsCnt*sizeof(sDataSet*));	
+		HTrain = (HANDLE*)malloc(threadsCnt*sizeof(HANDLE));
+		DWORD* kaz = (DWORD*)malloc(threadsCnt*sizeof(DWORD));
+		LPDWORD* tid = (LPDWORD*)malloc(threadsCnt*sizeof(LPDWORD)); 
+		//--
+		for (t=0; t<threadsCnt; t++) {
+			trainArgs[t]=new sEngineTrainArgs();
+			tid[t] = &kaz[t];
+			//-- need to make a copy of trainDS for each core running concurrently in the layer
+			trainDS[t] = (void*)malloc(sizeof(*trainDS_));
+			memcpy_s(trainDS[t], sizeof(*trainDS_), trainDS_, sizeof(*trainDS_));
+		}	
+		//--
+
 		gotoxy(0, 2+l+((l>0) ? layerCoresCnt[l-1] : 0));  printf("Training Layer %d\n", l);
 		t=0;
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
-				trainDS_->buildFromTS(coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
-/*
-				tp[t].LayerId = l;
-				tp[t].CoreId = c;
-				tp[t].CorePos = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
-				tp[t].ScreenMutex = SMutex;
-				tp[t].TotCores = layerCoresCnt[l];
-				tp[t].SampleCount = trainDS_->samplesCnt;
-				tp[t].useValidation = false;	
-				tp[t].useExistingW = false;
-*/
-				//-- Create Thread
-				HTrain[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)sCore::trainThread(core[c], trainDS_), NULL, 0, tid[t]);
+
+				//-- rebuild training DataSet for current Core
+				((sDataSet*)trainDS[t])->buildFromTS(coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+
+				//-- Create Training Thread for current Core
+				trainArgs[t]->core=core[c];
+				trainArgs[t]->coreTrainArgs->ds = (sDataSet*)trainDS[t];
+				trainArgs[t]->coreTrainArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
+
+				HTrain[t] = CreateThread(NULL, 0, coreThreadTrain, &(*trainArgs[t]), 0, tid[t]);
 
 				//-- Store Engine Handler
-				//tp[t].TrainInfo.ProcessId = pid;
-				//tp[t].TrainInfo.TestId = testid_;
-				//tp[t].TrainInfo.ThreadId = (*tid[t]);
-				t++;
+				trainArgs[t]->coreTrainArgs->pid = _pid;
+				trainArgs[t]->coreTrainArgs->tid=(*tid[t]);
+				trainArgs[t]->coreTrainArgs->testid=testid_;
 
+				//-- associate Training Args to current core
+				core[c]->trainArgs=trainArgs[t]->coreTrainArgs;
+
+				t++;
 			}
 		}
 		//-- we need to train all the nets in one layer, in order to have the inputs to the next layer
 		WaitForMultipleObjects(t, HTrain, TRUE, INFINITE);
 
-		//-- check for training failure
-		//for (int ti = 0; ti<t; ti++) if (tp[ti].TrainSuccess!=0) ret = -1;
-
 		//-- free(s)
-		free(HTrain); free(kaz); free(tid);
-
-
-		//free(HTrain);
-		//free(kaz);
-		//for (int i = 0; i<ThreadCount; i++) free(tid[i]); free(tid);
+		for (t=0; t<threadsCnt; t++) {
+			free(trainArgs[t]); 
+			free(trainDS[t]);
+		}
+		free(trainArgs); free(trainDS); free(HTrain); free(kaz); free(tid);
 	}
-	//-- 1.  
-	//-- 2. 
-	//-- 3. 
-	//-- 4. 
-	//-- 5. 
-	//-- 6. 
-	//-- 7. 
 }
 void sEngine::infer(int testid_, sDataSet* testDS_){}
 void sEngine::saveMSE() {
 	for (int c=0; c<coresCnt; c++) {
-		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->pid, core[c]->tid, core[c]->mseCnt, core[c]->mseT, core[c]->mseV);
+		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->trainArgs->pid, core[c]->trainArgs->tid, core[c]->mseCnt, core[c]->mseT, core[c]->mseV);
 	}
 }
 

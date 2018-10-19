@@ -26,7 +26,7 @@
 					OutFilePath  = C:\temp\logs
 				</Debugger>
 				<TimeSerie>
-					DumpFileFullName = c:\temp\trainTS.dump
+					#DumpFileFullName = c:\temp\trainTS.dump
 					HistoryLen			= 503
 					DataTransformation	= DT_DELTA
 					BWCalc				= true
@@ -45,7 +45,7 @@
 				BatchSamplesCount	= 10
 				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 				BWFeatures			= 1,2
-				DumpFileFullName = c:\temp\trainDS.dump
+				#DumpFileFullName = c:\temp\trainDS.dump
 			</DataSet>
 		</Train>
 		<Validation>

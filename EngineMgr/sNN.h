@@ -13,7 +13,7 @@ struct sNN : sCore {
 	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
 	EXPORT ~sNN();
 
-	EXPORT void train(sDataSet* trainSet);
+	EXPORT void train(sCoreTrainArgs* trainArgs);
 	EXPORT void run(sDataSet* runSet);
 
 private:
@@ -22,6 +22,8 @@ private:
 
 	//-- NNParms
 	sNNparms* parms;
+	sCoreTrainArgs* trainArgs;
+	int pid, tid, testid;	//-- these are set from either trainArgs or runArgs
 
 	int* nodesCnt;
 	int nodesCntTotal;
@@ -74,7 +76,7 @@ private:
 	void Activate(int level);
 	void calcErr();
 	void ForwardPass(sDataSet* ds, int batchId, bool haveTargets);
-	bool epochMetCriteria(int epoch, DWORD starttime, bool displayProgress=true);
+	bool epochSummary(int epoch, DWORD starttime, bool displayProgress=true);
 	void BP_std();
 	void WU_std();
 	void BackwardPass(tDataSet* ds, int batchId, bool updateWeights);

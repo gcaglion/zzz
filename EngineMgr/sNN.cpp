@@ -310,13 +310,16 @@ void sNN::BackwardPass(tDataSet* ds, int batchId, bool updateWeights) {
 	WUtimeTot+=((DWORD)(timeGetTime()-WUstart));
 
 }
-bool sNN::epochMetCriteria(int epoch, DWORD starttime, bool displayProgress) {
+bool sNN::epochSummary(int epoch, DWORD starttime, bool displayProgress) {
 	numtype tse_h;	// total squared error copid on host at the end of each eopch
 
 	Alg->d2h(&tse_h, tse, sizeof(numtype));
 	mseT[epoch]=tse_h/nodesCnt[outputLevel]/_batchCnt;
 	mseV[epoch]=0;	// TO DO !
-	if(displayProgress) printf("\rpid=%d, tid=%d, epoch %d, Training TSE=%f, MSE=%1.10f, duration=%d ms", pid, tid, epoch, tse_h, mseT[epoch], (timeGetTime()-starttime));
+	if (displayProgress) {
+		gotoxy(0, trainArgs->screenLine); 
+		printf("\rTestId %3d, Process %6d, Thread %6d, Epoch %6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms", testid, pid, tid, epoch, mseT[epoch], mseV[epoch], (timeGetTime()-starttime));
+	}
 	if (mseT[epoch]<parms->TargetMSE) return true;
 	if ((parms->StopOnDivergence && epoch>1&&mseT[epoch]>mseT[epoch-1])) return true;
 	if ((epoch%parms->NetSaveFreq)==0) {
@@ -325,11 +328,18 @@ bool sNN::epochMetCriteria(int epoch, DWORD starttime, bool displayProgress) {
 
 	return false;
 }
-void sNN::train(sDataSet* trainSet) {
+void sNN::train(sCoreTrainArgs* trainArgs_) {
 	int l;
 	DWORD epoch_starttime;
 	DWORD training_starttime=timeGetTime();
 	int epoch, b;
+
+	//-- extract training arguments from trainArgs into local variables
+	trainArgs=trainArgs_;
+	sDataSet* trainSet = trainArgs->ds;
+	pid=trainArgs->pid;
+	tid=trainArgs->tid;
+	testid=trainArgs->testid;
 
 	//-- set private _batchCnt and _batchSize for the network from dataset
 	_batchCnt=trainSet->batchCnt;
@@ -375,7 +385,7 @@ void sNN::train(sDataSet* trainSet) {
 		}
 
 		//-- 1.2. calc and display epoch MSE (for ALL batches), and check criteria for terminating training (targetMSE, Divergence)
-		if (epochMetCriteria(epoch, epoch_starttime)) break;
+		if (epochSummary(epoch, epoch_starttime)) break;
 
 	}
 	mseCnt=epoch-((epoch>parms->MaxEpochs)?1:0);
@@ -387,7 +397,7 @@ void sNN::train(sDataSet* trainSet) {
 	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
 
 	//-- calc and display final epoch MSE
-	printf("\n"); epochMetCriteria(mseCnt-1, epoch_starttime); printf("\n");
+	printf("\n"); epochSummary(mseCnt-1, epoch_starttime); printf("\n");
 
 
 /*	float elapsed_tot=(float)timeGetTime()-(float)training_starttime;

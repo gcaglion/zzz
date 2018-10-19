@@ -8,15 +8,23 @@
 #include "sCoreLogger.h"
 #include "Core_enums.h"
 
+struct sCoreTrainArgs {
+	sDataSet* ds;
+	int pid;
+	int tid;
+	int testid;
+	int screenLine;
+};
+
 struct sCore : sCfgObj {
 
-	int pid, tid;
+	//int pid, tid;
 
 	sCoreParms* parms;
 	sCoreLayout* layout;
 	sCoreLogger* persistor;
-	sDataSet* inputDS;
-	sDataSet* outputDS;
+	sCoreTrainArgs* trainArgs;
+	sCoreTrainArgs* inferArgs;
 
 	EXPORT sCore(sCfgObjParmsDef, sCoreLayout* layout_);
 	EXPORT ~sCore();
@@ -26,13 +34,18 @@ struct sCore : sCfgObj {
 	numtype* mseT;	// Training mean squared error, array indexed by epoch, always on host
 	numtype* mseV;	// Validation mean squared error, array indexed by epoch, always on host
 	//--
-	static LRESULT trainThread(LPVOID parm, sDataSet* trainDS_);
-	static LRESULT inferThread(LPVOID parm, sDataSet* trainDS_);
-
 
 	//-- methods to be implemented indipendently by each subclass (sNN, sGA, ...)
-	void sCore::loadInput(sDataSet* inputDS_) { inputDS=inputDS_; }
-	virtual void train(sDataSet* ds_){}
-	virtual void infer(sDataSet* ds_){}
+	virtual void train(sCoreTrainArgs* trainArgs_){}
+	virtual void infer(sCoreTrainArgs* inferArgs_){}
 
+};
+
+struct sEngineTrainArgs {
+	sCore* core;
+	sCoreTrainArgs* coreTrainArgs;
+
+	sEngineTrainArgs() {
+		coreTrainArgs = new sCoreTrainArgs();
+	}
 };
