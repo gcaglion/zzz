@@ -1,7 +1,6 @@
 #include "../common.h"
 #include "../Forecaster/sRoot.h"
 
-
 int main(int argc, char* argv[]) {
 
 	//-- 1. create root object. root constructor does everything else

@@ -5,7 +5,7 @@ sDbg::sDbg(bool verbose_, bool dbgtoscreen_, bool dbgtofile_, char* outfilepath_
 	outfilename=(char*)malloc(MAX_PATH);
 	outfilefullname=(char*)malloc(MAX_PATH);
 	verbose=verbose_; dbgtoscreen=dbgtoscreen_, dbgtofile=dbgtofile_;
-	if(outfilepath_!=nullptr) strcpy_s(outfilepath, MAX_PATH, outfilepath_);
+	getFullPath(outfilepath_, outfilepath);
 	stack[0]='\0';
 	outfile=nullptr;
 }
@@ -24,8 +24,8 @@ void sDbg::createOutFile(char* objName, void* objAddr, int objDepth) {
 	if (dbgtofile) {
 		
 		sprintf_s(outfilename, MAX_PATH, "%s(%p)_Dbg.%s", objName, objAddr, (verbose) ? "log" : "err");
-		sprintf_s(outfilefullname, MAX_PATH, "%s/%s", outfilepath, outfilename);
-		//if (fopen_s(&outfile, outfilefullname, "w")!=0) out(DBG_MSG_FAIL, __func__, objDepth, "Error %d", errno);
+		//getFullFileName(outfilename, outfilefullname, outfilepath);
+		getFullPath(outfilename, outfilefullname, outfilepath);
 		if (fopen_s(&outfile, outfilefullname, "w")!=0) {
 			out(DBG_MSG_FAIL, __func__, objDepth, "Error %d creating file %s", errno, outfilefullname);
 			throw std::exception(msg);

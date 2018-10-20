@@ -92,13 +92,13 @@ void sRoot::CLoverride(int argc, char* argv[]) {
 		char orValS[XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
 
 		//-- set default forecasterCfgFileFullName
-		getFullFileName("../Tester.xml", testerCfgFileFullName);
-		getFullFileName("../Forecaster.xml", forecasterCfgFileFullName);
+		getFullPath("../Tester.xml", testerCfgFileFullName);
+		getFullPath("../Forecaster.xml", forecasterCfgFileFullName);
 
 		for (int p=1; p<argc; p++) {
 			if (!getValuePair(argv[p], &orName[0], &orValS[0], '=')) fail("wrong parameter format in command line: %s", argv[p]);
 			if (_stricmp(orName, "--cfgFile")==0) {
-				if (!getFullFileName(orValS, forecasterCfgFileFullName)) fail("could not set cfgFileFullName from override parameter: %s", orValS);
+				if (!getFullPath(orValS, forecasterCfgFileFullName)) fail("could not set cfgFileFullName from override parameter: %s", orValS);
 			} else {
 				strcpy_s(cfgOverrideName[cfgOverrideCnt], XMLKEY_PARM_NAME_MAXLEN, orName);
 				strcpy_s(cfgOverrideValS[cfgOverrideCnt], XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT, orValS);
