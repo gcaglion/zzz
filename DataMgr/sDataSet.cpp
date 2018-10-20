@@ -4,7 +4,6 @@
 void sDataSet::sDataSet_pre() {
 	BWFeature=(int*)malloc(2*sizeof(int));
 	selectedFeature=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
-	dumpFileFullName=(char*)malloc(MAX_PATH); dumpFileFullName[0]='\0';
 }
 void sDataSet::sDataSet_post() {
 
@@ -53,7 +52,7 @@ sDataSet::sDataSet(sCfgObjParmsDef, sDataShape* shape_) : sCfgObj(sCfgObjParmsVa
 	safecall(cfgKey, getParm, &batchSamplesCnt, "BatchSamplesCount");
 	safecall(cfgKey, getParm, &selectedFeature, "SelectedFeatures", false, &selectedFeaturesCnt);
 	safecall(cfgKey, getParm, &BWFeature, "BWFeatures", false, new int);
-	safecall(cfgKey, getParm, &dumpFileFullName, "DumpFileFullName", true);
+	safecall(cfgKey, getParm, &doDump, "Dump");
 	//-- 2. do stuff and spawn sub-Keys
 	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), nullptr, cfg, "TimeSerie");
 	
@@ -74,33 +73,33 @@ sDataSet::~sDataSet() {
 	free(predictionBFS);
 	free(target0);
 	free(prediction0);
-	free(dumpFileFullName);
 	delete sourceTS;
 }
 //-- sDataSet, other methods
 void sDataSet::dump() {
 	int s, i, b, f;
 	
+	char dumpFileName[MAX_PATH];
+	sprintf_s(dumpFileName, "%s/%s_%s_dump.csv", dbg->outfilepath, name->base, sourceTS->date0);
 	FILE* dumpFile;
-	strcat_s(dumpFileFullName, MAX_PATH, sourceTS->date0);
-	if (fopen_s(&dumpFile, dumpFileFullName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileFullName, errno);
+	if (fopen_s(&dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
-	fprintf(dumpFile, "SampleId\t");
+	fprintf(dumpFile, "SampleId,");
 	for (b=0; b<(shape->sampleLen); b++) {
 		for (f=0; f<selectedFeaturesCnt; f++) {
-			fprintf(dumpFile, "  Bar%dF%d\t", b, selectedFeature[f]);
+			fprintf(dumpFile, "  Bar%dF%d,", b, selectedFeature[f]);
 		}
 	}
-	fprintf(dumpFile, "\t");
+	fprintf(dumpFile, ",");
 	for (b=0; b<(shape->predictionLen); b++) {
 		for (f=0; f<selectedFeaturesCnt; f++) {
-			fprintf(dumpFile, "  Prd%dF%d\t", b, selectedFeature[f]);
+			fprintf(dumpFile, "  Prd%dF%d,", b, selectedFeature[f]);
 		}
 	}
 	fprintf(dumpFile, "\n");
-	for (i=0; i<(1+(shape->sampleLen*selectedFeaturesCnt)); i++) fprintf(dumpFile, "---------\t");
-	fprintf(dumpFile, "\t");
-	for (i=0; i<(shape->predictionLen*selectedFeaturesCnt); i++) fprintf(dumpFile, "---------\t");
+	for (i=0; i<(1+(shape->sampleLen*selectedFeaturesCnt)); i++) fprintf(dumpFile, "---------,");
+	fprintf(dumpFile, ",");
+	for (i=0; i<(shape->predictionLen*selectedFeaturesCnt); i++) fprintf(dumpFile, "---------,");
 	fprintf(dumpFile, "\n");
 
 	int si, ti, sidx, tidx;
@@ -108,17 +107,17 @@ void sDataSet::dump() {
 	for (s=0; s<samplesCnt; s++) {
 		//-- samples
 		sidx=s*sourceTS->featuresCnt;
-		fprintf(dumpFile, "%d\t\t\t", s);
+		fprintf(dumpFile, "%d,,,", s);
 		for (b=0; b<shape->sampleLen; b++) {
 			for (f=0; f<sourceTS->featuresCnt; f++) {
 				if (isSelected(f)) {
-					fprintf(dumpFile, "%f\t", sample[si]);
+					fprintf(dumpFile, "%f,", sample[si]);
 					si++;
 				}
 				sidx++;
 			}
 		}
-		fprintf(dumpFile, "|\t");
+		fprintf(dumpFile, "|,");
 
 		//-- targets
 		tidx=sidx;
@@ -128,7 +127,7 @@ void sDataSet::dump() {
 					if (tidx==sourceTS->len) {
 						tidx-=sourceTS->featuresCnt;
 					}
-					fprintf(dumpFile, "%f\t", target[ti]);
+					fprintf(dumpFile, "%f,", target[ti]);
 					ti++;
 				}
 				tidx++;
@@ -187,7 +186,7 @@ void sDataSet::buildFromTS(float scaleMin_, float scaleMax_) {
 	}
 
 	//-- 4. if a DumpFileName was specified, then dump
-	if (strlen(dumpFileFullName)>0) safecall(this, dump);
+	if (doDump) dump();
 
 }
 void sDataSet::SBF2BFS(int batchId, int barCnt, numtype* fromSBF, numtype* toBFS) {

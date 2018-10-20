@@ -51,6 +51,6 @@ typedef struct sDataSet : sCfgObj {
 private:
 	void sDataSet_pre();
 	void sDataSet_post();
-	char* dumpFileFullName;
+	bool doDump;
 
 } tDataSet;

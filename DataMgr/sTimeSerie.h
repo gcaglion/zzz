@@ -56,7 +56,7 @@ typedef struct sTimeSerie : sCfgObj {
 
 private:
 	void setDataSource(sCfg* cfg);
-	char* dumpFileFullName;
+	bool doDump;
 
 } tTimeSerie;
 

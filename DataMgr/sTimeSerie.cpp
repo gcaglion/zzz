@@ -64,11 +64,10 @@ void sTimeSerie::load(char* date0_) {
 	//-- 3. transform
 	safecall(this, transform, dt);
 	//-- 4. dump
-	if (strlen(dumpFileFullName)>0) dump();
+	if (doDump) dump();
 }
 
 sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
-	dumpFileFullName=(char*)malloc(MAX_PATH); dumpFileFullName[0]='\0';
 	tsf=(int*)malloc(MAX_TSF_CNT*sizeof(int));
 
 	//-- 1. common parameters
@@ -76,7 +75,7 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &dt, "DataTransformation");
 	safecall(cfgKey, getParm, &BWcalc, "BWCalc");
 	safecall(cfgKey, getParm, &tsf, "StatisticalFeatures", false, &tsfCnt);
-	safecall(cfgKey, getParm, &dumpFileFullName, "DumpFileFullName", true);
+	safecall(cfgKey, getParm, &doDump, "Dump");
 
 	//-- 2.1. Find, set, open DataSource
 	safecall(this, setDataSource, cfg);
@@ -94,16 +93,16 @@ sTimeSerie::~sTimeSerie() {
 	for (int i=0; i<len; i++) free(dtime[i]);
 	free(dtime); free(bdtime);
 	free(tsf);
-	free(dumpFileFullName);
 }
 
 //-- sTimeSerie, other methods
 void sTimeSerie::dump() {
 	int s, f;
 
+	char dumpFileName[MAX_PATH];
+	sprintf_s(dumpFileName, "%s/%s_%s_dump.csv", dbg->outfilepath, name->base, date0);
 	FILE* dumpFile;
-	strcat_s(dumpFileFullName, MAX_PATH, date0);
-	if (fopen_s(&dumpFile, dumpFileFullName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileFullName, errno);
+	if (fopen_s(&dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
 	fprintf(dumpFile, "i, datetime");
 	for (f=0; f<featuresCnt; f++) fprintf(dumpFile, ",F%d_orig,F%d_tr,F%d_trs", f, f, f);

@@ -14,7 +14,7 @@
 			Do	= true
 			<DataSet>
 				<TimeSerie>
-					#DumpFileFullName = c:\temp\Forecaster\trainTS.dump
+					Dump				= true
 					HistoryLen			= 503
 					DataTransformation	= DT_DELTA
 					BWCalc				= true
@@ -33,7 +33,7 @@
 				BatchSamplesCount	= 10
 				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 				BWFeatures			= 1,2
-				#DumpFileFullName = c:\temp\trainDS.dump
+				Dump				= true
 			</DataSet>
 		</Train>
 		<Validation>
