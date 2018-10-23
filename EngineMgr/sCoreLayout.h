@@ -2,7 +2,6 @@
 
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
-#include "../DataMgr/sDataShape.h"
 
 #define CORE_MAX_PARENTS 32
 
@@ -13,10 +12,12 @@ struct sCoreLayout : sCfgObj {
 	int* parentId;
 	int* parentConnType;
 	char** parentDesc;
-	sDataShape* shape;
+	//-- data shape
+	int inputCnt;
+	int outputCnt;
 
 
-	EXPORT sCoreLayout(sCfgObjParmsDef, sDataShape* shape_);
+	EXPORT sCoreLayout(sCfgObjParmsDef, int inputCnt_, int outputCnt_);
 	EXPORT ~sCoreLayout();
 
 };
