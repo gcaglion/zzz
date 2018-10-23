@@ -49,8 +49,8 @@ struct sEngine : sCfgObj {
 	EXPORT sEngine(sCfgObjParmsDef, sDataShape* dataShape_);
 	EXPORT ~sEngine();
 
-	EXPORT void train(sDataSet* trainDS_);
-	EXPORT void infer(sDataSet* testDS_);
+	EXPORT void train(int simulationId_, sDataSet* trainDS_);
+	EXPORT void infer(int simulationId_, sDataSet* testDS_);
 	EXPORT void saveMSE();
 
 private:

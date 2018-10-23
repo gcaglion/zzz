@@ -77,7 +77,7 @@ private:
 	bool epochMetCriteria(int epoch, DWORD starttime, bool displayProgress=true);
 	void BP_std();
 	void WU_std();
-	void BackwardPass(tDataSet* ds, int batchId, bool updateWeights);
+	void BackwardPass(sDataSet* ds, int batchId, bool updateWeights);
 	//-- malloc + init
 	void mallocNeurons();
 	void initNeurons();

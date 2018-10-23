@@ -3,8 +3,7 @@
 #include "../common.h"
 #include <time.h>
 
-EXPORT bool getFullFileName(const char* iName, char* oName, const char* currPath_=nullptr);
-EXPORT char* MyGetCurrentDirectory();
+EXPORT bool getFullPath(const char* iName, char* oName, char* startPath=nullptr);
 EXPORT bool getCurrentPath(char* oPath);
 EXPORT int getCharCnt(const char* str, char c);
 EXPORT void getCharPos(const char* str, char c, int charCnt, int** oCharPos);

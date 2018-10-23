@@ -295,7 +295,7 @@ void sNN::ForwardPass(sDataSet* ds, int batchId, bool haveTargets) {
 	CEtimeTot+=((DWORD)(timeGetTime()-CEstart));
 
 }
-void sNN::BackwardPass(tDataSet* ds, int batchId, bool updateWeights) {
+void sNN::BackwardPass(sDataSet* ds, int batchId, bool updateWeights) {
 
 	//-- 1. BackPropagate, calc dJdW for for current batch
 	BPstart=timeGetTime(); BPcnt++;
@@ -342,8 +342,10 @@ void sNN::train(sDataSet* trainSet) {
 	initNeurons();
 
 	//-- malloc mse[maxepochs], always host-side. We need to free them, first (see issue when running without training...)
-	free(mseT); mseT=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
-	free(mseV); mseV=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
+	//free(mseT); 
+	mseT=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
+	//free(mseV); 
+	mseV=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
 
 	//---- 0.2. Init W
 	for (l=0; l<(outputLevel); l++) Alg->VinitRnd(weightsCnt[l], &W[levelFirstWeight[l]], -1/sqrtf((numtype)nodesCnt[l]), 1/sqrtf((numtype)nodesCnt[l]), Alg->cuRandH);
@@ -451,10 +453,10 @@ void sNN::run(sDataSet* runSet) {
 	printf("\npid=%d, tid=%d, Run final MSE=%1.10f\n", pid, tid, mseR);
 
 	//-- convert prediction from BFS to SFB (fol all batches at once)
-	runSet->BFS2SFBfull(runSet->shape->predictionLen, runSet->predictionBFS, runSet->predictionSFB);
+	runSet->BFS2SFBfull(runSet->predictionLen, runSet->predictionBFS, runSet->predictionSFB);
 	//-- extract first bar only from target/prediction SFB
-	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->shape->predictionLen, runSet->targetSFB, 0, runSet->target0, true);
-	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->shape->predictionLen, runSet->predictionSFB, 0, runSet->prediction0, true);
+	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->predictionLen, runSet->targetSFB, 0, runSet->target0, true);
+	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->predictionLen, runSet->predictionSFB, 0, runSet->prediction0, true);
 
 
 	//-- feee neurons()

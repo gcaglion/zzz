@@ -33,12 +33,8 @@ sFXDataSource::~sFXDataSource() {
 }
 
 void sFXDataSource::load(char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar) {
-
 	//-- we could also retrieve FXData from file...
-
-	safecall(db, getFlatOHLCV, Symbol, TimeFrame, pDate0, pRecCount, oBarTime, oBarData, oBaseTime, oBaseBar);
-
-
+	safecall(db, getFlatOHLCV2, Symbol, TimeFrame, pDate0, pRecCount, oBarTime, oBarData, oBaseTime, oBaseBar);
 }
 void sFXDataSource::open() {
 	safecall(db, open);

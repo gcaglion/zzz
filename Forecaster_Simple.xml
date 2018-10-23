@@ -4,12 +4,6 @@
 
 <Forecaster>
 	MyList = abc, def, ghijkl, mnopqras
-	<Debugger>
-		Verbose = false
-		ScreenOutput  = true
-		FileOutput	= true
-		OutFilePath  = C:\temp\logs
-	</Debugger>
 	<Data>
 		<Shape>
 			SampleLen		= 100
@@ -19,19 +13,12 @@
 		<Train>
 			Do	= true
 			<DataSet>
-				DumpFileFullName = c:\temp\trainDS.dump
-				<Debugger>
-					Verbose = false
-					ScreenOutput  = true
-					FileOutput	= true
-					OutFilePath  = C:\temp\logs
-				</Debugger>
 				<TimeSerie>
-					DumpFileFullName = c:\temp\trainTS.dump
-					HistoryLen			= 503
+					Date0				= 201707010000
+					HistoryLen			= 500
 					DataTransformation	= DT_DELTA
-					BWCalc				= true
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
+					Dump				= true
 					<FXDB_DataSource>
 						Symbol				= EURUSD
 						TimeFrame			= H1
@@ -45,7 +32,9 @@
 				</TimeSerie>
 				BatchSamplesCount	= 10
 				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-				BWFeatures			= 1,2
+				BarWidthCalc		= true
+				BarWidthFeatures	= 1,2
+				Dump 				= true
 			</DataSet>
 		</Train>
 		<Validation>
@@ -88,13 +77,6 @@
 		</Test>
 	</Data>
 	<Engine>
-		<Debugger>
-			Verbose 		= true
-			Timing			= false
-			PauseOnError	= true
-			Dest			= DBG_DEST_BOTH
-			OutFileFullName	= C:\temp\logs\mainDebugger.log
-		</Debugger>		
 		Type 		= ENGINE_CUSTOM
 		<Custom>
 			CoresCount	= 1

@@ -111,27 +111,21 @@ sEngine::~sEngine() {
 }
 
 
-void sEngine::train(sDataSet* trainDS_) {
+void sEngine::train(int simulationId_, sDataSet* trainDS_) {
 
 	//-- 1. 
 
 	for (int l=0; l<layersCnt; l++) {
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
-				trainDS_->buildFromTS(coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+				trainDS_->build(coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 				safecall(core[c], train, trainDS_);
 			}
 		}
 	}
-	//-- 1.  
-	//-- 2. 
-	//-- 3. 
-	//-- 4. 
-	//-- 5. 
-	//-- 6. 
-	//-- 7. 
+
 }
-void sEngine::infer(sDataSet* testDS_){}
+void sEngine::infer(int simulationId_, sDataSet* testDS_){}
 void sEngine::saveMSE() {
 	for (int c=0; c<coresCnt; c++) if(core[c]->persistor->saveMSEFlag) core[c]->persistor->saveMSE(core[c]->pid, core[c]->tid, core[c]->mseCnt, core[c]->mseT, core[c]->mseV);
 }

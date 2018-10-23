@@ -17,6 +17,8 @@ struct sRoot : sObj {
 	EXPORT ~sRoot();
 
 	EXPORT void tester();
+	EXPORT void kaz();
+	EXPORT void kaz2();
 
 private:
 	//-- variables

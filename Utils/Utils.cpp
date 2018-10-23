@@ -10,50 +10,45 @@ bool fexist(const char* fname_) {
 	return success;
 }
 
-EXPORT bool getFullFileName(const char* iName, char* oName, const char* currPath_) {
-	
-	char currPath[MAX_PATH];
-	//char fname[MAX_PATH];
+EXPORT bool getFullPath(const char* iName, char* oName, char* startPath) {
 
-	//-- 1. get current path
-	if (currPath_==nullptr) {
-		if (!getCurrentPath(currPath)) return false;
-	} else {
-		strcpy_s(currPath, MAX_PATH, currPath_);
+	char ret[MAX_PATH];
+
+	//-- if input is nullptr, just set output to current path
+	if (iName==nullptr) {
+		if (!getCurrentPath(oName)) return false;
+		return true;
 	}
-
-	//-- 2. check for path modifiers in name
-	int plen;
-	if (iName[0]=='.' && iName[1]=='.') {
-		if (iName[2]=='\\'||iName[2]=='/') {
-			plen=max(instr('/', currPath, true), instr('\\', currPath, true));
-			currPath[plen]='\0';
-			return (getFullFileName(&iName[3], oName, currPath));
+	//-- if input contains drive name (C:, D:, ...), then it must be considered absolute, and nothing else needs to be done
+	if (iName[1]==':') {
+		strcpy_s(oName, MAX_PATH, iName);
+		return true;
+	} else {
+		//-- otherwise, start from current path
+		if (startPath==nullptr) {
+			if (!getCurrentPath(ret)) return false;
+		} else {
+			strcpy_s(ret, MAX_PATH, startPath);
 		}
 	}
 
-	//-- 3. try opening iName with no path
-	strcpy_s(oName, MAX_PATH, iName);
-	if (fexist(oName)) return true;
-
-	//-- 4. try opening iName in currPath
-	sprintf_s(oName, MAX_PATH, "%s\\%s", currPath, iName);
-	return (fexist(oName));
-
-}
-
-EXPORT char* MyGetCurrentDirectory() {
-	TCHAR Buffer[MAX_PATH];
-	char  RetBuf[MAX_PATH];
-	DWORD dwRet;
-	size_t convcharsn;
-
-	dwRet = GetCurrentDirectory(MAX_PATH, Buffer);
-	if (dwRet==0) {
-		printf("GetCurrentDirectory failed (%d)\n", GetLastError());
+	//-- '../' , '..\'
+	if (iName[0]=='.' && iName[1]=='.'&&(iName[2]=='\\'||iName[2]=='/')) {
+		ret[max(instr('/', ret, true), instr('\\', ret, true))]='\0';
+		return (getFullPath(&iName[3], oName, ret));
 	}
-	wcstombs_s(&convcharsn, RetBuf, Buffer, MAX_PATH-1);
-	return &RetBuf[0];
+	//-- './'
+	if (iName[0]=='.'&&(iName[1]=='/'||iName[1]=='\\')) {
+		return (getFullPath(&iName[2], oName));
+	}
+	//-- '/'
+	if (iName[0]=='/'||iName[0]=='\\') {
+		sprintf_s(oName, MAX_PATH, "%c%c/%s", ret[0], ret[1], iName);
+		return true;
+	}
+	//-- no modifiers. just append iName to current path
+	sprintf_s(oName, MAX_PATH, "%s/%s", ret, iName);
+	return true;
 }
 EXPORT bool getCurrentPath(char* oPath) {
 	TCHAR Buffer[MAX_PATH];
@@ -70,15 +65,6 @@ EXPORT bool getCurrentPath(char* oPath) {
 	strcpy_s(oPath, MAX_PATH, RetBuf);
 	return true;
 }
-/*EXPORT void UpperCase(const char* istr, char* ostr) {
-	int pos=0;
-	while (istr[pos]!='\0') {
-		ostr[pos]=toupper(istr[pos]);
-		pos++;
-	}
-	ostr[pos]='\0';
-}
-*/
 EXPORT int countChar(const char* instr_, char c, int skipFirstN, int skipLastN) {
 	int n=0;
 	for (int i=skipFirstN; i<(strlen(instr_)-skipLastN); i++) {
