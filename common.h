@@ -12,7 +12,7 @@ typedef float numtype;
 #define DATE_FORMAT_LEN 12+1
 
 #define USE_ORCL
-#define USE_GPU
+//#define USE_GPU
 
 #ifndef EXPORT
 #define EXPORT __declspec(dllexport)

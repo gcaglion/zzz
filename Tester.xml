@@ -3,7 +3,7 @@
 #Empty lines are ignored, too
 
 <Client>
-	SimulationLength 	= 10
+	SimulationLength 	= 1
 	TrainStartDate	 	= 201710310000
 	TestStartDate	 	= 201610310000
 	ValidationStartDate	= 201510310000
