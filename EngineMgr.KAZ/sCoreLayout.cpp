@@ -1,7 +1,7 @@
 #include "sCoreLayout.h"
 
-sCoreLayout::sCoreLayout(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgObjParmsVal) {
-	inputCnt=inputCnt_; outputCnt=outputCnt_;
+sCoreLayout::sCoreLayout(sCfgObjParmsDef, sDataShape* shape_) : sCfgObj(sCfgObjParmsVal) {
+	shape=shape_;
 	//-- 0. mallocs
 	parentId=(int*)malloc(CORE_MAX_PARENTS*sizeof(int));
 	parentConnType=(int*)malloc(CORE_MAX_PARENTS*sizeof(int));

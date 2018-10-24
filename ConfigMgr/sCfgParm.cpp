@@ -2,8 +2,6 @@
 
 sCfgParm::sCfgParm(sObjParmsDef, char* parmName_, char* parmValS_) : sObj(sObjParmsVal) {
 	valS=(char**)malloc(XMLKEY_PARM_VAL_MAXCNT*sizeof(char*)); for (int v=0; v<XMLKEY_PARM_VAL_MAXCNT; v++) valS[v]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
-	//int tmp=cslToArray(parmLine_, '=', valS);
-	//if (tmp!=2) fail("wrong parameter format: %s", parmLine_);
 	valScnt=cslToArray(parmValS_, ',', valS);
 }
 sCfgParm::~sCfgParm() {

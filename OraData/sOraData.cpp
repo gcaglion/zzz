@@ -46,18 +46,19 @@ void sOraData::commit() {
 	((Connection*)conn)->commit();
 }
 //-- Read
-void sOraData::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar) {
+void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCnt, char** oBarTime, float* oBarData, char* oBarTime0, float* oBaseBar) {
 	int i;
 	Statement* stmt=nullptr;
 	ResultSet *rset;
 	char sql[SQL_MAXLEN];
 
 	try {
-		sprintf_s(sql, SQL_MAXLEN, "select to_char(newdatetime,'YYYYMMDDHH24MI'), open, high, low, close, nvl(volume,0) from %s_%s where NewDateTime<=to_date('%s','YYYYMMDDHH24MI') order by 1 desc", pSymbol, pTF, pDate0);
+		//-- 1. History: open statement and result set
+		sprintf_s(sql, SQL_MAXLEN, "select to_char(newdatetime,'YYYYMMDDHH24MI'), open, high, low, close, nvl(volume,0) from %s_%s where NewDateTime<=to_date('%s','YYYYMMDDHH24MI') order by 1 desc", pSymbol, pTF, date0_);
 		stmt = ((Connection*)conn)->createStatement(sql);
 		rset = stmt->executeQuery();
-
-		i=pRecCount-1;
+		//-- 2. History: get all records
+		i=stepsCnt-1;
 		while (rset->next()&&i>=0) {
 			strcpy_s(oBarTime[i], DATE_FORMAT_LEN, rset->getString(1).c_str());
 			oBarData[5*i+0] = rset->getFloat(2);
@@ -67,17 +68,65 @@ void sOraData::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pRecCoun
 			oBarData[5*i+4] = rset->getFloat(6);
 			i--;
 		}
-		//-- one more fetch to get baseBar
-		//if (rset->next()) {
-			strcpy_s(oBaseTime, DATE_FORMAT_LEN, rset->getString(1).c_str());
-			for (int f=0; f<5; f++) {
-				oBaseBar[f] = rset->getFloat(f+2);
-			}
-			oBaseBar[0] = rset->getFloat(2);
-		//}
-
+		//-- 3. History: one more fetch to get baseBar
+		strcpy_s(oBarTime0, DATE_FORMAT_LEN, rset->getString(1).c_str());
+		for (int f=0; f<5; f++)	oBaseBar[f] = rset->getFloat(f+2);
+		//-- 4. History: close result set and statement
 		stmt->closeResultSet(rset);
 		((Connection*)conn)->terminateStatement(stmt);
+	} catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+	}
+}
+
+void sOraData::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pastStepsCnt, char** oBarTimeH, float* oBarDataH, int futureStepsCnt, char** oBarTimeF, float* oBarDataF, char* oBarTime0, float* oBaseBar) {
+	int i;
+	Statement* stmt=nullptr;
+	ResultSet *rset;
+	char sql[SQL_MAXLEN];
+
+	try {
+		//-- 1. History: open statement and result set
+		sprintf_s(sql, SQL_MAXLEN, "select to_char(newdatetime,'YYYYMMDDHH24MI'), open, high, low, close, nvl(volume,0) from %s_%s where NewDateTime<=to_date('%s','YYYYMMDDHH24MI') order by 1 desc", pSymbol, pTF, pDate0);
+		stmt = ((Connection*)conn)->createStatement(sql);
+		rset = stmt->executeQuery();
+		//-- 2. History: get all records
+		i=pastStepsCnt-1;
+		while (rset->next()&&i>=0) {
+			strcpy_s(oBarTimeH[i], DATE_FORMAT_LEN, rset->getString(1).c_str());
+			oBarDataH[5*i+0] = rset->getFloat(2);
+			oBarDataH[5*i+1] = rset->getFloat(3);
+			oBarDataH[5*i+2] = rset->getFloat(4);
+			oBarDataH[5*i+3] = rset->getFloat(5);
+			oBarDataH[5*i+4] = rset->getFloat(6);
+			i--;
+		}
+		//-- 3. History: one more fetch to get baseBar
+		strcpy_s(oBarTime0, DATE_FORMAT_LEN, rset->getString(1).c_str());
+		for (int f=0; f<5; f++)	oBaseBar[f] = rset->getFloat(f+2);
+		//-- 4. History: close result set and statement
+		stmt->closeResultSet(rset);
+		((Connection*)conn)->terminateStatement(stmt);
+
+		//-- 1. Future: open statement and result set
+		sprintf_s(sql, SQL_MAXLEN, "select to_char(newdatetime,'YYYYMMDDHH24MI'), open, high, low, close, nvl(volume,0) from %s_%s where NewDateTime>to_date('%s','YYYYMMDDHH24MI') order by 1", pSymbol, pTF, pDate0);
+		stmt = ((Connection*)conn)->createStatement(sql);
+		rset = stmt->executeQuery();
+		//-- 2. Future: get all records
+		i=0;
+		while (rset->next()&&i<futureStepsCnt) {
+			strcpy_s(oBarTimeF[i], DATE_FORMAT_LEN, rset->getString(1).c_str());
+			oBarDataF[5*i+0] = rset->getFloat(2);
+			oBarDataF[5*i+1] = rset->getFloat(3);
+			oBarDataF[5*i+2] = rset->getFloat(4);
+			oBarDataF[5*i+3] = rset->getFloat(5);
+			oBarDataF[5*i+4] = rset->getFloat(6);
+			i++;
+		}
+		//-- 4. Future: close result set and statement
+		stmt->closeResultSet(rset);
+		((Connection*)conn)->terminateStatement(stmt);
+
 	}
 	catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());

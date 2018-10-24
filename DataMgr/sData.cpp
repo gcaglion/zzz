@@ -12,9 +12,9 @@ sData::sData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &doValidation,"Validation/Do");
 	//-- 2. do stuff and spawn sub-Keys
 	safespawn(shape, newsname("Shape"), nullptr, cfg, "Shape");
-	if(doTraining) safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, cfg, "Train/DataSet", shape);
-	if(doInference) safespawn(testDS,  newsname("TestData"),  defaultdbg, cfg, "Test/DataSet", shape);
-	if(doValidation) safespawn(validDS, newsname("ValidDataset"), defaultdbg, cfg, "Validation/DataSet", shape);
+	if(doTraining) safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, cfg, "Train/DataSet", shape->sampleLen, shape->predictionLen);
+	if(doInference) safespawn(testDS,  newsname("TestData"),  defaultdbg, cfg, "Test/DataSet", shape->sampleLen, shape->predictionLen);
+	if(doValidation) safespawn(validDS, newsname("ValidDataset"), defaultdbg, cfg, "Validation/DataSet", shape->sampleLen, shape->predictionLen);
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 

@@ -1,62 +1,59 @@
 #pragma once
 
-#include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
-#include "TimeSerie_enums.h"
 #include "sDataSource.h"
 #include "sFXDataSource.h"
 #include "sGenericDataSource.h"
-#include "sMT4DataSource.h"
+#include "sMT4dataSource.h"
+#include "TimeSerie_enums.h"
 
 #define MAX_DATA_FEATURES 128
 #define MAX_TSF_CNT	32
 
-typedef struct sTimeSerie : sCfgObj {
+struct sTimeSerie : sCfgObj {
 
-	//-- data source
-	sDataSource* sourceData=nullptr;
+	sDataSource* sourceData;
 
-	char date0[DATE_FORMAT_LEN];
-	int steps;
-	int featuresCnt;
+	char* date0;
+	int stepsCnt;
 	int len;
-	int dt;	// data transformation
-	bool BWcalc;	// Bar width calc
+
+	//-- transformation and statistical features
+	int dt;
 	int tsfCnt;
 	int* tsf;
 
-	// data scaling: boundaries depend on core the samples are fed to, M/P are different for each feature
-	numtype scaleMin, scaleMax;
-	numtype *scaleM, *scaleP;
-	numtype *dmin, *dmax;
+	//-- these are of size [len]
+	char** dtime;
+	numtype* val;
+	numtype* trval;
+	numtype* trsval;
 
-	numtype* d;		//-- host   data ( steps X featuresCnt )
-	char** dtime;	//-- may always be useful...
-	numtype* bd;	//-- host   base data ( 1 X featuresCnt )
-	char* bdtime;	
-	bool hasTR=false;
-	numtype* d_tr;
-	bool hasTRS=false;
-	numtype* d_trs;
+	//-- these are of size [featuresCnt]
+	char bdtime[DATE_FORMAT_LEN];
+	numtype* base;
+	numtype* dmin;
+	numtype* dmax;
+	numtype* scaleM;
+	numtype* scaleP;
 
-	//-- constructors / destructor
-	EXPORT void sTimeSeriecommon();
+	//-- 
+	bool doDump;
 
+	//--
+	EXPORT sTimeSerie(sObjParmsDef, sDataSource* sourceData_, char* date0_, int stepsCnt_, int dt_, int tsfCnt_, int* tsf_);
 	EXPORT sTimeSerie(sCfgObjParmsDef);
 	EXPORT ~sTimeSerie();
-	
-	EXPORT void load(char* date0_);
-	EXPORT void transform(int dt_);
-	EXPORT void scale(numtype scaleMin_, numtype scaleMax_);
 
-	EXPORT void TrS(int dt_, numtype scaleMin_, numtype scaleMax_);
-	EXPORT void unTrS(numtype scaleMin_, numtype scaleMax_);
-
+	EXPORT void load(char* date0_=nullptr);
+	EXPORT void transform(int dt_=-1);
+	EXPORT void scale(float scaleMin_, float scaleMax_);
 	EXPORT void dump();
 
 private:
-	void setDataSource(sCfg* cfg);
-	bool doDump;
-
-} tTimeSerie;
+	bool hasTR, hasTRS;
+	void mallocs();
+	void frees();
+	void setDataSource();
+};
 

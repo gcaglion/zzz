@@ -14,11 +14,11 @@
 			Do	= true
 			<DataSet>
 				<TimeSerie>
-					Dump				= true
-					HistoryLen			= 503
+					Date0				= 201707010000
+					HistoryLen			= 500
 					DataTransformation	= DT_DELTA
-					BWCalc				= true
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
+					Dump				= true
 					<FXDB_DataSource>
 						Symbol				= EURUSD
 						TimeFrame			= H1
@@ -32,8 +32,9 @@
 				</TimeSerie>
 				BatchSamplesCount	= 10
 				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-				BWFeatures			= 1,2
-				Dump				= true
+				BarWidthCalc		= true
+				BarWidthFeatures	= 1,2
+				Dump 				= true
 			</DataSet>
 		</Train>
 		<Validation>
@@ -76,7 +77,7 @@
 		</Test>
 	</Data>
 	<Engine>
-		Type 		= ENGINE_CUSTOM		
+		Type 		= ENGINE_CUSTOM
 		<Custom>
 			CoresCount	= 2
 			<Core0>

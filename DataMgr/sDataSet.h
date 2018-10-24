@@ -1,20 +1,23 @@
 #pragma once
 
-#include "../common.h"
-#include "../configMgr/sCfgObj.h"
-#include "../configMgr/sCfgKey.h"
-#include "sDataShape.h"
+#include "../ConfigMgr/sCfgObj.h"
 #include "sTimeSerie.h"
 
-typedef struct sDataSet : sCfgObj {
+#define VAL 0
+#define TRVAL 1
+#define TRSVAL 2
 
-	sDataShape* shape;
+struct sDataSet : sCfgObj {
 
-	tTimeSerie* sourceTS;
+	sTimeSerie* sourceTS;
+
+	int sampleLen;
+	int predictionLen;
 
 	int selectedFeaturesCnt;
 	int* selectedFeature;
-	int* BWFeature;
+	bool BWcalc;
+	int* BWfeature;
 
 	int samplesCnt;
 	int batchSamplesCnt;
@@ -35,22 +38,24 @@ typedef struct sDataSet : sCfgObj {
 	numtype* target0;
 	numtype* prediction0;
 
-	//-- constructor / destructor
-	EXPORT sDataSet(sCfgObjParmsDef, sDataShape* shape_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, int* datafileBWFeature_);
-	EXPORT sDataSet(sCfgObjParmsDef, sDataShape* shape_);
+	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_=nullptr);
+	EXPORT sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_);
 	EXPORT ~sDataSet();
 
-	bool isSelected(int ts_f);
-	EXPORT void buildFromTS(float scaleMin_, float scaleMax_);
-	EXPORT void SBF2BFS(int batchId, int barCnt, numtype* fromSBF, numtype* toBFS);
-	EXPORT void BFS2SBF(int batchId, int barCnt, numtype* fromBFS, numtype* toSBF);
-	EXPORT void BFS2SFB(int batchId, int barCnt, numtype* fromBFS, numtype* toSFB);
+	EXPORT void build(float scaleMin_=0, float scaleMax_=0, int type=TRSVAL);
+	EXPORT void dump(int type=TRSVAL);
+	
+	//-- this is called directly from sNN
 	EXPORT void BFS2SFBfull(int barCnt, numtype* fromBFS, numtype* toSFB);
-	EXPORT void dump();
 
 private:
-	void sDataSet_pre();
-	void sDataSet_post();
+	void mallocs1();
+	void mallocs2();
+	void frees();
+	bool isSelected(int ts_f);
+	void SBF2BFS(int batchId, int barCnt, numtype* fromSBF, numtype* toBFS);
+	void BFS2SBF(int batchId, int barCnt, numtype* fromBFS, numtype* toSBF);
+	void BFS2SFB(int batchId, int barCnt, numtype* fromBFS, numtype* toSFB);
+	int BWfeaturesCnt=2;
 	bool doDump;
-
-} tDataSet;
+};

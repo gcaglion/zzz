@@ -1,6 +1,6 @@
 #include "sNN.h"
 
-sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_) {
+sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_, sCoreLogger* persistor_) : sCore(sCfgObjParmsVal, layout_, persistor_) {
 	
 	parms=NNparms_;
 
@@ -57,8 +57,8 @@ void sNN::setLayout(int batchSamplesCnt_) {
 
 
 	//-- 0.3. set nodesCnt (single sample)
-	nodesCnt[0] = layout->inputCnt*batchSamplesCnt_;
-	nodesCnt[outputLevel] = layout->outputCnt*batchSamplesCnt_;
+	nodesCnt[0] = layout->shape->sampleLen*layout->shape->featuresCnt*batchSamplesCnt_;
+	nodesCnt[outputLevel] = layout->shape->predictionLen*layout->shape->featuresCnt*batchSamplesCnt_;
 	for (nl = 0; nl<(parms->levelsCnt-2); nl++) nodesCnt[nl+1] = (int)floor(nodesCnt[nl]*parms->levelRatio[nl]);
 
 	//-- add context neurons
@@ -310,16 +310,13 @@ void sNN::BackwardPass(sDataSet* ds, int batchId, bool updateWeights) {
 	WUtimeTot+=((DWORD)(timeGetTime()-WUstart));
 
 }
-bool sNN::epochSummary(int epoch, DWORD starttime, bool displayProgress) {
+bool sNN::epochMetCriteria(int epoch, DWORD starttime, bool displayProgress) {
 	numtype tse_h;	// total squared error copid on host at the end of each eopch
 
 	Alg->d2h(&tse_h, tse, sizeof(numtype));
 	mseT[epoch]=tse_h/nodesCnt[outputLevel]/_batchCnt;
 	mseV[epoch]=0;	// TO DO !
-	if (displayProgress) {
-		gotoxy(0, trainArgs->screenLine); 
-		printf("\rTestId %3d, Process %6d, Thread %6d, Epoch %6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms", testid, pid, tid, epoch, mseT[epoch], mseV[epoch], (timeGetTime()-starttime));
-	}
+	if(displayProgress) printf("\rpid=%d, tid=%d, epoch %d, Training TSE=%f, MSE=%1.10f, duration=%d ms", pid, tid, epoch, tse_h, mseT[epoch], (timeGetTime()-starttime));
 	if (mseT[epoch]<parms->TargetMSE) return true;
 	if ((parms->StopOnDivergence && epoch>1&&mseT[epoch]>mseT[epoch-1])) return true;
 	if ((epoch%parms->NetSaveFreq)==0) {
@@ -328,18 +325,11 @@ bool sNN::epochSummary(int epoch, DWORD starttime, bool displayProgress) {
 
 	return false;
 }
-void sNN::train(sCoreTrainArgs* trainArgs_) {
+void sNN::train(sDataSet* trainSet) {
 	int l;
 	DWORD epoch_starttime;
 	DWORD training_starttime=timeGetTime();
 	int epoch, b;
-
-	//-- extract training arguments from trainArgs into local variables
-	trainArgs=trainArgs_;
-	sDataSet* trainSet = trainArgs->ds;
-	pid=trainArgs->pid;
-	tid=trainArgs->tid;
-	testid=trainArgs->testid;
 
 	//-- set private _batchCnt and _batchSize for the network from dataset
 	_batchCnt=trainSet->batchCnt;
@@ -352,8 +342,10 @@ void sNN::train(sCoreTrainArgs* trainArgs_) {
 	initNeurons();
 
 	//-- malloc mse[maxepochs], always host-side. We need to free them, first (see issue when running without training...)
-	free(mseT); mseT=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
-	free(mseV); mseV=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
+	//free(mseT); 
+	mseT=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
+	//free(mseV); 
+	mseV=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
 
 	//---- 0.2. Init W
 	for (l=0; l<(outputLevel); l++) Alg->VinitRnd(weightsCnt[l], &W[levelFirstWeight[l]], -1/sqrtf((numtype)nodesCnt[l]), 1/sqrtf((numtype)nodesCnt[l]), Alg->cuRandH);
@@ -385,7 +377,7 @@ void sNN::train(sCoreTrainArgs* trainArgs_) {
 		}
 
 		//-- 1.2. calc and display epoch MSE (for ALL batches), and check criteria for terminating training (targetMSE, Divergence)
-		if (epochSummary(epoch, epoch_starttime)) break;
+		if (epochMetCriteria(epoch, epoch_starttime)) break;
 
 	}
 	mseCnt=epoch-((epoch>parms->MaxEpochs)?1:0);
@@ -397,7 +389,7 @@ void sNN::train(sCoreTrainArgs* trainArgs_) {
 	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
 
 	//-- calc and display final epoch MSE
-	printf("\n"); epochSummary(mseCnt-1, epoch_starttime); printf("\n");
+	printf("\n"); epochMetCriteria(mseCnt-1, epoch_starttime); printf("\n");
 
 
 /*	float elapsed_tot=(float)timeGetTime()-(float)training_starttime;

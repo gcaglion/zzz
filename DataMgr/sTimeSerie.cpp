@@ -1,26 +1,181 @@
-//#include <vld.h>
 #include "sTimeSerie.h"
 
-//-- sTimeSerie, constructors / destructor
-void sTimeSerie::sTimeSeriecommon() {
+sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, char* date0_, int stepsCnt_, int dt_, int tsfCnt_, int* tsf_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+	strcpy_s(date0, DATE_FORMAT_LEN, date0_);
+	stepsCnt=stepsCnt_;
+	dt=dt_; 
+	tsfCnt=tsfCnt_; for (int i=0; i<tsfCnt; i++) tsf[i]=tsf_[i];
+	sourceData=sourceData_;
 
-	len=steps*featuresCnt;
-	dmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	dmax=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	for (int f=0; f<featuresCnt; f++) {
-		dmin[f]=1e8; dmax[f]=-1e8;
-	}
-	scaleM=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	scaleP=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	dtime=(char**)malloc(len*sizeof(char*)); for (int i=0; i<len; i++) dtime[i]=(char*)malloc(DATE_FORMAT_LEN);
-	bdtime=(char*)malloc(DATE_FORMAT_LEN);
-	d=(numtype*)malloc(len*sizeof(numtype));
-	bd=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	d_tr=(numtype*)malloc(len*sizeof(numtype));
-	d_trs=(numtype*)malloc(len*sizeof(numtype));
+	mallocs();
+}
+sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
+	date0=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
+	tsf=(int*)malloc(MAX_TSF_CNT*sizeof(int));
+	//-- 1. get Parameters
+	safecall(cfgKey, getParm, &date0, "Date0");
+	safecall(cfgKey, getParm, &stepsCnt, "HistoryLen");
+	safecall(cfgKey, getParm, &dt, "DataTransformation");
+	safecall(cfgKey, getParm, &tsf, "StatisticalFeatures", false, &tsfCnt);
+	safecall(cfgKey, getParm, &doDump, "Dump");
+	//-- 2. do stuff and spawn sub-Keys
+	setDataSource();
+	mallocs();
+	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
+	cfg->currentKey=bkpKey;
+}
+sTimeSerie::~sTimeSerie() {
+	frees();
 }
 
-void sTimeSerie::setDataSource(sCfg* cfg) {
+void sTimeSerie::load(char* date0_) {
+	if (date0_!=nullptr) strcpy_s(date0, DATE_FORMAT_LEN, date0_);
+	sourceData->load(date0, stepsCnt, dtime, val, bdtime, base);
+	if (doDump) dump();
+	transform();
+	if (doDump) dump();
+}
+void sTimeSerie::transform(int dt_) {
+	dt=(dt_==-1)?dt:dt_;
+	int curr=0;
+	for (int s=0; s<(stepsCnt); s++) {
+		for (int f=0; f<sourceData->featuresCnt; f++) {
+			switch (dt) {
+			case DT_NONE:
+				trval[curr]=val[curr];
+				break;
+			case DT_DELTA:
+				if (s==0) {
+					trval[curr]=val[curr]-base[f];
+				} else {
+					trval[curr]=val[curr]-val[(s-1)*sourceData->featuresCnt+f];
+				}
+				break;
+			case DT_LOG:
+				break;
+			case DT_DELTALOG:
+				break;
+			default:
+				break;
+			}
+
+			//-- min/max calc
+			if (trval[curr]<dmin[f]) dmin[f]=trval[curr];
+			if (trval[curr]>dmax[f]) dmax[f]=trval[curr];
+
+			curr++;
+		}
+	}
+	hasTR=true;
+}
+void sTimeSerie::scale(float scaleMin_, float scaleMax_) {
+
+	//if (!hasTR) fail("-- must transform before scaling! ---");
+
+	for (int f=0; f<sourceData->featuresCnt; f++) {
+		scaleM[f] = (scaleMin_==scaleMax_) ? 1 : ((scaleMax_-scaleMin_)/(dmax[f]-dmin[f]));
+		scaleP[f] = (scaleMin_==scaleMax_) ? 0 : (scaleMax_-scaleM[f]*dmax[f]);
+	}
+
+	for (int f=0; f<sourceData->featuresCnt; f++) {
+		for (int s=0; s<stepsCnt; s++) {
+			trsval[s*sourceData->featuresCnt+f]=trval[s*sourceData->featuresCnt+f]*scaleM[f]+scaleP[f];
+		}
+	}
+
+	hasTRS=true;
+}
+void sTimeSerie::dump() {
+	int s, f;
+
+	char suffix[12];
+	if (!hasTR) {
+		strcpy_s(suffix, 12, "BASE");
+	} else {
+		if (!hasTRS) {
+			strcpy_s(suffix, 12, "TR");
+		} else {
+			strcpy_s(suffix, 12, "TRS");
+		}
+	}
+	char dumpFileName[MAX_PATH];
+	sprintf_s(dumpFileName, "%s/%s_%s_%s_dump_%p.csv", dbg->outfilepath, name->base, date0, suffix, this);
+	FILE* dumpFile;
+	if (fopen_s(&dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
+
+	fprintf(dumpFile, "i, datetime");
+	for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",F%d_orig,F%d_tr,F%d_trs", f, f, f);
+	fprintf(dumpFile, "\n%d,%s", -1, dtime[0]);
+	for (f=0; f<sourceData->featuresCnt; f++) {
+		fprintf(dumpFile, ",%f", base[f]);
+		for (int ff=0; ff<(sourceData->featuresCnt-3); ff++) fprintf(dumpFile, ",");
+	}
+
+	for (s=0; s<stepsCnt; s++) {
+		fprintf(dumpFile, "\n%d, %s", s, dtime[s]);
+		for (f=0; f<sourceData->featuresCnt; f++) {
+			fprintf(dumpFile, ",%f", val[s*sourceData->featuresCnt+f]);
+			if (hasTR) {
+				fprintf(dumpFile, ",%f", trval[s*sourceData->featuresCnt+f]);
+			} else {
+				fprintf(dumpFile, ",");
+			}
+			if (hasTRS) {
+				fprintf(dumpFile, ",%f", trsval[s*sourceData->featuresCnt+f]);
+			} else {
+				fprintf(dumpFile, ",");
+			}
+		}
+	}
+	fprintf(dumpFile, "\n");
+
+	if (hasTR) {
+		fprintf(dumpFile, "\ntr-min:");
+		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",,,%f", dmin[f]);
+		fprintf(dumpFile, "\ntr-max:");
+		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",,,%f", dmax[f]);
+		fprintf(dumpFile, "\n");
+	}
+	if (hasTRS) {
+		fprintf(dumpFile, "\nscaleM:");
+		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",,,%f", scaleM[f]);
+		fprintf(dumpFile, "\nscaleP:");
+		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",,,%f", scaleP[f]);
+		fprintf(dumpFile, "\n");
+
+	}
+
+	fclose(dumpFile);
+
+}
+
+//-- private stuff
+void sTimeSerie::mallocs() {
+	len=stepsCnt*sourceData->featuresCnt;
+	hasTR=false; hasTRS=false;
+	dtime=(char**)malloc(len*sizeof(char*)); 
+	for (int i=0; i<len; i++) dtime[i]=(char*)malloc(DATE_FORMAT_LEN);
+	val=(numtype*)malloc(len*sizeof(numtype));
+	trval=(numtype*)malloc(len*sizeof(numtype));
+	trsval=(numtype*)malloc(len*sizeof(numtype));
+	base=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
+	dmin=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
+	dmax=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
+	scaleM=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
+	scaleP=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
+	for (int f=0; f<sourceData->featuresCnt; f++) { dmin[f]=1e9; dmax[f]=-1e9; }
+}
+void sTimeSerie::frees() {
+	for (int i=0; i<len; i++) free(dtime[i]); free(dtime);
+	free(val);
+	free(trval);
+	free(trsval);
+	free(base);
+	free(dmin);	free(dmax);
+	free(scaleM); free(scaleP);
+	free(tsf);
+}
+void sTimeSerie::setDataSource() {
 
 	bool found=false;
 	sFXDataSource* fxData;
@@ -32,14 +187,12 @@ void sTimeSerie::setDataSource(sCfg* cfg) {
 	if (found) {
 		safecall(cfg, setKey, "../"); //-- get back;
 		safespawn(fileData, newsname("File_DataSource"), defaultdbg, cfg, "File_DataSource", true);
-		featuresCnt=fileData->featuresCnt;
 		sourceData=fileData;
 	} else {
 		safecall(cfg, setKey, "FXDB_DataSource", true, &found);	//-- ignore error
 		if (found) {
 			safecall(cfg, setKey, "../"); //-- get back;
-			safespawn(fxData, newsname("FXDB_DataSource"), defaultdbg, cfg, "FXDB_DataSource", true);
-			featuresCnt=FXDATA_FEATURESCNT;
+			safespawn(fxData, newsname("FXDB_DataSource"), defaultdbg, cfg, "FXDB_DataSource", false);
 			sourceData=fxData;
 		} else {
 			safecall(cfg, setKey, "MT4_DataSource", true, &found);	//-- ignore error
@@ -50,209 +203,9 @@ void sTimeSerie::setDataSource(sCfg* cfg) {
 			}
 		}
 	}
-	if(!found) fail("No Valid DataSource Parameters Key found.");
+	if (!found) fail("No Valid DataSource Parameters Key found.");
 
 	//-- then, open
 	safecall(sourceData, open);
 
 }
-void sTimeSerie::load(char* date0_) {
-	//-- 1. set date0
-	strcpy_s(date0, DATE_FORMAT_LEN, date0_);
-	//-- 2. load data
-	safecall(sourceData, load, date0, steps, dtime, d, bdtime, bd);
-	//-- 3. transform
-	safecall(this, transform, dt);
-	//-- 4. dump
-	if (doDump) dump();
-}
-
-sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
-	tsf=(int*)malloc(MAX_TSF_CNT*sizeof(int));
-
-	//-- 1. common parameters
-	safecall(cfgKey, getParm, &steps, "HistoryLen");
-	safecall(cfgKey, getParm, &dt, "DataTransformation");
-	safecall(cfgKey, getParm, &BWcalc, "BWCalc");
-	safecall(cfgKey, getParm, &tsf, "StatisticalFeatures", false, &tsfCnt);
-	safecall(cfgKey, getParm, &doDump, "Dump");
-
-	//-- 2.1. Find, set, open DataSource
-	safecall(this, setDataSource, cfg);
-	//-- 2.2. common stuff (mallocs, ...)
-	sTimeSeriecommon();
-
-	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
-	cfg->currentKey=bkpKey;
-}
-sTimeSerie::~sTimeSerie() {
-	free(d);
-	free(bd);
-	free(d_trs);
-	free(d_tr);
-	for (int i=0; i<len; i++) free(dtime[i]);
-	free(dtime); free(bdtime);
-	free(tsf);
-}
-
-//-- sTimeSerie, other methods
-void sTimeSerie::dump() {
-	int s, f;
-
-	char dumpFileName[MAX_PATH];
-	sprintf_s(dumpFileName, "%s/%s_%s_dump.csv", dbg->outfilepath, name->base, date0);
-	FILE* dumpFile;
-	if (fopen_s(&dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-
-	fprintf(dumpFile, "i, datetime");
-	for (f=0; f<featuresCnt; f++) fprintf(dumpFile, ",F%d_orig,F%d_tr,F%d_trs", f, f, f);
-	fprintf(dumpFile, "\n%d,%s", -1, bdtime);
-	for (f=0; f<featuresCnt; f++) {
-		fprintf(dumpFile, ",%f", bd[f]);
-		for (int ff=0; ff<(featuresCnt-3); ff++) fprintf(dumpFile, ",");
-	}
-
-	for (s=0; s<steps; s++) {
-		fprintf(dumpFile, "\n%d, %s", s, dtime[s]);
-		for (f=0; f<featuresCnt; f++) {
-			fprintf(dumpFile, ",%f", d[s*featuresCnt+f]);
-			if (hasTR) {
-				fprintf(dumpFile, ",%f", d_tr[s*featuresCnt+f]);
-			} else {
-				fprintf(dumpFile, ",");
-			}
-			if (hasTRS) {
-				fprintf(dumpFile, ",%f", d_trs[s*featuresCnt+f]);
-			} else {
-				fprintf(dumpFile, ",");
-			}
-		}
-	}
-	fprintf(dumpFile, "\n");
-
-	if (hasTR) {
-		fprintf(dumpFile, "\ntr-min:");
-		for (f=0; f<featuresCnt; f++) fprintf(dumpFile, ",,,%f", dmin[f]);
-		fprintf(dumpFile, "\ntr-max:");
-		for (f=0; f<featuresCnt; f++) fprintf(dumpFile, ",,,%f", dmax[f]);
-		fprintf(dumpFile, "\n");
-	}
-	if (hasTRS) {
-		fprintf(dumpFile, "\nscaleM:");
-		for (f=0; f<featuresCnt; f++) fprintf(dumpFile, ",,,%f", scaleM[f]);
-		fprintf(dumpFile, "\nscaleP:");
-		for (f=0; f<featuresCnt; f++) fprintf(dumpFile, ",,,%f", scaleP[f]);
-		fprintf(dumpFile, "\n");
-
-		//fprintf(dumpFile, "scaleM:,,%f,,,%f,,,%f,,,%f,,,%f \n", scaleM[0], scaleM[1], scaleM[2], scaleM[3], scaleM[4]);
-		//fprintf(dumpFile, "scaleP:,,%f,,,%f,,,%f,,,%f,,,%f \n", scaleP[0], scaleP[1], scaleP[2], scaleP[3], scaleP[4]);
-	}
-
-	fclose(dumpFile);
-
-}
-void sTimeSerie::transform(int dt_) {
-	dt=dt_;
-	for (int s=0; s<steps; s++) {
-		for (int f=0; f<featuresCnt; f++) {
-			switch (dt) {
-			case DT_NONE:
-				break;
-			case DT_DELTA:
-				if (s>0) {
-					d_tr[s*featuresCnt+f]=d[s*featuresCnt+f]-d[(s-1)*featuresCnt+f];
-				} else {
-					d_tr[s*featuresCnt+f]=d[s*featuresCnt+f]-bd[f];
-				}
-				break;
-			case DT_LOG:
-				break;
-			case DT_DELTALOG:
-				break;
-			default:
-				break;
-			}
-			if (d_tr[s*featuresCnt+f]<dmin[f]) {
-				dmin[f]=d_tr[s*featuresCnt+f];
-			}
-			if (d_tr[s*featuresCnt+f]>dmax[f]) {
-				dmax[f]=d_tr[s*featuresCnt+f];
-			}
-		}
-	}
-
-	hasTR=true;
-}
-void sTimeSerie::scale(numtype scaleMin_, numtype scaleMax_) {
-	//-- ScaleMin/Max depend on the core, scaleM/P are specific for each feature
-
-	scaleMin=scaleMin_; scaleMax=scaleMax_;
-
-	if (!hasTR) fail("-- must transform before scaling! ---");
-
-	for (int f=0; f<featuresCnt; f++) {
-		scaleM[f] = (scaleMax-scaleMin)/(dmax[f]-dmin[f]);
-		scaleP[f] = scaleMax-scaleM[f]*dmax[f];
-	}
-
-	for (int s=0; s<steps; s++) {
-		for (int f=0; f<featuresCnt; f++) {
-			d_trs[s*featuresCnt+f]=d_tr[s*featuresCnt+f]*scaleM[f]+scaleP[f];
-		}
-	}
-
-	hasTRS=true;
-}
-void sTimeSerie::TrS(int dt_, numtype scaleMin_, numtype scaleMax_) {
-	dt=dt_;
-
-	int s, f;
-	//-- first, transform
-	for (s=0; s<steps; s++) {
-		for (f=0; f<featuresCnt; f++) {
-			//dbg->write(DBG_LEVEL_DET, ",%f", 1, d[s*featuresCnt+f]);
-			switch (dt) {
-			case DT_NONE:
-				break;
-			case DT_DELTA:
-				if (s>0) {
-					d_tr[s*featuresCnt+f]=d[s*featuresCnt+f]-d[(s-1)*featuresCnt+f];
-				} else {
-					d_tr[s*featuresCnt+f]=d[s*featuresCnt+f]-bd[f];
-				}
-				break;
-			case DT_LOG:
-				break;
-			case DT_DELTALOG:
-				break;
-			default:
-				break;
-			}
-			if (d_tr[s*featuresCnt+f]<dmin[f]) {
-				dmin[f]=d_tr[s*featuresCnt+f];
-			}
-			if (d_tr[s*featuresCnt+f]>dmax[f]) {
-				dmax[f]=d_tr[s*featuresCnt+f];
-			}
-		}
-	}
-
-
-	//-- then, scale. ScaleMin/Max depend on the core, scaleM/P are specific for each feature
-	for (f=0; f<featuresCnt; f++) {
-		scaleM[f] = (scaleMax_-scaleMin_)/(dmax[f]-dmin[f]);
-		scaleP[f] = scaleMax_-scaleM[f]*dmax[f];
-	}
-
-	for (s=0; s<steps; s++) {
-		for (f=0; f<featuresCnt; f++) {
-			d_trs[s*featuresCnt+f]=d_tr[s*featuresCnt+f]*scaleM[f]+scaleP[f];
-			//dbg->write(DBG_LEVEL_DET, "%d,%s,,,%f", 3, s, dtime[s], d_trs[s*featuresCnt+f]);
-		}
-		//dbg->write(DBG_LEVEL_DET, "\n", 0);
-	}
-
-}
-void sTimeSerie::unTrS(numtype scaleMin_, numtype scaleMax_) {
-}
-
