@@ -10,8 +10,10 @@
 
 struct sFXData : sDataSource {
 	sOraData* db;
-	char* Symbol = new char[FX_SYMBOL_MAXLEN];
-	char* TimeFrame = new char[FX_TIMEFRAME_MAXLEN];
+//	char* Symbol = new char[FX_SYMBOL_MAXLEN];
+//	char* TimeFrame = new char[FX_TIMEFRAME_MAXLEN];
+	char Symbol[XMLKEY_PARM_VAL_MAXLEN];
+	char TimeFrame[XMLKEY_PARM_VAL_MAXLEN];
 	bool IsFilled;
 
 	EXPORT sFXData(sCfgObjParmsDef, sOraData* db_, char* symbol_, char* tf_, bool isFilled_, bool autoOpen);

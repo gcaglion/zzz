@@ -7,6 +7,9 @@ sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), null
 	}
 sRoot::~sRoot() {}
 
+void sRoot::kaz3() {
+	s* s1= new s(nullptr, newsname("s1"), defaultdbg);
+}
 void sRoot::kaz2() {
 	sDataSet* ds1;
 	sTimeSerie* ts1;
@@ -115,8 +118,7 @@ void sRoot::tester() {
 				//-- 6.1.2. do training (also populates datasets)
 				safecall(forecaster->engine, train, s, forecaster->data->trainDS);
 				//-- 6.1.3. persist MSE logs
-				forecaster->engine->saveMSE();
-
+				safecall(forecaster->engine, saveMSE);
 			}
 			//-- 6.2. Inference
 			if (forecaster->data->doInference) {
@@ -125,7 +127,8 @@ void sRoot::tester() {
 				//-- 6.2.2. do training (also populates datasets)
 				safecall(forecaster->engine, infer, s, forecaster->data->testDS);
 			}
-
+			//-- 6.3 Commit persistor data
+			safecall(forecaster->engine, commit);
 		}
 
 		//-- 4.4 save logs (completely rivisited in Logger_Rehaul branch)

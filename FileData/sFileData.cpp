@@ -43,7 +43,9 @@ void sFileData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* ms
 void sFileData::saveRun(int pid, int tid, int setid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, numtype* prediction, numtype* actual) {
 	fail("not implemented.");
 }
-
+void sFileData::commit() {
+	close();
+}
 void sFileData::mallocs() {
 	fileFullName=(char**)malloc(filesCnt*sizeof(char*));
 	fileH=(FILE**)malloc(filesCnt*sizeof(FILE*));

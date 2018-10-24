@@ -187,6 +187,11 @@ void sEngine::saveMSE() {
 		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->trainArgs->pid, core[c]->trainArgs->tid, core[c]->mseCnt, core[c]->mseT, core[c]->mseV);
 	}
 }
+void sEngine::commit() {
+	for (int c=0; c<coresCnt; c++) {
+		safecall(core[c]->persistor, commit);
+	}
+}
 
 //-- private stuff
 void sEngine::setCoreLayer(sCoreLayout* cl) {

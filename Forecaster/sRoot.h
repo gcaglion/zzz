@@ -7,6 +7,24 @@
 #include "../DataMgr/sGenericDataSource.h"
 #include "../DataMgr/sMT4DataSource.h"
 
+struct sss : sObj {
+	sss(sObjParmsDef) : sObj(sObjParmsVal) {
+		fail("Failure");
+	}
+};
+struct ss : sObj {
+	sss* sss1;
+	ss(sObjParmsDef) : sObj(sObjParmsVal) {
+		sss1=new sss(this, newsname("sss1"), defaultdbg);
+	}
+};
+struct s : sObj {
+	ss* ss1;
+	s(sObjParmsDef) : sObj(sObjParmsVal) {
+		ss1=new ss(this, newsname("ss1"), defaultdbg);
+	}
+};
+
 struct sRoot : sObj {
 
 	sCfg* testerCfg;
@@ -19,6 +37,7 @@ struct sRoot : sObj {
 	EXPORT void tester();
 	EXPORT void kaz();
 	EXPORT void kaz2();
+	EXPORT void kaz3();
 
 private:
 	//-- variables

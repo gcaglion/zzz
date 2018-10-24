@@ -53,3 +53,11 @@ void sCoreLogger::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* 
 		safecall(file, saveMSE, pid, tid, mseCnt, mseT, mseV);
 	}
 }
+void sCoreLogger::commit() {
+	if (saveToDB) {
+		safecall(db, commit);
+	}
+	if (saveToFile) {
+		safecall(file, commit);
+	}
+}

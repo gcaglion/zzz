@@ -8,6 +8,7 @@ int main(int argc, char* argv[]) {
 	try {
 		root=new sRoot(argc, argv);	//-- always takes default debugger settings
 		root->tester();
+		//root->kaz3();
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");

@@ -20,6 +20,6 @@ struct sLogger : sCfgObj {
 	EXPORT sLogger(sCfgObjParmsDef);
 	EXPORT ~sLogger();
 
-	EXPORT void commit();
+	EXPORT virtual void commit(){}
 
 };

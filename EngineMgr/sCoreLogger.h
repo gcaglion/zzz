@@ -15,6 +15,7 @@ struct sCoreLogger : sLogger {
 
 	EXPORT void saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV);
 	EXPORT void saveRun();
+	EXPORT void commit();
 	//--
 	EXPORT void loadW(int pid, int tid, int epoch, int Wcnt, numtype* W);
 

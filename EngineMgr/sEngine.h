@@ -32,6 +32,7 @@ struct sEngine : sCfgObj {
 	EXPORT void train(int testid_, sDataSet* trainDS_);
 	EXPORT void infer(int testid_, sDataSet* testDS_);
 	EXPORT void saveMSE();
+	EXPORT void commit();
 
 private:
 	int pid;
