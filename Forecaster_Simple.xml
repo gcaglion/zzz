@@ -31,7 +31,7 @@
 					</FXDB_DataSource>
 				</TimeSerie>
 				BatchSamplesCount	= 10
-				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+				SelectedFeatures	= FXOPEN, FXHIGH
 				BarWidthCalc		= true
 				BarWidthFeatures	= 1,2
 				Dump 				= true

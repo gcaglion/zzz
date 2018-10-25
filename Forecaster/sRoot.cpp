@@ -88,9 +88,9 @@ void sRoot::tester() {
 		//-- 3.	get Simulation Length and start date[0]
 		safecall(testerCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
 		//--
-		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationTrainStartDate[s]=(char*)malloc(DATE_FORMAT_LEN);
-		simulationTestStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationTestStartDate[s]=(char*)malloc(DATE_FORMAT_LEN);
-		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationValidStartDate[s]=(char*)malloc(DATE_FORMAT_LEN);
+		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationTrainStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
+		simulationTestStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationTestStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
+		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationValidStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
 
 		//-- 4. spawn forecaster
 		safespawn(forecaster, newsname("mainForecaster"), defaultdbg, forecasterCfg, "/Forecaster");
