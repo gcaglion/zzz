@@ -70,7 +70,7 @@ void sTimeSerie::transform(int dt_) {
 	}
 	hasTR=true;
 }
-void sTimeSerie::scale(float scaleMin_, float scaleMax_) {
+void sTimeSerie::scale(float scaleMin_, float scaleMax_, numtype** oScaleM_, numtype** oScaleP_, numtype** oDmin_, numtype** oDmax_) {
 
 	//if (!hasTR) fail("-- must transform before scaling! ---");
 
@@ -84,6 +84,10 @@ void sTimeSerie::scale(float scaleMin_, float scaleMax_) {
 			trsval[s*sourceData->featuresCnt+f]=trval[s*sourceData->featuresCnt+f]*scaleM[f]+scaleP[f];
 		}
 	}
+	//-- copy scaleM/P pointers (with all sourcedata features) to dataset
+	(*oScaleM_)=scaleM; (*oScaleP_)=scaleP;
+	//-- copy dmin/dmax pointers (with all sourcedata features) to dataset
+	(*oDmin_)=dmin; (*oDmax_)=dmax;
 
 	hasTRS=true;
 }
@@ -160,6 +164,9 @@ void sTimeSerie::mallocs() {
 	val=(numtype*)malloc(len*sizeof(numtype));
 	trval=(numtype*)malloc(len*sizeof(numtype));
 	trsval=(numtype*)malloc(len*sizeof(numtype));
+	outval=(numtype*)malloc(len*sizeof(numtype));
+	outtrval=(numtype*)malloc(len*sizeof(numtype));
+	outtrsval=(numtype*)malloc(len*sizeof(numtype));
 	base=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
 	dmin=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
 	dmax=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
@@ -172,6 +179,9 @@ void sTimeSerie::frees() {
 	free(val);
 	free(trval);
 	free(trsval);
+	free(outval);
+	free(outtrval);
+	free(outtrsval);
 	free(base);
 	free(dmin);	free(dmax);
 	free(scaleM); free(scaleP);

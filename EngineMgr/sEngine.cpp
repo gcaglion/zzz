@@ -166,6 +166,10 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 				procArgs[t]->coreProcArgs->feature=procArgs[t]->coreProcArgs->ds->selectedFeature;
 				procArgs[t]->coreProcArgs->actual = procArgs[t]->coreProcArgs->ds->target0;
 				procArgs[t]->coreProcArgs->predicted = procArgs[t]->coreProcArgs->ds->prediction0;
+				procArgs[t]->coreProcArgs->actualTRS = procArgs[t]->coreProcArgs->ds->target0TRS;
+				procArgs[t]->coreProcArgs->predictedTRS = procArgs[t]->coreProcArgs->ds->prediction0TRS;
+				procArgs[t]->coreProcArgs->scaleM = procArgs[t]->coreProcArgs->ds->sourceTS->scaleM;
+				procArgs[t]->coreProcArgs->scaleP = procArgs[t]->coreProcArgs->ds->sourceTS->scaleP;
 
 				if (procid_==trainProc) {
 					procH[t] = CreateThread(NULL, 0, coreThreadTrain, &(*procArgs[t]), 0, tid[t]);
@@ -208,7 +212,10 @@ void sEngine::saveMSE() {
 }
 void sEngine::saveRun() {
 	for (int c=0; c<coresCnt; c++) {
-		if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->featuresCnt, core[c]->procArgs->feature, core[c]->procArgs->actual, core[c]->procArgs->predicted);
+		//-- first, un-transform and un-scale
+		core[c]->ds->unTRS();
+		//-- then, call persistor
+		if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->featuresCnt, core[c]->procArgs->feature, core[c]->procArgs->actualTRS, core[c]->procArgs->predictedTRS, core[c]->procArgs->actual, core[c]->procArgs->predicted);
 	}
 }
 void sEngine::commit() {

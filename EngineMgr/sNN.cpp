@@ -459,8 +459,8 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	//-- convert prediction from BFS to SFB (fol all batches at once)
 	runSet->BFS2SFBfull(runSet->predictionLen, runSet->predictionBFS, runSet->predictionSFB);
 	//-- extract first bar only from target/prediction SFB
-	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->predictionLen, runSet->targetSFB, 0, inferArgs->actual, true);
-	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->predictionLen, runSet->predictionSFB, 0, inferArgs->predicted, true);
+	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->predictionLen, runSet->targetSFB, 0, inferArgs->actualTRS, true);
+	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->predictionLen, runSet->predictionSFB, 0, inferArgs->predictedTRS, true);
 
 
 	//-- feee neurons()

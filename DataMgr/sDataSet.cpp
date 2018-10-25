@@ -33,6 +33,8 @@ sDataSet::~sDataSet() {
 	frees();
 }
 void sDataSet::build(float scaleMin_, float scaleMax_, int type) {
+	scaleMin=scaleMin_; scaleMax=scaleMax_;
+
 	numtype* v=nullptr;
 	switch (type) {
 	case VAL:	v=sourceTS->val; break;
@@ -46,8 +48,8 @@ void sDataSet::build(float scaleMin_, float scaleMax_, int type) {
 	si=0; ti=0;
 	tidx=0;
 
-	//-- scale timeserie data
-	sourceTS->scale(scaleMin_, scaleMax_);
+	//-- scale timeserie data, and save scaleM/P
+	sourceTS->scale(scaleMin, scaleMax, &scaleM, &scaleP, &dmin, &dmax);
 
 	//-- 2. populate sample[], target[] from sourceTS->d_tr
 	for (s=0; s<samplesCnt; s++) {
@@ -85,6 +87,16 @@ void sDataSet::build(float scaleMin_, float scaleMax_, int type) {
 	}
 
 	if (doDump) dump();
+
+}
+void sDataSet::unTRS() {
+	//-- 1. un-scale prediction0TRS to prediction0TR
+	for (int s=0; s<samplesCnt; s++) {
+		for (int f=0; f<selectedFeaturesCnt; f++) {
+			prediction0TR[s*selectedFeaturesCnt+f] = (prediction0TRS[s*selectedFeaturesCnt+f]-scaleP[selectedFeature[f]])/scaleM[selectedFeature[f]];
+		}
+	}
+	//-- 2. un-transform prediction0TR to prediction0
 
 }
 void sDataSet::dump(int type) {
@@ -176,6 +188,12 @@ void sDataSet::mallocs2() {
 	targetSFB=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
 	predictionSFB=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
 	//--
+	target0TRS=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
+	prediction0TRS=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
+	//--
+	target0TR=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
+	prediction0TR=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
+	//--
 	target0=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
 	prediction0=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
 }
@@ -185,6 +203,8 @@ void sDataSet::frees() {
 	free(targetSFB); free(predictionSFB);
 	free(selectedFeature);
 	free(target0); free(prediction0);
+	free(target0TR); free(prediction0TR);
+	free(target0TRS); free(prediction0TRS);
 }
 bool sDataSet::isSelected(int ts_f) {
 	for (int ds_f=0; ds_f<selectedFeaturesCnt; ds_f++) {

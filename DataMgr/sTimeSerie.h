@@ -28,6 +28,10 @@ struct sTimeSerie : sCfgObj {
 	numtype* val;
 	numtype* trval;
 	numtype* trsval;
+	//-- these are set at the end of inference
+	numtype* outval;
+	numtype* outtrval;
+	numtype* outtrsval;
 
 	//-- these are of size [featuresCnt]
 	char bdtime[DATE_FORMAT_LEN];
@@ -36,6 +40,7 @@ struct sTimeSerie : sCfgObj {
 	numtype* dmax;
 	numtype* scaleM;
 	numtype* scaleP;
+
 
 	//-- 
 	bool doDump;
@@ -47,7 +52,7 @@ struct sTimeSerie : sCfgObj {
 
 	EXPORT void load(char* date0_=nullptr);
 	EXPORT void transform(int dt_=-1);
-	EXPORT void scale(float scaleMin_, float scaleMax_);
+	EXPORT void scale(float scaleMin_, float scaleMax_, numtype** oScaleM_, numtype** oScaleP_, numtype** oDmin_, numtype** oDmax_);
 	EXPORT void dump();
 
 private:

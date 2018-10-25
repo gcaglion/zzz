@@ -11,6 +11,13 @@ struct sDataSet : sCfgObj {
 
 	sTimeSerie* sourceTS;
 
+	float scaleMin;
+	float scaleMax;
+	numtype* scaleM;
+	numtype* scaleP;
+	numtype* dmin;
+	numtype* dmax;
+
 	int sampleLen;
 	int predictionLen;
 
@@ -35,6 +42,12 @@ struct sDataSet : sCfgObj {
 	numtype* targetSFB;
 	numtype* predictionSFB;
 	//-- one-step only target+prediction (required by run() ) ???????
+	numtype* target0TRS;
+	numtype* prediction0TRS;
+	//-- same as above, un-scaled
+	numtype* target0TR;
+	numtype* prediction0TR;
+	//-- same as above, un-transformed and un-scaled
 	numtype* target0;
 	numtype* prediction0;
 
@@ -44,7 +57,8 @@ struct sDataSet : sCfgObj {
 
 	EXPORT void build(float scaleMin_=0, float scaleMax_=0, int type=TRSVAL);
 	EXPORT void dump(int type=TRSVAL);
-	
+	EXPORT void unTRS();
+
 	//-- this is called directly from sNN
 	EXPORT void BFS2SFBfull(int barCnt, numtype* fromBFS, numtype* toSFB);
 

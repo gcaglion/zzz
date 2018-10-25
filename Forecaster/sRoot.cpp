@@ -25,7 +25,7 @@ void sRoot::kaz2() {
 	ts1->dump();
 	ts1->transform(DT_DELTA);
 	ts1->dump();
-	ts1->scale(-1, 1);
+//	ts1->scale(-1, 1);
 	ts1->dump();
 
 	const int featcnt=4; int selfeat[featcnt] ={ 0,1,2,3 };
@@ -54,7 +54,7 @@ void sRoot::kaz() {
 	ts1->dump();
 	ts1->transform(DT_DELTA);
 	ts1->dump();
-	ts1->scale(-1, 1);
+//	ts1->scale(-1, 1);
 	ts1->dump();
 
 	const int dsFeaturesCnt=4; int dsFeatures[dsFeaturesCnt]={ 0,1,2,3 };
@@ -205,7 +205,7 @@ void sRoot::testDML() {
 			i++;
 		}
 	}
-	safecall(oradb1, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, prediction, actual);
+//	safecall(oradb1, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, prediction, actual);
 
 	int Wcnt=35150;
 	numtype* W = (numtype*)malloc(Wcnt*sizeof(numtype));
