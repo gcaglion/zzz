@@ -18,7 +18,7 @@ void sRoot::kaz2() {
 
 	fxdb1=new sOraData(this, newsname("fxdb1"), defaultdbg, "History", "HistoryPwd", "Algo", true);
 	fxsrc1=new sFXDataSource(this, newsname("fxsrc1"), defaultdbg, nullptr, nullptr, fxdb1, "EURUSD", "H1", false, true);
-	ts1=new sTimeSerie(this, newsname("ts1"), defaultdbg, fxsrc1, "201507010000", 100, DT_DELTA, 0, nullptr);
+	ts1=new sTimeSerie(this, newsname("ts1"), defaultdbg, fxsrc1, "201507010000", 102, DT_DELTA, 0, nullptr);
 	ts1->load();
 	ts1->dump();
 	//ts1->load("201608010000");
@@ -28,7 +28,7 @@ void sRoot::kaz2() {
 	ts1->scale(-1, 1);
 	ts1->dump();
 
-	const int featcnt=4; int selfeat[featcnt] ={ 0,1,2,3 };
+	const int featcnt=2; int selfeat[featcnt] ={ 0,1 };
 
 	ds1=new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 20, 3, 10, featcnt, selfeat, false);
 	ds1->build(0, 0, VAL);

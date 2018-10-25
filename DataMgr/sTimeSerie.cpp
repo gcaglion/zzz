@@ -1,7 +1,9 @@
 #include "sTimeSerie.h"
 
 sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, char* date0_, int stepsCnt_, int dt_, int tsfCnt_, int* tsf_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
-	strcpy_s(date0, DATE_FORMAT_LEN, date0_);
+	date0=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
+	tsf=(int*)malloc(MAX_TSF_CNT*sizeof(int));
+	strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, date0_);
 	stepsCnt=stepsCnt_;
 	dt=dt_; 
 	tsfCnt=tsfCnt_; for (int i=0; i<tsfCnt; i++) tsf[i]=tsf_[i];
@@ -29,7 +31,7 @@ sTimeSerie::~sTimeSerie() {
 }
 
 void sTimeSerie::load(char* date0_) {
-	if (date0_!=nullptr) strcpy_s(date0, DATE_FORMAT_LEN, date0_);
+	if (date0_!=nullptr) strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, date0_);
 	sourceData->load(date0, stepsCnt, dtime, val, bdtime, base);
 	if (doDump) dump();
 	transform();

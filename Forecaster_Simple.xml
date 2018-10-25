@@ -15,7 +15,7 @@
 			<DataSet>
 				<TimeSerie>
 					Date0				= 201707010000
-					HistoryLen			= 500
+					HistoryLen			= 502
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					Dump				= true

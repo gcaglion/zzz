@@ -64,6 +64,7 @@ void sDataSet::build(float scaleMin_, float scaleMax_, int type) {
 		}
 
 		//-- targets
+		tidx=sidx;
 		for (b=0; b<predictionLen; b++) {
 			for (f=0; f<sourceTS->sourceData->featuresCnt; f++) {
 				if (isSelected(f)) {
@@ -158,7 +159,7 @@ void sDataSet::mallocs1() {
 	BWfeature=(int*)malloc(BWfeaturesCnt*sizeof(int));
 }
 void sDataSet::mallocs2() {
-	samplesCnt=sourceTS->stepsCnt-sampleLen;
+	samplesCnt=sourceTS->stepsCnt-sampleLen-predictionLen+1;
 	if ((samplesCnt%batchSamplesCnt)!=0) {
 		fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", samplesCnt, batchSamplesCnt)
 	} else {

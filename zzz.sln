@@ -5,9 +5,7 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E75B537C-65C7-46B8-AD26-0154E6099D0C}"
 	ProjectSection(SolutionItems) = preProject
-		client.xml = client.xml
 		common.h = common.h
-		Forecaster.xml = Forecaster.xml
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ConfigMgr", "ConfigMgr\ConfigMgr.vcxproj", "{AE353517-C9AD-46A5-9D6D-E4647A635BC3}"
