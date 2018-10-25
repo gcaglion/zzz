@@ -8,7 +8,7 @@
 		<Shape>
 			SampleLen		= 100
 			PredictionLen	= 3
-			FeaturesCount	= 4
+			FeaturesCount	= 2
 		</Shape>
 		<Train>
 			Do	= true
@@ -21,7 +21,7 @@
 				Dump 				= true
 				<TimeSerie>
 					Date0				= 201707010000
-					HistoryLen			= 800
+					HistoryLen			= 802
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					Dump				= true
@@ -57,7 +57,7 @@
 			<DataSet>
 				<TimeSerie>
 					Date0				= 201607010000
-					HistoryLen			= 800
+					HistoryLen			= 802
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					Dump				= true
@@ -95,7 +95,7 @@
 					<Topology>
 						LevelRatio			= 0.5
 						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-						UseContext			= true
+						UseContext			= false
 						UseBias				= false
 					</Topology>
 					<Training>
@@ -147,7 +147,7 @@
 					<Topology>
 						LevelRatio			= 0.5
 						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-						UseContext			= true
+						UseContext			= false
 						UseBias				= false
 					</Topology>
 					<Training>

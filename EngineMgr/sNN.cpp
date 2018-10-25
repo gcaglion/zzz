@@ -439,20 +439,15 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 
 		//-- 1.1.1.  load samples/targets onto GPU
 		Alg->h2d(&F[(parms->useBias) ? 1 : 0], &runSet->sampleBFS[b*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
-		//safecall(Alg->h2d(&F[(parms->useBias) ? 1 : 0], &runSet->sampleBFS[b*layout->dataShape->inputCnt], layout->dataShape->inputCnt*sizeof(numtype), true));
 		Alg->h2d(&u[0], &runSet->targetBFS[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
-		//safecall(Alg->h2d(&u[0], &runSet->targetBFS[b*layout->dataShape->outputCnt], layout->dataShape->outputCnt*sizeof(numtype), true));
 
 		//-- 1.1.2. Feed Forward
-		//safecall(FF());
 		FF();
 
 		//-- 1.1.3. copy last layer neurons (on dev) to prediction (on host)
 		Alg->d2h(&runSet->predictionBFS[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
-		//safecall(Alg->d2h(&runSet->predictionBFS[b*layout->dataShape->outputCnt], &F[levelFirstNode[outputLevel]], layout->dataShape->outputCnt*sizeof(numtype)));
 
 		calcErr();
-		//safecall(calcErr());
 	}
 
 	//-- calc and display final epoch MSE
