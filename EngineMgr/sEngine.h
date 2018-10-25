@@ -30,11 +30,15 @@ struct sEngine : sCfgObj {
 	EXPORT ~sEngine();
 
 	EXPORT void train(int testid_, sDataSet* trainDS_);
-	EXPORT void infer(int testid_, sDataSet* testDS_);
+	EXPORT void infer(int testid_, sDataSet* inferDS_);
 	EXPORT void saveMSE();
+	EXPORT void saveRun();
 	EXPORT void commit();
 
 private:
 	int pid;
 	void setCoreLayer(sCoreLayout* cl);
+	const int trainProc = 0;
+	const int inferProc = 1;
+	void process(int procid_, int testid_, sDataSet* ds_);
 };

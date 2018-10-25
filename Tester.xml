@@ -5,7 +5,7 @@
 <Client>
 	SimulationLength 	= 1
 	TrainStartDate	 	= 201710310000
-	TestStartDate	 	= 201610310000
+	InferStartDate	 	= 201610310000
 	ValidationStartDate	= 201510310000
 	
 	<ParmsCombinations>

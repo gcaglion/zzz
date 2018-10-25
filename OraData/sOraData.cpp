@@ -226,7 +226,7 @@ void sOraData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mse
 	//stmt->setDataBuffer(5, mseV, OCCIFLOAT, sizeof(numtype), ntl);
 	
 }
-void sOraData::saveRun(int pid, int tid, int setid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, numtype* prediction, numtype* actual) {
+void sOraData::saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, numtype* actual, numtype* predicted) {
 
 	int runCnt=barsCnt*featuresCnt;
 	Statement* stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, SetId, NetProcessId, NetThreadId, Pos, FeatureId, PredictedTRS, ActualTRS, ErrorTRS) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10)");
@@ -237,14 +237,14 @@ void sOraData::saveRun(int pid, int tid, int setid, int npid, int ntid, int bars
 		for (int f=0; f<featuresCnt; f++) {
 			stmt->setInt(1, pid);
 			stmt->setInt(2, tid);
-			stmt->setInt(3, setid);
+			stmt->setInt(3, -1);
 			stmt->setInt(4, npid);
 			stmt->setInt(5, ntid);
 			stmt->setInt(6, b);
 			stmt->setInt(7, feature[f]);
-			stmt->setFloat(8, prediction[i]);
+			stmt->setFloat(8, predicted[i]);
 			stmt->setFloat(9, actual[i]);
-			stmt->setFloat(10, fabs(actual[i]-prediction[i]));
+			stmt->setFloat(10, fabs(actual[i]-predicted[i]));
 			i++;
 			if (i<(runCnt-1)) stmt->addIteration();
 		}

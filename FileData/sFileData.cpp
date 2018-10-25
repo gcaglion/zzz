@@ -40,7 +40,7 @@ void sFileData::getStartDates(sFileData* dateSource_, char* startDate_, int date
 void sFileData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
 	fail("not implemented.");
 }
-void sFileData::saveRun(int pid, int tid, int setid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, numtype* prediction, numtype* actual) {
+void sFileData::saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, numtype* actual, numtype* predicted) {
 	fail("not implemented.");
 }
 void sFileData::commit() {

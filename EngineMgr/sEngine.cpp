@@ -105,21 +105,26 @@ sEngine::~sEngine() {
 	free(layerCoresCnt);
 }
 
-DWORD __stdcall coreThreadTrain(LPVOID vargs_) {
-	sEngineTrainArgs* args = (sEngineTrainArgs*)vargs_;
-	args->core->train(args->coreTrainArgs);
+DWORD coreThreadTrain(LPVOID vargs_) {
+	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
+	args->core->train(args->coreProcArgs);
+	return 1;
+}
+DWORD coreThreadInfer(LPVOID vargs_) {
+	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
+	args->core->infer(args->coreProcArgs);
 	return 1;
 }
 
-void sEngine::train(int testid_, sDataSet* trainDS_) {
+void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 
 	int _pid=GetCurrentProcessId();
 	int t;
 	int ret = 0;
 	int threadsCnt;
-	HANDLE* HTrain;
-	sEngineTrainArgs** trainArgs;
-	void** trainDS;
+	HANDLE* procH;
+	sEngineProcArgs** procArgs;
+	void** ds;
 
 	HANDLE SMutex = CreateMutex(NULL, FALSE, NULL);
 
@@ -129,18 +134,18 @@ void sEngine::train(int testid_, sDataSet* trainDS_) {
 		threadsCnt=layerCoresCnt[l];
 		
 		//-- initialize layer-level structures
-		trainArgs=(sEngineTrainArgs**)malloc(threadsCnt*sizeof(sEngineTrainArgs*));
-		trainDS = (void**)malloc(threadsCnt*sizeof(sDataSet*));	
-		HTrain = (HANDLE*)malloc(threadsCnt*sizeof(HANDLE));
+		procArgs=(sEngineProcArgs**)malloc(threadsCnt*sizeof(sEngineProcArgs*));
+		ds = (void**)malloc(threadsCnt*sizeof(sDataSet*));	
+		procH = (HANDLE*)malloc(threadsCnt*sizeof(HANDLE));
 		DWORD* kaz = (DWORD*)malloc(threadsCnt*sizeof(DWORD));
 		LPDWORD* tid = (LPDWORD*)malloc(threadsCnt*sizeof(LPDWORD)); 
 		//--
 		for (t=0; t<threadsCnt; t++) {
-			trainArgs[t]=new sEngineTrainArgs();
+			procArgs[t]=new sEngineProcArgs();
 			tid[t] = &kaz[t];
-			//-- need to make a copy of trainDS for each core running concurrently in the layer
-			trainDS[t] = (void*)malloc(sizeof(*trainDS_));
-			memcpy_s(trainDS[t], sizeof(*trainDS_), trainDS_, sizeof(*trainDS_));
+			//-- need to make a copy of ds for each core running concurrently in the layer
+			ds[t] = (void*)malloc(sizeof(*ds_));
+			memcpy_s(ds[t], sizeof(*ds_), ds_, sizeof(*ds_));
 		}	
 		//--
 
@@ -150,41 +155,60 @@ void sEngine::train(int testid_, sDataSet* trainDS_) {
 			if (core[c]->layout->layer==l) {
 
 				//-- rebuild training DataSet for current Core
-				((sDataSet*)trainDS[t])->build(coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+				((sDataSet*)ds[t])->build(coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 
 				//-- Create Training Thread for current Core
-				trainArgs[t]->core=core[c];
-				trainArgs[t]->coreTrainArgs->ds = (sDataSet*)trainDS[t];
-				trainArgs[t]->coreTrainArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
+				procArgs[t]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
+				procArgs[t]->core=core[c];
+				procArgs[t]->coreProcArgs->ds = (sDataSet*)ds[t];
+				procArgs[t]->coreProcArgs->runCnt=procArgs[t]->coreProcArgs->ds->samplesCnt;
+				procArgs[t]->coreProcArgs->featuresCnt=procArgs[t]->coreProcArgs->ds->selectedFeaturesCnt;
+				procArgs[t]->coreProcArgs->feature=procArgs[t]->coreProcArgs->ds->selectedFeature;
+				procArgs[t]->coreProcArgs->actual = procArgs[t]->coreProcArgs->ds->target0;
+				procArgs[t]->coreProcArgs->predicted = procArgs[t]->coreProcArgs->ds->prediction0;
 
-				HTrain[t] = CreateThread(NULL, 0, coreThreadTrain, &(*trainArgs[t]), 0, tid[t]);
+				if (procid_==trainProc) {
+					procH[t] = CreateThread(NULL, 0, coreThreadTrain, &(*procArgs[t]), 0, tid[t]);
+				} else {
+					procH[t] = CreateThread(NULL, 0, coreThreadInfer, &(*procArgs[t]), 0, tid[t]);
+				}
 
 				//-- Store Engine Handler
-				trainArgs[t]->coreTrainArgs->pid = _pid;
-				trainArgs[t]->coreTrainArgs->tid=(*tid[t]);
-				trainArgs[t]->coreTrainArgs->testid=testid_;
+				procArgs[t]->coreProcArgs->pid = _pid;
+				procArgs[t]->coreProcArgs->tid=(*tid[t]);
+				procArgs[t]->coreProcArgs->testid=testid_;
 
 				//-- associate Training Args to current core
-				core[c]->trainArgs=trainArgs[t]->coreTrainArgs;
+				core[c]->procArgs=procArgs[t]->coreProcArgs;
 
 				t++;
 			}
 		}
 		//-- we need to train all the nets in one layer, in order to have the inputs to the next layer
-		WaitForMultipleObjects(t, HTrain, TRUE, INFINITE);
+		WaitForMultipleObjects(t, procH, TRUE, INFINITE);
 
 		//-- free(s)
 		for (t=0; t<threadsCnt; t++) {
-			free(trainArgs[t]); 
-			free(trainDS[t]);
+			free(procArgs[t]); 
+			free(ds[t]);
 		}
-		free(trainArgs); free(trainDS); free(HTrain); free(kaz); free(tid);
+		free(procArgs); free(ds); free(procH); free(kaz); free(tid);
 	}
 }
-void sEngine::infer(int testid_, sDataSet* testDS_){}
+void sEngine::train(int testid_, sDataSet* trainDS_) {
+	process(trainProc, testid_, trainDS_);
+}
+void sEngine::infer(int testid_, sDataSet* inferDS_) {
+	process(inferProc, testid_, inferDS_);
+}
 void sEngine::saveMSE() {
 	for (int c=0; c<coresCnt; c++) {
-		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->trainArgs->pid, core[c]->trainArgs->tid, core[c]->mseCnt, core[c]->mseT, core[c]->mseV);
+		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
+	}
+}
+void sEngine::saveRun() {
+	for (int c=0; c<coresCnt; c++) {
+		if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->featuresCnt, core[c]->procArgs->feature, core[c]->procArgs->actual, core[c]->procArgs->predicted);
 	}
 }
 void sEngine::commit() {

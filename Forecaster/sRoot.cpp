@@ -18,7 +18,7 @@ void sRoot::kaz2() {
 
 	fxdb1=new sOraData(this, newsname("fxdb1"), defaultdbg, "History", "HistoryPwd", "Algo", true);
 	fxsrc1=new sFXDataSource(this, newsname("fxsrc1"), defaultdbg, nullptr, nullptr, fxdb1, "EURUSD", "H1", false, true);
-	ts1=new sTimeSerie(this, newsname("ts1"), defaultdbg, fxsrc1, "201507010000", 102, DT_DELTA, 0, nullptr);
+	ts1=new sTimeSerie(this, newsname("ts1"), defaultdbg, fxsrc1, "201507010000", 100, DT_DELTA, 0, nullptr);
 	ts1->load();
 	ts1->dump();
 	//ts1->load("201608010000");
@@ -28,7 +28,7 @@ void sRoot::kaz2() {
 	ts1->scale(-1, 1);
 	ts1->dump();
 
-	const int featcnt=2; int selfeat[featcnt] ={ 0,1 };
+	const int featcnt=4; int selfeat[featcnt] ={ 0,1,2,3 };
 
 	ds1=new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 20, 3, 10, featcnt, selfeat, false);
 	ds1->build(0, 0, VAL);
@@ -72,7 +72,7 @@ void sRoot::tester() {
 
 	int simulationLength;
 	char** simulationTrainStartDate;
-	char** simulationTestStartDate;
+	char** simulationInferStartDate;
 	char** simulationValidStartDate;
 	sClientLogger* testerPersistor;
 
@@ -89,7 +89,7 @@ void sRoot::tester() {
 		safecall(testerCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
 		//--
 		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationTrainStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
-		simulationTestStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationTestStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
+		simulationInferStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationInferStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
 		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationValidStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
 
 		//-- 4. spawn forecaster
@@ -101,8 +101,8 @@ void sRoot::tester() {
 			getStartDates(forecaster->data->trainDS, simulationTrainStartDate[0], simulationLength, simulationTrainStartDate);
 		}
 		if (forecaster->data->doInference) {
-			safecall(testerCfg->currentKey, getParm, &simulationTestStartDate[0], "Client/TestStartDate");
-			getStartDates(forecaster->data->testDS, simulationTestStartDate[0], simulationLength, simulationTestStartDate);
+			safecall(testerCfg->currentKey, getParm, &simulationInferStartDate[0], "Client/InferStartDate");
+			getStartDates(forecaster->data->testDS, simulationInferStartDate[0], simulationLength, simulationInferStartDate);
 		}
 		if (forecaster->data->doValidation) {
 			safecall(testerCfg->currentKey, getParm, &simulationValidStartDate[0], "Client/ValidationStartDate");
@@ -123,9 +123,11 @@ void sRoot::tester() {
 			//-- 6.2. Inference
 			if (forecaster->data->doInference) {
 				//-- 6.2.1. set date0 in testDS->TimeSerie, and load it
-				forecaster->data->testDS->sourceTS->load(simulationTestStartDate[s]);
+				forecaster->data->testDS->sourceTS->load(simulationInferStartDate[s]);
 				//-- 6.2.2. do training (also populates datasets)
 				safecall(forecaster->engine, infer, s, forecaster->data->testDS);
+				//-- 6.2.3. persist Run logs
+				safecall(forecaster->engine, saveRun);
 			}
 			//-- 6.3 Commit persistor data
 			safecall(forecaster->engine, commit);
@@ -170,9 +172,9 @@ void sRoot::CLoverride(int argc, char* argv[]) {
 void sRoot::testDML() {
 
 	sOraData* oradb1;
-	safespawn(oradb1, newsname("TestOraDB"), defaultdbg, "CULogUser", "LogPwd", "Algo", true);
+	safespawn(oradb1, newsname("InferOraDB"), defaultdbg, "CULogUser", "LogPwd", "Algo", true);
 	sOraData* oradb2;
-	safespawn(oradb2, newsname("TestOraHistory"), defaultdbg, "History", "HistoryPwd", "Algo", true);
+	safespawn(oradb2, newsname("InferOraHistory"), defaultdbg, "History", "HistoryPwd", "Algo", true);
 
 	int sdatecnt=10;
 	char** sdate=(char**)malloc(sdatecnt*sizeof(char*)); for (int i=0; i<sdatecnt; i++) sdate[i]=(char*)malloc(DATE_FORMAT_LEN);
@@ -203,7 +205,7 @@ void sRoot::testDML() {
 			i++;
 		}
 	}
-	safecall(oradb1, saveRun, pid, tid, setid, npid, ntid, barsCnt, featuresCnt, feature, prediction, actual);
+	safecall(oradb1, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, prediction, actual);
 
 	int Wcnt=35150;
 	numtype* W = (numtype*)malloc(Wcnt*sizeof(numtype));
