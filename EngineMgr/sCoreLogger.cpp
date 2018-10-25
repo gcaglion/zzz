@@ -53,6 +53,14 @@ void sCoreLogger::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* 
 		safecall(file, saveMSE, pid, tid, mseCnt, mseT, mseV);
 	}
 }
+void sCoreLogger::saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, numtype* actual, numtype* predicted) {
+	if (saveToDB) {
+		safecall(db, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, actual, predicted);
+	}
+	if (saveToFile) {
+		safecall(file, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, actual, predicted);
+	}
+}
 void sCoreLogger::commit() {
 	if (saveToDB) {
 		safecall(db, commit);

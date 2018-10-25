@@ -13,8 +13,8 @@ struct sNN : sCore {
 	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
 	EXPORT ~sNN();
 
-	EXPORT void train(sCoreTrainArgs* trainArgs);
-	EXPORT void run(sDataSet* runSet);
+	EXPORT void train(sCoreProcArgs* trainArgs);
+	EXPORT void infer(sCoreProcArgs* inferArgs);
 
 private:
 	//-- MyAlgebra common structures
@@ -22,8 +22,7 @@ private:
 
 	//-- NNParms
 	sNNparms* parms;
-	sCoreTrainArgs* trainArgs;
-	int pid, tid, testid;	//-- these are set from either trainArgs or runArgs
+	int pid, tid, testid;	//-- these are set from either procArgs or runArgs
 
 	int* nodesCnt;
 	int nodesCntTotal;

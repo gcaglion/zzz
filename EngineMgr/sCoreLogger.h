@@ -14,7 +14,7 @@ struct sCoreLogger : sLogger {
 	bool saveImageFlag;
 
 	EXPORT void saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV);
-	EXPORT void saveRun();
+	EXPORT void saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, numtype* actual, numtype* predicted);
 	EXPORT void commit();
 	//--
 	EXPORT void loadW(int pid, int tid, int epoch, int Wcnt, numtype* W);

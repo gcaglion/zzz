@@ -13,9 +13,15 @@
 		<Train>
 			Do	= true
 			<DataSet>
+				BatchSamplesCount	= 10
+				#SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+				SelectedFeatures	= FXOPEN, FXHIGH
+				BarWidthCalc		= true
+				BarWidthFeatures	= 1,2
+				Dump 				= true
 				<TimeSerie>
 					Date0				= 201707010000
-					HistoryLen			= 500
+					HistoryLen			= 800
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					Dump				= true
@@ -30,11 +36,6 @@
 						</DBConnection>
 					</FXDB_DataSource>
 				</TimeSerie>
-				BatchSamplesCount	= 10
-				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-				BarWidthCalc		= true
-				BarWidthFeatures	= 1,2
-				Dump 				= true
 			</DataSet>
 		</Train>
 		<Validation>
@@ -52,13 +53,14 @@
 			</DataSet>
 		</Validation>
 		<Test>
-			Do	= false
+			Do	= true
 			<DataSet>
 				<TimeSerie>
-					HistoryLen			= 105
-					DataTransformation	= DT_DELTALOG
-					BWCalc				= true
+					Date0				= 201607010000
+					HistoryLen			= 800
+					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
+					Dump				= true
 					<FXDB_DataSource>
 						Symbol				= EURUSD
 						TimeFrame			= H1
@@ -70,9 +72,12 @@
 						</DBConnection>
 					</FXDB_DataSource>
 				</TimeSerie>
-				BatchSamplesCount	= 50
-				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-				BWFeatures			= 1,2
+				BatchSamplesCount	= 10
+				#SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+				SelectedFeatures	= FXOPEN, FXHIGH
+				BarWidthCalc		= true
+				BarWidthFeatures	= 1,2
+				Dump 				= true
 			</DataSet>
 		</Test>
 	</Data>

@@ -23,15 +23,15 @@ sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfg
 	Alg->myMalloc(&tse, 1);
 
 	//-- 4. we need to malloc these here (issue when running with no training...)
-	mseT=(numtype*)malloc(1*sizeof(numtype));
-	mseV=(numtype*)malloc(1*sizeof(numtype));
+	//procArgs->mseT=(numtype*)malloc(1*sizeof(numtype));
+	//procArgs->mseV=(numtype*)malloc(1*sizeof(numtype));
 
 }
 sNN::~sNN() {
 	Alg->myFree(se);
 	Alg->myFree(tse);
 
-	free(mseT); free(mseV);
+	free(procArgs->mseT); free(procArgs->mseV);
 
 	free(nodesCnt);
 	free(levelFirstNode);
@@ -314,28 +314,27 @@ bool sNN::epochSummary(int epoch, DWORD starttime, bool displayProgress) {
 	numtype tse_h;	// total squared error copid on host at the end of each eopch
 
 	Alg->d2h(&tse_h, tse, sizeof(numtype));
-	mseT[epoch]=tse_h/nodesCnt[outputLevel]/_batchCnt;
-	mseV[epoch]=0;	// TO DO !
+	procArgs->mseT[epoch]=tse_h/nodesCnt[outputLevel]/_batchCnt;
+	procArgs->mseV[epoch]=0;	// TO DO !
 	if (displayProgress) {
-		gotoxy(0, trainArgs->screenLine); 
-		printf("\rTestId %3d, Process %6d, Thread %6d, Epoch %6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms", testid, pid, tid, epoch, mseT[epoch], mseV[epoch], (timeGetTime()-starttime));
+		gotoxy(0, procArgs->screenLine); 
+		printf("\rTestId %3d, Process %6d, Thread %6d, Epoch %6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms", testid, pid, tid, epoch, procArgs->mseT[epoch], procArgs->mseV[epoch], (timeGetTime()-starttime));
 	}
-	if (mseT[epoch]<parms->TargetMSE) return true;
-	if ((parms->StopOnDivergence && epoch>1&&mseT[epoch]>mseT[epoch-1])) return true;
+	if (procArgs->mseT[epoch]<parms->TargetMSE) return true;
+	if ((parms->StopOnDivergence && epoch>1&&procArgs->mseT[epoch]>procArgs->mseT[epoch-1])) return true;
 	if ((epoch%parms->NetSaveFreq)==0) {
 		//-- TO DO ! (callback?)
 	}
 
 	return false;
 }
-void sNN::train(sCoreTrainArgs* trainArgs_) {
+void sNN::train(sCoreProcArgs* trainArgs) {
 	int l;
 	DWORD epoch_starttime;
 	DWORD training_starttime=timeGetTime();
 	int epoch, b;
 
 	//-- extract training arguments from trainArgs into local variables
-	trainArgs=trainArgs_;
 	sDataSet* trainSet = trainArgs->ds;
 	pid=trainArgs->pid;
 	tid=trainArgs->tid;
@@ -352,8 +351,8 @@ void sNN::train(sCoreTrainArgs* trainArgs_) {
 	initNeurons();
 
 	//-- malloc mse[maxepochs], always host-side. We need to free them, first (see issue when running without training...)
-	free(mseT); mseT=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
-	free(mseV); mseV=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
+	free(trainArgs->mseT); trainArgs->mseT=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
+	free(trainArgs->mseV); trainArgs->mseV=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
 
 	//---- 0.2. Init W
 	for (l=0; l<(outputLevel); l++) Alg->VinitRnd(weightsCnt[l], &W[levelFirstWeight[l]], -1/sqrtf((numtype)nodesCnt[l]), 1/sqrtf((numtype)nodesCnt[l]), Alg->cuRandH);
@@ -388,7 +387,7 @@ void sNN::train(sCoreTrainArgs* trainArgs_) {
 		if (epochSummary(epoch, epoch_starttime)) break;
 
 	}
-	mseCnt=epoch-((epoch>parms->MaxEpochs)?1:0);
+	trainArgs->mseCnt=epoch-((epoch>parms->MaxEpochs)?1:0);
 
 	//-- 2. test run. need this to make sure all batches pass through the net with the latest weights, and training targets
 	TRstart=timeGetTime(); TRcnt++;
@@ -397,11 +396,11 @@ void sNN::train(sCoreTrainArgs* trainArgs_) {
 	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
 
 	//-- calc and display final epoch MSE
-	printf("\n"); epochSummary(mseCnt-1, epoch_starttime); printf("\n");
+	printf("\n"); epochSummary(trainArgs->mseCnt-1, epoch_starttime); printf("\n");
 
 
 /*	float elapsed_tot=(float)timeGetTime()-(float)training_starttime;
-	float elapsed_avg=elapsed_tot/mseCnt;
+	float elapsed_avg=elapsed_tot/trainArgs->mseCnt;
 	printf("\nTraining complete. Elapsed time: %0.1f seconds. Epoch average=%0.0f ms.\n", (elapsed_tot/(float)1000), elapsed_avg);
 	LDtimeAvg=(float)LDtimeTot/LDcnt; printf("LD count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", LDcnt, (LDtimeTot/(float)1000), LDtimeAvg);
 	FFtimeAvg=(float)FFtimeTot/FFcnt; printf("FF count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FFcnt, (FFtimeTot/(float)1000), FFtimeAvg);
@@ -421,7 +420,9 @@ void sNN::train(sCoreTrainArgs* trainArgs_) {
 	destroyNeurons();
 
 }
-void sNN::run(sDataSet* runSet) {
+void sNN::infer(sCoreProcArgs* inferArgs) {
+
+	sDataSet* runSet=inferArgs->ds;	//-- just a local pointer
 
 	//-- set Neurons Layout based on batchSampleCount of run set
 	setLayout(runSet->batchSamplesCnt);
@@ -463,8 +464,8 @@ void sNN::run(sDataSet* runSet) {
 	//-- convert prediction from BFS to SFB (fol all batches at once)
 	runSet->BFS2SFBfull(runSet->predictionLen, runSet->predictionBFS, runSet->predictionSFB);
 	//-- extract first bar only from target/prediction SFB
-	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->predictionLen, runSet->targetSFB, 0, runSet->target0, true);
-	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->predictionLen, runSet->predictionSFB, 0, runSet->prediction0, true);
+	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->predictionLen, runSet->targetSFB, 0, inferArgs->actual, true);
+	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->predictionLen, runSet->predictionSFB, 0, inferArgs->predicted, true);
 
 
 	//-- feee neurons()

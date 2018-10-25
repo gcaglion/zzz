@@ -183,6 +183,7 @@ void sDataSet::frees() {
 	free(sampleBFS); free(targetBFS); free(predictionBFS);
 	free(targetSFB); free(predictionSFB);
 	free(selectedFeature);
+	free(target0); free(prediction0);
 }
 bool sDataSet::isSelected(int ts_f) {
 	for (int ds_f=0; ds_f<selectedFeaturesCnt; ds_f++) {
