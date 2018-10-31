@@ -25,9 +25,14 @@ struct sTimeSerie : sCfgObj {
 
 	//-- these are of size [len]
 	char** dtime;
-	numtype* val;
-	numtype* trval;
-	numtype* trsval;
+	//-- 'A' stands for Actual
+	numtype* valA;
+	numtype* trvalA;
+	numtype* trsvalA;
+	//-- 'P' stands for Predicted
+	numtype* valP;
+	numtype* trvalP;
+	numtype* trsvalP;
 
 	//-- these are of size [featuresCnt]
 	char bdtime[DATE_FORMAT_LEN];
@@ -39,20 +44,23 @@ struct sTimeSerie : sCfgObj {
 
 	//-- 
 	bool doDump;
+	char* dumpPath;
 
 	//--
-	EXPORT sTimeSerie(sObjParmsDef, sDataSource* sourceData_, char* date0_, int stepsCnt_, int dt_, int tsfCnt_, int* tsf_);
+	EXPORT sTimeSerie(sObjParmsDef, sDataSource* sourceData_, char* date0_, int stepsCnt_, int dt_, int tsfCnt_, int* tsf_, const char* dumpPath_=nullptr);
 	EXPORT sTimeSerie(sCfgObjParmsDef);
 	EXPORT ~sTimeSerie();
 
 	EXPORT void load(char* date0_=nullptr);
 	EXPORT void transform(int dt_=-1);
+	EXPORT void untransform();
 	EXPORT void scale(float scaleMin_, float scaleMax_);
-	EXPORT void dump();
+	EXPORT void dump(bool prediction_ = false);
 
 private:
 	bool hasTR, hasTRS;
-	void mallocs();
+	void mallocs1();
+	void mallocs2();
 	void frees();
 	void setDataSource();
 };

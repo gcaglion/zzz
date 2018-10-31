@@ -164,8 +164,8 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 				procArgs[t]->coreProcArgs->runCnt=procArgs[t]->coreProcArgs->ds->samplesCnt;
 				procArgs[t]->coreProcArgs->featuresCnt=procArgs[t]->coreProcArgs->ds->selectedFeaturesCnt;
 				procArgs[t]->coreProcArgs->feature=procArgs[t]->coreProcArgs->ds->selectedFeature;
-				procArgs[t]->coreProcArgs->actual = procArgs[t]->coreProcArgs->ds->target0;
-				procArgs[t]->coreProcArgs->predicted = procArgs[t]->coreProcArgs->ds->prediction0;
+				procArgs[t]->coreProcArgs->actual = procArgs[t]->coreProcArgs->ds->target0trs;
+				procArgs[t]->coreProcArgs->predicted = procArgs[t]->coreProcArgs->ds->prediction0trs;
 
 				if (procid_==trainProc) {
 					procH[t] = CreateThread(NULL, 0, coreThreadTrain, &(*procArgs[t]), 0, tid[t]);

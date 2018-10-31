@@ -66,6 +66,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "CUDAwrapper", "CUDAwrapper\CUDAwrapper.vcxproj", "{F0432EF9-9A71-4A19-A58D-0EF4191CFD18}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FileData", "FileData\FileData.vcxproj", "{635F197F-9933-4279-9DCD-FD5D7092AF44}"
+	ProjectSection(ProjectDependencies) = postProject
+		{AE353517-C9AD-46A5-9D6D-E4647A635BC3} = {AE353517-C9AD-46A5-9D6D-E4647A635BC3}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Logger", "Logger\Logger.vcxproj", "{2FA796DB-3BDD-4EBB-8CE1-8E165395264A}"
 EndProject

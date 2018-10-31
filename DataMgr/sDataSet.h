@@ -35,15 +35,16 @@ struct sDataSet : sCfgObj {
 	numtype* targetSFB;
 	numtype* predictionSFB;
 	//-- one-step only target+prediction (required by run() ) ???????
-	numtype* target0;
-	numtype* prediction0;
+	numtype* target0trs;
+	numtype* prediction0trs;
 
-	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_=nullptr);
+	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_=nullptr, const char* dumpPath_=nullptr);
 	EXPORT sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_);
 	EXPORT ~sDataSet();
 
 	EXPORT void build(float scaleMin_=0, float scaleMax_=0, int type=TRSVAL);
-	EXPORT void dump(int type=TRSVAL);
+	EXPORT void dump(int type=TRSVAL, bool prediction_=false);
+	EXPORT void unTRS();
 	
 	//-- this is called directly from sNN
 	EXPORT void BFS2SFBfull(int barCnt, numtype* fromBFS, numtype* toSFB);
@@ -58,4 +59,5 @@ private:
 	void BFS2SFB(int batchId, int barCnt, numtype* fromBFS, numtype* toSFB);
 	int BWfeaturesCnt=2;
 	bool doDump;
+	char* dumpPath;
 };

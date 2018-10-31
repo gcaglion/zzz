@@ -1,11 +1,16 @@
 #include "sDataSet.h"
 
-sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	sourceTS=sourceTS_; sampleLen=sampleLen_; predictionLen=predictionLen_; batchSamplesCnt=batchSamplesCnt_; selectedFeaturesCnt=selectedFeaturesCnt_; BWcalc=BWcalc_;
 	mallocs1();
 	for (int f=0; f<selectedFeaturesCnt; f++) selectedFeature[f]=selectedFeature_[f];
 	if (BWcalc_) {
 		BWfeature[0]=BWfeature_[0]; BWfeature[1]=BWfeature_[1];
+	}
+	if (dumpPath_!=nullptr) {
+		strcpy_s(dumpPath, MAX_PATH, dumpPath_);
+	} else {
+		strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	}
 
 	mallocs2();
@@ -21,6 +26,9 @@ sDataSet::sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_) : sCfgOb
 	safecall(cfgKey, getParm, &BWcalc, "BarWidthCalc");
 	safecall(cfgKey, getParm, &BWfeature, "BarWidthFeatures", false, &BWfeaturesCnt);
 	safecall(cfgKey, getParm, &doDump, "Dump");
+	//-- 0. default dump path is dbg outfilepath
+	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
+	safecall(cfgKey, getParm, &dumpPath, "DumpPath", true);
 	//-- 2. do stuff and spawn sub-Keys
 	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), defaultdbg, cfg, "TimeSerie");
 
@@ -35,9 +43,9 @@ sDataSet::~sDataSet() {
 void sDataSet::build(float scaleMin_, float scaleMax_, int type) {
 	numtype* v=nullptr;
 	switch (type) {
-	case VAL:	v=sourceTS->val; break;
-	case TRVAL: v=sourceTS->trval; break;
-	case TRSVAL:  v=sourceTS->trsval; break;
+	case VAL:	v=sourceTS->valA; break;
+	case TRVAL: v=sourceTS->trvalA; break;
+	case TRSVAL:  v=sourceTS->trsvalA; break;
 	}
 	if (v==nullptr) fail("invalid data type: %d", type);
 
@@ -84,18 +92,24 @@ void sDataSet::build(float scaleMin_, float scaleMax_, int type) {
 		BFS2SFB(b, predictionLen, targetBFS, targetSFB);
 	}
 
-	if (doDump) dump();
-
+	if (doDump)	dump();
 }
-void sDataSet::dump(int type) {
+void sDataSet::dump(int type, bool prediction_) {
 	int s, i, b, f;
 
-	char suffix[10];
-	if (type==VAL) strcpy_s(suffix, 10, "BASE");
-	if (type==TRVAL) strcpy_s(suffix, 10, "TR");
-	if (type==TRSVAL) strcpy_s(suffix, 10, "TRS");
+	char suffix1[10];
+	if (type==VAL) strcpy_s(suffix1, 10, "BASE");
+	if (type==TRVAL) strcpy_s(suffix1, 10, "TR");
+	if (type==TRSVAL) strcpy_s(suffix1, 10, "TRS");
+	char suffix2[12];
+	if (prediction_) {
+		strcpy_s(suffix2, 12, "PRD");
+	} else {
+		strcpy_s(suffix2, 12, "ACT");
+	}
+
 	char dumpFileName[MAX_PATH];
-	sprintf_s(dumpFileName, "%s/%s_%s_%s_dump_%p.csv", dbg->outfilepath, name->base, sourceTS->date0, suffix, this);
+	sprintf_s(dumpFileName, "%s/%s_%s_%s-%s_dump_%p.csv", dumpPath, name->base, sourceTS->date0, suffix1, suffix2, this);
 	FILE* dumpFile;
 	if (fopen_s(&dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
@@ -152,11 +166,35 @@ void sDataSet::dump(int type) {
 	}
 	fclose(dumpFile);
 }
+void sDataSet::unTRS() {
+
+	//-- un-scale first
+	int tsf;
+	int tsidx;
+	int dsidx;
+	for (int s=0; s<samplesCnt; s++) {
+		for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
+			tsf=selectedFeature[dsf];
+			tsidx= s*sourceTS->sourceData->featuresCnt+tsf;
+			dsidx=s*selectedFeaturesCnt+dsf;
+			// x=(y-p)/m
+			sourceTS->trvalP[tsidx] = (prediction0trs[dsidx]-sourceTS->scaleP[tsf])/sourceTS->scaleM[tsf];
+			sourceTS->trvalA[tsidx] = (target0trs[dsidx]-sourceTS->scaleP[tsf])/sourceTS->scaleM[tsf];
+		}
+	}
+
+	//-- un-transform
+	sourceTS->untransform();
+	if (doDump) sourceTS->dump(true);
+
+
+}
 
 //-- private stuff
 void sDataSet::mallocs1() {
 	selectedFeature=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
 	BWfeature=(int*)malloc(BWfeaturesCnt*sizeof(int));
+	dumpPath=(char*)malloc(MAX_PATH);
 }
 void sDataSet::mallocs2() {
 	samplesCnt=sourceTS->stepsCnt-sampleLen-predictionLen+1;
@@ -176,15 +214,16 @@ void sDataSet::mallocs2() {
 	targetSFB=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
 	predictionSFB=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
 	//--
-	target0=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
-	prediction0=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
+	target0trs=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
+	prediction0trs=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
 }
 void sDataSet::frees() {
 	free(sample); free(target); free(prediction);
 	free(sampleBFS); free(targetBFS); free(predictionBFS);
 	free(targetSFB); free(predictionSFB);
 	free(selectedFeature);
-	free(target0); free(prediction0);
+	free(target0trs); free(prediction0trs);
+	free(dumpPath);
 }
 bool sDataSet::isSelected(int ts_f) {
 	for (int ds_f=0; ds_f<selectedFeaturesCnt; ds_f++) {

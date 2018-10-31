@@ -19,12 +19,14 @@
 				BarWidthCalc		= true
 				BarWidthFeatures	= 1,2
 				Dump 				= true
+				DumpPath			= c:\temp\DataDump
 				<TimeSerie>
 					Date0				= 201707010000
 					HistoryLen			= 802
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					Dump				= true
+					DumpPath			= c:\temp\DataDump
 					<FXDB_DataSource>
 						Symbol				= EURUSD
 						TimeFrame			= H1
@@ -61,6 +63,7 @@
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					Dump				= true
+					DumpPath			= c:\temp\DataDump
 					<FXDB_DataSource>
 						Symbol				= EURUSD
 						TimeFrame			= H1
@@ -78,6 +81,7 @@
 				BarWidthCalc		= true
 				BarWidthFeatures	= 1,2
 				Dump 				= true
+				DumpPath			= c:\temp\DataDump
 			</DataSet>
 		</Test>
 	</Data>
