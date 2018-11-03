@@ -25,8 +25,10 @@ struct sCoreProcArgs {
 	int runCnt;
 	int featuresCnt;
 	int* feature;
-	numtype* actual;
-	numtype* predicted;
+	numtype* targetBFS;
+	numtype* predictionBFS;
+	numtype* targetSBF;
+	numtype* predictionSBF;
 };
 
 struct sCore : sCfgObj {

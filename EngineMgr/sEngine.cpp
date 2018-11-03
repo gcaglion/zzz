@@ -164,8 +164,10 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 				procArgs[t]->coreProcArgs->runCnt=procArgs[t]->coreProcArgs->ds->samplesCnt;
 				procArgs[t]->coreProcArgs->featuresCnt=procArgs[t]->coreProcArgs->ds->selectedFeaturesCnt;
 				procArgs[t]->coreProcArgs->feature=procArgs[t]->coreProcArgs->ds->selectedFeature;
-				procArgs[t]->coreProcArgs->actual = procArgs[t]->coreProcArgs->ds->target0trs;
-				procArgs[t]->coreProcArgs->predicted = procArgs[t]->coreProcArgs->ds->prediction0trs;
+				procArgs[t]->coreProcArgs->targetBFS = procArgs[t]->coreProcArgs->ds->targetBFS;
+				procArgs[t]->coreProcArgs->predictionBFS = procArgs[t]->coreProcArgs->ds->predictionBFS;
+				procArgs[t]->coreProcArgs->targetSBF = procArgs[t]->coreProcArgs->ds->targetSBF;
+				procArgs[t]->coreProcArgs->predictionSBF = procArgs[t]->coreProcArgs->ds->predictionSBF;
 
 				if (procid_==trainProc) {
 					procH[t] = CreateThread(NULL, 0, coreThreadTrain, &(*procArgs[t]), 0, tid[t]);
@@ -208,7 +210,10 @@ void sEngine::saveMSE() {
 }
 void sEngine::saveRun() {
 	for (int c=0; c<coresCnt; c++) {
-		if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->featuresCnt, core[c]->procArgs->feature, core[c]->procArgs->actual, core[c]->procArgs->predicted);
+		//-- infer() stores target/prediction as BSF. We need to convert both to BFS before saving
+		//core[c]->procArgs->targetBFS;
+		//core[c]->procArgs->predictionBFS;
+		if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->featuresCnt, core[c]->procArgs->feature, core[c]->procArgs->targetBFS, core[c]->procArgs->predictionBFS);
 	}
 }
 void sEngine::commit() {

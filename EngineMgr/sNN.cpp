@@ -456,13 +456,6 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	numtype mseR=tse_h/nodesCnt[outputLevel]/runSet->batchCnt;
 	printf("\npid=%d, tid=%d, Run final MSE=%1.10f\n", pid, tid, mseR);
 
-	//-- convert prediction from BFS to SFB (fol all batches at once)
-	runSet->BFS2SFBfull(runSet->predictionLen, runSet->predictionBFS, runSet->predictionSFB);
-	//-- extract first bar only from target/prediction SFB
-	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->predictionLen, runSet->targetSFB, 0, inferArgs->actual, true);
-	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->predictionLen, runSet->predictionSFB, 0, inferArgs->predicted, true);
-
-
 	//-- feee neurons()
 	destroyNeurons();
 }
