@@ -456,6 +456,10 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	numtype mseR=tse_h/nodesCnt[outputLevel]/runSet->batchCnt;
 	printf("\npid=%d, tid=%d, Run final MSE=%1.10f\n", pid, tid, mseR);
 
+	//-- convert target and prediction in runSet from BFS to SBF order
+	runSet->reorder(DStarget, BFSorder, SBForder);
+	runSet->reorder(DSprediction, BFSorder, SBForder);
+
 	//-- feee neurons()
 	destroyNeurons();
 }

@@ -85,11 +85,8 @@ void sDataSet::build(float scaleMin_, float scaleMax_, int type) {
 
 	}
 
-	//-- 3. populate SFB targets and BFS sample/target for every batch
-	for (b=0; b<batchCnt; b++) {
-		SBF2BFS(b, sampleLen, sampleSBF, sampleBFS);
-		SBF2BFS(b, predictionLen, targetSBF, targetBFS);
-	}
+	//-- 3. convert SBF to BFS samples and targets
+
 
 	if (doDump)	dump();
 }
@@ -165,6 +162,30 @@ void sDataSet::dump(int type, bool prediction_) {
 	}
 	fclose(dumpFile);
 }
+void sDataSet::reorder(int section, int FROMorderId, int TOorderId) {
+
+	int Bcnt=(section==DSsample)?sampleLen:predictionLen;
+	int Fcnt=selectedFeaturesCnt;
+	int Scnt=samplesCnt;
+
+	int idx[3];
+	int i, o;
+
+	for (int b=0; b<Bcnt; b++) {
+		for (int f=0; f<Fcnt; f++) {
+			for (int s=0; s<Scnt; s++) {
+
+				idx[SBForder]=s*Bcnt*Fcnt+b*Fcnt+f;
+				idx[BFSorder]=b*Fcnt*Scnt+f*Scnt+s;
+				idx[SFBorder]=s*Bcnt*Fcnt+f*Bcnt+b;
+
+				i=idx[FROMorderId]; o=idx[TOorderId];
+				_data[section][TOorderId][o] = _data[section][FROMorderId][i];
+
+			}
+		}
+	}
+}
 
 //-- private stuff
 void sDataSet::mallocs1() {
@@ -187,6 +208,13 @@ void sDataSet::mallocs2() {
 	sampleBFS=(numtype*)malloc(samplesCnt*sampleLen*selectedFeaturesCnt*sizeof(numtype));
 	targetBFS=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
 	predictionBFS=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+	//-- generic pointers
+	_data[DSsample][SBForder]=sampleSBF;
+	_data[DSsample][BFSorder]=sampleBFS;
+	_data[DStarget][SBForder]=targetSBF;
+	_data[DStarget][BFSorder]=targetBFS;
+	_data[DSprediction][SBForder]=predictionSBF;
+	_data[DSprediction][BFSorder]=predictionBFS;
 }
 void sDataSet::frees() {
 	free(sampleSBF); free(targetSBF); free(predictionSBF);
@@ -199,39 +227,4 @@ bool sDataSet::isSelected(int ts_f) {
 		if (selectedFeature[ds_f]==ts_f) return true;
 	}
 	return false;
-}
-void sDataSet::SBF2BFS(int batchId, int barCnt, numtype* fromSBF, numtype* toBFS) {
-	int S=batchSamplesCnt;
-	int F=selectedFeaturesCnt;
-	int B=barCnt;
-	int idx;
-	int idx0=batchId*B*F*S;
-	int i=idx0;
-	for (int bar=0; bar<B; bar++) {												// i1=bar	l1=B
-		for (int f=0; f<F; f++) {										// i2=f		l2=F
-			for (int s=0; s<S; s++) {										// i3=s		l3=S
-				idx=idx0+s*F*B+bar*F+f;
-				toBFS[i]=fromSBF[idx];
-				i++;
-			}
-		}
-	}
-}
-void sDataSet::BFS2SBF(int batchId, int barCnt, numtype* fromBFS, numtype* toSBF) {
-	int S=batchSamplesCnt;
-	int F=selectedFeaturesCnt;
-	int B=barCnt;
-	int idx;
-	int idx0=batchId*B*F*S;
-	int i=idx0;
-	for (int s=0; s<S; s++) {												// i1=s		l1=S
-		for (int bar=0; bar<B; bar++) {											// i2=bar	l1=B
-			for (int f=0; f<F; f++) {									// i3=f		l3=F
-				idx=idx0+bar*F*S+f*S+s;
-				toSBF[i]=fromBFS[idx];
-				i++;
-			}
-		}
-	}
-
 }

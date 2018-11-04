@@ -210,10 +210,7 @@ void sEngine::saveMSE() {
 }
 void sEngine::saveRun() {
 	for (int c=0; c<coresCnt; c++) {
-		//-- infer() stores target/prediction as BSF. We need to convert both to BFS before saving
-		//core[c]->procArgs->targetBFS;
-		//core[c]->procArgs->predictionBFS;
-		if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->featuresCnt, core[c]->procArgs->feature, core[c]->procArgs->targetBFS, core[c]->procArgs->predictionBFS);
+		if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->featuresCnt, core[c]->procArgs->feature, core[c]->procArgs->targetSBF, core[c]->procArgs->predictionSBF);
 	}
 }
 void sEngine::commit() {
