@@ -45,4 +45,5 @@ struct sDbg {
 };
 
 #define defaultdbg new sDbg(DEFAULT_DBG_VERBOSITY, DEFAULT_DBG_TO_SCREEN, DEFAULT_DBG_TO_FILE, DEFAULT_DBG_FPATH)
+#define erronlydbg new sDbg(false, DEFAULT_DBG_TO_SCREEN, DEFAULT_DBG_TO_FILE, DEFAULT_DBG_FPATH)
 #define clonedbg(fromDbg) new sDbg(fromDbg->verbose, fromDbg->dbgtoscreen, fromDbg->dbgtofile, fromDbg->outfilepath)

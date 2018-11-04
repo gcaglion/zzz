@@ -22,10 +22,6 @@ sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfg
 	Alg->myMalloc(&se, 1);
 	Alg->myMalloc(&tse, 1);
 
-	//-- 4. we need to malloc these here (issue when running with no training...)
-	//procArgs->mseT=(numtype*)malloc(1*sizeof(numtype));
-	//procArgs->mseV=(numtype*)malloc(1*sizeof(numtype));
-
 }
 sNN::~sNN() {
 	Alg->myFree(se);

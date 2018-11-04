@@ -86,7 +86,8 @@ void sDataSet::build(float scaleMin_, float scaleMax_, int type) {
 	}
 
 	//-- 3. convert SBF to BFS samples and targets
-
+	reorder(DSsample, SBForder, BFSorder);
+	reorder(DStarget, SBForder, BFSorder);
 
 	if (doDump)	dump();
 }

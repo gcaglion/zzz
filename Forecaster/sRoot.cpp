@@ -79,8 +79,8 @@ void sRoot::tester() {
 	try {
 
 		//-- 1. load tester and Forecaster XML configurations
-		safespawn(testerCfg, newsname("testerCfg_Root"), dbg, testerCfgFileFullName);
-		safespawn(forecasterCfg, newsname("forecasterCfg_Root"), dbg, forecasterCfgFileFullName);
+		safespawn(testerCfg, newsname("testerCfg_Root"), erronlydbg, testerCfgFileFullName);
+		safespawn(forecasterCfg, newsname("forecasterCfg_Root"), erronlydbg, forecasterCfgFileFullName);
 
 		//-- 2. create tester persistor
 		safespawn(testerPersistor, newsname("Client_Persistor"), defaultdbg, testerCfg, "/Client/Persistor");
