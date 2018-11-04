@@ -194,8 +194,9 @@ void sRoot::testDML() {
 
 	int setid=0, npid=pid, ntid=tid, barsCnt=1000, featuresCnt=4;
 	int feature[4]={ 0,1,2,3 };
-	numtype* prediction= (numtype*)malloc(barsCnt*featuresCnt*sizeof(numtype));
-	numtype* actual    = (numtype*)malloc(barsCnt*featuresCnt*sizeof(numtype));
+	int predictionLen=3;
+	numtype* prediction= (numtype*)malloc(barsCnt*predictionLen*featuresCnt*sizeof(numtype));
+	numtype* actual    = (numtype*)malloc(barsCnt*predictionLen*featuresCnt*sizeof(numtype));
 
 	int i=0;
 	for (int b=0; b<barsCnt; b++) {
@@ -205,7 +206,7 @@ void sRoot::testDML() {
 			i++;
 		}
 	}
-	safecall(oradb1, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, prediction, actual);
+	safecall(oradb1, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, predictionLen, prediction, actual);
 
 	int Wcnt=35150;
 	numtype* W = (numtype*)malloc(Wcnt*sizeof(numtype));
