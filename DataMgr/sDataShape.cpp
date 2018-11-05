@@ -1,6 +1,6 @@
 #include "sDataShape.h"
 
-sDataShape::sDataShape(sCfgObjParmsDef, int sampleLen_, int predictionLen_, int featuresCnt_) : sCfgObj(sCfgObjParmsVal) {
+sDataShape::sDataShape(sObjParmsDef, int sampleLen_, int predictionLen_, int featuresCnt_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	sampleLen=sampleLen_; predictionLen=predictionLen_; featuresCnt=featuresCnt_;
 }
 sDataShape::sDataShape(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {

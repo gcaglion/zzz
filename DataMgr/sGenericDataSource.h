@@ -10,8 +10,8 @@ struct sGenericDataSource : sDataSource {
 	int fieldSep;
 	int featuresCnt;
 
-	EXPORT sGenericDataSource(sCfgObjParmsDef, sFileData* file_, int fieldSep_=COMMA_SEPARATOR, bool calcBW_=false, int BWfeatureH_=1, int BWfeatureL_=2, bool autoOpen=true);
-	EXPORT sGenericDataSource(sCfgObjParmsDef, sOraData* db_, int fieldSep_=COMMA_SEPARATOR, bool calcBW_=false, int BWfeatureH_=1, int BWfeatureL_=2, bool autoOpen=true);
+	EXPORT sGenericDataSource(sObjParmsDef, sFileData* file_, int fieldSep_=COMMA_SEPARATOR, bool calcBW_=false, int BWfeatureH_=1, int BWfeatureL_=2, bool autoOpen=true);
+	EXPORT sGenericDataSource(sObjParmsDef, sOraData* db_, int fieldSep_=COMMA_SEPARATOR, bool calcBW_=false, int BWfeatureH_=1, int BWfeatureL_=2, bool autoOpen=true);
 	EXPORT sGenericDataSource(sCfgObjParmsDef, bool autoOpen);
 	EXPORT ~sGenericDataSource();
 

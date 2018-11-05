@@ -11,12 +11,15 @@
 
 struct sFXDataSource : sDataSource {
 
+	sOraData* oradb;
+	sFileData* filedb;
+
 	char* Symbol = new char[FX_SYMBOL_MAXLEN];
 	char* TimeFrame = new char[FX_TIMEFRAME_MAXLEN];
 	bool IsFilled;
 
-	EXPORT sFXDataSource(sCfgObjParmsDef, sOraData* db_, char* symbol_, char* tf_, bool isFilled_, bool autoOpen);
-	EXPORT sFXDataSource(sCfgObjParmsDef, sFileData* file_, char* symbol_, char* tf_, bool isFilled_, bool autoOpen);
+	EXPORT sFXDataSource(sObjParmsDef, sOraData* db_, char* symbol_, char* tf_, bool isFilled_, bool autoOpen);
+	EXPORT sFXDataSource(sObjParmsDef, sFileData* file_, char* symbol_, char* tf_, bool isFilled_, bool autoOpen);
 	EXPORT sFXDataSource(sCfgObjParmsDef, bool autoOpen);
 	EXPORT ~sFXDataSource();
 	

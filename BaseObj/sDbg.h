@@ -1,8 +1,9 @@
 #pragma once
 #include "../common.h"
 #include <stdio.h>
-#include "../Utils/Utils.h"
 #include "ObjDefs.h"
+#include "svard.h"
+#include "../Utils/Utils.h"
 
 #define DEFAULT_DBG_TO_SCREEN	true
 #define DEFAULT_DBG_TO_FILE		true
@@ -33,14 +34,47 @@ struct sDbg {
 	char* outfilepath;
 	char* outfilename;
 	char* outfilefullname;
-	FILE* outfile;
+	//--
 	char msg[DBG_MSG_MAXLEN];
 	char stack[DBG_STACK_MAXLEN];
 
-	EXPORT void out(int msgtype, const char* callerFunc_, int stackLevel_, char* msgMask_, ...);
 	EXPORT sDbg(bool verbose_, bool dbgtoscreen_, bool dbgtofile_, char* outfilepath_);
 	EXPORT ~sDbg();	
 	EXPORT void createOutFile(char* objName, void* objAddr, int objDepth);
+	//-- local copy of stripChar(), to avoid linkng Utils.lib to all modules that use sDbg
+	EXPORT void _stripChar(char* istr, char c);
+	EXPORT int _argcnt(const char* mask) {
+		int cnt=0;
+		for (int i=0; i<strlen(mask); i++) {
+			if (mask[i]==37) cnt++;
+		}
+		return cnt;
+	}
+
+
+	//EXPORT void out(int msgtype, const char* callerFunc_, int stackLevel_, char* msgMask_, ...);
+	template<class ...Args> EXPORT void out(int msgtype, const char* callerFunc_, int stackLevel_, char* msgMask_, Args... msgArgs) {
+
+		char tmpmsg[DBG_MSG_MAXLEN];
+		char indent[ObjMaxDepth]=""; for (int t=0; t<stackLevel_; t++) strcat_s(indent, ObjMaxDepth, "\t");
+
+		//-- build tmpmsg
+		sprintf_s(tmpmsg, DBG_MSG_MAXLEN, msgMask_, msgArgs...);
+		_stripChar(tmpmsg, '\n');
+		//-- build msg from tmpmsg
+		sprintf_s(msg, DBG_MSG_MAXLEN, "%s\n", tmpmsg);
+		strcat_s(stack, DBG_STACK_MAXLEN, msg);
+
+		//-- finally, out to selected destinations
+		if (dbgtoscreen) printf("%s%s", indent, msg);
+		if (dbgtofile && outfile!=nullptr) fprintf(outfile, "%s%s", indent, msg);
+
+	}
+
+private:
+	FILE* outfile;
+	svard* msgSvard;
+	
 
 };
 

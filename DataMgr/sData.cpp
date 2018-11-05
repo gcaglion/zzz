@@ -1,6 +1,6 @@
 #include "sData.h"
 
-sData::sData(sCfgObjParmsDef, sDataShape* shape_, sDataSet* trainDS_, sDataSet* testDS_, sDataSet* validDS_) : sCfgObj(sCfgObjParmsVal) {
+sData::sData(sObjParmsDef, sDataShape* shape_, sDataSet* trainDS_, sDataSet* testDS_, sDataSet* validDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	shape=shape_;
 	trainDS=trainDS_; testDS=testDS_; validDS=validDS_;
 }

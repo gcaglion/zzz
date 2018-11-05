@@ -32,7 +32,9 @@ void sOraData::open() {
 		if (conn==nullptr) conn = ((Environment*)env)->createConnection(DBUserName, DBPassword, DBConnString);
 	}
 	catch (SQLException exc) {
-		fail("%s FAILURE : %s . SQL Exception: %s", name->base, cmd, exc.what());
+		{ 
+			fail("%s FAILURE : %s", name->base, exc.what());
+		}
 	}
 
 }

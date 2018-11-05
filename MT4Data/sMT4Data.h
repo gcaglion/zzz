@@ -3,24 +3,23 @@
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
 
-#define FILE_MODE_READ		0
-#define FILE_MODE_WRITE		1
-#define FILE_MODE_APPEND	2
+#define MT4_MODE_READ	0
+#define MT4_MODE_WRITE	1
+#define MT4_MODE_APPEND	2
 
-struct sFileData : sCfgObj {
+struct sMT4Data : sCfgObj {
 
-	int filesCnt;
-	char** fileFullName;	// one file for each log (Client, MSE, Run, Internals, Image)
-	FILE** fileH;
+	int mt4sCnt;
+	char** mt4FullName;	// one mt4 for each log (Client, MSE, Run, Internals, Image)
+	FILE** mt4H;
 
-	EXPORT sFileData(sObjParmsDef, int openMode_, bool autoOpen_, int filesCnt_, char** fileFullName_);
-	EXPORT sFileData(sObjParmsDef, int openMode_, bool autoOpen_);
-	EXPORT sFileData(sCfgObjParmsDef);
-	EXPORT ~sFileData();
+	EXPORT sMT4Data(sObjParmsDef, int openMode_, bool autoOpen_);
+	EXPORT sMT4Data(sCfgObjParmsDef);
+	EXPORT ~sMT4Data();
 
 	EXPORT void open(int mode_);
 	EXPORT void close();
-	EXPORT void getStartDates(sFileData* dateSource_, char* startDate_, int datesCnt_, char** oDate_);
+	EXPORT void getStartDates(sMT4Data* dateSource_, char* startDate_, int datesCnt_, char** oDate_);
 
 	EXPORT void saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV);
 	EXPORT void saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, int predictionLen, numtype* actual, numtype* predicted);

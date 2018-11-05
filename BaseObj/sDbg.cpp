@@ -24,7 +24,6 @@ void sDbg::createOutFile(char* objName, void* objAddr, int objDepth) {
 	if (dbgtofile) {
 		
 		sprintf_s(outfilename, MAX_PATH, "%s(%p)_Dbg.%s", objName, objAddr, (verbose) ? "log" : "err");
-		//getFullFileName(outfilename, outfilefullname, outfilepath);
 		getFullPath(outfilename, outfilefullname, outfilepath);
 		if (fopen_s(&outfile, outfilefullname, "w")!=0) {
 			out(DBG_MSG_FAIL, __func__, objDepth, "Error %d creating file %s", errno, outfilefullname);
@@ -32,6 +31,7 @@ void sDbg::createOutFile(char* objName, void* objAddr, int objDepth) {
 		}
 	}
 }
+/*
 void sDbg::out(int msgtype, const char* callerFunc_, int stackLevel_, char* msgMask_, ...) {
 	if (msgtype==DBG_MSG_INFO&&!verbose) return;
 
@@ -51,4 +51,20 @@ void sDbg::out(int msgtype, const char* callerFunc_, int stackLevel_, char* msgM
 	if (dbgtofile && outfile!=nullptr) fprintf(outfile, "%s%s", indent, msg);
 
 }
+*/
 
+void sDbg::_stripChar(char* istr, char c) {
+	size_t ilen=strlen(istr);
+	char* ostr=(char*)malloc(ilen+1);
+	int ri=0;
+	for (int si=0; si<ilen; si++) {
+		if (istr[si]!=c) {
+			ostr[ri]=istr[si];
+			ri++;
+		}
+	}
+	ostr[ri]='\0';
+	memcpy_s(istr, ri, ostr, ri);
+	istr[ri]='\0';
+	free(ostr);
+}

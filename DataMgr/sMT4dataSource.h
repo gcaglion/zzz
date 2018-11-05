@@ -4,11 +4,13 @@
 #include "../ConfigMgr/sCfgObj.h"
 #include "../ConfigMgr/sCfg.h"
 #include "FXData_enums.h"
+#include "../MT4Data/sMT4Data.h"
 
-typedef struct sMT4DataSource : public sDataSource {
-	int accountId;	//-- sarca cosa mi serve qui...
+typedef struct sMT4DataSource : sDataSource {
 
-	EXPORT sMT4DataSource(sCfgObjParmsDef, int accountId_, bool autoOpen);
+	sMT4Data* mt4db;
+
+	EXPORT sMT4DataSource(sObjParmsDef, sMT4Data* mt4db_, bool autoOpen);
 	EXPORT sMT4DataSource(sCfgObjParmsDef, bool autoOpen);
 	EXPORT ~sMT4DataSource();
 
