@@ -13,7 +13,5 @@ int main(int argc, char* argv[]) {
 		terminate(false, "Exception thrown by root. See stack.");
 	}
 
-	delete root;
-
 	terminate(true, "");
 }
