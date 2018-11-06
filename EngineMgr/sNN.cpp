@@ -27,14 +27,14 @@ sNN::~sNN() {
 	Alg->myFree(se);
 	Alg->myFree(tse);
 
-	free(procArgs->mseT); free(procArgs->mseV);
+	//free(procArgs->mseT); free(procArgs->mseV);
 
 	free(nodesCnt);
 	free(levelFirstNode);
 	free(ctxStart);
 
 	free(weightsCnt);
-	free(levelFirstWeight);
+	//free(levelFirstWeight);	// 
 
 }
 

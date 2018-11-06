@@ -21,6 +21,12 @@ struct sLogger : sCfgObj {
 	EXPORT sLogger(sCfgObjParmsDef);
 	EXPORT ~sLogger();
 
-	EXPORT virtual void commit(){}
+	EXPORT virtual void open() {
+		if (saveToDB) safecall(oradb, open);
+		if (saveToFile) safecall(filedb, open, FILE_MODE_WRITE);
+		isOpen=true;
+	}
+	EXPORT virtual void commit() {}
 
+	bool isOpen = false;
 };

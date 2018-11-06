@@ -184,6 +184,8 @@ void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, ch
 	ResultSet *rset;
 	char sql[SQL_MAXLEN];
 
+	if (conn==nullptr) fail("DB Connection is closed. cannot continue.");
+
 	try {
 		sprintf_s(sql, SQL_MAXLEN, "select to_char(NewDateTime, 'YYYYMMDDHH24MI') from History.%s_%s%s where NewDateTime>=to_date('%s','YYYYMMDDHH24MI') order by 1", symbol_, timeframe_, (isFilled_)?"_FILLED ":"", StartDate);
 		stmt = ((Connection*)conn)->createStatement(sql);

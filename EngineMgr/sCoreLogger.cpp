@@ -48,6 +48,7 @@ void sCoreLogger::mallocs() {
 void sCoreLogger::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
 
 void sCoreLogger::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
+	if (!isOpen) open();
 	if (saveToDB) {
 		safecall(oradb, saveMSE, pid, tid, mseCnt, mseT, mseV);
 	}
@@ -56,6 +57,7 @@ void sCoreLogger::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* 
 	}
 }
 void sCoreLogger::saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, int predictionLen, numtype* actual, numtype* predicted) {
+	if (!isOpen) open();
 	if (saveToDB) {
 		safecall(oradb, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, predictionLen, actual, predicted);
 	}
@@ -64,6 +66,7 @@ void sCoreLogger::saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int
 	}
 }
 void sCoreLogger::commit() {
+	if (!isOpen) open();
 	if (saveToDB) {
 		safecall(oradb, commit);
 	}

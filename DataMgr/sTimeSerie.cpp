@@ -39,7 +39,7 @@ sTimeSerie::~sTimeSerie() {
 
 void sTimeSerie::load(char* date0_) {
 	if (date0_!=nullptr) strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, date0_);
-	sourceData->load(date0, stepsCnt, dtime, valA, bdtime, base);
+	safecall(sourceData, load, date0, stepsCnt, dtime, valA, bdtime, base);
 	transform();
 }
 void sTimeSerie::transform(int dt_) {
@@ -261,22 +261,4 @@ void sTimeSerie::setDataSource() {
 
 	//-- then, open
 	//safecall(sourceData, open);
-
-	cmdSvard=new svard(); 
-		sprintf_s(cmd, CmdMaxLen, "%s->%s(%s)", sourceData->name->base, Quote(open), cmdSvard->fullval); 
-		dbg->out(DBG_MSG_ERR, __func__, depth, "%s FAILURE : %s . Exception: %s", name->base, cmd, "ORacle error msg...");
-		throw std::exception(dbg->msg); 
-		
-		try {
-		
-			info("%s TRYING  : %s", name->base, cmd); 
-			sourceData->open(); 
-			info("%s SUCCESS : %s", name->base, cmd); 
-	}
-	catch (std::exception exc) {		
-		dbg->out(DBG_MSG_ERR, __func__, depth, "%s FAILURE : %s . Exception: %s", name->base, cmd, exc.what());
-		throw std::exception(dbg->msg);
-		//fail("%s FAILURE : %s . Exception: %s", name->base, cmd, exc.what()); 
-	}
-
 }
