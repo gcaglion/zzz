@@ -34,14 +34,18 @@ sObj::sObj(sObjParmsDef) {
 }
 
 sObj::~sObj() {
-	for (unsigned int c=0; c<child.size(); c++) {
-		delete child[c];
+	while (child.size()>0) {
+		delete child[child.size()-1];
 	}
 	delete name;
 	if (parent!=nullptr) {
 		if (dbg!=parent->dbg) delete dbg;	//-- to avoid a child deleting its parent's dbg
 	} else {
 		delete dbg;
+	}
+
+	if (parent!=nullptr) {
+		parent->child.pop_back();
 	}
 }
 

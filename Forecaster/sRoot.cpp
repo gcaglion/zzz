@@ -73,7 +73,7 @@ void sRoot::kaz4() {
 	sFXDataSource* fxdatasrc1; safespawn(fxdatasrc1, newsname("datasrc1"), defaultdbg, oradb1, "EURUSD", "H1", false);
 	const int TSFcnt=2; int TSF[TSFcnt]={ 1,2 };
 	sTimeSerie* ts1; safespawn(ts1, newsname("ts1"), defaultdbg, fxdatasrc1, "201608010000", 500, DT_DELTA, TSFcnt, TSF);
-	sTimeSerie* ts2; safespawn(ts2, newsname("ts2"), defaultdbg, fxdatasrc1, "201708010000", 500, DT_DELTA, TSFcnt, TSF);
+	//sTimeSerie* ts2; safespawn(ts2, newsname("ts2"), defaultdbg, fxdatasrc1, "201708010000", 500, DT_DELTA, TSFcnt, TSF);
 
 	/*const int selFcnt=2; int selF[selFcnt]={ 1,2 };
 	sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 100, 3, 10, selFcnt, selF, false);
