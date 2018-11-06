@@ -33,7 +33,9 @@ void sOraData::open() {
 	}
 	catch (SQLException exc) {
 		{ 
-			fail("%s FAILURE : %s", name->base, exc.what());
+			dbg->out(DBG_MSG_ERR, __func__, depth, "%s FAILURE : %s", name->base, exc.what()); 
+			throw std::exception(dbg->msg);
+			//fail("%s FAILURE : %s", name->base, exc.what());
 		}
 	}
 

@@ -1,6 +1,6 @@
 #include "sTimeSerie.h"
 
-sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, char* date0_, int stepsCnt_, int dt_, int tsfCnt_, int* tsf_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, int tsfCnt_, int* tsf_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	mallocs1();
 
 	strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, date0_);
@@ -28,7 +28,24 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	safecall(cfgKey, getParm, &dumpPath, "DumpPath", true);
 	//-- 2. do stuff and spawn sub-Keys
-	setDataSource();
+	sFXDataSource* fxData=nullptr; 
+	bool found;
+	safecall(cfg, setKey, "FXDB_DataSource", true, &found);	//-- ignore error
+	if (found) {
+
+		cfg->setKey("../");
+		safespawn(fxData, newsname("FXDB_DataSource"), defaultdbg, cfg, "FXDB_DataSource", false);
+		sourceData=fxData;
+	}
+	try {
+		fxData->oradb->open();
+	}
+	catch (std::exception exc) {
+		printf("%s\n", exc.what());
+		printf("%s\n", dbg->msg);
+		throw ;
+	}
+	//safecall(this, setDataSource);
 	mallocs2();
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
@@ -333,6 +350,23 @@ void sTimeSerie::setDataSource() {
 	if (!found) fail("No Valid DataSource Parameters Key found.");
 
 	//-- then, open
-	safecall(sourceData, open);
+	//safecall(sourceData, open);
+
+	cmdSvard=new svard(); 
+		sprintf_s(cmd, CmdMaxLen, "%s->%s(%s)", sourceData->name->base, Quote(open), cmdSvard->fullval); 
+		dbg->out(DBG_MSG_ERR, __func__, depth, "%s FAILURE : %s . Exception: %s", name->base, cmd, "ORacle error msg...");
+		throw std::exception(dbg->msg); 
+		
+		try {
+		
+			info("%s TRYING  : %s", name->base, cmd); 
+			sourceData->open(); 
+			info("%s SUCCESS : %s", name->base, cmd); 
+	}
+	catch (std::exception exc) {		
+		dbg->out(DBG_MSG_ERR, __func__, depth, "%s FAILURE : %s . Exception: %s", name->base, cmd, exc.what());
+		throw std::exception(dbg->msg);
+		//fail("%s FAILURE : %s . Exception: %s", name->base, cmd, exc.what()); 
+	}
 
 }

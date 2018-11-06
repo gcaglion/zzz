@@ -1,7 +1,22 @@
 #include "sDataSet.h"
 
 sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
-	sourceTS=sourceTS_; sampleLen=sampleLen_; predictionLen=predictionLen_; batchSamplesCnt=batchSamplesCnt_; selectedFeaturesCnt=selectedFeaturesCnt_; BWcalc=BWcalc_;
+
+
+	sourceTS=sourceTS_;
+/*	if (sourceTS_==nullptr) {
+		sOraData* oradb1; 
+		safespawn(oradb1, newsname("oradb1"), defaultdbg, "History", "HistoryDbg", "Algo", false);
+		safecall(oradb1, open);
+		sDataSource* datasrc1; 
+		safespawn(datasrc1, newsname("datasrc1"), defaultdbg, oradb1, 5, true, 1, 2);
+		sTimeSerie* ts1; 
+		safespawn(ts1, newsname("ts1"), defaultdbg, datasrc1, "201608010000", 500, DT_DELTA, 0, new int, "C:/temp/DataDump");
+	} else {
+		sourceTS=sourceTS_;
+	}
+*/
+	sampleLen=sampleLen_; predictionLen=predictionLen_; batchSamplesCnt=batchSamplesCnt_; selectedFeaturesCnt=selectedFeaturesCnt_; BWcalc=BWcalc_;
 	mallocs1();
 	for (int f=0; f<selectedFeaturesCnt; f++) selectedFeature[f]=selectedFeature_[f];
 	if (BWcalc_) {

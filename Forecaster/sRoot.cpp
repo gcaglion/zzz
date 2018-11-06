@@ -70,13 +70,14 @@ void sRoot::kaz() {
 void sRoot::kaz4() {
 	
 	sOraData* oradb1 = new sOraData(this, newsname("oradb1"), defaultdbg, "History", "HistoryDbg", "Algo", false);
-	oradb1->open();
+	//oradb1->open();
 
 
 	sDataSource* datasrc1 = new sDataSource(this, newsname("datasrc1"), defaultdbg, oradb1, 5, true, 1, 2);
-	sTimeSerie* ts1 = new sTimeSerie(this, newsname("ts1"), defaultdbg, datasrc1, "201608010000", 500, DT_DELTA, 0, nullptr);
+	//sTimeSerie* ts1 = new sTimeSerie(this, newsname("ts1"), defaultdbg, datasrc1, "201608010000", 500, DT_DELTA, 0, nullptr);
 	const int selFcnt=2; int selF[selFcnt]={ 1,2 };
-	sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 100, 3, 10, selFcnt, selF, false);
+
+	sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, nullptr, 100, 3, 10, selFcnt, selF, false);
 
 	sDataShape* dsp1 = new sDataShape(this, newsname("DataShape1"), defaultdbg, 100, 3, 2);
 	sData* data1 = new sData(this, newsname("data1"), defaultdbg, dsp1, ds1);
