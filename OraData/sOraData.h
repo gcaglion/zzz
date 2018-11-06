@@ -14,8 +14,8 @@
 
 struct sOraData : sCfgObj {
 
-	EXPORT sOraData(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_, bool autoOpen);
-	EXPORT sOraData(sCfgObjParmsDef, bool autoOpen);
+	EXPORT sOraData(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_);
+	EXPORT sOraData(sCfgObjParmsDef);
 	EXPORT ~sOraData();
 	//--
 	EXPORT void open();

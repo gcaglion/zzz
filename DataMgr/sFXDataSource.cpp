@@ -1,24 +1,28 @@
 #include "sFXDataSource.h"
 
 //=== sFXDataSource
-sFXDataSource::sFXDataSource(sObjParmsDef, sOraData* db_, char* symbol_, char* tf_, bool isFilled_, bool autoOpen) : sDataSource(sObjParmsVal, db_, FXDATA_FEATURESCNT, true, FXHIGH, FXLOW) {
+sFXDataSource::sFXDataSource(sObjParmsDef, sOraData* db_, const char* symbol_, const char* tf_, bool isFilled_) : sDataSource(sObjParmsVal, FXDATA_FEATURESCNT, true, FXHIGH, FXLOW) {
+	type=DB_SOURCE; oradb=db_;
+
 	strcpy_s(Symbol, FX_SYMBOL_MAXLEN, symbol_);
 	strcpy_s(TimeFrame, FX_TIMEFRAME_MAXLEN, tf_);
 	IsFilled=isFilled_;
 }
-sFXDataSource::sFXDataSource(sObjParmsDef, sFileData* file_, char* symbol_, char* tf_, bool isFilled_, bool autoOpen) : sDataSource(sObjParmsVal, file_, -99, false, NULL, NULL) {
+sFXDataSource::sFXDataSource(sObjParmsDef, sFileData* file_, const char* symbol_, const char* tf_, bool isFilled_) : sDataSource(sObjParmsVal, -99, false, NULL, NULL) {
+	type=FILE_SOURCE; filedb=file_;
+
 	strcpy_s(Symbol, FX_SYMBOL_MAXLEN, symbol_);
 	strcpy_s(TimeFrame, FX_TIMEFRAME_MAXLEN, tf_);
 	IsFilled=isFilled_;
 }
-sFXDataSource::sFXDataSource(sCfgObjParmsDef, bool autoOpen) : sDataSource(sCfgObjParmsVal) {
+sFXDataSource::sFXDataSource(sCfgObjParmsDef) : sDataSource(sCfgObjParmsVal) {
 
 	//-- 1. get Parameters
 	safecall(cfg->currentKey, getParm, &Symbol, "Symbol");
 	safecall(cfg->currentKey, getParm, &TimeFrame, "TimeFrame");
 	safecall(cfg->currentKey, getParm, &IsFilled, "IsFilled");
 	//-- 2. do stuff and spawn sub-Keys
-	safespawn(oradb, newsname("DBConnection"), defaultdbg, cfg, "DBConnection", autoOpen);
+	safespawn(oradb, newsname("DBConnection"), defaultdbg, cfg, "DBConnection");
 	//-- 3. Restore currentKey
 	cfg->currentKey=bkpKey;
 

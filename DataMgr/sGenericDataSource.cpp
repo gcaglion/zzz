@@ -1,18 +1,19 @@
 #include "sGenericDataSource.h"
 
 //=== sGenericDataSource
-sGenericDataSource::sGenericDataSource(sObjParmsDef, sFileData* file_, int fieldSep_, bool calcBW_, int BWfeatureH_, int BWfeatureL_, bool autoOpen) : sDataSource(sObjParmsVal, file_, NULL, calcBW_, BWfeatureH_, BWfeatureL_) {
-	fieldSep=fieldSep_; calcBW=calcBW_; BWfeatureH=BWfeatureH_; BWfeatureL=BWfeatureL_;
-	safecall(this, getFeaturesCnt, &featuresCnt);
-}
-sGenericDataSource::sGenericDataSource(sObjParmsDef, sOraData* db_, int fieldSep_, bool calcBW_, int BWfeatureH_, int BWfeatureL_, bool autoOpen) : sDataSource(sObjParmsVal, db_, NULL, calcBW_, BWfeatureH_, BWfeatureL_) {
-	fieldSep=fieldSep_; calcBW=calcBW_; BWfeatureH=BWfeatureH_; BWfeatureL=BWfeatureL_;
-	safecall(this, getFeaturesCnt, &featuresCnt);
-}
+sGenericDataSource::sGenericDataSource(sObjParmsDef, sFileData* file_, int fieldSep_, bool calcBW_, int BWfeatureH_, int BWfeatureL_) : sDataSource(sObjParmsVal, -99, calcBW_, BWfeatureH_, BWfeatureL_) {
+	type=FILE_SOURCE; filedb=file_;
 
-sGenericDataSource::sGenericDataSource(sCfgObjParmsDef, bool autoOpen) : sDataSource(sCfgObjParmsVal) {
-	if (autoOpen) open();
+	fieldSep=fieldSep_; calcBW=calcBW_; BWfeatureH=BWfeatureH_; BWfeatureL=BWfeatureL_;
+	safecall(this, getFeaturesCnt, &featuresCnt);
 }
+sGenericDataSource::sGenericDataSource(sObjParmsDef, sOraData* db_, int fieldSep_, bool calcBW_, int BWfeatureH_, int BWfeatureL_) : sDataSource(sObjParmsVal, -99, calcBW_, BWfeatureH_, BWfeatureL_) {
+	type=DB_SOURCE; oradb=db_;
+	
+	fieldSep=fieldSep_; calcBW=calcBW_; BWfeatureH=BWfeatureH_; BWfeatureL=BWfeatureL_;
+	safecall(this, getFeaturesCnt, &featuresCnt);
+}
+sGenericDataSource::sGenericDataSource(sCfgObjParmsDef) : sDataSource(sCfgObjParmsVal){}
 
 sGenericDataSource::~sGenericDataSource(){}
 

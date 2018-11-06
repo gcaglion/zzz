@@ -18,7 +18,7 @@ sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
 
 	safecall(cfgKey, getParm, &saveToDB, "saveToDB");
 	//-- spawn destination OraData
-	if (saveToDB) safespawn(oradb, newsname("Persistor_OraData"), defaultdbg, cfg, "DestOraData", true);
+	if (saveToDB) safespawn(oradb, newsname("Persistor_OraData"), defaultdbg, cfg, "DestOraData");
 
 	safecall(cfgKey, getParm, &saveToFile, "saveToFile");
 	//-- spawn destination FileData

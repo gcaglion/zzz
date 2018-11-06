@@ -11,18 +11,16 @@ struct sDataSource : sCfgObj {
 	int type;
 	sOraData* oradb;
 	sFileData* filedb;
-	sMT4Data* MT4db;
+	sMT4Data* mt4db;
 
 	int featuresCnt;
 	bool calcBW;
 	int BWfeatureH;
 	int BWfeatureL;
 
-	EXPORT sDataSource(sObjParmsDef, sOraData* oradb_, int featuresCnt_, bool calcBW_, int BWfeatureH_, int BWfeatureL_);
-	EXPORT sDataSource(sObjParmsDef, sFileData* filedb_, int featuresCnt_, bool calcBW_, int BWfeatureH_, int BWfeatureL_);
-	EXPORT sDataSource(sObjParmsDef, sMT4Data* MT4db_, int featuresCnt_, bool calcBW_, int BWfeatureH_, int BWfeatureL_);
-	EXPORT sDataSource(sCfgObjParmsDef);
-	EXPORT ~sDataSource();
+	sDataSource(sObjParmsDef, int featuresCnt_, bool calcBW_, int BWfeatureH_, int BWfeatureL_);
+	sDataSource(sCfgObjParmsDef);
+	virtual ~sDataSource();
 
 	virtual void getStartDates(char* date0_, int datesCnt_, char** oStartDates_){}
 	virtual void open() {}

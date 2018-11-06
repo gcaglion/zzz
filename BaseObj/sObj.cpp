@@ -36,8 +36,8 @@ sObj::sObj(sObjParmsDef) {
 }
 
 sObj::~sObj() {
-	for (int c=0; c<childrenCnt; c++) {
-		delete child[c];
+	while (childrenCnt>0) {
+		delete child[childrenCnt-1];
 	}
 	delete name;
 	if (parent!=nullptr) {
