@@ -37,6 +37,7 @@ sObj::sObj(sObjParmsDef) {
 
 sObj::~sObj() {
 	for (int c=0; c<childrenCnt; c++) {
+		printf("sObj destructor of %s deleting child[%d]: %s\n", this->name->full, c, child[c]->name->full);
 		delete child[c];
 	}
 	delete name;

@@ -13,4 +13,4 @@ sDataSource::sDataSource(sObjParmsDef, sMT4Data* MT4db_, int featuresCnt_, bool 
 }
 sDataSource::sDataSource(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {}
 
-sDataSource::~sDataSource() {}
+sDataSource::~sDataSource(){}

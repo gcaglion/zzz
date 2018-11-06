@@ -22,7 +22,7 @@ struct sDataSource : sCfgObj {
 	EXPORT sDataSource(sObjParmsDef, sFileData* filedb_, int featuresCnt_, bool calcBW_, int BWfeatureH_, int BWfeatureL_);
 	EXPORT sDataSource(sObjParmsDef, sMT4Data* MT4db_, int featuresCnt_, bool calcBW_, int BWfeatureH_, int BWfeatureL_);
 	EXPORT sDataSource(sCfgObjParmsDef);
-	EXPORT ~sDataSource();
+	EXPORT virtual ~sDataSource();
 
 	virtual void getStartDates(char* date0_, int datesCnt_, char** oStartDates_){}
 	virtual void open() {}

@@ -11,9 +11,6 @@
 
 struct sFXDataSource : sDataSource {
 
-	sOraData* oradb;
-	sFileData* filedb;
-
 	char* Symbol = new char[FX_SYMBOL_MAXLEN];
 	char* TimeFrame = new char[FX_TIMEFRAME_MAXLEN];
 	bool IsFilled;

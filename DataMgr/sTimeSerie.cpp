@@ -333,6 +333,6 @@ void sTimeSerie::setDataSource() {
 	if (!found) fail("No Valid DataSource Parameters Key found.");
 
 	//-- then, open
-	safecall(sourceData, open);
+	//safecall(sourceData, open);
 
 }

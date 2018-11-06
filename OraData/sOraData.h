@@ -35,6 +35,7 @@ struct sOraData : sCfgObj {
 private:
 	void* env = nullptr;
 	void* conn = nullptr;
+	bool isOpen = false;
 
 	char* DBUserName = new char[DBUSERNAME_MAXLEN];
 	char* DBPassword = new char[DBPASSWORD_MAXLEN];

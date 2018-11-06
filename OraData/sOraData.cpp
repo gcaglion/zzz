@@ -23,13 +23,18 @@ sOraData::sOraData(sCfgObjParmsDef, bool autoOpen) : sCfgObj(sCfgObjParmsVal) {
 
 }
 sOraData::~sOraData() {
-	close();
+	printf("sOraData Destructor called for %s\n", name->full);
+	if (isOpen) {
+		close();
+		isOpen=false;
+	}
 }
 
 void sOraData::open() {
 	try {
 		if(env==nullptr) env = Environment::createEnvironment();
 		if (conn==nullptr) conn = ((Environment*)env)->createConnection(DBUserName, DBPassword, DBConnString);
+		isOpen=true;
 	}
 	catch (SQLException exc) {
 		{ 
