@@ -42,7 +42,6 @@ struct sDbg {
 	EXPORT ~sDbg();	
 	EXPORT void createOutFile(char* objName, void* objAddr, int objDepth);
 	//-- local copy of stripChar(), to avoid linkng Utils.lib to all modules that use sDbg
-	EXPORT void _stripChar(char* istr, char c);
 	EXPORT int _argcnt(const char* mask) {
 		int cnt=0;
 		for (int i=0; i<strlen(mask); i++) {
@@ -60,7 +59,7 @@ struct sDbg {
 
 		//-- build tmpmsg
 		sprintf_s(tmpmsg, DBG_MSG_MAXLEN, msgMask_, msgArgs...);
-		_stripChar(tmpmsg, '\n');
+		stripChar(tmpmsg, '\n');
 		//-- build msg from tmpmsg
 		sprintf_s(msg, DBG_MSG_MAXLEN, "%s\n", tmpmsg);
 		strcat_s(stack, DBG_STACK_MAXLEN, msg);

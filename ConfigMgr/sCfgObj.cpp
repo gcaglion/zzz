@@ -16,5 +16,5 @@ sCfgObj::sCfgObj(sCfgObjParmsDef) : sObj(sObjParmsVal) {
 	}
 }
 sCfgObj::~sCfgObj() {
-	printf("sCfgObj Destructor called for %s\n", name->full);
+	//printf("sCfgObj Destructor called for %s\n", name->full);
 }

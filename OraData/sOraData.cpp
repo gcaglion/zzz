@@ -22,7 +22,7 @@ sOraData::sOraData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 }
 sOraData::~sOraData() {
-	printf("sOraData Destructor called for %s\n", name->full);
+	//printf("sOraData Destructor called for %s\n", name->full);
 	if (isOpen) {
 		close();
 		isOpen=false;
