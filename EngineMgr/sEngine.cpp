@@ -124,7 +124,7 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 	int threadsCnt;
 	HANDLE* procH;
 	sEngineProcArgs** procArgs;
-	void** ds;
+//	void** ds;
 
 	HANDLE SMutex = CreateMutex(NULL, FALSE, NULL);
 
@@ -135,7 +135,7 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 		
 		//-- initialize layer-level structures
 		procArgs=(sEngineProcArgs**)malloc(threadsCnt*sizeof(sEngineProcArgs*));
-		ds = (void**)malloc(threadsCnt*sizeof(sDataSet*));	
+		//ds = (void**)malloc(threadsCnt*sizeof(sDataSet*));	
 		procH = (HANDLE*)malloc(threadsCnt*sizeof(HANDLE));
 		DWORD* kaz = (DWORD*)malloc(threadsCnt*sizeof(DWORD));
 		LPDWORD* tid = (LPDWORD*)malloc(threadsCnt*sizeof(LPDWORD)); 
@@ -144,8 +144,8 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 			procArgs[t]=new sEngineProcArgs();
 			tid[t] = &kaz[t];
 			//-- need to make a copy of ds for each core running concurrently in the layer
-			ds[t] = (void*)malloc(sizeof(*ds_));
-			memcpy_s(ds[t], sizeof(*ds_), ds_, sizeof(*ds_));
+			//ds[t] = (void*)malloc(sizeof(*ds_));
+			//memcpy_s(ds[t], sizeof(*ds_), ds_, sizeof(*ds_));
 		}	
 		//--
 
@@ -155,12 +155,12 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 			if (core[c]->layout->layer==l) {
 
 				//-- rebuild training DataSet for current Core
-				((sDataSet*)ds[t])->build(coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+				ds_->build(coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 
 				//-- Create Training Thread for current Core
 				procArgs[t]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
 				procArgs[t]->core=core[c];
-				procArgs[t]->coreProcArgs->ds = (sDataSet*)ds[t];
+				procArgs[t]->coreProcArgs->ds = (sDataSet*)ds_;
 				procArgs[t]->coreProcArgs->runCnt=procArgs[t]->coreProcArgs->ds->samplesCnt;
 				procArgs[t]->coreProcArgs->featuresCnt=procArgs[t]->coreProcArgs->ds->selectedFeaturesCnt;
 				procArgs[t]->coreProcArgs->feature=procArgs[t]->coreProcArgs->ds->selectedFeature;
@@ -193,9 +193,11 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 		//-- free(s)
 		for (t=0; t<threadsCnt; t++) {
 			free(procArgs[t]); 
-			free(ds[t]);
+			//free(ds[t]);
 		}
-		free(procArgs); free(ds); free(procH); free(kaz); free(tid);
+		free(procArgs); 
+		//free(ds); 
+		free(procH); free(kaz); free(tid);
 	}
 }
 void sEngine::train(int testid_, sDataSet* trainDS_) {
@@ -210,8 +212,46 @@ void sEngine::saveMSE() {
 	}
 }
 void sEngine::saveRun() {
+	int dsidx;
+	int tsidx;
 	for (int c=0; c<coresCnt; c++) {
+
+		//-- 1. convert predictionBFS to predictionSBF
+		core[c]->procArgs->ds->reorder(DStarget, BFSorder, SBForder);
+
+		//-- 2. start from sample 1, take step 0 from predictionSBF, copy it into sourceTS->trsvalP
+		int Bcnt=core[c]->procArgs->ds->predictionLen;
+		int TFcnt=core[c]->procArgs->ds->sourceTS->sourceData->featuresCnt;
+		int DFcnt=core[c]->procArgs->ds->selectedFeaturesCnt;
+		int Scnt=core[c]->procArgs->ds->samplesCnt;
+		int layer=core[c]->layout->layer;
+
+		for (int b=0; b<Bcnt; b++) {
+				for (int s=0; s<Scnt; s++) {
+					for (int tf=0; tf<TFcnt; tf++) {
+						for (int df=0; df<TFcnt; df++) {
+							if (core[c]->procArgs->ds->selectedFeature[df]==tf) {
+
+								tsidx=core[c]->procArgs->ds->sampleLen*TFcnt+ s*Bcnt*TFcnt+b*TFcnt+tf;
+								dsidx=s*Bcnt*DFcnt+b*DFcnt+df;
+								core[c]->procArgs->ds->sourceTS->trsvalP[tsidx] = core[c]->procArgs->predictionSBF[dsidx];
+
+							}
+						}
+					}
+				}
+			}
+		//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
+		core[c]->procArgs->ds->sourceTS->unscale(coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], DFcnt, core[c]->procArgs->ds->selectedFeature, core[c]->procArgs->ds->sourceTS->trsvalP, core[c]->procArgs->ds->sourceTS->trvalP);
+		//-- 3.1. do also actual, just to check
+		core[c]->procArgs->ds->sourceTS->unscale(coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], DFcnt, core[c]->procArgs->ds->selectedFeature, core[c]->procArgs->ds->sourceTS->trsvalA, core[c]->procArgs->ds->sourceTS->trvalA);
+		//-- 4. sourceTS->untransform into valP
+		core[c]->procArgs->ds->sourceTS->untransform(core[c]->procArgs->ds->sourceTS->trvalP, core[c]->procArgs->ds->sourceTS->valP);
+		//-- 4.1. do also actual, just to check
+		core[c]->procArgs->ds->sourceTS->untransform(core[c]->procArgs->ds->sourceTS->trvalA, core[c]->procArgs->ds->sourceTS->valA);
+		//-- persist into runLog
 		if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->featuresCnt, core[c]->procArgs->feature, core[c]->procArgs->predictionLen, core[c]->procArgs->targetSBF, core[c]->procArgs->predictionSBF);
+		//if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun2, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->featuresCnt, core[c]->procArgs->feature, core[c]->procArgs->predictionLen, core[c]->procArgs->targetSBF, core[c]->procArgs->predictionSBF);
 	}
 }
 void sEngine::commit() {

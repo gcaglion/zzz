@@ -93,19 +93,19 @@ void sTimeSerie::scale(float scaleMin_, float scaleMax_) {
 
 	if (doDump) dump();
 }
-void sTimeSerie::untransform() {
+void sTimeSerie::untransform(numtype* fromData_, numtype* toData_) {
 	int curr=0;
 	for (int s=0; s<(stepsCnt); s++) {
 		for (int f=0; f<sourceData->featuresCnt; f++) {
 			switch (dt) {
 			case DT_NONE:
-				valP[curr]=trvalP[curr];
+				toData_[curr]=fromData_[curr];
 				break;
 			case DT_DELTA:
 				if (s==0) {
-					valP[curr]=trvalP[curr]+base[f];
+					toData_[curr]=fromData_[curr]+base[f];
 				} else {
-					valP[curr]=trvalP[curr]+valP[(s-1)*sourceData->featuresCnt+f];
+					toData_[curr]=fromData_[curr]+toData_[(s-1)*sourceData->featuresCnt+f];
 				}
 				break;
 			case DT_LOG:
@@ -119,6 +119,18 @@ void sTimeSerie::untransform() {
 			curr++;
 		}
 	}
+}
+void sTimeSerie::unscale(float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeatures_, numtype* fromData_, numtype* toData_) {
+
+	for (int f=0; f<sourceData->featuresCnt; f++) {
+		for (int s=0; s<stepsCnt; s++) {
+			toData_[s*sourceData->featuresCnt+f]=(fromData_[s*sourceData->featuresCnt+f]-scaleP[f])/scaleM[f];
+			//-- also do trvalA, just to be sure the process is accurate
+			toData_[s*sourceData->featuresCnt+f]=(fromData_[s*sourceData->featuresCnt+f]-scaleP[f])/scaleM[f];
+		}
+	}
+
+	if (doDump) dump();
 }
 void sTimeSerie::dump(bool prediction_) {
 	int s, f;
