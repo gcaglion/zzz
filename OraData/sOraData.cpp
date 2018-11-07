@@ -2,23 +2,22 @@
 #include "sOraDBcommon.h"
 #include <iostream>
 
-sOraData::sOraData(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_, bool autoOpen) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sOraData::sOraData(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	//-- 1. get Parameters
 	strcpy_s(DBUserName, DBUSERNAME_MAXLEN, DBUserName_);
 	strcpy_s(DBPassword, DBPASSWORD_MAXLEN, DBPassword_);
 	strcpy_s(DBConnString, DBCONNSTRING_MAXLEN, DBConnString_);
 	//-- 2. open connection
-	if(autoOpen) safecall(this, open);
+	//if(autoOpen) safecall(this, open);
 }
-sOraData::sOraData(sCfgObjParmsDef, bool autoOpen) : sCfgObj(sCfgObjParmsVal) {
+sOraData::sOraData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	//-- 1. get Parameters
 	safecall(cfgKey, getParm, &DBUserName, "UserName");
 	safecall(cfgKey, getParm, &DBPassword, "Password");
 	safecall(cfgKey, getParm, &DBConnString, "ConnString");
 	//-- 2. do stuff and spawn sub-Keys
-	if (autoOpen) safecall(this, open);	//-- open connection
-							//-- 3. Restore currentKey
+	//-- 3. Restore currentKey
 	cfg->currentKey=bkpKey;
 
 }
@@ -189,6 +188,8 @@ void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, ch
 	Statement* stmt=nullptr;
 	ResultSet *rset;
 	char sql[SQL_MAXLEN];
+
+	if (conn==nullptr) fail("DB Connection is closed. cannot continue.");
 
 	try {
 		sprintf_s(sql, SQL_MAXLEN, "select to_char(NewDateTime, 'YYYYMMDDHH24MI') from History.%s_%s%s where NewDateTime>=to_date('%s','YYYYMMDDHH24MI') order by 1", symbol_, timeframe_, (isFilled_)?"_FILLED ":"", StartDate);

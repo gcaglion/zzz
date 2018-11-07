@@ -1,6 +1,6 @@
 #include "sTimeSerie.h"
 
-sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, char* date0_, int stepsCnt_, int dt_, int tsfCnt_, int* tsf_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, int tsfCnt_, int* tsf_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	mallocs1();
 
 	strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, date0_);
@@ -28,7 +28,7 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	safecall(cfgKey, getParm, &dumpPath, "DumpPath", true);
 	//-- 2. do stuff and spawn sub-Keys
-	setDataSource();
+	safecall(this, setDataSource);
 	mallocs2();
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
@@ -39,7 +39,7 @@ sTimeSerie::~sTimeSerie() {
 
 void sTimeSerie::load(char* date0_) {
 	if (date0_!=nullptr) strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, date0_);
-	sourceData->load(date0, stepsCnt, dtime, valA, bdtime, base);
+	safecall(sourceData, load, date0, stepsCnt, dtime, valA, bdtime, base);
 	transform();
 }
 void sTimeSerie::transform(int dt_) {
@@ -93,19 +93,19 @@ void sTimeSerie::scale(float scaleMin_, float scaleMax_) {
 
 	if (doDump) dump();
 }
-void sTimeSerie::untransform() {
+void sTimeSerie::untransform(numtype* fromData_, numtype* toData_) {
 	int curr=0;
 	for (int s=0; s<(stepsCnt); s++) {
 		for (int f=0; f<sourceData->featuresCnt; f++) {
 			switch (dt) {
 			case DT_NONE:
-				valP[curr]=trvalP[curr];
+				toData_[curr]=fromData_[curr];
 				break;
 			case DT_DELTA:
 				if (s==0) {
-					valP[curr]=trvalP[curr]+base[f];
+					toData_[curr]=fromData_[curr]+base[f];
 				} else {
-					valP[curr]=trvalP[curr]+valP[(s-1)*sourceData->featuresCnt+f];
+					toData_[curr]=fromData_[curr]+toData_[(s-1)*sourceData->featuresCnt+f];
 				}
 				break;
 			case DT_LOG:
@@ -119,6 +119,18 @@ void sTimeSerie::untransform() {
 			curr++;
 		}
 	}
+}
+void sTimeSerie::unscale(float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeatures_, numtype* fromData_, numtype* toData_) {
+
+	for (int f=0; f<sourceData->featuresCnt; f++) {
+		for (int s=0; s<stepsCnt; s++) {
+			toData_[s*sourceData->featuresCnt+f]=(fromData_[s*sourceData->featuresCnt+f]-scaleP[f])/scaleM[f];
+			//-- also do trvalA, just to be sure the process is accurate
+			toData_[s*sourceData->featuresCnt+f]=(fromData_[s*sourceData->featuresCnt+f]-scaleP[f])/scaleM[f];
+		}
+	}
+
+	if (doDump) dump();
 }
 void sTimeSerie::dump(bool prediction_) {
 	int s, f;
@@ -190,80 +202,7 @@ void sTimeSerie::dump(bool prediction_) {
 	fclose(dumpFile);
 
 }
-/*void sTimeSerie::dump(bool prediction_) {
-	int s, f;
 
-	numtype* val = (prediction_) ? valP : valA;
-	numtype* trval = (prediction_) ? trvalP : trvalA;
-	numtype* trsval = (prediction_) ? trsvalP : trsvalA;
-
-	char suffix[12];
-	if (!hasTR) {
-		strcpy_s(suffix, 12, "BASE");
-	} else {
-		if (!hasTRS) {
-			strcpy_s(suffix, 12, "TR");
-		} else {
-			strcpy_s(suffix, 12, "TRS");
-		}
-	}
-	if (prediction_) {
-		strcat_s(suffix, 12, "-P");
-	} else {
-		strcat_s(suffix, 12, "-A");
-	}
-
-	char dumpFileName[MAX_PATH];
-	sprintf_s(dumpFileName, "%s/%s_%s_%s_dump_%p.csv", dbg->outfilepath, name->base, date0, suffix, this);
-	FILE* dumpFile;
-	if (fopen_s(&dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-
-	fprintf(dumpFile, "i, datetime");
-	for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",F%d_orig,F%d_tr,F%d_trs", f, f, f);
-	fprintf(dumpFile, "\n%d,%s", -1, dtime[0]);
-	for (f=0; f<sourceData->featuresCnt; f++) {
-		fprintf(dumpFile, ",%f", base[f]);
-		for (int ff=0; ff<(sourceData->featuresCnt-3); ff++) fprintf(dumpFile, ",");
-	}
-
-	for (s=0; s<stepsCnt; s++) {
-		fprintf(dumpFile, "\n%d, %s", s, dtime[s]);
-		for (f=0; f<sourceData->featuresCnt; f++) {
-			fprintf(dumpFile, ",%f", val[s*sourceData->featuresCnt+f]);
-			if (hasTR) {
-				fprintf(dumpFile, ",%f", trval[s*sourceData->featuresCnt+f]);
-			} else {
-				fprintf(dumpFile, ",");
-			}
-			if (hasTRS) {
-				fprintf(dumpFile, ",%f", trsval[s*sourceData->featuresCnt+f]);
-			} else {
-				fprintf(dumpFile, ",");
-			}
-		}
-	}
-	fprintf(dumpFile, "\n");
-
-	if (hasTR) {
-		fprintf(dumpFile, "\ntr-min:");
-		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",,,%f", dmin[f]);
-		fprintf(dumpFile, "\ntr-max:");
-		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",,,%f", dmax[f]);
-		fprintf(dumpFile, "\n");
-	}
-	if (hasTRS) {
-		fprintf(dumpFile, "\nscaleM:");
-		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",,,%f", scaleM[f]);
-		fprintf(dumpFile, "\nscaleP:");
-		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",,,%f", scaleP[f]);
-		fprintf(dumpFile, "\n");
-
-	}
-
-	fclose(dumpFile);
-
-}
-*/
 //-- private stuff
 void sTimeSerie::mallocs1(){
 	date0=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
@@ -307,25 +246,25 @@ void sTimeSerie::setDataSource() {
 	bool found=false;
 	sFXDataSource* fxData;
 	sGenericDataSource* fileData;
-	tMT4Data* mt4Data;
+	sMT4DataSource* mt4Data;
 
 	//-- first, find and set
 	safecall(cfg, setKey, "File_DataSource", true, &found);	//-- ignore error
 	if (found) {
 		safecall(cfg, setKey, "../"); //-- get back;
-		safespawn(fileData, newsname("File_DataSource"), defaultdbg, cfg, "File_DataSource", true);
+		safespawn(fileData, newsname("File_DataSource"), defaultdbg, cfg, "File_DataSource");
 		sourceData=fileData;
 	} else {
 		safecall(cfg, setKey, "FXDB_DataSource", true, &found);	//-- ignore error
 		if (found) {
 			safecall(cfg, setKey, "../"); //-- get back;
-			safespawn(fxData, newsname("FXDB_DataSource"), defaultdbg, cfg, "FXDB_DataSource", false);
+			safespawn(fxData, newsname("FXDB_DataSource"), defaultdbg, cfg, "FXDB_DataSource");
 			sourceData=fxData;
 		} else {
 			safecall(cfg, setKey, "MT4_DataSource", true, &found);	//-- ignore error
 			if (found) {
 				safecall(cfg, setKey, "../"); //-- get back;
-				safespawn(mt4Data, newsname("MT4_DataSource"), defaultdbg, cfg, "MT4_DataSource", true);
+				safespawn(mt4Data, newsname("MT4_DataSource"), defaultdbg, cfg, "MT4_DataSource");
 				sourceData=mt4Data;
 			}
 		}
@@ -334,5 +273,4 @@ void sTimeSerie::setDataSource() {
 
 	//-- then, open
 	//safecall(sourceData, open);
-
 }

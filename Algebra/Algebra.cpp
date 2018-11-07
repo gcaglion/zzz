@@ -460,7 +460,7 @@ void sAlgebra::h2x(numtype* destAddr, numtype* srcAddr, int size, bool useStream
 }
 bool sAlgebra::myMalloc(numtype** var, int size) {
 #ifdef USE_GPU
-	return (Malloc_cu(var, size));
+	return (Malloc_cu(var, size*sizeof(numtype)));
 #else
 	(*var) = (numtype*)malloc(size*sizeof(numtype));
 	return true;

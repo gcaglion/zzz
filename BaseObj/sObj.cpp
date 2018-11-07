@@ -4,7 +4,6 @@ sObj::sObj(sObjParmsDef) {
 
 	name=sname_;
 	parent=parent_;
-	childrenCnt=0;
 
 	if (parent==nullptr) {
 		depth=0;
@@ -12,8 +11,7 @@ sObj::sObj(sObjParmsDef) {
 	} else {
 		depth=parent->depth+1;
 		name->update(depth, parent->name);
-		parent->child[parent->childrenCnt]=this;
-		parent->childrenCnt++;
+		parent->child.push_back(this);
 	}
 
 
@@ -36,16 +34,18 @@ sObj::sObj(sObjParmsDef) {
 }
 
 sObj::~sObj() {
-	for (int c=0; c<childrenCnt; c++) {
-		printf("sObj destructor of %s deleting child[%d]: %s\n", this->name->full, c, child[c]->name->full);
-		delete child[c];
+	while (child.size()>0) {
+		delete child[child.size()-1];
 	}
 	delete name;
 	if (parent!=nullptr) {
-		parent->childrenCnt--;
 		if (dbg!=parent->dbg) delete dbg;	//-- to avoid a child deleting its parent's dbg
 	} else {
 		delete dbg;
+	}
+
+	if (parent!=nullptr) {
+		parent->child.pop_back();
 	}
 }
 
@@ -70,7 +70,7 @@ void sObj::findChild(const char* relName, sObj** retObj) {
 	//-- compare cname with short name of every child in this object
 	(*retObj)=nullptr;
 	int c;
-	for (c=0; c<childrenCnt; c++) {
+	for (c=0; c<child.size(); c++) {
 		if (_stricmp(cname, child[c]->name->base)==0) {
 			(*retObj)=child[c];
 			break;

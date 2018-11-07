@@ -20,8 +20,4 @@ sData::sData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 }
 sData::~sData() {
-	delete trainDS;
-	delete testDS;
-	delete validDS;
-	delete shape;
 }

@@ -7,11 +7,11 @@ sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), null
 	}
 sRoot::~sRoot() {}
 
-void sRoot::kaz3() {
+/*void sRoot::kaz3() {
 	s* s1= new s(nullptr, newsname("s1"), defaultdbg);
 }
 void sRoot::kaz2() {
-/*	sDataSet* ds1;
+	sDataSet* ds1;
 	sTimeSerie* ts1;
 	sFXDataSource* fxsrc1;
 	sOraData* fxdb1;
@@ -37,10 +37,9 @@ void sRoot::kaz2() {
 	ds1->dump(TRVAL);
 	ds1->build(-1,1, TRSVAL);
 	ds1->dump(TRSVAL);
-	*/
 }
 void sRoot::kaz() {
-/*
+
 	sDataSet* ds1;
 	sTimeSerie* ts1;
 	sFXDataSource* fxsrc1;
@@ -65,22 +64,23 @@ void sRoot::kaz() {
 	ds1->build(-1, 1);
 	ts1->dump();
 	ds1->dump(TRSVAL);
-*/	int kaz=0;
+	int kaz=0;
 }
+*/
 void sRoot::kaz4() {
 	
-	sOraData* oradb1 = new sOraData(this, newsname("oradb1"), defaultdbg, "History", "HistoryDbg", "Algo", false);
-	oradb1->open();
+	sOraData* oradb1; safespawn(oradb1, newsname("oradb1"), defaultdbg, "History", "HistoryDbg", "Algo");
+	sFXDataSource* fxdatasrc1; safespawn(fxdatasrc1, newsname("datasrc1"), defaultdbg, oradb1, "EURUSD", "H1", false);
+	const int TSFcnt=2; int TSF[TSFcnt]={ 1,2 };
+	sTimeSerie* ts1; safespawn(ts1, newsname("ts1"), defaultdbg, fxdatasrc1, "201608010000", 500, DT_DELTA, TSFcnt, TSF);
+	//sTimeSerie* ts2; safespawn(ts2, newsname("ts2"), defaultdbg, fxdatasrc1, "201708010000", 500, DT_DELTA, TSFcnt, TSF);
 
-
-	sDataSource* datasrc1 = new sDataSource(this, newsname("datasrc1"), defaultdbg, oradb1, 5, true, 1, 2);
-	sTimeSerie* ts1 = new sTimeSerie(this, newsname("ts1"), defaultdbg, datasrc1, "201608010000", 500, DT_DELTA, 0, nullptr);
-	const int selFcnt=2; int selF[selFcnt]={ 1,2 };
+	/*const int selFcnt=2; int selF[selFcnt]={ 1,2 };
 	sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 100, 3, 10, selFcnt, selF, false);
 
 	sDataShape* dsp1 = new sDataShape(this, newsname("DataShape1"), defaultdbg, 100, 3, 2);
 	sData* data1 = new sData(this, newsname("data1"), defaultdbg, dsp1, ds1);
-
+	*/
 
 }
 
@@ -188,9 +188,9 @@ void sRoot::CLoverride(int argc, char* argv[]) {
 void sRoot::testDML() {
 
 	sOraData* oradb1;
-	safespawn(oradb1, newsname("InferOraDB"), defaultdbg, "CULogUser", "LogPwd", "Algo", true);
+	safespawn(oradb1, newsname("InferOraDB"), defaultdbg, "CULogUser", "LogPwd", "Algo");
 	sOraData* oradb2;
-	safespawn(oradb2, newsname("InferOraHistory"), defaultdbg, "History", "HistoryPwd", "Algo", true);
+	safespawn(oradb2, newsname("InferOraHistory"), defaultdbg, "History", "HistoryPwd", "Algo");
 
 	int sdatecnt=10;
 	char** sdate=(char**)malloc(sdatecnt*sizeof(char*)); for (int i=0; i<sdatecnt; i++) sdate[i]=(char*)malloc(DATE_FORMAT_LEN);

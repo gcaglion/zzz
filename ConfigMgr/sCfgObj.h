@@ -13,7 +13,7 @@ struct sCfgObj : sObj {
 	sCfgKey* bkpKey;
 
 	EXPORT sCfgObj(sCfgObjParmsDef);
-	EXPORT ~sCfgObj();
+	EXPORT virtual ~sCfgObj();
 
 };
 
