@@ -222,7 +222,7 @@ void sRoot::testDML() {
 			i++;
 		}
 	}
-	safecall(oradb1, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, predictionLen, prediction, actual);
+	//safecall(oradb1, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, predictionLen, predictionTRS, actual);
 
 	int Wcnt=35150;
 	numtype* W = (numtype*)malloc(Wcnt*sizeof(numtype));

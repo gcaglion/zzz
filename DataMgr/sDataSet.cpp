@@ -219,10 +219,10 @@ void sDataSet::mallocs2() {
 	_data[DSprediction][BFSorder]=predictionBFS;
 }
 void sDataSet::frees() {
-	free(sampleSBF); free(targetSBF); free(predictionSBF);
-	free(sampleBFS); free(targetBFS); free(predictionBFS);
-	free(selectedFeature);
-	free(dumpPath);
+//	free(sampleSBF); free(targetSBF); free(predictionSBF);
+//	free(sampleBFS); free(targetBFS); free(predictionBFS);
+//	free(selectedFeature);
+//	free(dumpPath);
 }
 bool sDataSet::isSelected(int ts_f) {
 	for (int ds_f=0; ds_f<selectedFeaturesCnt; ds_f++) {

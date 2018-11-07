@@ -250,8 +250,7 @@ void sEngine::saveRun() {
 		//-- 4.1. do also actual, just to check
 		core[c]->procArgs->ds->sourceTS->untransform(core[c]->procArgs->ds->sourceTS->trvalA, core[c]->procArgs->ds->sourceTS->valA);
 		//-- persist into runLog
-		if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->featuresCnt, core[c]->procArgs->feature, core[c]->procArgs->predictionLen, core[c]->procArgs->targetSBF, core[c]->procArgs->predictionSBF);
-		//if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun2, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->featuresCnt, core[c]->procArgs->feature, core[c]->procArgs->predictionLen, core[c]->procArgs->targetSBF, core[c]->procArgs->predictionSBF);
+		if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->featuresCnt, core[c]->procArgs->feature, core[c]->procArgs->predictionLen, core[c]->procArgs->ds->sourceTS->trsvalA, core[c]->procArgs->ds->sourceTS->trsvalP, core[c]->procArgs->ds->sourceTS->trvalA, core[c]->procArgs->ds->sourceTS->trvalP, core[c]->procArgs->ds->sourceTS->valA, core[c]->procArgs->ds->sourceTS->valP);
 	}
 }
 void sEngine::commit() {

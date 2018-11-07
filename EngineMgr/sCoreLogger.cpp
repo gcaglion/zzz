@@ -56,13 +56,13 @@ void sCoreLogger::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* 
 		safecall(filedb, saveMSE, pid, tid, mseCnt, mseT, mseV);
 	}
 }
-void sCoreLogger::saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, int predictionLen, numtype* actual, numtype* predicted) {
+void sCoreLogger::saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, int predictionLen, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted) {
 	if (!isOpen) open();
 	if (saveToDB) {
-		safecall(oradb, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, predictionLen, actual, predicted);
+		safecall(oradb, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, predictionLen, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted);
 	}
 	if (saveToFile) {
-		safecall(filedb, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, predictionLen, actual, predicted);
+		safecall(filedb, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, predictionLen, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted);
 	}
 }
 void sCoreLogger::commit() {
