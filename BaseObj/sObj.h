@@ -72,7 +72,6 @@ struct sObj {
 #define silentcallB(bfunc_, ...) { \
 	cmdSvard=new svard(__VA_ARGS__); \
 	sprintf_s(cmd, CmdMaxLen, "%s(%s)", #bfunc_, cmdSvard->fullval); \
-	info("%s TRYING  : %s", name->base, cmd); \
 	if(!(bfunc_(__VA_ARGS__))) { \
 		fail("%s FAILURE : %s", name->base, cmd); \
 	} \

@@ -23,8 +23,9 @@ struct sCoreProcArgs {
 	int npid;
 	int ntid;
 	int runCnt;
-	int featuresCnt;
-	int* feature;
+	int tsFeaturesCnt;
+	int selectedFeaturesCnt;
+	int* selectedFeature;
 	int predictionLen;
 	numtype* targetBFS;
 	numtype* predictionBFS;

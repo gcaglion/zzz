@@ -15,7 +15,7 @@
 			<DataSet>
 				BatchSamplesCount	= 10
 				#SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-				SelectedFeatures	= FXOPEN, FXHIGH
+				SelectedFeatures	= FXHIGH, FXLOW
 				BarWidthCalc		= true
 				BarWidthFeatures	= 1,2
 				Dump 				= true
@@ -77,7 +77,7 @@
 				</TimeSerie>
 				BatchSamplesCount	= 10
 				#SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-				SelectedFeatures	= FXOPEN, FXHIGH
+				SelectedFeatures	= FXHIGH, FXLOW
 				BarWidthCalc		= true
 				BarWidthFeatures	= 1,2
 				Dump 				= true

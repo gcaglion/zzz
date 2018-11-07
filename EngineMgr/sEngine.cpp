@@ -162,8 +162,9 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 				procArgs[t]->core=core[c];
 				procArgs[t]->coreProcArgs->ds = (sDataSet*)ds_;
 				procArgs[t]->coreProcArgs->runCnt=procArgs[t]->coreProcArgs->ds->samplesCnt;
-				procArgs[t]->coreProcArgs->featuresCnt=procArgs[t]->coreProcArgs->ds->selectedFeaturesCnt;
-				procArgs[t]->coreProcArgs->feature=procArgs[t]->coreProcArgs->ds->selectedFeature;
+				procArgs[t]->coreProcArgs->tsFeaturesCnt=procArgs[t]->coreProcArgs->ds->sourceTS->sourceData->featuresCnt;
+				procArgs[t]->coreProcArgs->selectedFeaturesCnt=procArgs[t]->coreProcArgs->ds->selectedFeaturesCnt;
+				procArgs[t]->coreProcArgs->selectedFeature=procArgs[t]->coreProcArgs->ds->selectedFeature;
 				procArgs[t]->coreProcArgs->predictionLen=procArgs[t]->coreProcArgs->ds->predictionLen;
 				procArgs[t]->coreProcArgs->targetBFS = procArgs[t]->coreProcArgs->ds->targetBFS;
 				procArgs[t]->coreProcArgs->predictionBFS = procArgs[t]->coreProcArgs->ds->predictionBFS;
@@ -229,7 +230,7 @@ void sEngine::saveRun() {
 		for (int b=0; b<Bcnt; b++) {
 				for (int s=0; s<Scnt; s++) {
 					for (int tf=0; tf<TFcnt; tf++) {
-						for (int df=0; df<TFcnt; df++) {
+						for (int df=0; df<DFcnt; df++) {
 							if (core[c]->procArgs->ds->selectedFeature[df]==tf) {
 
 								tsidx=core[c]->procArgs->ds->sampleLen*TFcnt+ s*Bcnt*TFcnt+b*TFcnt+tf;
@@ -241,16 +242,24 @@ void sEngine::saveRun() {
 					}
 				}
 			}
+		
 		//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
 		core[c]->procArgs->ds->sourceTS->unscale(coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], DFcnt, core[c]->procArgs->ds->selectedFeature, core[c]->procArgs->ds->sourceTS->trsvalP, core[c]->procArgs->ds->sourceTS->trvalP);
+		
 		//-- 3.1. do also actual, just to check
-		core[c]->procArgs->ds->sourceTS->unscale(coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], DFcnt, core[c]->procArgs->ds->selectedFeature, core[c]->procArgs->ds->sourceTS->trsvalA, core[c]->procArgs->ds->sourceTS->trvalA);
-		//-- 4. sourceTS->untransform into valP
+		//core[c]->procArgs->ds->sourceTS->unscale(coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], DFcnt, core[c]->procArgs->ds->selectedFeature, core[c]->procArgs->ds->sourceTS->trsvalA, core[c]->procArgs->ds->sourceTS->trvalA);
+		
+		//-- 4. copy trvalA into trvalP for the first <sampleLen> bars, so we have a baseval
+		size_t leftsz=core[c]->procArgs->ds->sampleLen*core[c]->procArgs->ds->sourceTS->sourceData->featuresCnt*sizeof(numtype);
+		memcpy_s(core[c]->procArgs->ds->sourceTS->trvalP, leftsz, core[c]->procArgs->ds->sourceTS->trvalA, leftsz);
+		//-- 5. sourceTS->untransform into valP
 		core[c]->procArgs->ds->sourceTS->untransform(core[c]->procArgs->ds->sourceTS->trvalP, core[c]->procArgs->ds->sourceTS->valP);
+		
 		//-- 4.1. do also actual, just to check
-		core[c]->procArgs->ds->sourceTS->untransform(core[c]->procArgs->ds->sourceTS->trvalA, core[c]->procArgs->ds->sourceTS->valA);
+		//core[c]->procArgs->ds->sourceTS->untransform(core[c]->procArgs->ds->sourceTS->trvalA, core[c]->procArgs->ds->sourceTS->valA);
+		
 		//-- persist into runLog
-		if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->featuresCnt, core[c]->procArgs->feature, core[c]->procArgs->predictionLen, core[c]->procArgs->ds->sourceTS->trsvalA, core[c]->procArgs->ds->sourceTS->trsvalP, core[c]->procArgs->ds->sourceTS->trvalA, core[c]->procArgs->ds->sourceTS->trvalP, core[c]->procArgs->ds->sourceTS->valA, core[c]->procArgs->ds->sourceTS->valP);
+		if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->tsFeaturesCnt, core[c]->procArgs->selectedFeaturesCnt, core[c]->procArgs->selectedFeature, core[c]->procArgs->predictionLen, core[c]->procArgs->ds->sourceTS->trsvalA, core[c]->procArgs->ds->sourceTS->trsvalP, core[c]->procArgs->ds->sourceTS->trvalA, core[c]->procArgs->ds->sourceTS->trvalP, core[c]->procArgs->ds->sourceTS->valA, core[c]->procArgs->ds->sourceTS->valP);
 	}
 }
 void sEngine::commit() {

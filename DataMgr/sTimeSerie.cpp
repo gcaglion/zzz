@@ -120,14 +120,16 @@ void sTimeSerie::untransform(numtype* fromData_, numtype* toData_) {
 		}
 	}
 }
-void sTimeSerie::unscale(float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeatures_, numtype* fromData_, numtype* toData_) {
+void sTimeSerie::unscale(float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, numtype* fromData_, numtype* toData_) {
 
-	for (int f=0; f<sourceData->featuresCnt; f++) {
 		for (int s=0; s<stepsCnt; s++) {
-			toData_[s*sourceData->featuresCnt+f]=(fromData_[s*sourceData->featuresCnt+f]-scaleP[f])/scaleM[f];
-			//-- also do trvalA, just to be sure the process is accurate
-			toData_[s*sourceData->featuresCnt+f]=(fromData_[s*sourceData->featuresCnt+f]-scaleP[f])/scaleM[f];
-		}
+			for (int tf=0; tf<sourceData->featuresCnt; tf++) {
+				for(int df=0; df<selectedFeaturesCnt_; df++) {
+					if (selectedFeature_[df]==tf) {
+						toData_[s*sourceData->featuresCnt+tf]=(fromData_[s*sourceData->featuresCnt+tf]-scaleP[tf])/scaleM[tf];
+					}
+				}
+			}
 	}
 
 	if (doDump) dump();
