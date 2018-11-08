@@ -254,6 +254,8 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 					stmt->setInt(6, tf);
 					stmt->setInt(7, 1);
 					
+					//-- for every Actual/Predicted/Error triplet, we need to handle NULL values
+
 					stmt->setFloat(9, actualTRS[tsidx]); //-- this can never be EMPTY_VALUE
 					if (predictedTRS[tsidx]==EMPTY_VALUE) {
 						stmt->setNull(8, OCCIFLOAT);
@@ -318,8 +320,8 @@ void sOraData::saveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
 	}
 }
-void sOraData::saveClient(int pid, char* clientName, DWORD startTime, DWORD duration, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {
-	char stmtS[SQL_MAXLEN]; sprintf_s(stmtS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, ClientName, ClientStart, SimulationLen, Duration, SimulationStart, DoTraining, DoTrainRun, DoTestRun) values(%d, '%s', sysdate, %d, %ld, to_date('%s','YYYYMMDDHH24MI'), %d, %d, %d)", pid, clientName, simulLen, (DWORD)(duration/1000), simulStart, (doTrain) ? 1 : 0, (doTrainRun) ? 1 : 0, (doTestRun) ? 1 : 0);
+void sOraData::saveClientInfo(int pid, char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {
+	char stmtS[SQL_MAXLEN]; sprintf_s(stmtS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, ClientName, ClientStart, SimulationLen, Duration, SimulationStart, DoTraining, DoTrainRun) values(%d, '%s', sysdate, %d, %f, to_date('%s','YYYYMMDDHH24MI'), %d, %d)", pid, clientName, simulLen, elapsedSecs, simulStart, (doTrain?1:0), (doTestRun?1:0) );
 	Statement* stmt = ((Connection*)conn)->createStatement(stmtS);
 	try {
 		stmt->executeUpdate();
@@ -328,3 +330,4 @@ void sOraData::saveClient(int pid, char* clientName, DWORD startTime, DWORD dura
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
 	}
 }
+

@@ -1,7 +1,10 @@
 #include "sRoot.h"
 
 sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), defaultdbg) {
-		CLoverride(argc_, argv_);
+	dbg->verbose=false;
+
+	pid=GetCurrentProcessId();
+	CLoverride(argc_, argv_);
 }
 sRoot::~sRoot() {}
 
@@ -70,31 +73,42 @@ void sRoot::kaz4() {
 	sOraData* oradb1; safespawn(oradb1, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo");
 	sFXDataSource* fxdatasrc1; safespawn(fxdatasrc1, newsname("datasrc1"), defaultdbg, oradb1, "EURUSD", "H1", false);
 	const int TSFcnt=2; int TSF[TSFcnt]={ 1,2 };
-	sTimeSerie* ts1; safespawn(ts1, newsname("ts1"), defaultdbg, fxdatasrc1, "201608010000", 500, DT_DELTA, TSFcnt, TSF);
+	sTimeSerie* ts1; safespawn(ts1, newsname("ts1"), defaultdbg, fxdatasrc1, "201608010000", 202, DT_DELTA, TSFcnt, TSF);
 
 	ts1->load();
-	ts1->scale(-1, 1);
-	ts1->unscale(-1, 1, TSFcnt, TSF, 100, ts1->trsvalA, ts1->trvalA);
-	ts1->untransform(TSFcnt, TSF, ts1->trvalA, ts1->valA);
 
-	/*const int selFcnt=2; int selF[selFcnt]={ 1,2 };
-	sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 100, 3, 10, selFcnt, selF, false);
+//	ts1->scale(-1, 1);
+//	ts1->unscale(-1, 1, TSFcnt, TSF, 100, ts1->trsvalA, ts1->trvalA);
+//	ts1->untransform(TSFcnt, TSF, ts1->trvalA, ts1->valA);
 
-	sDataShape* dsp1 = new sDataShape(this, newsname("DataShape1"), defaultdbg, 100, 3, 2);
-	sData* data1 = new sData(this, newsname("data1"), defaultdbg, dsp1, ds1);
-	*/
+	const int selFcnt=2; int selF[selFcnt]={ 1,2 };
+	sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false);
+	ds1->build(-1, 1);
+	ds1->dump();
+
+	sDataSet* ds2 = new sDataSet(this, newsname("ds2"), defaultdbg, ds1);
+	ds2->build(-1, 1, TRSVAL);
+	ds2->dump(TRSVAL, false);
+
+	
 
 }
 
+
 void sRoot::tester() {
 
+	//-- client vars
 	int simulationLength;
 	char** simulationTrainStartDate;
 	char** simulationInferStartDate;
 	char** simulationValidStartDate;
 	sClientLogger* testerPersistor;
+	sTimer* timer = new sTimer();
 
 	try {
+
+		//-- 0. take client start time
+		timer->start();
 
 		//-- 1. load tester and Forecaster XML configurations
 		safespawn(testerCfg, newsname("testerCfg_Root"), erronlydbg, testerCfgFileFullName);
@@ -151,8 +165,18 @@ void sRoot::tester() {
 				safecall(forecaster->engine, saveRun);
 			}
 
-			//-- 6.3 Commit persistor data
+			//-- 6.3 Commit engine persistor data
 			safecall(forecaster->engine, commit);
+
+			//-- 6.4. Save ClientInfo for
+			if (testerPersistor->saveClientInfoFlag) {
+				char* endtimeS = timer->stop();
+				testerPersistor->saveClientInfo( pid, "Root.Tester", timer->startTime, timer->elapsedTime/1000, simulationLength, simulationTrainStartDate[s], forecaster->data->doTraining, forecaster->data->doInference, false);
+
+			}
+
+			//-- 6.5. commit client persistor data
+
 		}
 
 	} catch (std::exception exc) {

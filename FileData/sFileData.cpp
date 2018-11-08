@@ -52,3 +52,6 @@ void sFileData::mallocs() {
 	fileH=(FILE**)malloc(filesCnt*sizeof(FILE*));
 	for (int f=0; f<filesCnt; f++) fileFullName[f]=(char*)malloc(MAX_PATH);
 }
+void sFileData::saveClientInfo(int pid, char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {
+	fail("not implemented.");
+}

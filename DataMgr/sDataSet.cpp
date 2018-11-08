@@ -1,13 +1,16 @@
 #include "sDataSet.h"
 
-sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
-
+sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	sourceTS=sourceTS_; sampleLen=sampleLen_; predictionLen=predictionLen_; batchSamplesCnt=batchSamplesCnt_; selectedFeaturesCnt=selectedFeaturesCnt_; BWcalc=BWcalc_;
+	isCloned=false;
+
 	mallocs1();
+
 	for (int f=0; f<selectedFeaturesCnt; f++) selectedFeature[f]=selectedFeature_[f];
 	if (BWcalc_) {
 		BWfeature[0]=BWfeature_[0]; BWfeature[1]=BWfeature_[1];
 	}
+	doDump=doDump_;
 	if (dumpPath_!=nullptr) {
 		strcpy_s(dumpPath, MAX_PATH, dumpPath_);
 	} else {
@@ -18,6 +21,7 @@ sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int pred
 }
 sDataSet::sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_) : sCfgObj(sCfgObjParmsVal) {
 	sampleLen=sampleLen_; predictionLen=predictionLen_;
+	isCloned=false;
 
 	mallocs1();
 
@@ -38,6 +42,28 @@ sDataSet::sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_) : sCfgOb
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 }
+
+sDataSet::sDataSet(sObjParmsDef, sDataSet* trainDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+	sourceTS=trainDS_->sourceTS; sampleLen=trainDS_->sampleLen; predictionLen=trainDS_->predictionLen; batchSamplesCnt=trainDS_->batchSamplesCnt; selectedFeaturesCnt=trainDS_->selectedFeaturesCnt; BWcalc=trainDS_->BWcalc;
+	isCloned=true;
+
+	mallocs1();
+
+	for (int f=0; f<selectedFeaturesCnt; f++) selectedFeature[f]=trainDS_->selectedFeature[f];
+	if (trainDS_->BWcalc) {
+		BWfeature[0]=trainDS_->BWfeature[0]; BWfeature[1]=trainDS_->BWfeature[1];
+	}
+	doDump=trainDS_->doDump;
+	if (trainDS_->dumpPath!=nullptr) {
+		strcpy_s(dumpPath, MAX_PATH, trainDS_->dumpPath);
+	} else {
+		strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
+	}
+
+	mallocs2();
+	samplesCnt-=predictionLen;
+}
+
 sDataSet::~sDataSet() {
 	frees();
 }
@@ -61,7 +87,7 @@ void sDataSet::build(float scaleMin_, float scaleMax_, int type) {
 	//-- 2. populate sample[], target[] from sourceTS->d_tr
 	for (s=0; s<samplesCnt; s++) {
 		//-- samples
-		sidx=s*sourceTS->sourceData->featuresCnt;
+		sidx=(s+((isCloned)?predictionLen:0))*sourceTS->sourceData->featuresCnt;
 		for (b=0; b<sampleLen; b++) {
 			for (f=0; f<sourceTS->sourceData->featuresCnt; f++) {
 				if (isSelected(f)) {
@@ -105,9 +131,15 @@ void sDataSet::dump(int type, bool prediction_) {
 	} else {
 		strcpy_s(suffix2, 12, "ACT");
 	}
+	char suffix3[16];
+	if (isCloned) {
+		strcpy_s(suffix3, 16, "SHIFTEDFROM");
+	} else {
+		strcpy_s(suffix3, 16, "INDIPENDENT");
+	}
 
 	char dumpFileName[MAX_PATH];
-	sprintf_s(dumpFileName, "%s/%s_%s_%s-%s_dump_%p.csv", dumpPath, name->base, sourceTS->date0, suffix1, suffix2, this);
+	sprintf_s(dumpFileName, "%s/%s_%s_%s-%s-%s_dump_%p.csv", dumpPath, name->base, sourceTS->date0, suffix1, suffix2, suffix3, this);
 	FILE* dumpFile;
 	if (fopen_s(&dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
@@ -190,6 +222,9 @@ void sDataSet::reorder(int section, int FROMorderId, int TOorderId) {
 }
 
 //-- private stuff
+void sDataSet::mallocs() {
+
+}
 void sDataSet::mallocs1() {
 	selectedFeature=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
 	BWfeature=(int*)malloc(BWfeaturesCnt*sizeof(int));

@@ -19,6 +19,7 @@
 struct sDataSet : sCfgObj {
 
 	sTimeSerie* sourceTS;
+	bool isCloned;
 
 	int sampleLen;
 	int predictionLen;
@@ -43,8 +44,9 @@ struct sDataSet : sCfgObj {
 	//-- array of pointers to any of the above : [Section][order]
 	numtype* _data[3][2];
 
-	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_=nullptr, const char* dumpPath_=nullptr);
+	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_=nullptr, bool doDump=false, const char* dumpPath_=nullptr);
 	EXPORT sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_);
+	EXPORT sDataSet(sObjParmsDef, sDataSet* trainDS_);
 	EXPORT ~sDataSet();
 
 	EXPORT void build(float scaleMin_=0, float scaleMax_=0, int type=TRSVAL);
@@ -52,6 +54,7 @@ struct sDataSet : sCfgObj {
 	EXPORT void reorder(int section, int FROMorderId, int TOorderId);
 
 private:
+	void mallocs();
 	void mallocs1();
 	void mallocs2();
 	void frees();
