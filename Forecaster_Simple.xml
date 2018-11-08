@@ -6,7 +6,7 @@
 	MyList = abc, def, ghijkl, mnopqras
 	<Data>
 		<Shape>
-			SampleLen		= 100
+			SampleLen		= 10
 			PredictionLen	= 3
 			FeaturesCount	= 2
 		</Shape>
@@ -14,7 +14,6 @@
 			Do	= true
 			<DataSet>
 				BatchSamplesCount	= 10
-				#SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 				SelectedFeatures	= FXHIGH, FXLOW
 				BarWidthCalc		= true
 				BarWidthFeatures	= 1,2
@@ -22,7 +21,7 @@
 				DumpPath			= c:\temp\DataDump
 				<TimeSerie>
 					Date0				= 201707010000
-					HistoryLen			= 802
+					HistoryLen			= 202
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					Dump				= true
@@ -57,9 +56,15 @@
 		<Test>
 			Do	= true
 			<DataSet>
+				BatchSamplesCount	= 10
+				SelectedFeatures	= FXHIGH, FXLOW
+				BarWidthCalc		= true
+				BarWidthFeatures	= 1,2
+				Dump 				= true
+				DumpPath			= c:\temp\DataDump
 				<TimeSerie>
 					Date0				= 201607010000
-					HistoryLen			= 802
+					HistoryLen			= 202
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					Dump				= true
@@ -75,20 +80,13 @@
 						</DBConnection>
 					</FXDB_DataSource>
 				</TimeSerie>
-				BatchSamplesCount	= 10
-				#SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-				SelectedFeatures	= FXHIGH, FXLOW
-				BarWidthCalc		= true
-				BarWidthFeatures	= 1,2
-				Dump 				= true
-				DumpPath			= c:\temp\DataDump
 			</DataSet>
 		</Test>
 	</Data>
 	<Engine>
 		Type 		= ENGINE_CUSTOM
 		<Custom>
-			CoresCount	= 2
+			CoresCount	= 1
 			<Core0>
 				<Layout>
 					Type	= CORE_NN
@@ -141,58 +139,6 @@
 					</DestFileData>
 				</Persistor>
 			</Core0>
-			<Core1>
-				<Layout>
-					Type	= CORE_NN
-					Parents			= 
-					ParentsConnType	= 
-				</Layout>
-				<Parameters>
-					<Topology>
-						LevelRatio			= 0.5
-						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-						UseContext			= false
-						UseBias				= false
-					</Topology>
-					<Training>
-						MaxEpochs			= 50
-						TargetMSE			= 0.0001
-						NetSaveFrequency	= 10
-						StopOnDivergence	= false
-						BP_Algo				= BP_STD
-						<BP_Std>
-							LearningRate		= 0.001
-							LearningMomentum	= 0.4
-						</BP_Std>
-						<BP_Qing>
-						</BP_Qing>
-						<BP_Qprop>
-						</BP_Qprop>
-						<BP_RProp>
-						</BP_RProp>
-					</Training>
-				</Parameters>
-				<Persistor>
-					saveMSE			= true
-					saveRun			= true
-					saveInternals	= false
-					saveImage		= true
-					saveToDB		= true
-					saveToFile		= false
-					<DestOraData>
-						UserName	= CULogUser
-						Password	= LogPwd
-						ConnString	= Algo
-					</DestOraData>
-					<DestFileData>
-						Client		= c:\temp\logs\Persistor\Client.log
-						MSE			= c:\temp\logs\Persistor\MSE.log
-						Run			= c:\temp\logs\Persistor\Run.log
-						Internals	= c:\temp\logs\Persistor\Internals.log
-						Image		= c:\temp\logs\Persistor\Image.log
-					</DestFileData>
-				</Persistor>
-			</Core1>
 		</Custom>
 		<XIE>
 		</XIE>

@@ -10,6 +10,14 @@
 #define MAX_DATA_FEATURES 128
 #define MAX_TSF_CNT	32
 
+//-- val Source
+#define TSactual	0
+#define TSpredicted	1
+//-- val Status
+#define TSBASE	0
+#define TSTR	1
+#define TSTRS	2
+
 struct sTimeSerie : sCfgObj {
 
 	sDataSource* sourceData;
@@ -33,6 +41,8 @@ struct sTimeSerie : sCfgObj {
 	numtype* valP;
 	numtype* trvalP;
 	numtype* trsvalP;
+	//-- this is just a pointer ([TSBASE][TSactual], ...)
+	numtype* val[3][2];
 
 	//-- these are of size [featuresCnt]
 	char bdtime[DATE_FORMAT_LEN];
@@ -53,9 +63,9 @@ struct sTimeSerie : sCfgObj {
 
 	EXPORT void load(char* date0_=nullptr);
 	EXPORT void transform(int dt_=-1);
-	EXPORT void untransform(numtype* fromData_, numtype* toData_);
+	EXPORT void untransform(int selectedFeaturesCnt_, int* selectedFeature_, numtype* fromData_, numtype* toData_);
 	EXPORT void scale(float scaleMin_, float scaleMax_);
-	EXPORT void unscale(float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeatures_, numtype* fromData_, numtype* toData_);
+	EXPORT void unscale(float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int sampleLen_, numtype* fromData_, numtype* toData_);
 	EXPORT void dump(bool prediction_ = false);
 
 private:

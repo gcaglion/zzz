@@ -22,7 +22,6 @@ struct sCoreProcArgs {
 	//-- infer-specific
 	int npid;
 	int ntid;
-	int runCnt;
 	int tsFeaturesCnt;
 	int selectedFeaturesCnt;
 	int* selectedFeature;

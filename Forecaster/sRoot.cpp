@@ -1,10 +1,8 @@
 #include "sRoot.h"
 
-sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), nullptr) {
-		dbg->pauseOnError=true;
-
+sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), defaultdbg) {
 		CLoverride(argc_, argv_);
-	}
+}
 sRoot::~sRoot() {}
 
 /*void sRoot::kaz3() {
@@ -76,8 +74,8 @@ void sRoot::kaz4() {
 
 	ts1->load();
 	ts1->scale(-1, 1);
-	ts1->unscale(-1, 1, TSFcnt, TSF, ts1->trsvalA, ts1->trvalA);
-	ts1->untransform(ts1->trvalA, ts1->valA);
+	ts1->unscale(-1, 1, TSFcnt, TSF, 100, ts1->trsvalA, ts1->trvalA);
+	ts1->untransform(TSFcnt, TSF, ts1->trvalA, ts1->valA);
 
 	/*const int selFcnt=2; int selF[selFcnt]={ 1,2 };
 	sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 100, 3, 10, selFcnt, selF, false);
@@ -131,6 +129,7 @@ void sRoot::tester() {
 
 		//-- 6. for each simulation
 		for (int s=0; s<simulationLength; s++) {
+
 			//-- 6.1. Training
 			if (forecaster->data->doTraining) {
 				//-- 6.1.1. set date0 in trainDS->TimeSerie, and load it
@@ -139,7 +138,9 @@ void sRoot::tester() {
 				safecall(forecaster->engine, train, s, forecaster->data->trainDS);
 				//-- 6.1.3. persist MSE logs
 				safecall(forecaster->engine, saveMSE);
+				//-- 6.1.4 destroy trining-related objects
 			}
+
 			//-- 6.2. Inference
 			if (forecaster->data->doInference) {
 				//-- 6.2.1. set date0 in testDS->TimeSerie, and load it
@@ -149,13 +150,10 @@ void sRoot::tester() {
 				//-- 6.2.3. persist Run logs
 				safecall(forecaster->engine, saveRun);
 			}
+
 			//-- 6.3 Commit persistor data
 			safecall(forecaster->engine, commit);
 		}
-
-		//-- 4.4 save logs (completely rivisited in Logger_Rehaul branch)
-
-		//-- 4.5. delete forecaster
 
 	} catch (std::exception exc) {
 		fail("Exception=%s", exc.what());
@@ -180,8 +178,12 @@ void sRoot::CLoverride(int argc, char* argv[]) {
 
 		for (int p=1; p<argc; p++) {
 			if (!getValuePair(argv[p], &orName[0], &orValS[0], '=')) fail("wrong parameter format in command line: %s", argv[p]);
+
 			if (_stricmp(orName, "--cfgFile")==0) {
+				//-- special parameters, 1: alternative configuration file
 				if (!getFullPath(orValS, forecasterCfgFileFullName)) fail("could not set cfgFileFullName from override parameter: %s", orValS);
+			} else if (_stricmp(orName, "--VerboseRoot")==0) {
+				dbg->verbose=(_stricmp(orValS, "TRUE")==0);
 			} else {
 				strcpy_s(cfgOverrideName[cfgOverrideCnt], XMLKEY_PARM_NAME_MAXLEN, orName);
 				strcpy_s(cfgOverrideValS[cfgOverrideCnt], XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT, orValS);

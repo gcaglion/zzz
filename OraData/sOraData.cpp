@@ -234,38 +234,57 @@ void sOraData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mse
 	//stmt->setDataBuffer(5, mseV, OCCIFLOAT, sizeof(numtype), ntl);
 	
 }
-void sOraData::saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted) {
+void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted) {
 
-	int runCnt=barsCnt*selectedFeaturesCnt;
+	int runCnt=runStepsCnt*selectedFeaturesCnt;
 	Statement* stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, Pos, Feature, StepAhead, PredictedTRS, ActualTRS, ErrorTRS, PredictedTR, ActualTR, ErrorTR, Predicted, Actual, Error) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15, :P16)");
 	stmt->setMaxIterations(runCnt);
 
-	int i=0; int p=0;
-	for (int b=0; b<barsCnt; b++) {
+	int tsidx=0, runidx=0;
+	for (int s=0; s<runStepsCnt; s++) {
 		for (int df=0; df<selectedFeaturesCnt; df++) {
 			for (int tf=0; tf<tsFeaturesCnt_; tf++) {
 				if (selectedFeature[df]==tf) {
-					//for (int p=0; p<predictionLen; p++) {
+					tsidx = s*tsFeaturesCnt_+tf;
 					stmt->setInt(1, pid);
 					stmt->setInt(2, tid);
 					stmt->setInt(3, npid);
 					stmt->setInt(4, ntid);
-					stmt->setInt(5, b);
+					stmt->setInt(5, s);
 					stmt->setInt(6, tf);
-					stmt->setInt(7, p);
-					stmt->setFloat(8, predictedTRS[i]);
-					stmt->setFloat(9, actualTRS[i]);
-					stmt->setFloat(10, fabs(actualTRS[i]-predictedTRS[i]));
-					stmt->setFloat(11, predictedTR[i]);
-					stmt->setFloat(12, actualTR[i]);
-					stmt->setFloat(13, fabs(actualTR[i]-predictedTR[i]));
-					stmt->setFloat(14, predicted[i]);
-					stmt->setFloat(15, actual[i]);
-					stmt->setFloat(16, fabs(actual[i]-predicted[i]));
-					if (i<(runCnt-1)) stmt->addIteration();
-					//}
+					stmt->setInt(7, 1);
+					
+					stmt->setFloat(9, actualTRS[tsidx]); //-- this can never be EMPTY_VALUE
+					if (predictedTRS[tsidx]==EMPTY_VALUE) {
+						stmt->setNull(8, OCCIFLOAT);
+						stmt->setNull(10, OCCIFLOAT);
+					} else {
+						stmt->setFloat(8, predictedTRS[tsidx]);
+						stmt->setFloat(10, fabs(actualTRS[tsidx]-predictedTRS[tsidx]));
+					}
+					//--
+					stmt->setFloat(12, actualTR[tsidx]); //-- this can never be EMPTY_VALUE
+					if (predictedTR[tsidx]==EMPTY_VALUE) {
+						stmt->setNull(11, OCCIFLOAT);
+						stmt->setNull(13, OCCIFLOAT);
+					} else {
+						stmt->setFloat(11, predictedTR[tsidx]);
+						stmt->setFloat(13, fabs(actualTR[tsidx]-predictedTR[tsidx]));
+					}
+					//--
+					stmt->setFloat(15, actual[tsidx]); //-- this can never be EMPTY_VALUE
+					if (predicted[tsidx]==EMPTY_VALUE) {
+						stmt->setNull(14, OCCIFLOAT);
+						stmt->setNull(16, OCCIFLOAT);
+					} else {
+						stmt->setFloat(14, predicted[tsidx]);
+						stmt->setFloat(16, fabs(actual[tsidx]-predicted[tsidx]));
+					}
+
+					if (runidx<(runCnt-1)) stmt->addIteration();
+					runidx++;
 				}
-				i++;
+				//tsidx++;
 			}
 		}
 	}

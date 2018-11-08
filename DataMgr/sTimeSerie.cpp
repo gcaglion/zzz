@@ -93,40 +93,17 @@ void sTimeSerie::scale(float scaleMin_, float scaleMax_) {
 
 	if (doDump) dump();
 }
-void sTimeSerie::untransform(numtype* fromData_, numtype* toData_) {
-	int curr=0;
-	for (int s=0; s<(stepsCnt); s++) {
-		for (int f=0; f<sourceData->featuresCnt; f++) {
-			switch (dt) {
-			case DT_NONE:
-				toData_[curr]=fromData_[curr];
-				break;
-			case DT_DELTA:
-				if (s==0) {
-					toData_[curr]=fromData_[curr]+base[f];
-				} else {
-					toData_[curr]=fromData_[curr]+toData_[(s-1)*sourceData->featuresCnt+f];
-				}
-				break;
-			case DT_LOG:
-				break;
-			case DT_DELTALOG:
-				break;
-			default:
-				break;
-			}
-
-			curr++;
-		}
-	}
-}
-void sTimeSerie::unscale(float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, numtype* fromData_, numtype* toData_) {
+void sTimeSerie::unscale(float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int sampleLen_, numtype* fromData_, numtype* toData_) {
 
 		for (int s=0; s<stepsCnt; s++) {
 			for (int tf=0; tf<sourceData->featuresCnt; tf++) {
 				for(int df=0; df<selectedFeaturesCnt_; df++) {
 					if (selectedFeature_[df]==tf) {
-						toData_[s*sourceData->featuresCnt+tf]=(fromData_[s*sourceData->featuresCnt+tf]-scaleP[tf])/scaleM[tf];
+						if (s<sampleLen_) {
+							toData_[s*sourceData->featuresCnt+tf]=EMPTY_VALUE;
+						} else {
+							toData_[s*sourceData->featuresCnt+tf]=(fromData_[s*sourceData->featuresCnt+tf]-scaleP[tf])/scaleM[tf];
+						}
 					}
 				}
 			}
@@ -228,6 +205,14 @@ void sTimeSerie::mallocs2() {
 	scaleM=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
 	scaleP=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
 	for (int f=0; f<sourceData->featuresCnt; f++) { dmin[f]=1e9; dmax[f]=-1e9; }
+	//--
+	val[TSBASE][TSactual]=valA;
+	val[TSBASE][TSpredicted]=valP;
+	val[TSTR][TSactual]=trvalA;
+	val[TSTR][TSpredicted]=trvalP;
+	val[TSTRS][TSactual]=trsvalA;
+	val[TSTRS][TSpredicted]=trsvalP;
+
 }
 void sTimeSerie::frees() {
 	for (int i=0; i<len; i++) free(dtime[i]); free(dtime);
@@ -275,4 +260,40 @@ void sTimeSerie::setDataSource() {
 
 	//-- then, open
 	//safecall(sourceData, open);
+}
+
+void sTimeSerie::untransform(int selectedFeaturesCnt_, int* selectedFeature_, numtype* fromData_, numtype* toData_){
+
+	int i=0;
+	numtype* prevval = (numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
+
+	for (int s=0; s<(stepsCnt); s++) {
+		for (int tf=0; tf<sourceData->featuresCnt; tf++) {
+			for (int df=0; df<selectedFeaturesCnt_; df++) {
+				if (selectedFeature_[df]==tf) {
+					switch (dt) {
+					case DT_NONE:
+						toData_[i] = fromData_[i];
+						break;
+					case DT_DELTA:
+						if (s==0) {
+							toData_[i] = fromData_[i]+base[tf];
+						} else {
+							toData_[i] = fromData_[i]+prevval[tf];
+						}
+						prevval[tf] = toData_[i];
+						break;
+					case DT_LOG:
+						break;
+					case DT_DELTALOG:
+						break;
+					default:
+						break;
+					}
+				}
+			}
+			i++;
+		}
+	}
+	free(prevval);
 }

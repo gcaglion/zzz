@@ -196,7 +196,7 @@ void sDataSet::mallocs1() {
 	dumpPath=(char*)malloc(MAX_PATH);
 }
 void sDataSet::mallocs2() {
-	samplesCnt=sourceTS->stepsCnt-sampleLen-predictionLen+1;
+	samplesCnt=sourceTS->stepsCnt-sampleLen+1 -predictionLen;
 	if ((samplesCnt%batchSamplesCnt)!=0) {
 		fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", samplesCnt, batchSamplesCnt)
 	} else {

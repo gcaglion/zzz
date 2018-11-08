@@ -19,3 +19,4 @@ typedef float numtype;
 #endif
 
 #define Quote(var_) #var_
+#define EMPTY_VALUE	-9999.0f
