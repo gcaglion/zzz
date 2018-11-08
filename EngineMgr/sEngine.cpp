@@ -214,6 +214,7 @@ void sEngine::saveRun() {
 		int Bcnt=core[c]->procArgs->ds->predictionLen;
 		int TFcnt=core[c]->procArgs->ds->sourceTS->sourceData->featuresCnt;
 		int DFcnt=core[c]->procArgs->ds->selectedFeaturesCnt;
+		int* selF=core[c]->procArgs->ds->selectedFeature;
 		int Scnt=core[c]->procArgs->ds->samplesCnt;
 		int layer=core[c]->layout->layer;
 
@@ -224,7 +225,7 @@ void sEngine::saveRun() {
 							if (core[c]->procArgs->ds->selectedFeature[df]==tf) {
 
 								tsidx=s*Bcnt*TFcnt+b*TFcnt+tf;
-								dsidx=s*Bcnt*DFcnt+b*DFcnt+df;
+								dsidx=s*Bcnt*DFcnt+b*DFcnt+selF[df];
 								if (s>0) {
 									core[c]->procArgs->ds->sourceTS->trsvalP[tsidx] = core[c]->procArgs->predictionSBF[dsidx];
 								} else {

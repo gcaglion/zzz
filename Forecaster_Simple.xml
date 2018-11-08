@@ -40,7 +40,7 @@
 			</DataSet>
 		</Train>
 		<Validation>
-			Do	= false
+			Do					= false
 			<DataSet>
 				<TimeSerie>
 					<File_DataSource>
@@ -55,6 +55,7 @@
 		</Validation>
 		<Test>
 			Do	= true
+			UseShiftedTrainDS	= true
 			<DataSet>
 				BatchSamplesCount	= 10
 				SelectedFeatures	= FXHIGH, FXLOW

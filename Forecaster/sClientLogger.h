@@ -11,6 +11,6 @@ struct sClientLogger : sLogger {
 	EXPORT sClientLogger(sCfgObjParmsDef);
 	EXPORT ~sClientLogger();
 
-	EXPORT void saveClientInfo(int pid, char* clientName, DWORD startTime, DWORD duration, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun);
+	EXPORT void saveClientInfo(int pid, char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun);
 
 };

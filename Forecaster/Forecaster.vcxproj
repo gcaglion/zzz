@@ -166,11 +166,13 @@
     <ClInclude Include="MTwrapper.h" />
     <ClInclude Include="sClientLogger.h" />
     <ClInclude Include="sRoot.h" />
+    <ClInclude Include="Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Forecaster.cpp" />
     <ClCompile Include="sClientLogger.cpp" />
     <ClCompile Include="sRoot.cpp" />
+    <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

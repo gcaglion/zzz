@@ -28,8 +28,8 @@ sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
 		safecall(cfgKey, getParm, &ffn[2], "DestFileData/Internals");
 		safecall(cfgKey, getParm, &ffn[3], "DestFileData/Image");
 
-		filedb= new sFileData(this, newsname("Persistor_FileData"), defaultdbg, FILE_MODE_WRITE, true);
-		//safespawn(filedb, newsname("Persistor_FileData"), defaultdbg, cfg, "DestFileData", FILE_MODE_WRITE, true, logsCnt, ffn);
+		//filedb= new sFileData(this, newsname("Persistor_FileData"), defaultdbg, FILE_MODE_WRITE, true);
+		safespawn(filedb, newsname("Persistor_FileData"), defaultdbg, FILE_MODE_WRITE, true);
 	}
 
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
