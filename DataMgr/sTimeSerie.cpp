@@ -75,7 +75,6 @@ void sTimeSerie::transform(int dt_) {
 	}
 	hasTR=true;
 
-	if (doDump) dump();
 }
 void sTimeSerie::scale(float scaleMin_, float scaleMax_) {
 
