@@ -65,9 +65,10 @@ struct sDbg {
 		strcat_s(stack, DBG_STACK_MAXLEN, msg);
 
 		//-- finally, out to selected destinations
-		if (dbgtoscreen) printf("%s%s", indent, msg);
-		if (dbgtofile && outfile!=nullptr) fprintf(outfile, "%s%s", indent, msg);
-
+		if (verbose||msgtype!=DBG_MSG_INFO) {
+			if (dbgtoscreen) printf("%s%s", indent, msg);
+			if (dbgtofile && outfile!=nullptr) fprintf(outfile, "%s%s", indent, msg);
+		}
 	}
 
 private:
