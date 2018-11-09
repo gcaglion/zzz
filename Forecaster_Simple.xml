@@ -90,6 +90,35 @@
 			CoresCount	= 1
 			<Core0>
 				<Layout>
+					Type	= CORE_GA
+					Parents			= 
+					ParentsConnType	= 
+				</Layout>
+				<Parameters>
+				</Parameters>
+				<Persistor>
+					saveMSE			= false
+					saveRun			= true
+					saveInternals	= false
+					saveImage		= true
+					saveToDB		= true
+					saveToFile		= false
+					<DestOraData>
+						UserName	= CULogUser
+						Password	= LogPwd
+						ConnString	= Algo
+					</DestOraData>
+					<DestFileData>
+						Client		= c:\temp\logs\Persistor\Client.log
+						MSE			= c:\temp\logs\Persistor\MSE.log
+						Run			= c:\temp\logs\Persistor\Run.log
+						Internals	= c:\temp\logs\Persistor\Internals.log
+						Image		= c:\temp\logs\Persistor\Image.log
+					</DestFileData>
+				</Persistor>
+			</Core0>
+			<Core1>
+				<Layout>
 					Type	= CORE_NN
 					Parents			= 
 					ParentsConnType	= 
@@ -139,7 +168,7 @@
 						Image		= c:\temp\logs\Persistor\Image.log
 					</DestFileData>
 				</Persistor>
-			</Core0>
+			</Core1>
 		</Custom>
 		<XIE>
 		</XIE>

@@ -4,8 +4,6 @@
 #include "../EngineMgr/sCoreParms.h"
 #include "sNNenums.h"
 
-#define MAX_LEVELS 128
-
 struct sNNparms : sCoreParms {
 
 	//-- topology
@@ -34,7 +32,7 @@ struct sNNparms : sCoreParms {
 
 private:
 	void mallocs() {
-		levelRatio=(float*)malloc((MAX_LEVELS-2)*sizeof(float));
-		ActivationFunction=(int*)malloc(MAX_LEVELS*sizeof(int));
+		levelRatio=(float*)malloc((CORE_MAX_INTERNAL_LEVELS-2)*sizeof(float));
+		ActivationFunction=(int*)malloc(CORE_MAX_INTERNAL_LEVELS*sizeof(int));
 	}
 };

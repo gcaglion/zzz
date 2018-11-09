@@ -47,8 +47,6 @@ sNNparms::~sNNparms() {
 }
 
 void sNNparms::setScaleMinMax() {
-	scaleMin=(numtype*)malloc(levelsCnt*sizeof(float));
-	scaleMax=(numtype*)malloc(levelsCnt*sizeof(float));
 	for (int l=0; l<levelsCnt; l++) {
 		switch (ActivationFunction[l]) {
 		case NN_ACTIVATION_TANH:

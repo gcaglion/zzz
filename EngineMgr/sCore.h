@@ -45,8 +45,8 @@ struct sCore : sCfgObj {
 	EXPORT ~sCore();
 
 	//-- methods to be implemented indipendently by each subclass (sNN, sGA, ...)
-	virtual void train(sCoreProcArgs* procArgs_)=0;
-	virtual void infer(sCoreProcArgs* inferArgs_)=0;
+	virtual void train(sCoreProcArgs* procArgs_)=0;	
+	virtual void infer(sCoreProcArgs* inferArgs_)=0;	//-- should set sampleBSF, targetBSF, predictionBSF
 
 };
 

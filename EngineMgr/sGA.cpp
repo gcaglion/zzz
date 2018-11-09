@@ -4,4 +4,10 @@ sGA::sGA(sCfgObjParmsDef, sCoreLayout* layout_, sGAparms* GAparms_): sCore(sCfgO
 sGA::~sGA(){}
 
 void sGA::train(sCoreProcArgs* trainArgs) {}
-void sGA::infer(sCoreProcArgs* inferArgs) {}
+void sGA::infer(sCoreProcArgs* inferArgs) {
+
+	size_t bfsSize=inferArgs->ds->samplesCnt*inferArgs->ds->predictionLen*inferArgs->ds->selectedFeaturesCnt;
+	//-- perfect core!
+	for (int i=0; i<bfsSize; i++) inferArgs->ds->predictionBFS[i] = inferArgs->ds->targetBFS[i];
+
+}

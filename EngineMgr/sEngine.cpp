@@ -67,25 +67,28 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgO
 			if (coreLayout[c]->layer==l) {
 				switch (coreLayout[c]->type) {
 				case CORE_NN:
-					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);					
 					NNcp->setScaleMinMax();
 					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", coreLayout[c], NNcp);
-					core[c]=NNc; coreParms[c]=NNcp;
+					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
-					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);					
+					GAcp->setScaleMinMax();
 					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, "../", coreLayout[c], GAcp);
-					core[c]=GAc; coreParms[c]=GAcp;
+					coreParms[c]=GAcp; core[c]=GAc;
 					break;
 				case CORE_SVM:
 					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					SVMcp->setScaleMinMax();
 					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, "../", coreLayout[c], SVMcp);
-					core[c]=SVMc;  coreParms[c]=SVMcp;
+					coreParms[c]=SVMcp; core[c]=SVMc;
 					break;
 				case CORE_SOM:
 					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					SOMcp->setScaleMinMax();
 					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, "../", coreLayout[c], SOMcp);
-					core[c]=SOMc; coreParms[c]=SOMcp;
+					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
 				default:
 					fail("Invalid Core Type: %d", type);
@@ -145,7 +148,7 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 		}	
 		//--
 
-		gotoxy(0, 2+l+((l>0) ? layerCoresCnt[l-1] : 0));  printf("Training Layer %d\n", l);
+		gotoxy(0, 2+l+((l>0) ? layerCoresCnt[l-1] : 0));  printf("Process %6d, Thread %6d %s Layer %d\n", pid, tid, ((procid_==trainProc)?"Training":"Inferencing"), l);
 		t=0;
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
@@ -208,7 +211,7 @@ void sEngine::saveRun() {
 	for (int c=0; c<coresCnt; c++) {
 
 		//-- 1. convert predictionBFS to predictionSBF (done 
-		core[c]->procArgs->ds->reorder(DStarget, BFSorder, SBForder);
+		core[c]->procArgs->ds->reorder(DSprediction, BFSorder, SBForder);
 
 		//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
 		int Bcnt=core[c]->procArgs->ds->predictionLen;
