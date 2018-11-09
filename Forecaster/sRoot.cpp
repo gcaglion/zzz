@@ -83,12 +83,12 @@ void sRoot::kaz4() {
 
 	const int selFcnt=2; int selF[selFcnt]={ 1,2 };
 	sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false);
-	ds1->build(-1, 1);
-	ds1->dump();
+//	ds1->build(-1, 1);
+//	ds1->dump();
 
 	sDataSet* ds2 = new sDataSet(this, newsname("ds2"), defaultdbg, ds1);
-	ds2->build(-1, 1, TRSVAL);
-	ds2->dump(TRSVAL, false);
+//	ds2->build(-1, 1, TRSVAL);
+//	ds2->dump(TRSVAL, false);
 
 	
 

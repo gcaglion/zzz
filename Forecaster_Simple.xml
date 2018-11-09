@@ -8,7 +8,6 @@
 		<Shape>
 			SampleLen		= 10
 			PredictionLen	= 3
-			FeaturesCount	= 2
 		</Shape>
 		<Train>
 			Do	= true

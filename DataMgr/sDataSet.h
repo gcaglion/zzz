@@ -2,10 +2,7 @@
 
 #include "../ConfigMgr/sCfgObj.h"
 #include "sTimeSerie.h"
-
-#define VAL 0
-#define TRVAL 1
-#define TRSVAL 2
+#include "../Algebra/Algebra.h"
 
 //-- DataSet section
 #define DSsample		0
@@ -34,23 +31,22 @@ struct sDataSet : sCfgObj {
 	int batchCnt;
 
 	//-- sample, target, prediction are stored in  order (Sample-Bar-Feature)
-	numtype* sampleSBF;
-	numtype* targetSBF;
-	numtype* predictionSBF;
+	numtype** sampleSBF;		//--[BASE/TR/TRS]
+	numtype** targetSBF;		//--[BASE/TR/TRS]
+	numtype** predictionSBF;	//--[BASE/TR/TRS]
 	//-- network training requires BFS ordering
-	numtype* sampleBFS;
-	numtype* targetBFS;
-	numtype* predictionBFS;
+	numtype** sampleBFS;		//--[BASE/TR/TRS]
+	numtype** targetBFS;		//--[BASE/TR/TRS]
+	numtype** predictionBFS;	//--[BASE/TR/TRS]
 	//-- array of pointers to any of the above : [Section][order]
-	numtype* _data[3][2];
+	numtype** _data[3][2];
 
 	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_=nullptr, bool doDump=false, const char* dumpPath_=nullptr);
 	EXPORT sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_);
 	EXPORT sDataSet(sObjParmsDef, sDataSet* trainDS_);
 	EXPORT ~sDataSet();
 
-	EXPORT void build(float scaleMin_=0, float scaleMax_=0, int type=TRSVAL);
-	EXPORT void dump(int type=TRSVAL, bool prediction_=false);
+	EXPORT void build(int valStatus);
 	EXPORT void reorder(int section, int FROMorderId, int TOorderId);
 
 private:
@@ -59,6 +55,7 @@ private:
 	void mallocs2();
 	void frees();
 	bool isSelected(int ts_f);
+	void dumpPre(int valStatus, FILE** dumpFile);
 
 	int BWfeaturesCnt=2;
 	bool doDump;

@@ -10,7 +10,9 @@ sForecaster::sForecaster(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	
 	//-- 2. do stuff and spawn sub-Keys
 	safespawn(data, newsname("Data"), defaultdbg, cfg, "Data");
-	safespawn(engine, newsname("Engine"), defaultdbg, cfg, "Engine", data->shape->sampleLen*data->shape->featuresCnt, data->shape->predictionLen*data->shape->featuresCnt);
+	//-- Engine featuresCnt is determined by trainig Dataset if we do training: by inference dataset otherwise
+	int featuresCnt=(data->doTraining) ? data->trainDS->selectedFeaturesCnt : data->testDS->selectedFeaturesCnt;
+	safespawn(engine, newsname("Engine"), defaultdbg, cfg, "Engine", data->shape->sampleLen*featuresCnt, data->shape->predictionLen*featuresCnt);
 
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;

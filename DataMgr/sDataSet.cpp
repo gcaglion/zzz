@@ -67,134 +67,50 @@ sDataSet::sDataSet(sObjParmsDef, sDataSet* trainDS_) : sCfgObj(sObjParmsVal, nul
 sDataSet::~sDataSet() {
 	frees();
 }
-void sDataSet::build(float scaleMin_, float scaleMax_, int type) {
-	numtype* v=nullptr;
-	switch (type) {
-	case VAL:	v=sourceTS->valA; break;
-	case TRVAL: v=sourceTS->trvalA; break;
-	case TRSVAL:  v=sourceTS->trsvalA; break;
-	}
-	if (v==nullptr) fail("invalid data type: %d", type);
 
-	int s, b, f;
-	int si, ti, sidx, tidx;
-	si=0; ti=0;
-	tidx=0;
+void sDataSet::build(int valStatus) {
+	FILE* dumpFile=nullptr;
+	int dsidx, tsidx;
 
-	//-- scale timeserie data
-	sourceTS->scale(scaleMin_, scaleMax_);
+	if (doDump) dumpPre(valStatus, &dumpFile);
 
-	//-- 2. populate sample[], target[] from sourceTS->d_tr
-	for (s=0; s<samplesCnt; s++) {
-		//-- samples
-		sidx=(s+((isCloned)?predictionLen:0))*sourceTS->sourceData->featuresCnt;
-		for (b=0; b<sampleLen; b++) {
-			for (f=0; f<sourceTS->sourceData->featuresCnt; f++) {
-				if (isSelected(f)) {
-					sampleSBF[si]=v[sidx];
-					si++;
-				}
-				sidx++;
-			}
-		}
-
-		//-- targets
-		tidx=sidx;
-		for (b=0; b<predictionLen; b++) {
-			for (f=0; f<sourceTS->sourceData->featuresCnt; f++) {
-				if (isSelected(f)) {
-					targetSBF[ti]=v[tidx];
-					ti++;
-				}
-				tidx++;
-			}
-		}
-
-	}
-
-	//-- 3. convert SBF to BFS samples and targets
-	reorder(DSsample, SBForder, BFSorder);
-	reorder(DStarget, SBForder, BFSorder);
-
-	if (doDump)	dump();
-}
-void sDataSet::dump(int type, bool prediction_) {
-	int s, i, b, f;
-
-	char suffix1[10];
-	if (type==VAL) strcpy_s(suffix1, 10, "BASE");
-	if (type==TRVAL) strcpy_s(suffix1, 10, "TR");
-	if (type==TRSVAL) strcpy_s(suffix1, 10, "TRS");
-	char suffix2[12];
-	if (prediction_) {
-		strcpy_s(suffix2, 12, "PRD");
-	} else {
-		strcpy_s(suffix2, 12, "ACT");
-	}
-	char suffix3[16];
-	if (isCloned) {
-		strcpy_s(suffix3, 16, "SHIFTEDFROM");
-	} else {
-		strcpy_s(suffix3, 16, "INDIPENDENT");
-	}
-
-	char dumpFileName[MAX_PATH];
-	sprintf_s(dumpFileName, "%s/%s_%s_%s-%s-%s_dump_%p.csv", dumpPath, name->base, sourceTS->date0, suffix1, suffix2, suffix3, this);
-	FILE* dumpFile;
-	if (fopen_s(&dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-
-	fprintf(dumpFile, "SampleId,");
-	for (b=0; b<(sampleLen); b++) {
-		for (f=0; f<selectedFeaturesCnt; f++) {
-			fprintf(dumpFile, "Bar%dF%d,", b, selectedFeature[f]);
-		}
-	}
-	fprintf(dumpFile, ",");
-	for (b=0; b<(predictionLen); b++) {
-		for (f=0; f<selectedFeaturesCnt; f++) {
-			fprintf(dumpFile, "  Prd%dF%d,", b, selectedFeature[f]);
-		}
-	}
-	fprintf(dumpFile, "\n");
-	for (i=0; i<(1+(sampleLen*selectedFeaturesCnt)); i++) fprintf(dumpFile, "---------,");
-	fprintf(dumpFile, ",");
-	for (i=0; i<(predictionLen*selectedFeaturesCnt); i++) fprintf(dumpFile, "---------,");
-	fprintf(dumpFile, "\n");
-
-	int si, ti, sidx, tidx;
-	si=0; ti=0;
-	for (s=0; s<samplesCnt; s++) {
-		//-- samples
-		sidx=s*sourceTS->sourceData->featuresCnt;
+	for (int s=0; s<samplesCnt; s++) {
 		fprintf(dumpFile, "%d,", s);
-		for (b=0; b<sampleLen; b++) {
-			for (f=0; f<sourceTS->sourceData->featuresCnt; f++) {
-				if (isSelected(f)) {
-					fprintf(dumpFile, "%f,", sampleSBF[si]);
-					si++;
-				}
-				sidx++;
-			}
-		}
-		fprintf(dumpFile, "|,");
 
-		//-- targets
-		tidx=sidx;
-		for (b=0; b<predictionLen; b++) {
-			for (f=0; f<sourceTS->sourceData->featuresCnt; f++) {
-				if (isSelected(f)) {
-					if (tidx==sourceTS->len) {
-						tidx-=sourceTS->sourceData->featuresCnt;
+		//-- 1. samples
+		for (int b=0; b<sampleLen; b++) {
+			for (int df=0; df<selectedFeaturesCnt; df++) {
+				for (int tf=0; tf<sourceTS->sourceData->featuresCnt; tf++) {
+					if (selectedFeature[df]==tf) {
+						dsidx = s * sampleLen * selectedFeaturesCnt               + b * selectedFeaturesCnt				  + df;
+						tsidx = s *    1      * sourceTS->sourceData->featuresCnt + b * sourceTS->sourceData->featuresCnt + tf;
+						sampleSBF[valStatus][dsidx] = sourceTS->val[valStatus][TARGET][tsidx];
+						if(doDump) fprintf(dumpFile, "%f,", sampleSBF[valStatus][dsidx]);
+
 					}
-					fprintf(dumpFile, "%f,", targetSBF[ti]);
-					ti++;
 				}
-				tidx++;
 			}
 		}
-		fprintf(dumpFile, "\n");
+		if(doDump) fprintf(dumpFile, "|,");
+
+		//-- 2. targets
+		for (int b=0; b<predictionLen; b++) {
+			for (int df=0; df<selectedFeaturesCnt; df++) {
+				for (int tf=0; tf<sourceTS->sourceData->featuresCnt; tf++) {
+					if (selectedFeature[df]==tf) {
+						dsidx = s * predictionLen * selectedFeaturesCnt+b * selectedFeaturesCnt+df;
+						tsidx = sampleLen*sourceTS->sourceData->featuresCnt + s*1*sourceTS->sourceData->featuresCnt + b * sourceTS->sourceData->featuresCnt+tf;
+						targetSBF[valStatus][dsidx] = sourceTS->val[valStatus][TARGET][tsidx];
+						if (doDump) fprintf(dumpFile, "%f,", targetSBF[valStatus][dsidx]);
+					}
+				}
+			}
+		}
+		if (doDump) fprintf(dumpFile, "\n");
 	}
-	fclose(dumpFile);
+
+	if (doDump)	fclose(dumpFile);
+
 }
 void sDataSet::reorder(int section, int FROMorderId, int TOorderId) {
 
@@ -238,13 +154,14 @@ void sDataSet::mallocs2() {
 		batchCnt = samplesCnt/batchSamplesCnt;
 	}
 	//--
-	sampleSBF=(numtype*)malloc(samplesCnt*sampleLen*selectedFeaturesCnt*sizeof(numtype));
-	targetSBF=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
-	predictionSBF=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+	sampleSBF=(numtype**)malloc(3*sizeof(numtype*)); for(int i=0; i<3; i++) sampleSBF[i]=(numtype*)malloc(samplesCnt*sampleLen*selectedFeaturesCnt*sizeof(numtype));
+	targetSBF=(numtype**)malloc(3*sizeof(numtype*)); for (int i=0; i<3; i++) targetSBF[i]=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+	predictionSBF=(numtype**)malloc(3*sizeof(numtype*)); for (int i=0; i<3; i++) predictionSBF[i]=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
 	//--
-	sampleBFS=(numtype*)malloc(samplesCnt*sampleLen*selectedFeaturesCnt*sizeof(numtype));
-	targetBFS=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
-	predictionBFS=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+	sampleBFS=(numtype**)malloc(3*sizeof(numtype*)); for (int i=0; i<3; i++) sampleBFS[i]=(numtype*)malloc(samplesCnt*sampleLen*selectedFeaturesCnt*sizeof(numtype));
+	targetBFS=(numtype**)malloc(3*sizeof(numtype*)); for (int i=0; i<3; i++) targetBFS[i]=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+	predictionBFS=(numtype**)malloc(3*sizeof(numtype*)); for (int i=0; i<3; i++) predictionBFS[i]=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+
 	//-- generic pointers
 	_data[DSsample][SBForder]=sampleSBF;
 	_data[DSsample][BFSorder]=sampleBFS;
@@ -254,14 +171,71 @@ void sDataSet::mallocs2() {
 	_data[DSprediction][BFSorder]=predictionBFS;
 }
 void sDataSet::frees() {
-//	free(sampleSBF); free(targetSBF); free(predictionSBF);
-//	free(sampleBFS); free(targetBFS); free(predictionBFS);
-//	free(selectedFeature);
-//	free(dumpPath);
+	for (int i=0; i<3; i++) {
+		free(sampleSBF[i]);
+		free(targetSBF[i]);
+		free(predictionSBF[i]);
+		free(sampleBFS[i]);
+		free(targetBFS[i]);
+		free(predictionBFS[i]);
+	}
+	free(sampleSBF);
+	free(targetSBF);
+	free(predictionSBF);
+	free(sampleBFS);
+	free(targetBFS);
+	free(predictionBFS);
 }
 bool sDataSet::isSelected(int ts_f) {
 	for (int ds_f=0; ds_f<selectedFeaturesCnt; ds_f++) {
 		if (selectedFeature[ds_f]==ts_f) return true;
 	}
 	return false;
+}
+void sDataSet::dumpPre(int valStatus, FILE** dumpFile) {
+	int b, f, i;
+
+	//-- set dumpFile name
+	char suffix1[10];
+	if (valStatus==BASE) strcpy_s(suffix1, 10, "BASE");
+	if (valStatus==TR) strcpy_s(suffix1, 10, "TR");
+	if (valStatus==TRS) strcpy_s(suffix1, 10, "TRS");
+	char suffix3[16];
+	if (isCloned) {
+		strcpy_s(suffix3, 16, "SHIFTEDFROM");
+	} else {
+		strcpy_s(suffix3, 16, "INDIPENDENT");
+	}
+
+	//-- open dumpFile
+	char dumpFileName[MAX_PATH];
+	sprintf_s(dumpFileName, "%s/%s_%s_%s-%s_dump_%p.csv", dumpPath, name->base, sourceTS->date0, suffix1, suffix3, this);
+	if (fopen_s(dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
+
+	//-- print headers
+	fprintf((*dumpFile), "SampleId,");
+	for (b=0; b<(sampleLen); b++) {
+		for (f=0; f<selectedFeaturesCnt; f++) {
+			fprintf((*dumpFile), "Bar%dF%d,", b, selectedFeature[f]);
+		}
+	}
+	fprintf((*dumpFile), ",");
+	for (b=0; b<(predictionLen); b++) {
+		for (f=0; f<selectedFeaturesCnt; f++) {
+			fprintf((*dumpFile), "  Target%dF%d,", b, selectedFeature[f]);
+		}
+	}
+	fprintf((*dumpFile), ",");
+	for (b=0; b<(predictionLen); b++) {
+		for (f=0; f<selectedFeaturesCnt; f++) {
+			fprintf((*dumpFile), "  Prediction%dF%d,", b, selectedFeature[f]);
+		}
+	}
+	fprintf((*dumpFile), "\n");
+	for (i=0; i<(1+(sampleLen*selectedFeaturesCnt)); i++) fprintf((*dumpFile), "---------,");
+	fprintf((*dumpFile), ",");
+	for (i=0; i<(predictionLen*selectedFeaturesCnt); i++) fprintf((*dumpFile), "---------,");
+	fprintf((*dumpFile), ",");
+	for (i=0; i<(predictionLen*selectedFeaturesCnt); i++) fprintf((*dumpFile), "---------,");
+	fprintf((*dumpFile), "\n");
 }

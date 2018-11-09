@@ -24,6 +24,7 @@ private:
 	sNNparms* parms;
 	int pid, tid, testid;	//-- these are set from either procArgs or runArgs
 
+	//-- internal layout
 	int* nodesCnt;
 	int nodesCntTotal;
 	int outputLevel;
@@ -40,6 +41,11 @@ private:
 	//-- set at each level according to ActivationFunction
 	float* scaleMin;	
 	float* scaleMax;
+
+	//-- simple pointers to dataset BFS arrays
+	numtype* sample;
+	numtype* target;
+	numtype* prediction;
 
 	numtype* a;
 	numtype* F;

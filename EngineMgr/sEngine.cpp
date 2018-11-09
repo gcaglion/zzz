@@ -148,13 +148,18 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 		}	
 		//--
 
-		gotoxy(0, 2+l+((l>0) ? layerCoresCnt[l-1] : 0));  printf("Process %6d, Thread %6d %s Layer %d\n", pid, tid, ((procid_==trainProc)?"Training":"Inferencing"), l);
+		gotoxy(0, 2+l+((l>0) ? layerCoresCnt[l-1] : 0));  printf("Process %6d, %s Layer %d\n", pid, ((procid_==trainProc)?"Training":"Inferencing"), l);
 		t=0;
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
 
-				//-- rebuild training DataSet for current Core
-				ds_->build(coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+				//-- scale trdata and rebuild training DataSet for current Core
+				ds_->build(BASE);
+				ds_->build(TR);
+				ds_->sourceTS->scale(coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+				ds_->sourceTS->dump(TRS, TARGET);
+				ds_->build(TRS);
+				
 
 				//-- Create Training or Infer Thread for current Core
 				procArgs[t]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
@@ -164,10 +169,10 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 				procArgs[t]->coreProcArgs->selectedFeaturesCnt=procArgs[t]->coreProcArgs->ds->selectedFeaturesCnt;
 				procArgs[t]->coreProcArgs->selectedFeature=procArgs[t]->coreProcArgs->ds->selectedFeature;
 				procArgs[t]->coreProcArgs->predictionLen=procArgs[t]->coreProcArgs->ds->predictionLen;
-				procArgs[t]->coreProcArgs->targetBFS = procArgs[t]->coreProcArgs->ds->targetBFS;
-				procArgs[t]->coreProcArgs->predictionBFS = procArgs[t]->coreProcArgs->ds->predictionBFS;
-				procArgs[t]->coreProcArgs->targetSBF = procArgs[t]->coreProcArgs->ds->targetSBF;
-				procArgs[t]->coreProcArgs->predictionSBF = procArgs[t]->coreProcArgs->ds->predictionSBF;
+				procArgs[t]->coreProcArgs->targetBFS = procArgs[t]->coreProcArgs->ds->targetBFS[TRS];
+				procArgs[t]->coreProcArgs->predictionBFS = procArgs[t]->coreProcArgs->ds->predictionBFS[TRS];
+				procArgs[t]->coreProcArgs->targetSBF = procArgs[t]->coreProcArgs->ds->targetSBF[TRS];
+				procArgs[t]->coreProcArgs->predictionSBF = procArgs[t]->coreProcArgs->ds->predictionSBF[TRS];
 
 				if (procid_==trainProc) {
 					procH[t] = CreateThread(NULL, 0, coreThreadTrain, &(*procArgs[t]), 0, tid[t]);
@@ -244,7 +249,7 @@ void sEngine::saveRun() {
 		//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
 		sTimeSerie* _ts = core[c]->procArgs->ds->sourceTS;
 		sDataSet* _ds = core[c]->procArgs->ds;
-		_ts->unscale(coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], DFcnt, _ds->selectedFeature, _ds->sampleLen, _ts->trsvalP, _ts->trvalP);
+		_ts->unscale(coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], DFcnt, _ds->selectedFeature, _ds->sampleLen, PREDICTED);
 		
 		//-- 4. copy trvalA into trvalP for the first <sampleLen> bars, so we have a baseval
 		size_t leftsz=core[c]->procArgs->ds->sampleLen*core[c]->procArgs->ds->sourceTS->sourceData->featuresCnt*sizeof(numtype);

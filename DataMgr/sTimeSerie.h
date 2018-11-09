@@ -10,13 +10,13 @@
 #define MAX_DATA_FEATURES 128
 #define MAX_TSF_CNT	32
 
-//-- val Source
-#define TSactual	0
-#define TSpredicted	1
 //-- val Status
-#define TSBASE	0
-#define TSTR	1
-#define TSTRS	2
+#define BASE	0
+#define TR	1
+#define TRS	2
+//-- val Source
+#define TARGET		0
+#define PREDICTED	1
 
 struct sTimeSerie : sCfgObj {
 
@@ -41,8 +41,8 @@ struct sTimeSerie : sCfgObj {
 	numtype* valP;
 	numtype* trvalP;
 	numtype* trsvalP;
-	//-- this is just a pointer ([TSBASE][TSactual], ...)
-	numtype* val[3][2];
+	//-- this is just a pointer 
+	numtype* val[3][2];	//-- [Status][Source]
 
 	//-- these are of size [featuresCnt]
 	char bdtime[DATE_FORMAT_LEN];
@@ -65,11 +65,10 @@ struct sTimeSerie : sCfgObj {
 	EXPORT void transform(int dt_=-1);
 	EXPORT void untransform(int selectedFeaturesCnt_, int* selectedFeature_, numtype* fromData_, numtype* toData_);
 	EXPORT void scale(float scaleMin_, float scaleMax_);
-	EXPORT void unscale(float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int sampleLen_, numtype* fromData_, numtype* toData_);
-	EXPORT void dump(bool prediction_ = false);
+	EXPORT void unscale(float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int sampleLen_, int valSource);
+	EXPORT void dump(int status, int source);
 
 private:
-	bool hasTR, hasTRS;
 	void mallocs1();
 	void mallocs2();
 	void frees();
