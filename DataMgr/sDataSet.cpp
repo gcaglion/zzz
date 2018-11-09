@@ -82,8 +82,12 @@ void sDataSet::build(int valStatus) {
 			for (int df=0; df<selectedFeaturesCnt; df++) {
 				for (int tf=0; tf<sourceTS->sourceData->featuresCnt; tf++) {
 					if (selectedFeature[df]==tf) {
-						dsidx = s * sampleLen * selectedFeaturesCnt               + b * selectedFeaturesCnt				  + df;
+						//dsidx = s * sampleLen * selectedFeaturesCnt+b * selectedFeaturesCnt+df;
+						dsidx = s * sampleLen * selectedFeaturesCnt+b * selectedFeaturesCnt+df;
 						tsidx = s *    1      * sourceTS->sourceData->featuresCnt + b * sourceTS->sourceData->featuresCnt + tf;
+
+						if (isCloned) tsidx+=predictionLen*sourceTS->sourceData->featuresCnt;
+
 						sampleSBF[valStatus][dsidx] = sourceTS->val[valStatus][TARGET][tsidx];
 						if(doDump) fprintf(dumpFile, "%f,", sampleSBF[valStatus][dsidx]);
 
@@ -100,6 +104,7 @@ void sDataSet::build(int valStatus) {
 					if (selectedFeature[df]==tf) {
 						dsidx = s * predictionLen * selectedFeaturesCnt+b * selectedFeaturesCnt+df;
 						tsidx = sampleLen*sourceTS->sourceData->featuresCnt + s*1*sourceTS->sourceData->featuresCnt + b * sourceTS->sourceData->featuresCnt+tf;
+						if (isCloned) tsidx+=predictionLen*sourceTS->sourceData->featuresCnt;
 						targetSBF[valStatus][dsidx] = sourceTS->val[valStatus][TARGET][tsidx];
 						if (doDump) fprintf(dumpFile, "%f,", targetSBF[valStatus][dsidx]);
 					}
