@@ -20,17 +20,17 @@ struct sFileData : sCfgObj {
 
 	EXPORT void open(int mode_);
 	EXPORT void close();
-	EXPORT void getStartDates(sFileData* dateSource_, char* startDate_, int datesCnt_, char** oDate_);
+	EXPORT void getStartDates(char* startDate_, int datesCnt_, char** oDate_);
 
 	EXPORT void saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV);
 	EXPORT void saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted);
 	EXPORT void saveW(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void loadW(int pid, int tid, int epoch, int Wcnt, numtype* W);
-	EXPORT void saveClientInfo(int pid, char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun);
+	EXPORT void saveClientInfo(int pid, const char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun);
 	EXPORT void commit();
 
 
 private:
 	void mallocs();
-
+	bool isOpen=false;
 };

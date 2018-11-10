@@ -26,5 +26,4 @@ struct sDataSource : sCfgObj {
 	virtual void open();
 	virtual void load(char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar) {}
 
-	bool isOpen;
 };

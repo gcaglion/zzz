@@ -8,6 +8,7 @@ sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), defa
 }
 sRoot::~sRoot() {}
 
+/*
 void sRoot::kaz4() {
 	
 	sOraData* oradb1; safespawn(oradb1, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo");
@@ -33,7 +34,7 @@ void sRoot::kaz4() {
 	
 
 }
-
+*/
 
 void sRoot::tester() {
 
@@ -111,7 +112,7 @@ void sRoot::tester() {
 			//-- 6.4. Save ClientInfo for
 			if (testerPersistor->saveClientInfoFlag) {
 				char* endtimeS = timer->stop();
-				testerPersistor->saveClientInfo( pid, "Root.Tester", timer->startTime, timer->elapsedTime/1000, simulationLength, simulationTrainStartDate[s], forecaster->data->doTraining, forecaster->data->doInference, false);
+				safecall(testerPersistor, saveClientInfo, pid, "Root.Tester", timer->startTime, timer->elapsedTime, simulationLength, simulationTrainStartDate[s], forecaster->data->doTraining, forecaster->data->doInference, forecaster->data->doTraining);
 
 			}
 

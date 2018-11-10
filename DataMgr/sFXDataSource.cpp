@@ -34,7 +34,6 @@ sFXDataSource::~sFXDataSource() {
 }
 
 void sFXDataSource::load(char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar) {
-	if (!isOpen) open();
 	//-- we could also retrieve FXData from file...
 	safecall(oradb, getFlatOHLCV2, Symbol, TimeFrame, pDate0, pRecCount, oBarTime, oBarData, oBaseTime, oBaseBar);
 }
@@ -42,10 +41,9 @@ void sFXDataSource::open() {
 	safecall(oradb, open);
 }
 void sFXDataSource::getStartDates(char* date0_, int datesCnt_, char** oStartDates_) {
-	if (!isOpen) open();
 	if (type==DB_SOURCE) {
 		safecall(oradb, getStartDates, Symbol, TimeFrame, IsFilled, date0_, datesCnt_, oStartDates_);
 	} else {
-		//safecall(filedb, getStartDates, file, date0_, datesCnt_, oStartDates_);
+		safecall(filedb, getStartDates, date0_, datesCnt_, oStartDates_);
 	}
 }

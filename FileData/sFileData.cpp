@@ -37,7 +37,9 @@ void sFileData::open(int mode_) {
 void sFileData::close() {
 	for (int f=0; f<filesCnt; f++) fclose(fileH[f]);
 }
-void sFileData::getStartDates(sFileData* dateSource_, char* startDate_, int datesCnt_, char** oDate_) {}
+void sFileData::getStartDates(char* startDate_, int datesCnt_, char** oDate_) {
+	fail("Not implemented!");
+}
 void sFileData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
 	fail("not implemented.");
 }
@@ -52,6 +54,6 @@ void sFileData::mallocs() {
 	fileH=(FILE**)malloc(filesCnt*sizeof(FILE*));
 	for (int f=0; f<filesCnt; f++) fileFullName[f]=(char*)malloc(MAX_PATH);
 }
-void sFileData::saveClientInfo(int pid, char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {
+void sFileData::saveClientInfo(int pid, const char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {
 	fail("not implemented.");
 }

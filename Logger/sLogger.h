@@ -24,5 +24,4 @@ struct sLogger : sCfgObj {
 	EXPORT virtual void open();
 	EXPORT virtual void commit() {}
 
-	bool isOpen = false;
 };

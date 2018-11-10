@@ -25,13 +25,11 @@ sClientLogger::sClientLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
 }
 sClientLogger::~sClientLogger(){}
 
-void sClientLogger::saveClientInfo(int pid, char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {
-	if (!isOpen) open();
+void sClientLogger::saveClientInfo(int pid, const char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {
 	if (saveToDB) {
-		//safecall(oradb, saveClientInfo, pid, clientName, startTime, elapsedTime, simulLen, simulStart, doTrain, doTrainRun, doTestRun);
-		oradb->saveClientInfo(pid, clientName, startTime, elapsedSecs, simulLen, simulStart, doTrain, doTrainRun, doTestRun);
+		safecall(oradb, saveClientInfo, pid, clientName, startTime, elapsedSecs, simulLen, simulStart, doTrain, doTrainRun, doTestRun);
 	}
 	if (saveToFile) {
-		//safecall(filedb, saveClientInfo, pid, clientName, startTime, elapsedTime, simulLen, simulStart, doTrain, doTrainRun, doTestRun);
+		safecall(filedb, saveClientInfo, pid, clientName, startTime, elapsedSecs, simulLen, simulStart, doTrain, doTrainRun, doTestRun);
 	}
 }

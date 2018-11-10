@@ -22,10 +22,8 @@ sOraData::sOraData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 }
 sOraData::~sOraData() {
-	//printf("sOraData Destructor called for %s\n", name->full);
 	if (isOpen) {
 		close();
-		isOpen=false;
 	}
 }
 
@@ -34,8 +32,7 @@ void sOraData::open() {
 		if(env==nullptr) env = Environment::createEnvironment();
 		if (conn==nullptr) conn = ((Environment*)env)->createConnection(DBUserName, DBPassword, DBConnString);
 		isOpen=true;
-	}
-	catch (SQLException exc) {
+	} catch (SQLException exc) {
 		{ 
 			fail("%s FAILURE : %s", name->base, exc.what());
 		}
@@ -54,15 +51,17 @@ void sOraData::commit() {
 //-- Read
 void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCnt, char** oBarTime, float* oBarData, char* oBarTime0, float* oBaseBar) {
 	int i;
-	Statement* stmt=nullptr;
 	ResultSet *rset;
 	char sql[SQL_MAXLEN];
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
 
 	try {
 		//-- 1. History: open statement and result set
 		sprintf_s(sql, SQL_MAXLEN, "select to_char(newdatetime,'YYYYMMDDHH24MI'), open, high, low, close, nvl(volume,0) from %s_%s where NewDateTime<=to_date('%s','YYYYMMDDHH24MI') order by 1 desc", pSymbol, pTF, date0_);
 		stmt = ((Connection*)conn)->createStatement(sql);
-		rset = stmt->executeQuery();
+		rset = ((Statement*)stmt)->executeQuery();
 		//-- 2. History: get all records
 		i=stepsCnt-1;
 		while (rset->next()&&i>=0) {
@@ -78,89 +77,35 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCn
 		strcpy_s(oBarTime0, DATE_FORMAT_LEN, rset->getString(1).c_str());
 		for (int f=0; f<5; f++)	oBaseBar[f] = rset->getFloat(f+2);
 		//-- 4. History: close result set and statement
-		stmt->closeResultSet(rset);
-		((Connection*)conn)->terminateStatement(stmt);
+		((Statement*)stmt)->closeResultSet(rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	} catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
-}
-
-void sOraData::getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pastStepsCnt, char** oBarTimeH, float* oBarDataH, int futureStepsCnt, char** oBarTimeF, float* oBarDataF, char* oBarTime0, float* oBaseBar) {
-	int i;
-	Statement* stmt=nullptr;
-	ResultSet *rset;
-	char sql[SQL_MAXLEN];
-
-	try {
-		//-- 1. History: open statement and result set
-		sprintf_s(sql, SQL_MAXLEN, "select to_char(newdatetime,'YYYYMMDDHH24MI'), open, high, low, close, nvl(volume,0) from %s_%s where NewDateTime<=to_date('%s','YYYYMMDDHH24MI') order by 1 desc", pSymbol, pTF, pDate0);
-		stmt = ((Connection*)conn)->createStatement(sql);
-		rset = stmt->executeQuery();
-		//-- 2. History: get all records
-		i=pastStepsCnt-1;
-		while (rset->next()&&i>=0) {
-			strcpy_s(oBarTimeH[i], DATE_FORMAT_LEN, rset->getString(1).c_str());
-			oBarDataH[5*i+0] = rset->getFloat(2);
-			oBarDataH[5*i+1] = rset->getFloat(3);
-			oBarDataH[5*i+2] = rset->getFloat(4);
-			oBarDataH[5*i+3] = rset->getFloat(5);
-			oBarDataH[5*i+4] = rset->getFloat(6);
-			i--;
-		}
-		//-- 3. History: one more fetch to get baseBar
-		strcpy_s(oBarTime0, DATE_FORMAT_LEN, rset->getString(1).c_str());
-		for (int f=0; f<5; f++)	oBaseBar[f] = rset->getFloat(f+2);
-		//-- 4. History: close result set and statement
-		stmt->closeResultSet(rset);
-		((Connection*)conn)->terminateStatement(stmt);
-
-		//-- 1. Future: open statement and result set
-		sprintf_s(sql, SQL_MAXLEN, "select to_char(newdatetime,'YYYYMMDDHH24MI'), open, high, low, close, nvl(volume,0) from %s_%s where NewDateTime>to_date('%s','YYYYMMDDHH24MI') order by 1", pSymbol, pTF, pDate0);
-		stmt = ((Connection*)conn)->createStatement(sql);
-		rset = stmt->executeQuery();
-		//-- 2. Future: get all records
-		i=0;
-		while (rset->next()&&i<futureStepsCnt) {
-			strcpy_s(oBarTimeF[i], DATE_FORMAT_LEN, rset->getString(1).c_str());
-			oBarDataF[5*i+0] = rset->getFloat(2);
-			oBarDataF[5*i+1] = rset->getFloat(3);
-			oBarDataF[5*i+2] = rset->getFloat(4);
-			oBarDataF[5*i+3] = rset->getFloat(5);
-			oBarDataF[5*i+4] = rset->getFloat(6);
-			i++;
-		}
-		//-- 4. Future: close result set and statement
-		stmt->closeResultSet(rset);
-		((Connection*)conn)->terminateStatement(stmt);
-
-	}
-	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
-	}
-
-
 }
 void sOraData::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	char sql[SQL_MAXLEN];
-	Statement* stmt=nullptr;
 	ResultSet *rset;
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
 
 	//-- if a specific epoch is not provided, we first need to find the last epoch
 	if (epoch==-1) {
 		sprintf_s(sql, SQL_MAXLEN, "select max(epoch) from CoreImage_NN where processId = %d and ThreadId = %d", pid, tid);
 		try {
 			stmt = ((Connection*)conn)->createStatement(sql);
-			rset = stmt->executeQuery();
+			rset = ((Statement*)stmt)->executeQuery();
 			if (rset->next() && !rset->isNull(1)) {
 				epoch=rset->getInt(1);
 			} else {
 				fail("Could not find max epoch for processId=%d, ThreadId=%d", pid, tid);
 			}
 		} catch (SQLException ex) {
-			fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+			fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 		}
-		stmt->closeResultSet(rset);
-		((Connection*)conn)->terminateStatement(stmt);
+		((Statement*)stmt)->closeResultSet(rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
 
 	//-- once we have the epoch, we load Ws for that pid, tid, epoch
@@ -168,24 +113,27 @@ void sOraData::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	sprintf_s(sql, SQL_MAXLEN, "select WId, W from CoreImage_NN where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1,2", pid, tid, epoch);
 	try{
 		stmt = ((Connection*)conn)->createStatement(sql);
-		rset = stmt->executeQuery();
+		rset = ((Statement*)stmt)->executeQuery();
 		while (rset->next()&&i<Wcnt) {
 			W[i] = rset->getFloat(2);
 			i++;
 		}
 	} catch(SQLException ex){
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 
 	//-- close result set and terminate statement before exiting
-	stmt->closeResultSet(rset);
-	((Connection*)conn)->terminateStatement(stmt);
+	((Statement*)stmt)->closeResultSet(rset);
+	((Connection*)conn)->terminateStatement((Statement*)stmt);
 
 }
 void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char** oDate) {
+	
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
 	// Retrieves plain ordered list of NewDateTime starting from StartDate onwards for <DatesCount> records
 	int i;
-	Statement* stmt=nullptr;
 	ResultSet *rset;
 	char sql[SQL_MAXLEN];
 
@@ -194,7 +142,7 @@ void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, ch
 	try {
 		sprintf_s(sql, SQL_MAXLEN, "select to_char(NewDateTime, 'YYYYMMDDHH24MI') from History.%s_%s%s where NewDateTime>=to_date('%s','YYYYMMDDHH24MI') order by 1", symbol_, timeframe_, (isFilled_)?"_FILLED ":"", StartDate);
 		stmt = ((Connection*)conn)->createStatement(sql);
-		rset = stmt->executeQuery();
+		rset = ((Statement*)stmt)->executeQuery();
 
 		i=0;
 		while (rset->next()&&i<DatesCount) {
@@ -202,132 +150,140 @@ void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, ch
 			i++;
 		}
 
-		stmt->closeResultSet(rset);
-		((Connection*)conn)->terminateStatement(stmt);
+		((Statement*)stmt)->closeResultSet(rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
 	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
 //-- Write
 void sOraData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
 
-	Statement* stmt = ((Connection*)conn)->createStatement("insert into TrainLog(ProcessId, ThreadId, Epoch, MSE_T, MSE_V) values(:P01, :P02, :P03, :P04, :P05)");
-
-	stmt->setMaxIterations(mseCnt);
-	for (int epoch=0; epoch<mseCnt; epoch++) {
-		stmt->setInt(1, pid);
-		stmt->setInt(2, tid);
-		stmt->setInt(3, epoch);
-		stmt->setFloat(4, mseT[epoch]);
-		stmt->setFloat(5, mseV[epoch]);
-		if(epoch<(mseCnt-1)) stmt->addIteration();
-	}
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
 
 	try {
-		stmt->executeUpdate();
+		stmt = ((Connection*)conn)->createStatement("insert into TrainLog(ProcessId, ThreadId, Epoch, MSE_T, MSE_V) values(:P01, :P02, :P03, :P04, :P05)");
+		((Statement*)stmt)->setMaxIterations(mseCnt);
+		for (int epoch=0; epoch<mseCnt; epoch++) {
+			((Statement*)stmt)->setInt(1, pid);
+			((Statement*)stmt)->setInt(2, tid);
+			((Statement*)stmt)->setInt(3, epoch);
+			((Statement*)stmt)->setFloat(4, mseT[epoch]);
+			((Statement*)stmt)->setFloat(5, mseV[epoch]);
+			if(epoch<(mseCnt-1)) ((Statement*)stmt)->addIteration();
+		}
+		((Statement*)stmt)->executeUpdate();
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	} catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
-
-	//stmt->setDataBuffer(4, mseT, OCCIFLOAT, sizeof(numtype), ntl);
-	//stmt->setDataBuffer(5, mseV, OCCIFLOAT, sizeof(numtype), ntl);
 	
 }
 void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted) {
 
 	int runCnt=runStepsCnt*selectedFeaturesCnt;
-	Statement* stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, Pos, Feature, StepAhead, PredictedTRS, ActualTRS, ErrorTRS, PredictedTR, ActualTR, ErrorTR, Predicted, Actual, Error) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15, :P16)");
-	stmt->setMaxIterations(runCnt);
-
 	int tsidx=0, runidx=0;
-	for (int s=0; s<runStepsCnt; s++) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	try {
+		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, Pos, Feature, StepAhead, PredictedTRS, ActualTRS, ErrorTRS, PredictedTR, ActualTR, ErrorTR, Predicted, Actual, Error) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15, :P16)");
+		((Statement*)stmt)->setMaxIterations(runCnt);
+
+		for (int s=0; s<runStepsCnt; s++) {
 		for (int df=0; df<selectedFeaturesCnt; df++) {
 			for (int tf=0; tf<tsFeaturesCnt_; tf++) {
 				if (selectedFeature[df]==tf) {
 					tsidx = s*tsFeaturesCnt_+tf;
-					stmt->setInt(1, pid);
-					stmt->setInt(2, tid);
-					stmt->setInt(3, npid);
-					stmt->setInt(4, ntid);
-					stmt->setInt(5, s);
-					stmt->setInt(6, tf);
-					stmt->setInt(7, 1);
+					((Statement*)stmt)->setInt(1, pid);
+					((Statement*)stmt)->setInt(2, tid);
+					((Statement*)stmt)->setInt(3, npid);
+					((Statement*)stmt)->setInt(4, ntid);
+					((Statement*)stmt)->setInt(5, s);
+					((Statement*)stmt)->setInt(6, tf);
+					((Statement*)stmt)->setInt(7, 1);
 					
 					//-- for every Actual/Predicted/Error triplet, we need to handle NULL values
 
-					stmt->setFloat(9, actualTRS[tsidx]); //-- this can never be EMPTY_VALUE
+					((Statement*)stmt)->setFloat(9, actualTRS[tsidx]); //-- this can never be EMPTY_VALUE
 					if (predictedTRS[tsidx]==EMPTY_VALUE) {
-						stmt->setNull(8, OCCIFLOAT);
-						stmt->setNull(10, OCCIFLOAT);
+						((Statement*)stmt)->setNull(8, OCCIFLOAT);
+						((Statement*)stmt)->setNull(10, OCCIFLOAT);
 					} else {
-						stmt->setFloat(8, predictedTRS[tsidx]);
-						stmt->setFloat(10, fabs(actualTRS[tsidx]-predictedTRS[tsidx]));
+						((Statement*)stmt)->setFloat(8, predictedTRS[tsidx]);
+						((Statement*)stmt)->setFloat(10, fabs(actualTRS[tsidx]-predictedTRS[tsidx]));
 					}
 					//--
-					stmt->setFloat(12, actualTR[tsidx]); //-- this can never be EMPTY_VALUE
+					((Statement*)stmt)->setFloat(12, actualTR[tsidx]); //-- this can never be EMPTY_VALUE
 					if (predictedTR[tsidx]==EMPTY_VALUE) {
-						stmt->setNull(11, OCCIFLOAT);
-						stmt->setNull(13, OCCIFLOAT);
+						((Statement*)stmt)->setNull(11, OCCIFLOAT);
+						((Statement*)stmt)->setNull(13, OCCIFLOAT);
 					} else {
-						stmt->setFloat(11, predictedTR[tsidx]);
-						stmt->setFloat(13, fabs(actualTR[tsidx]-predictedTR[tsidx]));
+						((Statement*)stmt)->setFloat(11, predictedTR[tsidx]);
+						((Statement*)stmt)->setFloat(13, fabs(actualTR[tsidx]-predictedTR[tsidx]));
 					}
 					//--
-					stmt->setFloat(15, actual[tsidx]); //-- this can never be EMPTY_VALUE
+					((Statement*)stmt)->setFloat(15, actual[tsidx]); //-- this can never be EMPTY_VALUE
 					if (predicted[tsidx]==EMPTY_VALUE) {
-						stmt->setNull(14, OCCIFLOAT);
-						stmt->setNull(16, OCCIFLOAT);
+						((Statement*)stmt)->setNull(14, OCCIFLOAT);
+						((Statement*)stmt)->setNull(16, OCCIFLOAT);
 					} else {
-						stmt->setFloat(14, predicted[tsidx]);
-						stmt->setFloat(16, fabs(actual[tsidx]-predicted[tsidx]));
+						((Statement*)stmt)->setFloat(14, predicted[tsidx]);
+						((Statement*)stmt)->setFloat(16, fabs(actual[tsidx]-predicted[tsidx]));
 					}
 
-					if (runidx<(runCnt-1)) stmt->addIteration();
+					if (runidx<(runCnt-1)) ((Statement*)stmt)->addIteration();
 					runidx++;
 				}
 				//tsidx++;
 			}
 		}
 	}
-
-	try {
-		stmt->executeUpdate();
-	}
-	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+		((Statement*)stmt)->executeUpdate();
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+	} catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 
 }
 void sOraData::saveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 
-	Statement* stmt = ((Connection*)conn)->createStatement("insert into CoreImage_NN (ProcessId, ThreadId, Epoch, WId, W) values(:P01, :P02, :P03, :P04, :P05)");
-
-	stmt->setMaxIterations(Wcnt);
-	for (int i=0; i<Wcnt; i++) {
-		stmt->setInt(1, pid);
-		stmt->setInt(2, tid);
-		stmt->setInt(3, epoch);
-		stmt->setInt(4, i);
-		stmt->setFloat(5, W[i]);
-		if (i<(Wcnt-1)) stmt->addIteration();
-	}
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
 
 	try {
-		stmt->executeUpdate();
-	}
-	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+		stmt = ((Connection*)conn)->createStatement("insert into CoreImage_NN (ProcessId, ThreadId, Epoch, WId, W) values(:P01, :P02, :P03, :P04, :P05)");
+		((Statement*)stmt)->setMaxIterations(Wcnt);
+		for (int i=0; i<Wcnt; i++) {
+			((Statement*)stmt)->setInt(1, pid);
+			((Statement*)stmt)->setInt(2, tid);
+			((Statement*)stmt)->setInt(3, epoch);
+			((Statement*)stmt)->setInt(4, i);
+			((Statement*)stmt)->setFloat(5, W[i]);
+			if (i<(Wcnt-1)) ((Statement*)stmt)->addIteration();
+		}
+		((Statement*)stmt)->executeUpdate();
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+	} catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-void sOraData::saveClientInfo(int pid, char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {
+void sOraData::saveClientInfo(int pid, const char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
 	char stmtS[SQL_MAXLEN]; sprintf_s(stmtS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, ClientName, ClientStart, SimulationLen, Duration, SimulationStart, DoTraining, DoTrainRun) values(%d, '%s', sysdate, %d, %f, to_date('%s','YYYYMMDDHH24MI'), %d, %d)", pid, clientName, simulLen, elapsedSecs, simulStart, (doTrain?1:0), (doTestRun?1:0) );
-	Statement* stmt = ((Connection*)conn)->createStatement(stmtS);
+
 	try {
-		stmt->executeUpdate();
-	}
-	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), stmt->getSQL().c_str());
+		stmt = ((Connection*)conn)->createStatement(stmtS);
+		((Statement*)stmt)->executeUpdate();
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+	} catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
 
