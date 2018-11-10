@@ -8,10 +8,10 @@
 #define DSsample		0
 #define DStarget		1
 #define DSprediction	2
+
 //-- ordering Ids
-#define SBForder	0
-#define BFSorder	1
-#define SFBorder	2
+#define SBF	0
+#define BFS	1
 
 struct sDataSet : sCfgObj {
 
@@ -31,28 +31,48 @@ struct sDataSet : sCfgObj {
 	int batchCnt;
 
 	//-- sample, target, prediction are stored in  order (Sample-Bar-Feature)
-	numtype** sampleSBF;		//--[BASE/TR/TRS]
-	numtype** targetSBF;		//--[BASE/TR/TRS]
-	numtype** predictionSBF;	//--[BASE/TR/TRS]
-	//-- network training requires BFS ordering
-	numtype** sampleBFS;		//--[BASE/TR/TRS]
-	numtype** targetBFS;		//--[BASE/TR/TRS]
-	numtype** predictionBFS;	//--[BASE/TR/TRS]
-	//-- array of pointers to any of the above : [Section][order]
+	numtype* sampleSBF;		//--[BASE/TR/TRS]
+	numtype* targetSBF;		//--[BASE/TR/TRS]
+	numtype* predictionSBF;	//--[BASE/TR/TRS]
+								//-- network training requires BFS ordering
+	numtype* sampleBFS;		//--[BASE/TR/TRS]
+	numtype* targetBFS;		//--[BASE/TR/TRS]
+	numtype* predictionBFS;	//--[BASE/TR/TRS]
+								//-- array of pointers to any of the above : [Section][order]
 	numtype** _data[3][2];
+
+	numtype***** val;	//-- [Source][Status][Sample][Order][len]
+/*
+val[SAMPLE][BASE]SBF][sampleId][sampleLen];
+val[SAMPLE][TR]SBF][sampleId][sampleLen];
+val[SAMPLE][TRS]SBF][sampleId][sampleLen];
+val[TARGET][BASE]SBF][sampleId][sampleLen];
+val[TARGET][TR]SBF][sampleId][sampleLen];
+val[TARGET][TRS]SBF][sampleId][sampleLen];
+val[PREDICTION][BASE]SBF][sampleId][sampleLen];
+val[PREDICTION][TR]SBF][sampleId][sampleLen];
+val[PREDICTION][TRS]SBF][sampleId][sampleLen];
+val[SAMPLE][BASE]BFS][sampleId][sampleLen];
+val[SAMPLE][TR]BFS][sampleId][sampleLen];
+val[SAMPLE][TRS]BFS][sampleId][sampleLen];
+val[TARGET][BASE]BFS][sampleId][sampleLen];
+val[TARGET][TR]BFS][sampleId][sampleLen];
+val[TARGET][TRS]BFS][sampleId][sampleLen];
+val[PREDICTION][BASE]BFS][sampleId][sampleLen];
+val[PREDICTION][TR]BFS][sampleId][sampleLen];
+val[PREDICTION][TRS]BFS][sampleId][sampleLen];
+*/
 
 	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_=nullptr, bool doDump=false, const char* dumpPath_=nullptr);
 	EXPORT sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_);
 	EXPORT sDataSet(sObjParmsDef, sDataSet* trainDS_);
 	EXPORT ~sDataSet();
 
-	EXPORT void build(int valStatus, int valSource);
-	EXPORT void unbuild(int valStatus, int valSource);	//-- takes step 0 from predictionSBF, copy it into sourceTS->trsvalP
-
+	EXPORT void build(int fromValStatus, int fromValSource);
+	EXPORT void unbuild(int toValSource, int toValStatus);	//-- takes step 0 from predictionSBF, copy it into sourceTS->trsvalP
 	EXPORT void reorder(int section, int FROMorderId, int TOorderId);
 
 private:
-	void mallocs();
 	void mallocs1();
 	void mallocs2();
 	void frees();

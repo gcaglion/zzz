@@ -68,11 +68,11 @@ sDataSet::~sDataSet() {
 	frees();
 }
 
-void sDataSet::build(int valStatus, int valSource) {
+void sDataSet::build(int fromValSource, int fromValStatus) {
 	FILE* dumpFile=nullptr;
 	int dsidx, tsidx;
 
-	if (doDump) dumpPre(valStatus, &dumpFile);
+	if (doDump) dumpPre(fromValStatus, &dumpFile);
 
 	for (int s=0; s<samplesCnt; s++) {
 		if (doDump) fprintf(dumpFile, "%d,", s);
@@ -88,8 +88,8 @@ void sDataSet::build(int valStatus, int valSource) {
 
 						if (isCloned) tsidx+=predictionLen*sourceTS->sourceData->featuresCnt;
 
-						sampleSBF[valStatus][dsidx] = sourceTS->val[valStatus][valSource][tsidx];
-						if(doDump) fprintf(dumpFile, "%f,", sampleSBF[valStatus][dsidx]);
+						sampleSBF[dsidx] = sourceTS->val[fromValSource][fromValStatus][tsidx];
+						if(doDump) fprintf(dumpFile, "%f,", sampleSBF[dsidx]);
 
 					}
 				}
@@ -105,8 +105,13 @@ void sDataSet::build(int valStatus, int valSource) {
 						dsidx = s * predictionLen * selectedFeaturesCnt+b * selectedFeaturesCnt+df;
 						tsidx = sampleLen*sourceTS->sourceData->featuresCnt + s*1*sourceTS->sourceData->featuresCnt + b * sourceTS->sourceData->featuresCnt+tf;
 						if (isCloned) tsidx+=predictionLen*sourceTS->sourceData->featuresCnt;
-						targetSBF[valStatus][dsidx] = sourceTS->val[valStatus][valSource][tsidx];
-						if (doDump) fprintf(dumpFile, "%f,", targetSBF[valStatus][dsidx]);
+						if (fromValSource==TARGET) {
+							targetSBF[dsidx] = sourceTS->val[fromValSource][fromValStatus][tsidx];
+							if (doDump) fprintf(dumpFile, "%f,", targetSBF[dsidx]);
+						} else {
+							predictionSBF[dsidx] = sourceTS->val[fromValSource][fromValStatus][tsidx];
+							if (doDump) fprintf(dumpFile, "%f,", predictionSBF[dsidx]);
+						}
 					}
 				}
 			}
@@ -130,9 +135,9 @@ void sDataSet::reorder(int section, int FROMorderId, int TOorderId) {
 		for (int f=0; f<Fcnt; f++) {
 			for (int s=0; s<Scnt; s++) {
 
-				idx[SBForder]=s*Bcnt*Fcnt+b*Fcnt+f;
-				idx[BFSorder]=b*Fcnt*Scnt+f*Scnt+s;
-				idx[SFBorder]=s*Bcnt*Fcnt+f*Bcnt+b;
+				idx[SBF]=s*Bcnt*Fcnt+b*Fcnt+f;
+				idx[BFS]=b*Fcnt*Scnt+f*Scnt+s;
+				//idx[SFBorder]=s*Bcnt*Fcnt+f*Bcnt+b;
 
 				i=idx[FROMorderId]; o=idx[TOorderId];
 				_data[section][TOorderId][o] = _data[section][FROMorderId][i];
@@ -141,7 +146,7 @@ void sDataSet::reorder(int section, int FROMorderId, int TOorderId) {
 		}
 	}
 }
-void sDataSet::unbuild(int valStatus, int valSource) {
+void sDataSet::unbuild(int toValSource, int toValStatus) {
 	
 	int tsidx, dsidx;
 	int Bcnt=predictionLen;
@@ -159,9 +164,9 @@ void sDataSet::unbuild(int valStatus, int valSource) {
 						tsidx=s*Bcnt*TFcnt+b*TFcnt+tf;
 						dsidx=s*Bcnt*DFcnt+b*DFcnt+selF[df];
 						if (s>0) {
-							sourceTS->val[valStatus][valSource][tsidx] = predictionSBF[valStatus][dsidx];
+							sourceTS->val[toValSource][toValStatus][tsidx] = (toValSource==TARGET) ? targetSBF[dsidx] : predictionSBF[dsidx];
 						} else {
-							sourceTS->val[valStatus][valSource][tsidx] =EMPTY_VALUE;
+							sourceTS->val[toValSource][toValStatus][tsidx] =EMPTY_VALUE;
 						}
 
 					}
@@ -172,9 +177,6 @@ void sDataSet::unbuild(int valStatus, int valSource) {
 
 }
 //-- private stuff
-void sDataSet::mallocs() {
-
-}
 void sDataSet::mallocs1() {
 	selectedFeature=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
 	BWfeature=(int*)malloc(BWfeaturesCnt*sizeof(int));
@@ -188,32 +190,16 @@ void sDataSet::mallocs2() {
 		batchCnt = samplesCnt/batchSamplesCnt;
 	}
 	//--
-	sampleSBF=(numtype**)malloc(3*sizeof(numtype*)); for(int i=0; i<3; i++) sampleSBF[i]=(numtype*)malloc(samplesCnt*sampleLen*selectedFeaturesCnt*sizeof(numtype));
-	targetSBF=(numtype**)malloc(3*sizeof(numtype*)); for (int i=0; i<3; i++) targetSBF[i]=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
-	predictionSBF=(numtype**)malloc(3*sizeof(numtype*)); for (int i=0; i<3; i++) predictionSBF[i]=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+	sampleSBF=(numtype*)malloc(samplesCnt*sampleLen*selectedFeaturesCnt*sizeof(numtype));
+	targetSBF=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+	predictionSBF=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
 	//--
-	sampleBFS=(numtype**)malloc(3*sizeof(numtype*)); for (int i=0; i<3; i++) sampleBFS[i]=(numtype*)malloc(samplesCnt*sampleLen*selectedFeaturesCnt*sizeof(numtype));
-	targetBFS=(numtype**)malloc(3*sizeof(numtype*)); for (int i=0; i<3; i++) targetBFS[i]=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
-	predictionBFS=(numtype**)malloc(3*sizeof(numtype*)); for (int i=0; i<3; i++) predictionBFS[i]=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+	sampleBFS=(numtype*)malloc(samplesCnt*sampleLen*selectedFeaturesCnt*sizeof(numtype));
+	targetBFS=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+	predictionBFS=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
 
-	//-- generic pointers
-	_data[DSsample][SBForder]=sampleSBF;
-	_data[DSsample][BFSorder]=sampleBFS;
-	_data[DStarget][SBForder]=targetSBF;
-	_data[DStarget][BFSorder]=targetBFS;
-	_data[DSprediction][SBForder]=predictionSBF;
-	_data[DSprediction][BFSorder]=predictionBFS;
 }
 void sDataSet::frees() {
-	return;
-	for (int i=0; i<3; i++) {
-		free(sampleSBF[i]);
-		free(targetSBF[i]);
-		free(predictionSBF[i]);
-		free(sampleBFS[i]);
-		free(targetBFS[i]);
-		free(predictionBFS[i]);
-	}
 	free(sampleSBF);
 	free(targetSBF);
 	free(predictionSBF);

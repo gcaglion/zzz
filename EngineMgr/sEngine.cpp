@@ -166,10 +166,10 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 				procArgs[t]->coreProcArgs->selectedFeaturesCnt=procArgs[t]->coreProcArgs->ds->selectedFeaturesCnt;
 				procArgs[t]->coreProcArgs->selectedFeature=procArgs[t]->coreProcArgs->ds->selectedFeature;
 				procArgs[t]->coreProcArgs->predictionLen=procArgs[t]->coreProcArgs->ds->predictionLen;
-				procArgs[t]->coreProcArgs->targetBFS = procArgs[t]->coreProcArgs->ds->targetBFS[TRS];
-				procArgs[t]->coreProcArgs->predictionBFS = procArgs[t]->coreProcArgs->ds->predictionBFS[TRS];
-				procArgs[t]->coreProcArgs->targetSBF = procArgs[t]->coreProcArgs->ds->targetSBF[TRS];
-				procArgs[t]->coreProcArgs->predictionSBF = procArgs[t]->coreProcArgs->ds->predictionSBF[TRS];
+				procArgs[t]->coreProcArgs->targetBFS = procArgs[t]->coreProcArgs->ds->targetBFS;
+				procArgs[t]->coreProcArgs->predictionBFS = procArgs[t]->coreProcArgs->ds->predictionBFS;
+				procArgs[t]->coreProcArgs->targetSBF = procArgs[t]->coreProcArgs->ds->targetSBF;
+				procArgs[t]->coreProcArgs->predictionSBF = procArgs[t]->coreProcArgs->ds->predictionSBF;
 
 				if (procid_==trainProc) {
 					procH[t] = CreateThread(NULL, 0, coreThreadTrain, &(*procArgs[t]), 0, tid[t]);

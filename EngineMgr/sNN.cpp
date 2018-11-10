@@ -360,13 +360,13 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	Alg->Vinit(weightsCntTotal, dJdW, 0, 0);
 
 	//-- 3. convert samples and targets from SBF to BFS  in training dataset
-	trainArgs->ds->reorder(DSsample, SBForder, BFSorder);
-	trainArgs->ds->reorder(DStarget, SBForder, BFSorder);
+	trainArgs->ds->reorder(DSsample, SBF, BFS);
+	trainArgs->ds->reorder(DStarget, SBF, BFS);
 
 	//-- 3.1. use simple pointers to the above arrays
-	sample=trainArgs->ds->sampleBFS[TRS];
-	target=trainArgs->ds->targetBFS[TRS];
-	prediction=trainArgs->ds->predictionBFS[TRS];
+	sample=trainArgs->ds->sampleBFS;
+	target=trainArgs->ds->targetBFS;
+	prediction=trainArgs->ds->predictionBFS;
 
 	//-- 1. for every epoch, train all batch with one Forward pass ( loadSamples(b)+FF()+calcErr() ), and one Backward pass (BP + calcdW + W update)
 	for (epoch=0; epoch<parms->MaxEpochs; epoch++) {
@@ -440,13 +440,13 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	safecall(Alg, Vinit, 1, tse, 0, 0);
 
 	//-- 3. convert SBF to BFS samples and targets in inference dataset
-	inferArgs->ds->reorder(DSsample, SBForder, BFSorder);
-	inferArgs->ds->reorder(DStarget, SBForder, BFSorder);
+	inferArgs->ds->reorder(DSsample, SBF, BFS);
+	inferArgs->ds->reorder(DStarget, SBF, BFS);
 
 	//-- 3.1. use simple pointers to the above arrays
-	sample=inferArgs->ds->sampleBFS[TRS];
-	target=inferArgs->ds->targetBFS[TRS];
-	prediction=inferArgs->ds->predictionBFS[TRS];
+	sample=inferArgs->ds->sampleBFS;
+	target=inferArgs->ds->targetBFS;
+	prediction=inferArgs->ds->predictionBFS;
 
 	//-- batch run
 	for (int b=0; b<runSet->batchCnt; b++) {
@@ -471,7 +471,7 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	printf("\npid=%d, tid=%d, Run final MSE=%1.10f\n", pid, tid, mseR);
 
 	//-- convert prediction in runSet from BFS to SBF order
-	runSet->reorder(DSprediction, BFSorder, SBForder);
+	runSet->reorder(DSprediction, BFS, SBF);
 
 	//-- feee neurons()
 	destroyNeurons();

@@ -18,7 +18,7 @@ void sRoot::kaz4() {
 
 	ts1->load(TARGET, BASE);
 	ts1->dump(TARGET, BASE);
-	ts1->transform(TARGET);
+/*	ts1->transform(TARGET);
 	ts1->dump(TARGET, TR);
 	ts1->scale(TARGET, TR, -1, 1);
 	ts1->dump(TARGET, TRS);
@@ -31,15 +31,14 @@ void sRoot::kaz4() {
 	ts1->dump(PREDICTED, TR);
 	ts1->untransform(PREDICTED, TSFcnt, TSF);
 	ts1->dump(PREDICTED, BASE);
-		
+*/		
 		const int selFcnt=2; int selF[selFcnt]={ 1,2 };
-	sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false);
-//	ds1->build(-1, 1);
-//	ds1->dump();
-
-	sDataSet* ds2 = new sDataSet(this, newsname("ds2"), defaultdbg, ds1);
-//	ds2->build(-1, 1, TRSVAL);
-//	ds2->dump(TRSVAL, false);
+		sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
+		ds1->build(TARGET, BASE);
+		sDataSet* ds2 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
+		ds2->build(TARGET, TR);
+		sDataSet* ds3 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
+		ds3->build(TARGET, TRS);
 
 	
 
