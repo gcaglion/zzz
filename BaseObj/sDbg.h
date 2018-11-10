@@ -54,6 +54,8 @@ struct sDbg {
 	//EXPORT void out(int msgtype, const char* callerFunc_, int stackLevel_, char* msgMask_, ...);
 	template<class ...Args> EXPORT void out(int msgtype, const char* callerFunc_, int stackLevel_, char* msgMask_, Args... msgArgs) {
 
+		if (!verbose&&msgtype==DBG_MSG_INFO) return;
+
 		char tmpmsg[DBG_MSG_MAXLEN];
 		char indent[ObjMaxDepth]=""; for (int t=0; t<stackLevel_; t++) strcat_s(indent, ObjMaxDepth, "\t");
 
@@ -65,10 +67,9 @@ struct sDbg {
 		strcat_s(stack, DBG_STACK_MAXLEN, msg);
 
 		//-- finally, out to selected destinations
-		if (verbose||msgtype!=DBG_MSG_INFO) {
-			if (dbgtoscreen) printf("%s%s", indent, msg);
-			if (dbgtofile && outfile!=nullptr) fprintf(outfile, "%s%s", indent, msg);
-		}
+		if (dbgtoscreen) printf("%s%s", indent, msg);
+		if (dbgtofile && outfile!=nullptr) fprintf(outfile, "%s%s", indent, msg);
+	
 	}
 
 private:

@@ -225,7 +225,6 @@ void sEngine::saveRun() {
 		int* selF=core[c]->procArgs->ds->selectedFeature;
 		int Scnt=core[c]->procArgs->ds->samplesCnt;
 		int layer=core[c]->layout->layer;
-
 		for (int b=0; b<Bcnt; b++) {
 				for (int s=0; s<Scnt; s++) {
 					for (int tf=0; tf<TFcnt; tf++) {

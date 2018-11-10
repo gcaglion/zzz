@@ -8,66 +8,6 @@ sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), defa
 }
 sRoot::~sRoot() {}
 
-/*void sRoot::kaz3() {
-	s* s1= new s(nullptr, newsname("s1"), defaultdbg);
-}
-void sRoot::kaz2() {
-	sDataSet* ds1;
-	sTimeSerie* ts1;
-	sFXDataSource* fxsrc1;
-	sOraData* fxdb1;
-
-	fxdb1=new sOraData(this, newsname("fxdb1"), defaultdbg, "History", "HistoryPwd", "Algo", true);
-	fxsrc1=new sFXDataSource(this, newsname("fxsrc1"), defaultdbg, nullptr, nullptr, fxdb1, "EURUSD", "H1", false, true);
-	ts1=new sTimeSerie(this, newsname("ts1"), defaultdbg, fxsrc1, "201507010000", 100, DT_DELTA, 0, nullptr);
-	ts1->load();
-	ts1->dump();
-	//ts1->load("201608010000");
-	ts1->dump();
-	ts1->transform(DT_DELTA);
-	ts1->dump();
-	ts1->scale(-1, 1);
-	ts1->dump();
-
-	const int featcnt=4; int selfeat[featcnt] ={ 0,1,2,3 };
-
-	ds1=new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 20, 3, 10, featcnt, selfeat, false);
-	ds1->build(0, 0, VAL);
-	ds1->dump(VAL);
-	ds1->build(0, 0, TRVAL);
-	ds1->dump(TRVAL);
-	ds1->build(-1,1, TRSVAL);
-	ds1->dump(TRSVAL);
-}
-void sRoot::kaz() {
-
-	sDataSet* ds1;
-	sTimeSerie* ts1;
-	sFXDataSource* fxsrc1;
-	sOraData* fxdb1;
-	const int tsfcnt=3; int tsf[tsfcnt] ={ 0,2,4 };
-
-	fxdb1=new sOraData(this, newsname("fxdb1"), defaultdbg, "History", "HistoryPwd", "Algo", true);
-	fxsrc1=new sFXDataSource(this, newsname("fxsrc1"), defaultdbg, nullptr, nullptr, fxdb1, "EURUSD", "H1", false, true);
-	ts1=new sTimeSerie(this, newsname("ts1"), defaultdbg, fxsrc1, "201608010000", 100, DT_DELTA, tsfcnt, tsf);
-	ts1->load("201507010000");
-	ts1->dump();
-	ts1->transform(DT_DELTA);
-	ts1->dump();
-	ts1->scale(-1, 1);
-	ts1->dump();
-
-	const int dsFeaturesCnt=4; int dsFeatures[dsFeaturesCnt]={ 0,1,2,3 };
-	const int bwFeaturesCnt=2; int bwFeatures[bwFeaturesCnt]={ 1,2 };
-	ds1=new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 20, 3, 10, dsFeaturesCnt, dsFeatures, true, bwFeatures);
-	ds1->build();
-	ds1->dump(TRVAL);
-	ds1->build(-1, 1);
-	ts1->dump();
-	ds1->dump(TRSVAL);
-	int kaz=0;
-}
-*/
 void sRoot::kaz4() {
 	
 	sOraData* oradb1; safespawn(oradb1, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo");

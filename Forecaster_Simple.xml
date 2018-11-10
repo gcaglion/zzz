@@ -103,9 +103,9 @@
 					saveToDB		= true
 					saveToFile		= false
 					<DestOraData>
-						UserName	= CULogUser
+						UserName	= LogUser
 						Password	= LogPwd
-						ConnString	= Algo
+						ConnString	= Algo.mavi
 					</DestOraData>
 					<DestFileData>
 						Client		= c:\temp\logs\Persistor\Client.log
