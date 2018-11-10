@@ -32,3 +32,15 @@ create table RunLog(
 ) storage (initial 1024M minextents 8 pctincrease 0);
 alter table RunLog add constraint RunLog_PK primary key( ProcessId, ThreadId, Pos, Feature, StepAhead ) using index tablespace LogIdx;
 
+drop table ClientInfo purge;
+create table ClientInfo(
+	ProcessId  number,
+	ClientName varchar2(128),
+	ClientStart date,
+	Duration number,
+	SimulationLen number,
+	SimulationStart date,
+	DoTraining number,
+	DoTrainRun number,
+	DoTestRun number
+) storage (initial 2M minextents 4 pctincrease 0);

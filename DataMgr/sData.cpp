@@ -16,6 +16,7 @@ sData::sData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	if (doInference) {
 		safecall(cfgKey, getParm, &useShiftedTrainDS, "Test/UseShiftedTrainDS");
 		if (useShiftedTrainDS) {
+			if (!doTraining) fail("in order to use Shifted Train DataSet, DoTrain must be set to true!");
 			safespawn(testDS, newsname("TestDataSet"), defaultdbg, trainDS);
 		} else {
 			safespawn(testDS, newsname("TestDataSet"), defaultdbg, cfg, "Test/DataSet", shape->sampleLen, shape->predictionLen);
