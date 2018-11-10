@@ -10,13 +10,13 @@
 #define MAX_DATA_FEATURES 128
 #define MAX_TSF_CNT	32
 
+//-- val Source
+#define TARGET		0
+#define PREDICTED	1
 //-- val Status
 #define BASE	0
 #define TR	1
 #define TRS	2
-//-- val Source
-#define TARGET		0
-#define PREDICTED	1
 
 struct sTimeSerie : sCfgObj {
 
@@ -33,16 +33,8 @@ struct sTimeSerie : sCfgObj {
 
 	//-- these are of size [len]
 	char** dtime;
-	//-- 'A' stands for Actual
-	numtype* valA;
-	numtype* trvalA;
-	numtype* trsvalA;
-	//-- 'P' stands for Predicted
-	numtype* valP;
-	numtype* trvalP;
-	numtype* trsvalP;
-	//-- this is just a pointer 
-	numtype* val[3][2];	//-- [Status][Source]
+	numtype*** val;	//-- [Source][Status][len]
+
 
 	//-- these are of size [featuresCnt]
 	char bdtime[DATE_FORMAT_LEN];
@@ -61,12 +53,12 @@ struct sTimeSerie : sCfgObj {
 	EXPORT sTimeSerie(sCfgObjParmsDef);
 	EXPORT ~sTimeSerie();
 
-	EXPORT void load(char* date0_=nullptr);
-	EXPORT void transform(int dt_=-1);
-	EXPORT void untransform(int selectedFeaturesCnt_, int* selectedFeature_, numtype* fromData_, numtype* toData_);
-	EXPORT void scale(float scaleMin_, float scaleMax_);
-	EXPORT void unscale(float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int sampleLen_, int valSource);
-	EXPORT void dump(int status, int source);
+	EXPORT void load(int valSource, int valStatus, char* date0_=nullptr);
+	EXPORT void transform(int valSource, int dt_=-1);
+	EXPORT void untransform(int valSource, int selectedFeaturesCnt_, int* selectedFeature_);
+	EXPORT void scale(int valSource, int valStatus, float scaleMin_, float scaleMax_);
+	EXPORT void unscale(int valSource, float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int skipFirstN_);
+	EXPORT void dump(int valSource, int valStatus);
 
 private:
 	void mallocs1();

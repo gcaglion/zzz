@@ -8,7 +8,7 @@ sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), defa
 }
 sRoot::~sRoot() {}
 
-/*
+
 void sRoot::kaz4() {
 	
 	sOraData* oradb1; safespawn(oradb1, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo");
@@ -16,13 +16,23 @@ void sRoot::kaz4() {
 	const int TSFcnt=2; int TSF[TSFcnt]={ 1,2 };
 	sTimeSerie* ts1; safespawn(ts1, newsname("ts1"), defaultdbg, fxdatasrc1, "201608010000", 202, DT_DELTA, TSFcnt, TSF);
 
-	ts1->load();
+	ts1->load(TARGET, BASE);
+	ts1->dump(TARGET, BASE);
+	ts1->transform(TARGET);
+	ts1->dump(TARGET, TR);
+	ts1->scale(TARGET, TR, -1, 1);
+	ts1->dump(TARGET, TRS);
 
-//	ts1->scale(-1, 1);
-//	ts1->unscale(-1, 1, TSFcnt, TSF, 100, ts1->trsvalA, ts1->trvalA);
-//	ts1->untransform(TSFcnt, TSF, ts1->trvalA, ts1->valA);
+	//-- copy target TRS into predicted TRS
+	memcpy_s(ts1->val[PREDICTED][TRS], ts1->len*sizeof(numtype), ts1->val[TARGET][TRS], ts1->len*sizeof(numtype));
 
-	const int selFcnt=2; int selF[selFcnt]={ 1,2 };
+	ts1->dump(PREDICTED, TRS);
+	ts1->unscale(PREDICTED, -1, 1, TSFcnt, TSF, 0);
+	ts1->dump(PREDICTED, TR);
+	ts1->untransform(PREDICTED, TSFcnt, TSF);
+	ts1->dump(PREDICTED, BASE);
+		
+		const int selFcnt=2; int selF[selFcnt]={ 1,2 };
 	sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false);
 //	ds1->build(-1, 1);
 //	ds1->dump();
@@ -34,7 +44,7 @@ void sRoot::kaz4() {
 	
 
 }
-*/
+
 
 void sRoot::tester() {
 
@@ -93,7 +103,7 @@ void sRoot::tester() {
 			//-- 6.1. Training
 			if (forecaster->data->doTraining) {
 				//-- 6.1.1. set date0 in trainDS->TimeSerie, and load it
-				safecall(forecaster->data->trainDS->sourceTS, load, simulationTrainStartDate[s]);
+				safecall(forecaster->data->trainDS->sourceTS, load, TARGET, BASE, simulationTrainStartDate[s]);
 				//-- 6.1.2. do training (also populates datasets)
 				safecall(forecaster->engine, train, s, forecaster->data->trainDS);
 				//-- 6.1.3. persist MSE logs
@@ -104,7 +114,7 @@ void sRoot::tester() {
 			//-- 6.2. Inference
 			if (forecaster->data->doInference) {
 				//-- 6.2.1. set date0 in testDS->TimeSerie, and load it
-				forecaster->data->testDS->sourceTS->load(simulationInferStartDate[s]);
+				safecall(forecaster->data->testDS->sourceTS, load, TARGET, BASE, simulationInferStartDate[s]);
 				//-- 6.2.2. do training (also populates datasets)
 				safecall(forecaster->engine, infer, s, forecaster->data->testDS);
 				//-- 6.2.3. persist Run logs

@@ -68,14 +68,14 @@ sDataSet::~sDataSet() {
 	frees();
 }
 
-void sDataSet::build(int valStatus) {
+void sDataSet::build(int valStatus, int valSource) {
 	FILE* dumpFile=nullptr;
 	int dsidx, tsidx;
 
 	if (doDump) dumpPre(valStatus, &dumpFile);
 
 	for (int s=0; s<samplesCnt; s++) {
-		fprintf(dumpFile, "%d,", s);
+		if (doDump) fprintf(dumpFile, "%d,", s);
 
 		//-- 1. samples
 		for (int b=0; b<sampleLen; b++) {
@@ -88,7 +88,7 @@ void sDataSet::build(int valStatus) {
 
 						if (isCloned) tsidx+=predictionLen*sourceTS->sourceData->featuresCnt;
 
-						sampleSBF[valStatus][dsidx] = sourceTS->val[valStatus][TARGET][tsidx];
+						sampleSBF[valStatus][dsidx] = sourceTS->val[valStatus][valSource][tsidx];
 						if(doDump) fprintf(dumpFile, "%f,", sampleSBF[valStatus][dsidx]);
 
 					}
@@ -105,7 +105,7 @@ void sDataSet::build(int valStatus) {
 						dsidx = s * predictionLen * selectedFeaturesCnt+b * selectedFeaturesCnt+df;
 						tsidx = sampleLen*sourceTS->sourceData->featuresCnt + s*1*sourceTS->sourceData->featuresCnt + b * sourceTS->sourceData->featuresCnt+tf;
 						if (isCloned) tsidx+=predictionLen*sourceTS->sourceData->featuresCnt;
-						targetSBF[valStatus][dsidx] = sourceTS->val[valStatus][TARGET][tsidx];
+						targetSBF[valStatus][dsidx] = sourceTS->val[valStatus][valSource][tsidx];
 						if (doDump) fprintf(dumpFile, "%f,", targetSBF[valStatus][dsidx]);
 					}
 				}
@@ -141,7 +141,36 @@ void sDataSet::reorder(int section, int FROMorderId, int TOorderId) {
 		}
 	}
 }
+void sDataSet::unbuild(int valStatus, int valSource) {
+	
+	int tsidx, dsidx;
+	int Bcnt=predictionLen;
+	int TFcnt=sourceTS->sourceData->featuresCnt;
+	int DFcnt=selectedFeaturesCnt;
+	int* selF=selectedFeature;
+	int Scnt=samplesCnt;
 
+	for (int b=0; b<Bcnt; b++) {
+		for (int s=0; s<Scnt; s++) {
+			for (int tf=0; tf<TFcnt; tf++) {
+				for (int df=0; df<DFcnt; df++) {
+					if (selectedFeature[df]==tf) {
+
+						tsidx=s*Bcnt*TFcnt+b*TFcnt+tf;
+						dsidx=s*Bcnt*DFcnt+b*DFcnt+selF[df];
+						if (s>0) {
+							sourceTS->val[valStatus][valSource][tsidx] = predictionSBF[valStatus][dsidx];
+						} else {
+							sourceTS->val[valStatus][valSource][tsidx] =EMPTY_VALUE;
+						}
+
+					}
+				}
+			}
+		}
+	}
+
+}
 //-- private stuff
 void sDataSet::mallocs() {
 

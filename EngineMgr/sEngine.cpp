@@ -154,11 +154,8 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 			if (core[c]->layout->layer==l) {
 
 				//-- scale trdata and rebuild training DataSet for current Core
-				ds_->build(BASE);
-				ds_->build(TR);
-				ds_->sourceTS->scale(coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
-				ds_->sourceTS->dump(TRS, TARGET);
-				ds_->build(TRS);
+				ds_->sourceTS->scale(TARGET, TR, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+				ds_->build(TRS, TARGET);
 				
 
 				//-- Create Training or Infer Thread for current Core
@@ -211,57 +208,28 @@ void sEngine::saveMSE() {
 	}
 }
 void sEngine::saveRun() {
-	int dsidx;
-	int tsidx;
 	for (int c=0; c<coresCnt; c++) {
 
-		//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
-		int Bcnt=core[c]->procArgs->ds->predictionLen;
-		int TFcnt=core[c]->procArgs->ds->sourceTS->sourceData->featuresCnt;
-		int DFcnt=core[c]->procArgs->ds->selectedFeaturesCnt;
-		int* selF=core[c]->procArgs->ds->selectedFeature;
-		int Scnt=core[c]->procArgs->ds->samplesCnt;
 		int layer=core[c]->layout->layer;
-		for (int b=0; b<Bcnt; b++) {
-				for (int s=0; s<Scnt; s++) {
-					for (int tf=0; tf<TFcnt; tf++) {
-						for (int df=0; df<DFcnt; df++) {
-							if (core[c]->procArgs->ds->selectedFeature[df]==tf) {
 
-								tsidx=s*Bcnt*TFcnt+b*TFcnt+tf;
-								dsidx=s*Bcnt*DFcnt+b*DFcnt+selF[df];
-								if (s>0) {
-									core[c]->procArgs->ds->sourceTS->trsvalP[tsidx] = core[c]->procArgs->predictionSBF[dsidx];
-								} else {
-									core[c]->procArgs->ds->sourceTS->trsvalP[tsidx] =EMPTY_VALUE;
-								}
+		//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
+		core[c]->procArgs->ds->unbuild(TRS, PREDICTED);
 
-							}
-						}
-					}
-				}
-			}
-		
 		//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
 		sTimeSerie* _ts = core[c]->procArgs->ds->sourceTS;
 		sDataSet* _ds = core[c]->procArgs->ds;
-		_ts->unscale(coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], DFcnt, _ds->selectedFeature, _ds->sampleLen, PREDICTED);
+		_ts->unscale(PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedFeaturesCnt, _ds->selectedFeature, _ds->sampleLen);
 		
 		//-- 4. copy trvalA into trvalP for the first <sampleLen> bars, so we have a baseval
 		size_t leftsz=core[c]->procArgs->ds->sampleLen*core[c]->procArgs->ds->sourceTS->sourceData->featuresCnt*sizeof(numtype);
-		memcpy_s(core[c]->procArgs->ds->sourceTS->trvalP, leftsz, core[c]->procArgs->ds->sourceTS->trvalA, leftsz);
+		memcpy_s(_ds->sourceTS->val[TR][PREDICTED], leftsz, _ds->sourceTS->val[TR][TARGET], leftsz);
+		
 		//-- 5. sourceTS->untransform into valP
-		core[c]->procArgs->ds->sourceTS->untransform(core[c]->procArgs->ds->selectedFeaturesCnt, core[c]->procArgs->ds->selectedFeature, core[c]->procArgs->ds->sourceTS->trvalP, core[c]->procArgs->ds->sourceTS->valP);
+		_ds->sourceTS->untransform(PREDICTED, core[c]->procArgs->ds->selectedFeaturesCnt, core[c]->procArgs->ds->selectedFeature);
 		
 		//-- persist into runLog
 		int runStepsCnt=core[c]->procArgs->ds->samplesCnt +core[c]->procArgs->ds->sampleLen;
-		if (core[c]->persistor->saveRunFlag) safecall(\
-			core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, \
-			runStepsCnt, core[c]->procArgs->tsFeaturesCnt, core[c]->procArgs->selectedFeaturesCnt, core[c]->procArgs->selectedFeature, core[c]->procArgs->predictionLen, \
-			core[c]->procArgs->ds->sourceTS->trsvalA, core[c]->procArgs->ds->sourceTS->trsvalP, \
-			core[c]->procArgs->ds->sourceTS->trvalA, core[c]->procArgs->ds->sourceTS->trvalP, \
-			core[c]->procArgs->ds->sourceTS->valA, core[c]->procArgs->ds->sourceTS->valP \
-		);
+		if (core[c]->persistor->saveRunFlag) core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, runStepsCnt, core[c]->procArgs->tsFeaturesCnt, core[c]->procArgs->selectedFeaturesCnt, core[c]->procArgs->selectedFeature, core[c]->procArgs->predictionLen, _ts->val[TRS][TARGET], _ts->val[TRS][PREDICTED], _ts->val[TR][TARGET], _ts->val[TR][PREDICTED], _ts->val[BASE][TARGET], _ts->val[BASE][PREDICTED] );
 	}
 }
 void sEngine::commit() {

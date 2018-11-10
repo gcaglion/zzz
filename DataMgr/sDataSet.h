@@ -46,7 +46,9 @@ struct sDataSet : sCfgObj {
 	EXPORT sDataSet(sObjParmsDef, sDataSet* trainDS_);
 	EXPORT ~sDataSet();
 
-	EXPORT void build(int valStatus);
+	EXPORT void build(int valStatus, int valSource);
+	EXPORT void unbuild(int valStatus, int valSource);	//-- takes step 0 from predictionSBF, copy it into sourceTS->trsvalP
+
 	EXPORT void reorder(int section, int FROMorderId, int TOorderId);
 
 private:

@@ -60,14 +60,14 @@
 				SelectedFeatures	= FXHIGH, FXLOW
 				BarWidthCalc		= true
 				BarWidthFeatures	= 1,2
-				Dump 				= true
+				Dump 				= false
 				DumpPath			= c:\temp\DataDump
 				<TimeSerie>
 					Date0				= 201607010000
 					HistoryLen			= 202
-					DataTransformation	= DT_DELTA
+					DataTransformation	= DT_NONE
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
-					Dump				= true
+					Dump				= false
 					DumpPath			= c:\temp\DataDump
 					<FXDB_DataSource>
 						Symbol				= EURUSD

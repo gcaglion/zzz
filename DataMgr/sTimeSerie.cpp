@@ -8,6 +8,8 @@ sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0
 	dt=dt_; 
 	tsfCnt=tsfCnt_; for (int i=0; i<tsfCnt; i++) tsf[i]=tsf_[i];
 	sourceData=sourceData_;
+
+	doDump=false;
 	if (dumpPath_!=nullptr) {
 		strcpy_s(dumpPath, MAX_PATH, dumpPath_);
 	} else{
@@ -37,27 +39,26 @@ sTimeSerie::~sTimeSerie() {
 	frees();
 }
 
-void sTimeSerie::load(char* date0_) {
+void sTimeSerie::load(int valSource, int valStatus, char* date0_) {
 	if (date0_!=nullptr) strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, date0_);
-	safecall(sourceData, load, date0, stepsCnt, dtime, valA, bdtime, base);
+	safecall(sourceData, load, date0, stepsCnt, dtime, val[valSource][valStatus], bdtime, base);
 	if (doDump) dump(BASE, TARGET);
-	transform();
-	if (doDump) dump(TR, TARGET);
+	transform(BASE);
 }
-void sTimeSerie::transform(int dt_) {
+void sTimeSerie::transform(int valSource, int dt_) {
 	dt=(dt_==-1) ? dt : dt_;
 	int curr=0;
 	for (int s=0; s<(stepsCnt); s++) {
 		for (int f=0; f<sourceData->featuresCnt; f++) {
 			switch (dt) {
 			case DT_NONE:
-				trvalA[curr]=valA[curr];
+				val[valSource][TR][curr]=val[valSource][BASE][curr];
 				break;
 			case DT_DELTA:
 				if (s==0) {
-					trvalA[curr]=valA[curr]-base[f];
+					val[valSource][TR][curr]=val[valSource][BASE][curr]-base[f];
 				} else {
-					trvalA[curr]=valA[curr]-valA[(s-1)*sourceData->featuresCnt+f];
+					val[valSource][TR][curr]=val[valSource][BASE][curr]-val[valSource][BASE][(s-1)*sourceData->featuresCnt+f];
 				}
 				break;
 			case DT_LOG:
@@ -69,15 +70,15 @@ void sTimeSerie::transform(int dt_) {
 			}
 
 			//-- min/max calc
-			if (trvalA[curr]<dmin[f]) dmin[f]=trvalA[curr];
-			if (trvalA[curr]>dmax[f]) dmax[f]=trvalA[curr];
+			if (val[valSource][TR][curr]<dmin[f]) dmin[f]=val[valSource][TR][curr];
+			if (val[valSource][TR][curr]>dmax[f]) dmax[f]=val[valSource][TR][curr];
 
 			curr++;
 		}
 	}
-
+	if (doDump) dump(TR, TARGET);
 }
-void sTimeSerie::scale(float scaleMin_, float scaleMax_) {
+void sTimeSerie::scale(int valSource, int valStatus, float scaleMin_, float scaleMax_) {
 
 	for (int f=0; f<sourceData->featuresCnt; f++) {
 		scaleM[f] = (scaleMin_==scaleMax_) ? 1 : ((scaleMax_-scaleMin_)/(dmax[f]-dmin[f]));
@@ -86,23 +87,23 @@ void sTimeSerie::scale(float scaleMin_, float scaleMax_) {
 
 	for (int f=0; f<sourceData->featuresCnt; f++) {
 		for (int s=0; s<stepsCnt; s++) {
-			trsvalA[s*sourceData->featuresCnt+f]=trvalA[s*sourceData->featuresCnt+f]*scaleM[f]+scaleP[f];
+			val[valSource][TRS][s*sourceData->featuresCnt+f]=val[valSource][valStatus][s*sourceData->featuresCnt+f]*scaleM[f]+scaleP[f];
 		}
 	}
 
-	if (doDump) dump(TRS,TARGET);
+	if (doDump) dump(valSource, valStatus);
 
 }
-void sTimeSerie::unscale(float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int sampleLen_, int valSource) {
+void sTimeSerie::unscale(int valSource, float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int skipFirstN_) {
 
 		for (int s=0; s<stepsCnt; s++) {
 			for (int tf=0; tf<sourceData->featuresCnt; tf++) {
 				for(int df=0; df<selectedFeaturesCnt_; df++) {
 					if (selectedFeature_[df]==tf) {
-						if (s<sampleLen_) {
-							val[TR][valSource][s*sourceData->featuresCnt+tf]=EMPTY_VALUE;
+						if (s<skipFirstN_) {
+							val[valSource][TR][s*sourceData->featuresCnt+tf]=EMPTY_VALUE;
 						} else {
-							val[TR][valSource][s*sourceData->featuresCnt+tf]=(val[TRS][valSource][s*sourceData->featuresCnt+tf]-scaleP[tf])/scaleM[tf];
+							val[valSource][TR][s*sourceData->featuresCnt+tf]=(val[valSource][TRS][s*sourceData->featuresCnt+tf]-scaleP[tf])/scaleM[tf];
 						}
 					}
 				}
@@ -110,7 +111,7 @@ void sTimeSerie::unscale(float scaleMin_, float scaleMax_, int selectedFeaturesC
 	}
 	if (doDump) dump(TR, valSource);
 }
-void sTimeSerie::dump(int valStatus, int valSource) {
+void sTimeSerie::dump(int valSource, int valStatus) {
 	int s, f;
 
 	char suffix1[10];
@@ -126,7 +127,7 @@ void sTimeSerie::dump(int valStatus, int valSource) {
 	}
 
 	char dumpFileName[MAX_PATH];
-	sprintf_s(dumpFileName, "%s/%s_%s_%s-%s_dump_%p.csv", dumpPath, name->base, date0, suffix1, suffix2, this);
+	sprintf_s(dumpFileName, "%s/%s_%s_%s-%s_dump_%p.csv", dumpPath, name->base, date0, suffix2, suffix1, this);
 	FILE* dumpFile;
 	if (fopen_s(&dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
@@ -141,7 +142,7 @@ void sTimeSerie::dump(int valStatus, int valSource) {
 	for (s=0; s<stepsCnt; s++) {
 		fprintf(dumpFile, "\n%d, %s", s, dtime[s]);
 		for (f=0; f<sourceData->featuresCnt; f++) {
-			fprintf(dumpFile, ",%f", val[valStatus][valSource][s*sourceData->featuresCnt+f]);
+			fprintf(dumpFile, ",%f", val[valSource][valStatus][s*sourceData->featuresCnt+f]);
 		}
 	}
 	fprintf(dumpFile, "\n");
@@ -174,14 +175,16 @@ void sTimeSerie::mallocs1(){
 }
 void sTimeSerie::mallocs2() {
 	len=stepsCnt*sourceData->featuresCnt;
-	dtime=(char**)malloc(len*sizeof(char*)); 
+	dtime=(char**)malloc(len*sizeof(char*));
 	for (int i=0; i<len; i++) dtime[i]=(char*)malloc(DATE_FORMAT_LEN);
-	valA=(numtype*)malloc(len*sizeof(numtype));
-	trvalA=(numtype*)malloc(len*sizeof(numtype));
-	trsvalA=(numtype*)malloc(len*sizeof(numtype));
-	valP=(numtype*)malloc(len*sizeof(numtype));
-	trvalP=(numtype*)malloc(len*sizeof(numtype));
-	trsvalP=(numtype*)malloc(len*sizeof(numtype));
+
+	val=(numtype***)malloc(2*sizeof(numtype**));
+	for (int source=0; source<2; source++) {
+		val[source]=(numtype**)malloc(2*sizeof(numtype*));
+		for (int status=0; status<3; status++) {
+			val[source][status]=(numtype*)malloc(len*sizeof(numtype));
+		}
+	}
 	base=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
 	dmin=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
 	dmax=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
@@ -189,22 +192,19 @@ void sTimeSerie::mallocs2() {
 	scaleP=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
 	for (int f=0; f<sourceData->featuresCnt; f++) { dmin[f]=1e9; dmax[f]=-1e9; }
 	//--
-	val[BASE][TARGET]=valA;
-	val[BASE][PREDICTED]=valP;
-	val[TR][TARGET]=trvalA;
-	val[TR][PREDICTED]=trvalP;
-	val[TRS][TARGET]=trsvalA;
-	val[TRS][PREDICTED]=trsvalP;
 
 }
 void sTimeSerie::frees() {
 	for (int i=0; i<len; i++) free(dtime[i]); free(dtime);
-	free(valA);
-	free(trvalA);
-	free(trsvalA);
-	free(valP);
-	free(trvalP);
-	free(trsvalP);
+
+	for (int source=0; source<2; source++) {
+		for (int status=0; status<3; status++) {
+			free(val[source][status]);
+		}
+		free(val[source]);
+	}
+	free(val);
+
 	free(base);
 	free(dmin);	free(dmax);
 	free(scaleM); free(scaleP);
@@ -245,9 +245,10 @@ void sTimeSerie::setDataSource() {
 	//safecall(sourceData, open);
 }
 
-void sTimeSerie::untransform(int selectedFeaturesCnt_, int* selectedFeature_, numtype* fromData_, numtype* toData_){
+void sTimeSerie::untransform(int valSource, int selectedFeaturesCnt_, int* selectedFeature_){
 
 	int i=0;
+	
 	numtype* prevval = (numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
 
 	for (int s=0; s<(stepsCnt); s++) {
@@ -256,15 +257,15 @@ void sTimeSerie::untransform(int selectedFeaturesCnt_, int* selectedFeature_, nu
 				if (selectedFeature_[df]==tf) {
 					switch (dt) {
 					case DT_NONE:
-						toData_[i] = fromData_[i];
+						val[valSource][BASE][i] = val[valSource][TR][i];
 						break;
 					case DT_DELTA:
 						if (s==0) {
-							toData_[i] = fromData_[i]+base[tf];
+							val[valSource][BASE][i] = val[valSource][TR][i]+base[tf];
 						} else {
-							toData_[i] = fromData_[i]+prevval[tf];
+							val[valSource][BASE][i] = val[valSource][TR][i]+prevval[tf];
 						}
-						prevval[tf] = toData_[i];
+						prevval[tf] = val[valSource][BASE][i];
 						break;
 					case DT_LOG:
 						break;
