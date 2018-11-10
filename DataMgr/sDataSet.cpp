@@ -68,49 +68,6 @@ sDataSet::~sDataSet() {
 	frees();
 }
 
-void sDataSet::buildFromTS(int fromValSource, int fromValStatus) {
-	FILE* dumpFile=nullptr;
-	int s, b, f;
-
-	if (doDump) dumpPre(fromValStatus, &dumpFile);
-
-	int si, ti, sidx, tidx;
-	si=0; ti=0;
-	for (s=0; s<samplesCnt; s++) {
-		if (doDump) fprintf(dumpFile, "%d,", s);
-
-		//-- samples
-		sidx=s*sourceTS->sourceData->featuresCnt;
-		for (b=0; b<sampleLen; b++) {
-			for (f=0; f<sourceTS->sourceData->featuresCnt; f++) {
-				if (isSelected(f)) {
-					sampleSBF[si]=sourceTS->val[fromValSource][fromValStatus][sidx];
-					if (doDump) fprintf(dumpFile, "%f,", sampleSBF[sidx]);
-					si++;
-				}
-				sidx++;
-			}
-		}
-		if (doDump) fprintf(dumpFile, "|,");
-		
-		//-- targets
-		tidx=sidx;
-		for (b=0; b<predictionLen; b++) {
-			for (f=0; f<sourceTS->sourceData->featuresCnt; f++) {
-				if (isSelected(f)) {
-					targetSBF[ti]=sourceTS->val[fromValSource][fromValStatus][tidx];
-					if (doDump) fprintf(dumpFile, "%f,", targetSBF[ti]);
-					ti++;
-				}
-				tidx++;
-			}
-		}
-		if (doDump) fprintf(dumpFile, "\n");
-	}
-	if (doDump)	fclose(dumpFile);
-
-}
-
 void sDataSet::build(int fromValSource, int fromValStatus) {
 	FILE* dumpFile=nullptr;
 	int tsfcnt=sourceTS->sourceData->featuresCnt;
@@ -175,40 +132,32 @@ void sDataSet::reorder(int section, int FROMorderId, int TOorderId) {
 	}
 }
 void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
-	
-	int tsidx, dsidx;
 
+	int tsfcnt=sourceTS->sourceData->featuresCnt;
+	int dsidxS=0;
+	int tsidxS=0;
+	int dsidxT=0;
+	int tsidxT=0;
 	for (int sample=0; sample<samplesCnt; sample++) {
 
-		//-- 1. samples
+		//-- sample
 		for (int bar=0; bar<sampleLen; bar++) {
 			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
-				dsidx = sample*sampleLen*selectedFeaturesCnt+bar*selectedFeaturesCnt+dsf;
-				//===================================================================================
-				tsidx=bar*sourceTS->sourceData->featuresCnt+selectedFeature[dsf];
-				tsidx+=sample*sourceTS->sourceData->featuresCnt;
-				//===================================================================================
-				if (isCloned) tsidx+=predictionLen*sourceTS->sourceData->featuresCnt;
-
-				sourceTS->val[toValSource][toValStatus][tsidx] = sampleSBF[dsidx] ;
-
+				tsidxS=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
+				sourceTS->val[toValSource][toValStatus][tsidxS] = sampleSBF[dsidxS];
+				dsidxS++;
 			}
 		}
-	
-		//-- 2. targets
+
+		//-- target
 		for (int bar=0; bar<predictionLen; bar++) {
 			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
-
-				dsidx=sample*predictionLen*selectedFeaturesCnt+bar*selectedFeaturesCnt+dsf;
-				tsidx=sourceTS->sourceData->featuresCnt*(sampleLen+sample)+bar*sourceTS->sourceData->featuresCnt+selectedFeature[dsf];
-
-				if (isCloned) tsidx+=predictionLen*sourceTS->sourceData->featuresCnt;
-
-				sourceTS->val[toValSource][toValStatus][tsidx] = sampleSBF[dsidx];
-
+				tsidxT=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
+				tsidxT+=tsfcnt*sampleLen;
+				sourceTS->val[toValSource][toValStatus][tsidxT] = targetSBF[dsidxT];
+				dsidxT++;
 			}
 		}
-	
 	}
 
 

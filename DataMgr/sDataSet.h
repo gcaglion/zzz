@@ -69,8 +69,6 @@ val[PREDICTION][TRS]BFS][sampleId][sampleLen];
 	EXPORT ~sDataSet();
 
 	EXPORT void build(int fromValStatus, int fromValSource);
-	EXPORT void buildFromTS(int fromValSource, int fromValStatus);
-	EXPORT void build_OUT(int fromValStatus, int fromValSource);
 	EXPORT void unbuild(int fromValSource, int toValSource, int toValStatus);	//-- takes step 0 from predictionSBF, copy it into sourceTS->trsvalP
 	EXPORT void reorder(int section, int FROMorderId, int TOorderId);
 

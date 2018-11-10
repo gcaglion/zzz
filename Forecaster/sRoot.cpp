@@ -35,7 +35,7 @@ void sRoot::kaz4() {
 		const int selFcnt=2; int selF[selFcnt]={ 1,2 };
 		sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
 		ds1->build(TARGET, BASE);
-		return;
+
 		ds1->unbuild(TARGET, PREDICTED, BASE);	//-- this means, unbuild from TARGET section of DataSet into BASE-PREDICTED section of TimeSerie
 		ts1->dump(PREDICTED, BASE);
 		return;
