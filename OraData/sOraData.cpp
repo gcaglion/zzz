@@ -242,6 +242,7 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 			}
 		}
 	}
+
 		((Statement*)stmt)->executeUpdate();
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	} catch (SQLException ex) {
@@ -271,12 +272,12 @@ void sOraData::saveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-void sOraData::saveClientInfo(int pid, const char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun) {
+void sOraData::saveClientInfo(int pid, const char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
-	char stmtS[SQL_MAXLEN]; sprintf_s(stmtS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, ClientName, ClientStart, SimulationLen, Duration, SimulationStart, DoTraining, DoTrainRun) values(%d, '%s', sysdate, %d, %f, to_date('%s','YYYYMMDDHH24MI'), %d, %d)", pid, clientName, simulLen, elapsedSecs, simulStart, (doTrain?1:0), (doTestRun?1:0) );
+	char stmtS[SQL_MAXLEN]; sprintf_s(stmtS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, ClientName, ClientStart, SimulationLen, Duration, SimulationStartTrain, SimulationStartInfer, SimulationStartValid, DoTraining, DoTrainRun) values(%d, '%s', sysdate, %d, %f, to_date('%s','YYYYMMDDHH24MI'), to_date('%s','YYYYMMDDHH24MI'), to_date('%s','YYYYMMDDHH24MI'), %d, %d)", pid, clientName, simulLen, elapsedSecs, simulStartTrain, simulStartInfer, simulStartValid, (doTrain?1:0), (doTestRun?1:0) );
 
 	try {
 		stmt = ((Connection*)conn)->createStatement(stmtS);

@@ -10,7 +10,7 @@
 			PredictionLen	= 3
 		</Shape>
 		<Train>
-			Do	= true
+			Do	= false
 			<DataSet>
 				BatchSamplesCount	= 10
 				SelectedFeatures	= FXHIGH, FXLOW
@@ -54,7 +54,7 @@
 		</Validation>
 		<Test>
 			Do	= true
-			UseShiftedTrainDS	= true
+			UseShiftedTrainDS	= false
 			<DataSet>
 				BatchSamplesCount	= 10
 				SelectedFeatures	= FXHIGH, FXLOW
@@ -105,7 +105,7 @@
 					<DestOraData>
 						UserName	= LogUser
 						Password	= LogPwd
-						ConnString	= Algo.mavi
+						ConnString	= Algo
 					</DestOraData>
 					<DestFileData>
 						Client		= c:\temp\logs\Persistor\Client.log
@@ -155,7 +155,7 @@
 					saveToDB		= true
 					saveToFile		= false
 					<DestOraData>
-						UserName	= CULogUser
+						UserName	= LogUser
 						Password	= LogPwd
 						ConnString	= Algo
 					</DestOraData>
@@ -184,7 +184,7 @@
 		saveToDB		= true
 		saveToFiles		= true
 		<DestOraData>
-			UserName	= CULogUser
+			UserName	= LogUser
 			Password	= LogPwd
 			ConnString	= Algo
 		</DestOraData>

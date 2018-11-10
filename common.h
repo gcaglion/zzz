@@ -8,6 +8,8 @@
 #include <stdexcept>
 
 typedef float numtype;
+typedef double altnumtype;
+
 #define DATE_FORMAT "YYYYMMDDHHMI"
 #define DATE_FORMAT_LEN 12+1
 

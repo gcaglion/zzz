@@ -25,7 +25,7 @@ struct sMT4Data : sCfgObj {
 	EXPORT void saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, int predictionLen, numtype* actual, numtype* predicted);
 	EXPORT void saveW(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void loadW(int pid, int tid, int epoch, int Wcnt, numtype* W);
-	EXPORT void saveClient(int pid, char* clientName, DWORD startTime, DWORD duration, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun);
+	EXPORT void saveClient(int pid, char* clientName, DWORD startTime, DWORD duration, int simulLen, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun);
 	EXPORT void commit();
 
 private:

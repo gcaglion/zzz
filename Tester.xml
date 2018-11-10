@@ -17,7 +17,7 @@
 		saveToDB	= true
 		saveToFile	= false
 		<DestOraData>
-			UserName	= CULogUser
+			UserName	= LogUser
 			Password	= LogPwd
 			ConnString	= Algo
 		</DestOraData>

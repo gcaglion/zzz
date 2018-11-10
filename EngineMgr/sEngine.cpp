@@ -215,9 +215,6 @@ void sEngine::saveRun() {
 	int tsidx;
 	for (int c=0; c<coresCnt; c++) {
 
-		//-- 1. convert predictionBFS to predictionSBF (done 
-		core[c]->procArgs->ds->reorder(DSprediction, BFSorder, SBForder);
-
 		//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
 		int Bcnt=core[c]->procArgs->ds->predictionLen;
 		int TFcnt=core[c]->procArgs->ds->sourceTS->sourceData->featuresCnt;

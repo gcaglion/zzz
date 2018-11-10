@@ -61,9 +61,14 @@ void sRoot::tester() {
 		//-- 3.	get Simulation Length and start date[0]
 		safecall(testerCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
 		//--
-		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationTrainStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
-		simulationInferStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationInferStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
-		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationValidStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
+		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++);
+		simulationInferStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++);
+		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++);
+		for (int s=0; s<simulationLength; s++) {
+			simulationTrainStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN); simulationTrainStartDate[s][0]='\0';
+			simulationInferStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN); simulationInferStartDate[s][0]='\0';
+			simulationValidStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN); simulationValidStartDate[s][0]='\0';
+		}
 
 		//-- 4. spawn forecaster
 		safespawn(forecaster, newsname("mainForecaster"), defaultdbg, forecasterCfg, "/Forecaster");
@@ -112,8 +117,7 @@ void sRoot::tester() {
 			//-- 6.4. Save ClientInfo for
 			if (testerPersistor->saveClientInfoFlag) {
 				char* endtimeS = timer->stop();
-				safecall(testerPersistor, saveClientInfo, pid, "Root.Tester", timer->startTime, timer->elapsedTime, simulationLength, simulationTrainStartDate[s], forecaster->data->doTraining, forecaster->data->doInference, forecaster->data->doTraining);
-
+				safecall(testerPersistor, saveClientInfo, pid, "Root.Tester", timer->startTime, timer->elapsedTime, simulationLength, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], forecaster->data->doTraining, forecaster->data->doInference, forecaster->data->doTraining);
 			}
 
 			//-- 6.5. commit client persistor data

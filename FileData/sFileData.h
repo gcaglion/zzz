@@ -26,7 +26,7 @@ struct sFileData : sCfgObj {
 	EXPORT void saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted);
 	EXPORT void saveW(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void loadW(int pid, int tid, int epoch, int Wcnt, numtype* W);
-	EXPORT void saveClientInfo(int pid, const char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStart, bool doTrain, bool doTrainRun, bool doTestRun);
+	EXPORT void saveClientInfo(int pid, const char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun);
 	EXPORT void commit();
 
 

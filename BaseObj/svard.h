@@ -20,7 +20,7 @@ struct svard {
 	void select(char* a) { plen=strlen(a); strcpy_s(pmask[pcnt], PARM_MASK_LEN, "\"%s\", "); }
 	void select(int a) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "%d, "); }
 	void select(numtype a) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "%f, "); }
-	void select(double a) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "%f, "); }
+	void select(altnumtype a) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "%f, "); }
 	void select(void* a) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "%p, "); }
 
 	template <class T> void addParm(T a) {

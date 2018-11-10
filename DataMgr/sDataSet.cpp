@@ -176,6 +176,7 @@ void sDataSet::mallocs2() {
 	_data[DSprediction][BFSorder]=predictionBFS;
 }
 void sDataSet::frees() {
+	return;
 	for (int i=0; i<3; i++) {
 		free(sampleSBF[i]);
 		free(targetSBF[i]);

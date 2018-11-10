@@ -39,7 +39,9 @@ create table ClientInfo(
 	ClientStart date,
 	Duration number,
 	SimulationLen number,
-	SimulationStart date,
+	SimulationStartTrain date,
+	SimulationStartInfer date,
+	SimulationStartValid date,
 	DoTraining number,
 	DoTrainRun number,
 	DoTestRun number
