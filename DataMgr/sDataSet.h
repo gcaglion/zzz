@@ -31,14 +31,14 @@ struct sDataSet : sCfgObj {
 	int batchCnt;
 
 	//-- sample, target, prediction are stored in  order (Sample-Bar-Feature)
-	numtype* sampleSBF;		//--[BASE/TR/TRS]
-	numtype* targetSBF;		//--[BASE/TR/TRS]
-	numtype* predictionSBF;	//--[BASE/TR/TRS]
-								//-- network training requires BFS ordering
-	numtype* sampleBFS;		//--[BASE/TR/TRS]
-	numtype* targetBFS;		//--[BASE/TR/TRS]
-	numtype* predictionBFS;	//--[BASE/TR/TRS]
-								//-- array of pointers to any of the above : [Section][order]
+	numtype* sampleSBF;		
+	numtype* targetSBF;		
+	numtype* predictionSBF;	
+	//-- network training requires BFS ordering
+	numtype* sampleBFS;		
+	numtype* targetBFS;		
+	numtype* predictionBFS;	
+	//-- array of pointers to any of the above : [Section][order]
 	numtype** _data[3][2];
 
 	numtype***** val;	//-- [Source][Status][Sample][Order][len]
@@ -69,7 +69,9 @@ val[PREDICTION][TRS]BFS][sampleId][sampleLen];
 	EXPORT ~sDataSet();
 
 	EXPORT void build(int fromValStatus, int fromValSource);
-	EXPORT void unbuild(int toValSource, int toValStatus);	//-- takes step 0 from predictionSBF, copy it into sourceTS->trsvalP
+	EXPORT void buildFromTS(int fromValSource, int fromValStatus);
+	EXPORT void build_OUT(int fromValStatus, int fromValSource);
+	EXPORT void unbuild(int fromValSource, int toValSource, int toValStatus);	//-- takes step 0 from predictionSBF, copy it into sourceTS->trsvalP
 	EXPORT void reorder(int section, int FROMorderId, int TOorderId);
 
 private:

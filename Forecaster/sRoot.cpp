@@ -13,8 +13,8 @@ void sRoot::kaz4() {
 	
 	sOraData* oradb1; safespawn(oradb1, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo");
 	sFXDataSource* fxdatasrc1; safespawn(fxdatasrc1, newsname("datasrc1"), defaultdbg, oradb1, "EURUSD", "H1", false);
-	const int TSFcnt=2; int TSF[TSFcnt]={ 1,2 };
-	sTimeSerie* ts1; safespawn(ts1, newsname("ts1"), defaultdbg, fxdatasrc1, "201608010000", 202, DT_DELTA, TSFcnt, TSF);
+	const int TSFcnt=1; int TSF[TSFcnt]={ 2 };
+	sTimeSerie* ts1; safespawn(ts1, newsname("ts1"), defaultdbg, fxdatasrc1, "201608010000", 202, DT_DELTA, TSFcnt, TSF, "C:/temp/DataDump");
 
 	ts1->load(TARGET, BASE);
 	ts1->dump(TARGET, BASE);
@@ -35,6 +35,11 @@ void sRoot::kaz4() {
 		const int selFcnt=2; int selF[selFcnt]={ 1,2 };
 		sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
 		ds1->build(TARGET, BASE);
+		return;
+		ds1->unbuild(TARGET, PREDICTED, BASE);	//-- this means, unbuild from TARGET section of DataSet into BASE-PREDICTED section of TimeSerie
+		ts1->dump(PREDICTED, BASE);
+		return;
+		
 		sDataSet* ds2 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
 		ds2->build(TARGET, TR);
 		sDataSet* ds3 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");

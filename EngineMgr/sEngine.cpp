@@ -213,7 +213,7 @@ void sEngine::saveRun() {
 		int layer=core[c]->layout->layer;
 
 		//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
-		core[c]->procArgs->ds->unbuild(TRS, PREDICTED);
+		core[c]->procArgs->ds->unbuild(PREDICTED, PREDICTED, TRS);
 
 		//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
 		sTimeSerie* _ts = core[c]->procArgs->ds->sourceTS;

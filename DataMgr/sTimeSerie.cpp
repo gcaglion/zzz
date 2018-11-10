@@ -197,14 +197,14 @@ void sTimeSerie::mallocs2() {
 void sTimeSerie::frees() {
 	for (int i=0; i<len; i++) free(dtime[i]); free(dtime);
 
-	for (int source=0; source<2; source++) {
+/*	for (int source=0; source<2; source++) {
 		for (int status=0; status<3; status++) {
 			free(val[source][status]);
 		}
 		free(val[source]);
 	}
 	free(val);
-
+*/
 	free(base);
 	free(dmin);	free(dmax);
 	free(scaleM); free(scaleP);
