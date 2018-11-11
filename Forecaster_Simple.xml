@@ -60,12 +60,12 @@
 				SelectedFeatures	= FXHIGH, FXLOW
 				BarWidthCalc		= true
 				BarWidthFeatures	= 1,2
-				Dump 				= false
+				Dump 				= true
 				DumpPath			= c:\temp\DataDump
 				<TimeSerie>
 					Date0				= 201607010000
 					HistoryLen			= 202
-					DataTransformation	= DT_NONE
+					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					Dump				= true
 					DumpPath			= c:\temp\DataDump

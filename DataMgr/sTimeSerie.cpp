@@ -42,8 +42,8 @@ sTimeSerie::~sTimeSerie() {
 void sTimeSerie::load(int valSource, int valStatus, char* date0_) {
 	if (date0_!=nullptr) strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, date0_);
 	safecall(sourceData, load, date0, stepsCnt, dtime, val[valSource][valStatus], bdtime, base);
-	if (doDump) dump(BASE, TARGET);
-	transform(BASE);
+	if (doDump) dump(valSource, valStatus);
+	transform(valStatus);
 }
 void sTimeSerie::transform(int valSource, int dt_) {
 	dt=(dt_==-1) ? dt : dt_;
@@ -76,7 +76,7 @@ void sTimeSerie::transform(int valSource, int dt_) {
 			curr++;
 		}
 	}
-	if (doDump) dump(TR, TARGET);
+	if (doDump) dump(valSource, TR);
 }
 void sTimeSerie::scale(int valSource, int valStatus, float scaleMin_, float scaleMax_) {
 

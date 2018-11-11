@@ -155,7 +155,7 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 
 				//-- scale trdata and rebuild training DataSet for current Core
 				ds_->sourceTS->scale(TARGET, TR, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
-				ds_->build(TRS, TARGET);
+				ds_->build(TARGET, TRS);
 				
 
 				//-- Create Training or Infer Thread for current Core
@@ -229,7 +229,7 @@ void sEngine::saveRun() {
 		
 		//-- persist into runLog
 		int runStepsCnt=core[c]->procArgs->ds->samplesCnt +core[c]->procArgs->ds->sampleLen;
-		if (core[c]->persistor->saveRunFlag) core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, runStepsCnt, core[c]->procArgs->tsFeaturesCnt, core[c]->procArgs->selectedFeaturesCnt, core[c]->procArgs->selectedFeature, core[c]->procArgs->predictionLen, _ts->val[TRS][TARGET], _ts->val[TRS][PREDICTED], _ts->val[TR][TARGET], _ts->val[TR][PREDICTED], _ts->val[BASE][TARGET], _ts->val[BASE][PREDICTED] );
+		if (core[c]->persistor->saveRunFlag) core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, runStepsCnt, core[c]->procArgs->tsFeaturesCnt, core[c]->procArgs->selectedFeaturesCnt, core[c]->procArgs->selectedFeature, core[c]->procArgs->predictionLen, _ts->val[TARGET][TRS], _ts->val[PREDICTED][TRS], _ts->val[TARGET][TR], _ts->val[TR][PREDICTED], _ts->val[BASE][TARGET], _ts->val[PREDICTED][BASE] );
 	}
 }
 void sEngine::commit() {
