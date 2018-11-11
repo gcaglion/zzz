@@ -85,6 +85,9 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 		for (int bar=0; bar<sampleLen; bar++) {
 			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
 				tsidxS=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
+
+				if (isCloned) tsidxS+=predictionLen*tsfcnt;
+
 				sampleSBF[dsidxS] = sourceTS->val[fromValSource][fromValStatus][tsidxS]; 
 				if (doDump) fprintf(dumpFile, "%f,", sampleSBF[dsidxS]);
 				dsidxS++;
@@ -97,6 +100,9 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
 				tsidxT=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
 				tsidxT+=tsfcnt*sampleLen;
+
+				if (isCloned) tsidxT+=predictionLen*tsfcnt;
+
 				targetSBF[dsidxT] = sourceTS->val[fromValSource][fromValStatus][tsidxT];
 				if (doDump) fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
 				dsidxT++;
@@ -144,6 +150,9 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 		for (int bar=0; bar<sampleLen; bar++) {
 			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
 				tsidxS=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
+
+				if (isCloned) tsidxS+=predictionLen*tsfcnt;
+
 				sourceTS->val[toValSource][toValStatus][tsidxS] = sampleSBF[dsidxS];
 				dsidxS++;
 			}
@@ -154,13 +163,23 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
 				tsidxT=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
 				tsidxT+=tsfcnt*sampleLen;
+
+				if (isCloned) tsidxT+=predictionLen*tsfcnt;
+
 				sourceTS->val[toValSource][toValStatus][tsidxT] = targetSBF[dsidxT];
 				dsidxT++;
 			}
 		}
 	}
 
-
+	//-- if isCloned,  need to set EMPTY_VALUE for the first missing <predictionLen> bars
+	if (isCloned) {
+		for (int bar=0; bar<predictionLen; bar++) {
+			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
+				sourceTS->val[toValSource][toValStatus][bar*tsfcnt+selectedFeature[dsf]] = EMPTY_VALUE;
+			}
+		}
+	}
 }
 //-- private stuff
 void sDataSet::mallocs1() {

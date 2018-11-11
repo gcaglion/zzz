@@ -7,7 +7,7 @@ int main(int argc, char* argv[]) {
 	sRoot* root=nullptr;
 	try {
 		root=new sRoot(argc, argv);	//-- always takes default debugger settings
-		root->tester();
+		root->kaz4();
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");

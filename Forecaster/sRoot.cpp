@@ -36,15 +36,20 @@ void sRoot::kaz4() {
 		sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
 		ds1->build(TARGET, BASE);
 
-		ds1->unbuild(TARGET, PREDICTED, BASE);	//-- this means, unbuild from TARGET section of DataSet into BASE-PREDICTED section of TimeSerie
+		//ds1->unbuild(TARGET, PREDICTED, BASE);	//-- this means, unbuild from TARGET section of DataSet into BASE-PREDICTED section of TimeSerie
+		//ts1->dump(PREDICTED, BASE);
+		
+	
+		sDataSet* ds2 = new sDataSet(this, newsname("ds2_using_ds1"), defaultdbg, ds1);
+		ds2->build(TARGET, BASE);
+		ds2->unbuild(TARGET, PREDICTED, BASE);
 		ts1->dump(PREDICTED, BASE);
 		return;
-		
-		sDataSet* ds2 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
+/*		sDataSet* ds2 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
 		ds2->build(TARGET, TR);
 		sDataSet* ds3 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
 		ds3->build(TARGET, TRS);
-
+*/
 	
 
 }
