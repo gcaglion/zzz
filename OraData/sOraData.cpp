@@ -194,57 +194,81 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 		((Statement*)stmt)->setMaxIterations(runCnt);
 
 		for (int s=0; s<runStepsCnt; s++) {
-		for (int df=0; df<selectedFeaturesCnt; df++) {
-			for (int tf=0; tf<tsFeaturesCnt_; tf++) {
-				if (selectedFeature[df]==tf) {
-					tsidx = s*tsFeaturesCnt_+tf;
-					((Statement*)stmt)->setInt(1, pid);
-					((Statement*)stmt)->setInt(2, tid);
-					((Statement*)stmt)->setInt(3, npid);
-					((Statement*)stmt)->setInt(4, ntid);
-					((Statement*)stmt)->setInt(5, s);
-					((Statement*)stmt)->setInt(6, tf);
-					((Statement*)stmt)->setInt(7, 1);
+			for (int df=0; df<selectedFeaturesCnt; df++) {
+				for (int tf=0; tf<tsFeaturesCnt_; tf++) {
+					if (selectedFeature[df]==tf) {
+						tsidx = s*tsFeaturesCnt_+tf;
+						((Statement*)stmt)->setInt(1, pid);
+						((Statement*)stmt)->setInt(2, tid);
+						((Statement*)stmt)->setInt(3, npid);
+						((Statement*)stmt)->setInt(4, ntid);
+						((Statement*)stmt)->setInt(5, s);
+						((Statement*)stmt)->setInt(6, tf);
+						((Statement*)stmt)->setInt(7, 1);
 					
-					//-- for every Actual/Predicted/Error triplet, we need to handle NULL values
+						//-- for every Actual/Predicted/Error triplet, we need to handle NULL values
 
-					((Statement*)stmt)->setFloat(9, actualTRS[tsidx]); //-- this can never be EMPTY_VALUE
-					if (predictedTRS[tsidx]==EMPTY_VALUE) {
-						((Statement*)stmt)->setNull(8, OCCIFLOAT);
-						((Statement*)stmt)->setNull(10, OCCIFLOAT);
-					} else {
-						((Statement*)stmt)->setFloat(8, predictedTRS[tsidx]);
-						((Statement*)stmt)->setFloat(10, fabs(actualTRS[tsidx]-predictedTRS[tsidx]));
-					}
-					//--
-					((Statement*)stmt)->setFloat(12, actualTR[tsidx]); //-- this can never be EMPTY_VALUE
-					if (predictedTR[tsidx]==EMPTY_VALUE) {
-						((Statement*)stmt)->setNull(11, OCCIFLOAT);
-						((Statement*)stmt)->setNull(13, OCCIFLOAT);
-					} else {
-						((Statement*)stmt)->setFloat(11, predictedTR[tsidx]);
-						((Statement*)stmt)->setFloat(13, fabs(actualTR[tsidx]-predictedTR[tsidx]));
-					}
-					//--
-					((Statement*)stmt)->setFloat(15, actual[tsidx]); //-- this can never be EMPTY_VALUE
-					if (predicted[tsidx]==EMPTY_VALUE) {
-						((Statement*)stmt)->setNull(14, OCCIFLOAT);
-						((Statement*)stmt)->setNull(16, OCCIFLOAT);
-					} else {
-						((Statement*)stmt)->setFloat(14, predicted[tsidx]);
-						((Statement*)stmt)->setFloat(16, fabs(actual[tsidx]-predicted[tsidx]));
-					}
+						((Statement*)stmt)->setFloat(9, actualTRS[tsidx]); //-- this can never be EMPTY_VALUE
+						if (predictedTRS[tsidx]==EMPTY_VALUE) {
+							((Statement*)stmt)->setNull(8, OCCIFLOAT);
+							((Statement*)stmt)->setNull(10, OCCIFLOAT);
+						} else {
+							((Statement*)stmt)->setFloat(8, predictedTRS[tsidx]);
+							((Statement*)stmt)->setFloat(10, fabs(actualTRS[tsidx]-predictedTRS[tsidx]));
+						}
+						//--
+						((Statement*)stmt)->setFloat(12, actualTR[tsidx]); //-- this can never be EMPTY_VALUE
+						if (predictedTR[tsidx]==EMPTY_VALUE) {
+							((Statement*)stmt)->setNull(11, OCCIFLOAT);
+							((Statement*)stmt)->setNull(13, OCCIFLOAT);
+						} else {
+							((Statement*)stmt)->setFloat(11, predictedTR[tsidx]);
+							((Statement*)stmt)->setFloat(13, fabs(actualTR[tsidx]-predictedTR[tsidx]));
+						}
+						//--
+						((Statement*)stmt)->setFloat(15, actual[tsidx]); //-- this can never be EMPTY_VALUE
+						if (predicted[tsidx]==EMPTY_VALUE) {
+							((Statement*)stmt)->setNull(14, OCCIFLOAT);
+							((Statement*)stmt)->setNull(16, OCCIFLOAT);
+						} else {
+							((Statement*)stmt)->setFloat(14, predicted[tsidx]);
+							((Statement*)stmt)->setFloat(16, fabs(actual[tsidx]-predicted[tsidx]));
+						}
 
 					if (runidx<(runCnt-1)) ((Statement*)stmt)->addIteration();
 					runidx++;
 				}
-				//tsidx++;
 			}
 		}
 	}
-
 		((Statement*)stmt)->executeUpdate();
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+		//-- insert spacers (one for every feature)
+		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, Pos, Feature, StepAhead, PredictedTRS, ActualTRS, ErrorTRS, PredictedTR, ActualTR, ErrorTR, Predicted, Actual, Error) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15, :P16)");
+		((Statement*)stmt)->setMaxIterations(selectedFeaturesCnt);
+		for (int f=0; f<selectedFeaturesCnt; f++) {
+			((Statement*)stmt)->setInt(1, pid);
+			((Statement*)stmt)->setInt(2, tid);
+			((Statement*)stmt)->setInt(3, npid);
+			((Statement*)stmt)->setInt(4, ntid);
+			((Statement*)stmt)->setFloat(5, runStepsCnt-predictionLen-0.5f);
+			((Statement*)stmt)->setInt(6, f);
+			((Statement*)stmt)->setInt(7, 1);
+			((Statement*)stmt)->setNull(8, OCCIFLOAT);
+			((Statement*)stmt)->setNull(9, OCCIFLOAT);
+			((Statement*)stmt)->setNull(10, OCCIFLOAT);
+			((Statement*)stmt)->setNull(11, OCCIFLOAT);
+			((Statement*)stmt)->setNull(12, OCCIFLOAT);
+			((Statement*)stmt)->setNull(13, OCCIFLOAT);
+			((Statement*)stmt)->setNull(14, OCCIFLOAT);
+			((Statement*)stmt)->setNull(15, OCCIFLOAT);
+			((Statement*)stmt)->setNull(16, OCCIFLOAT);
+		}
+		((Statement*)stmt)->executeUpdate();
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+
 	} catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
