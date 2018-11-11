@@ -218,18 +218,21 @@ void sEngine::saveRun() {
 		//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
 		sTimeSerie* _ts = core[c]->procArgs->ds->sourceTS;
 		sDataSet* _ds = core[c]->procArgs->ds;
+
 		_ts->unscale(PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedFeaturesCnt, _ds->selectedFeature, _ds->sampleLen);
-		
+//		_ts->unscale(TARGET, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedFeaturesCnt, _ds->selectedFeature, _ds->sampleLen);
+
+
 		//-- 4. copy trvalA into trvalP for the first <sampleLen> bars, so we have a baseval
 		size_t leftsz=core[c]->procArgs->ds->sampleLen*core[c]->procArgs->ds->sourceTS->sourceData->featuresCnt*sizeof(numtype);
-		memcpy_s(_ds->sourceTS->val[TR][PREDICTED], leftsz, _ds->sourceTS->val[TR][TARGET], leftsz);
+		memcpy_s(_ds->sourceTS->val[PREDICTED][TR], leftsz, _ds->sourceTS->val[TARGET][TR], leftsz);
 		
 		//-- 5. sourceTS->untransform into valP
 		_ds->sourceTS->untransform(PREDICTED, core[c]->procArgs->ds->selectedFeaturesCnt, core[c]->procArgs->ds->selectedFeature);
 		
 		//-- persist into runLog
 		int runStepsCnt=core[c]->procArgs->ds->samplesCnt +core[c]->procArgs->ds->sampleLen;
-		if (core[c]->persistor->saveRunFlag) core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, runStepsCnt, core[c]->procArgs->tsFeaturesCnt, core[c]->procArgs->selectedFeaturesCnt, core[c]->procArgs->selectedFeature, core[c]->procArgs->predictionLen, _ts->val[TARGET][TRS], _ts->val[PREDICTED][TRS], _ts->val[TARGET][TR], _ts->val[TR][PREDICTED], _ts->val[BASE][TARGET], _ts->val[PREDICTED][BASE] );
+		if (core[c]->persistor->saveRunFlag) core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, runStepsCnt, core[c]->procArgs->tsFeaturesCnt, core[c]->procArgs->selectedFeaturesCnt, core[c]->procArgs->selectedFeature, core[c]->procArgs->predictionLen, _ts->val[TARGET][TRS], _ts->val[PREDICTED][TRS], _ts->val[TARGET][TR], _ts->val[PREDICTED][TR], _ts->val[TARGET][BASE], _ts->val[PREDICTED][BASE] );
 	}
 }
 void sEngine::commit() {

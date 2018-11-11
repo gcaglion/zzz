@@ -255,24 +255,28 @@ void sTimeSerie::untransform(int valSource, int selectedFeaturesCnt_, int* selec
 		for (int tf=0; tf<sourceData->featuresCnt; tf++) {
 			for (int df=0; df<selectedFeaturesCnt_; df++) {
 				if (selectedFeature_[df]==tf) {
-					switch (dt) {
-					case DT_NONE:
-						val[valSource][BASE][i] = val[valSource][TR][i];
-						break;
-					case DT_DELTA:
-						if (s==0) {
-							val[valSource][BASE][i] = val[valSource][TR][i]+base[tf];
-						} else {
-							val[valSource][BASE][i] = val[valSource][TR][i]+prevval[tf];
+					if (val[valSource][TR][i]==EMPTY_VALUE) {
+						val[valSource][BASE][i]=EMPTY_VALUE;
+					} else {
+						switch (dt) {
+						case DT_NONE:
+							val[valSource][BASE][i] = val[valSource][TR][i];
+							break;
+						case DT_DELTA:
+							if (s==0) {
+								val[valSource][BASE][i] = val[valSource][TR][i]+base[tf];
+							} else {
+								val[valSource][BASE][i] = val[valSource][TR][i]+prevval[tf];
+							}
+							prevval[tf] = val[valSource][BASE][i];
+							break;
+						case DT_LOG:
+							break;
+						case DT_DELTALOG:
+							break;
+						default:
+							break;
 						}
-						prevval[tf] = val[valSource][BASE][i];
-						break;
-					case DT_LOG:
-						break;
-					case DT_DELTALOG:
-						break;
-					default:
-						break;
 					}
 				}
 			}
