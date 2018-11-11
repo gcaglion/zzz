@@ -39,7 +39,7 @@ struct sDataSet : sCfgObj {
 	numtype* targetBFS;		
 	numtype* predictionBFS;	
 	//-- array of pointers to any of the above : [Section][order]
-	numtype** _data[3][2];
+	numtype* _data[3][2];
 
 	numtype***** val;	//-- [Source][Status][Sample][Order][len]
 /*

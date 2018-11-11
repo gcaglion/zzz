@@ -32,7 +32,7 @@
 						<DBConnection>
 							UserName	= History
 							Password	= HistoryPwd
-							ConnString	= Algo
+							ConnString	= Algo.mavi
 						</DBConnection>
 					</FXDB_DataSource>
 				</TimeSerie>
@@ -54,7 +54,7 @@
 		</Validation>
 		<Test>
 			Do	= true
-			UseShiftedTrainDS	= true
+			UseShiftedTrainDS	= false
 			<DataSet>
 				BatchSamplesCount	= 10
 				SelectedFeatures	= FXHIGH, FXLOW
@@ -76,7 +76,7 @@
 						<DBConnection>
 							UserName	= History
 							Password	= HistoryPwd
-							ConnString	= Algo
+							ConnString	= Algo.mavi
 						</DBConnection>
 					</FXDB_DataSource>
 				</TimeSerie>
@@ -87,7 +87,7 @@
 		Type 		= ENGINE_CUSTOM
 		<Custom>
 			CoresCount	= 1
-			<Core0>
+			<Core99>
 				<Layout>
 					Type	= CORE_GA
 					Parents			= 
@@ -105,7 +105,7 @@
 					<DestOraData>
 						UserName	= LogUser
 						Password	= LogPwd
-						ConnString	= Algo
+						ConnString	= Algo.mavi
 					</DestOraData>
 					<DestFileData>
 						Client		= c:\temp\logs\Persistor\Client.log
@@ -115,8 +115,8 @@
 						Image		= c:\temp\logs\Persistor\Image.log
 					</DestFileData>
 				</Persistor>
-			</Core0>
-			<Core1>
+			</Core99>
+			<Core0>
 				<Layout>
 					Type	= CORE_NN
 					Parents			= 
@@ -124,19 +124,19 @@
 				</Layout>
 				<Parameters>
 					<Topology>
-						LevelRatio			= 0.5
-						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-						UseContext			= false
+						LevelRatio			= 1,0.5
+						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+						UseContext			= true
 						UseBias				= false
 					</Topology>
 					<Training>
-						MaxEpochs			= 50
+						MaxEpochs			= 500
 						TargetMSE			= 0.0001
 						NetSaveFrequency	= 10
 						StopOnDivergence	= false
 						BP_Algo				= BP_STD
 						<BP_Std>
-							LearningRate		= 0.001
+							LearningRate		= 0.0001
 							LearningMomentum	= 0.4
 						</BP_Std>
 						<BP_Qing>
@@ -157,7 +157,7 @@
 					<DestOraData>
 						UserName	= LogUser
 						Password	= LogPwd
-						ConnString	= Algo
+						ConnString	= Algo.mavi
 					</DestOraData>
 					<DestFileData>
 						Client		= c:\temp\logs\Persistor\Client.log
@@ -167,7 +167,7 @@
 						Image		= c:\temp\logs\Persistor\Image.log
 					</DestFileData>
 				</Persistor>
-			</Core1>
+			</Core0>
 		</Custom>
 		<XIE>
 		</XIE>
@@ -186,7 +186,7 @@
 		<DestOraData>
 			UserName	= LogUser
 			Password	= LogPwd
-			ConnString	= Algo
+			ConnString	= Algo.mavi
 		</DestOraData>
 		<DestFileData>
 			Client		= c:\temp\logs\Persistor\Client.log

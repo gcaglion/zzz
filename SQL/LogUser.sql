@@ -46,3 +46,5 @@ create table ClientInfo(
 	DoTrainRun number,
 	DoTestRun number
 ) storage (initial 2M minextents 4 pctincrease 0);
+alter table ClientInfo add constraint ClientIngo_PK primary key (ProcessId);
+

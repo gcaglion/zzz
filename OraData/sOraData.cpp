@@ -34,7 +34,7 @@ void sOraData::open() {
 		isOpen=true;
 	} catch (SQLException exc) {
 		{ 
-			fail("%s FAILURE : %s", name->base, exc.what());
+			fail("Exception: %s while trying to connect with %s/%s@%s", exc.what(), DBUserName, DBPassword, DBConnString);
 		}
 	}
 
@@ -253,7 +253,7 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 			((Statement*)stmt)->setInt(3, npid);
 			((Statement*)stmt)->setInt(4, ntid);
 			((Statement*)stmt)->setFloat(5, runStepsCnt-predictionLen-0.5f);
-			((Statement*)stmt)->setInt(6, f);
+			((Statement*)stmt)->setInt(6, selectedFeature[f]);
 			((Statement*)stmt)->setInt(7, 1);
 			((Statement*)stmt)->setNull(8, OCCIFLOAT);
 			((Statement*)stmt)->setNull(9, OCCIFLOAT);
@@ -264,6 +264,7 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 			((Statement*)stmt)->setNull(14, OCCIFLOAT);
 			((Statement*)stmt)->setNull(15, OCCIFLOAT);
 			((Statement*)stmt)->setNull(16, OCCIFLOAT);
+			if(f<(selectedFeaturesCnt-1))((Statement*)stmt)->addIteration();
 		}
 		((Statement*)stmt)->executeUpdate();
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
