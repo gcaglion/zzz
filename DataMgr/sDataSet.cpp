@@ -115,7 +115,7 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 
 void sDataSet::reorder(int section, int FROMorderId, int TOorderId) {
 
-	int Bcnt=(section==DSsample)?sampleLen:predictionLen;
+	int Bcnt=(section==SAMPLE)?sampleLen:predictionLen;
 	int Fcnt=selectedFeaturesCnt;
 	int Scnt=samplesCnt;
 
@@ -140,47 +140,51 @@ void sDataSet::reorder(int section, int FROMorderId, int TOorderId) {
 void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 
 	int tsfcnt=sourceTS->sourceData->featuresCnt;
-	int dsidxS=0;
-	int tsidxS=0;
-	int dsidxT=0;
-	int tsidxT=0;
-	for (int sample=0; sample<samplesCnt; sample++) {
+	int dsfcnt=selectedFeaturesCnt;
+	int trowlen=predictionLen*dsfcnt;
+	int srowlen=sampleLen*tsfcnt;
+	int dsidx=0;
+	int tsidx=0;
 
-		//-- sample
-		for (int bar=0; bar<sampleLen; bar++) {
-			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
-				tsidxS=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
-
-				if (isCloned) tsidxS+=predictionLen*tsfcnt;
-
-				sourceTS->val[toValSource][toValStatus][tsidxS] = sampleSBF[dsidxS];
-				dsidxS++;
-			}
-		}
-
-		//-- target
-		for (int bar=0; bar<predictionLen; bar++) {
-			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
-				tsidxT=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
-				tsidxT+=tsfcnt*sampleLen;
-
-				if (isCloned) tsidxT+=predictionLen*tsfcnt;
-
-				sourceTS->val[toValSource][toValStatus][tsidxT] = targetSBF[dsidxT];
-				dsidxT++;
-			}
+	//-- for the first sample, scan all the bars in sample
+	for (int bar=0; bar<sampleLen; bar++) {
+		for (int dsf=0; dsf<dsfcnt; dsf++) {
+			//dsidx=bar*dsfcnt+dsf;
+			tsidx=bar*tsfcnt+selectedFeature[dsf];
+			sourceTS->val[toValSource][toValStatus][tsidx] = EMPTY_VALUE;
 		}
 	}
 
+	//-- for each sample/target row, take first bar from the target section
+	for (int s=0; s<samplesCnt; s++) {
+		for (int dsf=0; dsf<dsfcnt; dsf++) {
+			dsidx=s*trowlen+dsf;
+			tsidx=srowlen+s*tsfcnt+selectedFeature[dsf];
+			if (isCloned) tsidx+=predictionLen*tsfcnt;
+			sourceTS->val[toValSource][toValStatus][tsidx] = _data[fromValSource][SBF][dsidx];
+		}
+	}
+
+	//-- now we are on the last row of the target section. need to take all bars>0
+	for (int bar=1; bar<predictionLen; bar++) {
+		for (int dsf=0; dsf<dsfcnt; dsf++) {
+			dsidx=(samplesCnt-1)*trowlen+bar*dsfcnt+dsf;
+			tsidx=(samplesCnt+sampleLen)*tsfcnt+(bar-1)*tsfcnt+selectedFeature[dsf];
+			sourceTS->val[toValSource][toValStatus][tsidx] = _data[fromValSource][SBF][dsidx];
+		}
+	}
+	
 	//-- if isCloned,  need to set EMPTY_VALUE for the first missing <predictionLen> bars
 	if (isCloned) {
 		for (int bar=0; bar<predictionLen; bar++) {
-			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
+			for (int dsf=0; dsf<dsfcnt; dsf++) {
 				sourceTS->val[toValSource][toValStatus][bar*tsfcnt+selectedFeature[dsf]] = EMPTY_VALUE;
 			}
 		}
 	}
+
 }
+
 //-- private stuff
 void sDataSet::mallocs1() {
 	selectedFeature=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
@@ -204,12 +208,12 @@ void sDataSet::mallocs2() {
 	predictionBFS=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
 
 	//-- generic pointers
-	_data[DSsample][SBF]=sampleSBF;
-	_data[DSsample][BFS]=sampleBFS;
-	_data[DStarget][SBF]=targetSBF;
-	_data[DStarget][BFS]=targetBFS;
-	_data[DSprediction][SBF]=predictionSBF;
-	_data[DSprediction][BFS]=predictionBFS;
+	_data[SAMPLE][SBF]=sampleSBF;
+	_data[SAMPLE][BFS]=sampleBFS;
+	_data[TARGET][SBF]=targetSBF;
+	_data[TARGET][BFS]=targetBFS;
+	_data[PREDICTED][SBF]=predictionSBF;
+	_data[PREDICTED][BFS]=predictionBFS;
 
 }
 void sDataSet::frees() {

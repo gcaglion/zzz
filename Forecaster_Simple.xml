@@ -87,7 +87,7 @@
 		Type 		= ENGINE_CUSTOM
 		<Custom>
 			CoresCount	= 1
-			<Core99>
+			<Core0>
 				<Layout>
 					Type	= CORE_GA
 					Parents			= 
@@ -115,8 +115,8 @@
 						Image		= c:\temp\logs\Persistor\Image.log
 					</DestFileData>
 				</Persistor>
-			</Core99>
-			<Core0>
+			</Core0>
+			<Core1>
 				<Layout>
 					Type	= CORE_NN
 					Parents			= 
@@ -130,14 +130,14 @@
 						UseBias				= false
 					</Topology>
 					<Training>
-						MaxEpochs			= 500
+						MaxEpochs			= 100
 						TargetMSE			= 0.0001
 						NetSaveFrequency	= 10
 						StopOnDivergence	= false
 						BP_Algo				= BP_STD
 						<BP_Std>
 							LearningRate		= 0.0001
-							LearningMomentum	= 0.4
+							LearningMomentum	= 0.2
 						</BP_Std>
 						<BP_Qing>
 						</BP_Qing>
@@ -167,7 +167,7 @@
 						Image		= c:\temp\logs\Persistor\Image.log
 					</DestFileData>
 				</Persistor>
-			</Core0>
+			</Core1>
 		</Custom>
 		<XIE>
 		</XIE>

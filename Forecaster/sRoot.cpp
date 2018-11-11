@@ -11,7 +11,9 @@ sRoot::~sRoot() {}
 
 void sRoot::kaz4() {
 	
-	sOraData* oradb1; safespawn(oradb1, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo");
+	printf("ProcessId: %d\n\n", GetCurrentProcessId());
+
+	sOraData* oradb1; safespawn(oradb1, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo.mavi");
 	sFXDataSource* fxdatasrc1; safespawn(fxdatasrc1, newsname("datasrc1"), defaultdbg, oradb1, "EURUSD", "H1", false);
 	const int TSFcnt=1; int TSF[TSFcnt]={ 2 };
 	sTimeSerie* ts1; safespawn(ts1, newsname("ts1"), defaultdbg, fxdatasrc1, "201608010000", 202, DT_DELTA, TSFcnt, TSF, "C:/temp/DataDump");
@@ -36,10 +38,11 @@ void sRoot::kaz4() {
 		sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
 		ds1->build(TARGET, BASE);
 
-		//ds1->unbuild(TARGET, PREDICTED, BASE);	//-- this means, unbuild from TARGET section of DataSet into BASE-PREDICTED section of TimeSerie
-		//ts1->dump(PREDICTED, BASE);
+		ds1->unbuild(TARGET, PREDICTED, BASE);	//-- this means, unbuild from TARGET section of DataSet into PREDICTED-BASE section of TimeSerie
+		ts1->dump(PREDICTED, BASE);
 		
-	
+		return;
+
 		sDataSet* ds2 = new sDataSet(this, newsname("ds2_using_ds1"), defaultdbg, ds1);
 		ds2->build(TARGET, BASE);
 		ds2->unbuild(TARGET, PREDICTED, BASE);

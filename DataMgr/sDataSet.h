@@ -4,10 +4,6 @@
 #include "sTimeSerie.h"
 #include "../Algebra/Algebra.h"
 
-//-- DataSet section
-#define DSsample		0
-#define DStarget		1
-#define DSprediction	2
 
 //-- ordering Ids
 #define SBF	0
@@ -38,30 +34,8 @@ struct sDataSet : sCfgObj {
 	numtype* sampleBFS;		
 	numtype* targetBFS;		
 	numtype* predictionBFS;	
-	//-- array of pointers to any of the above : [Section][order]
-	numtype* _data[3][2];
-
-	numtype***** val;	//-- [Source][Status][Sample][Order][len]
-/*
-val[SAMPLE][BASE]SBF][sampleId][sampleLen];
-val[SAMPLE][TR]SBF][sampleId][sampleLen];
-val[SAMPLE][TRS]SBF][sampleId][sampleLen];
-val[TARGET][BASE]SBF][sampleId][sampleLen];
-val[TARGET][TR]SBF][sampleId][sampleLen];
-val[TARGET][TRS]SBF][sampleId][sampleLen];
-val[PREDICTION][BASE]SBF][sampleId][sampleLen];
-val[PREDICTION][TR]SBF][sampleId][sampleLen];
-val[PREDICTION][TRS]SBF][sampleId][sampleLen];
-val[SAMPLE][BASE]BFS][sampleId][sampleLen];
-val[SAMPLE][TR]BFS][sampleId][sampleLen];
-val[SAMPLE][TRS]BFS][sampleId][sampleLen];
-val[TARGET][BASE]BFS][sampleId][sampleLen];
-val[TARGET][TR]BFS][sampleId][sampleLen];
-val[TARGET][TRS]BFS][sampleId][sampleLen];
-val[PREDICTION][BASE]BFS][sampleId][sampleLen];
-val[PREDICTION][TR]BFS][sampleId][sampleLen];
-val[PREDICTION][TRS]BFS][sampleId][sampleLen];
-*/
+	//-- array of pointers to any of the above : 
+	numtype* _data[3][2];	//-- [Source][ordering]
 
 	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_=nullptr, bool doDump=false, const char* dumpPath_=nullptr);
 	EXPORT sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_);

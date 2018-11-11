@@ -360,8 +360,8 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	Alg->Vinit(weightsCntTotal, dJdW, 0, 0);
 
 	//-- 3. convert samples and targets from SBF to BFS  in training dataset
-	trainArgs->ds->reorder(DSsample, SBF, BFS);
-	trainArgs->ds->reorder(DStarget, SBF, BFS);
+	trainArgs->ds->reorder(SAMPLE, SBF, BFS);
+	trainArgs->ds->reorder(TARGET, SBF, BFS);
 
 	//-- 3.1. use simple pointers to the above arrays
 	sample=trainArgs->ds->sampleBFS;
@@ -440,8 +440,8 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	safecall(Alg, Vinit, 1, tse, 0, 0);
 
 	//-- 3. convert SBF to BFS samples and targets in inference dataset
-	inferArgs->ds->reorder(DSsample, SBF, BFS);
-	inferArgs->ds->reorder(DStarget, SBF, BFS);
+	inferArgs->ds->reorder(SAMPLE, SBF, BFS);
+	inferArgs->ds->reorder(TARGET, SBF, BFS);
 
 	//-- 3.1. use simple pointers to the above arrays
 	sample=inferArgs->ds->sampleBFS;
@@ -471,7 +471,7 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	printf("\npid=%d, tid=%d, Run final MSE=%1.10f\n", pid, tid, mseR);
 
 	//-- convert prediction in runSet from BFS to SBF order
-	runSet->reorder(DSprediction, BFS, SBF);
+	runSet->reorder(PREDICTED, BFS, SBF);
 
 	//-- feee neurons()
 	destroyNeurons();

@@ -13,6 +13,7 @@
 //-- val Source
 #define TARGET		0
 #define PREDICTED	1
+#define SAMPLE		2	//-- used only in sDataSet
 //-- val Status
 #define BASE	0
 #define TR	1

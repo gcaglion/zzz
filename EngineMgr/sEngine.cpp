@@ -210,18 +210,15 @@ void sEngine::saveMSE() {
 void sEngine::saveRun() {
 	for (int c=0; c<coresCnt; c++) {
 
+		sDataSet* _ds = core[c]->procArgs->ds;
+		sTimeSerie* _ts = _ds->sourceTS;
 		int layer=core[c]->layout->layer;
 
 		//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
-		core[c]->procArgs->ds->unbuild(PREDICTED, PREDICTED, TRS);
+		_ds->unbuild(PREDICTED, PREDICTED, TRS);
 
 		//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
-		sTimeSerie* _ts = core[c]->procArgs->ds->sourceTS;
-		sDataSet* _ds = core[c]->procArgs->ds;
-
 		_ts->unscale(PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedFeaturesCnt, _ds->selectedFeature, _ds->sampleLen);
-//		_ts->unscale(TARGET, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedFeaturesCnt, _ds->selectedFeature, _ds->sampleLen);
-
 
 		//-- 4. copy trvalA into trvalP for the first <sampleLen> bars, so we have a baseval
 		size_t leftsz=core[c]->procArgs->ds->sampleLen*core[c]->procArgs->ds->sourceTS->sourceData->featuresCnt*sizeof(numtype);
