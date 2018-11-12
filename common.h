@@ -10,7 +10,8 @@
 typedef float numtype;
 typedef double altnumtype;
 
-#define DATE_FORMAT_LEN 32
+#include "ConfigMgr/XMLdefs.h"
+#define DATE_FORMAT_LEN XMLKEY_PARM_VAL_MAXLEN
 #define DATE_FORMAT "YYYY-MM-DD-HH24:MI"
 
 #define USE_ORCL

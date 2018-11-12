@@ -22,7 +22,7 @@ struct sOraData : sCfgObj {
 	EXPORT void close();
 	EXPORT void commit();
 	//--
-	EXPORT void getStartDates(char* symbol_, char* timeframe_, bool isFilled_, string StartDate, int DatesCount, string* oDate);
+	EXPORT void getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char*** oDate);
 	EXPORT void getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCnt, char** oBarTime, float* oBarData, char* oBarTime0, float* oBaseBar);
 	//--
 	EXPORT void saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV);

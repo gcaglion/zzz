@@ -69,9 +69,9 @@ void sRoot::tester() {
 
 	//-- client vars
 	int simulationLength;
-	vector<string> simulationTrainStartDate;
-	vector<string> simulationInferStartDate;
-	vector<string> simulationValidStartDate;
+	char** simulationTrainStartDate;
+	char** simulationInferStartDate;
+	char** simulationValidStartDate;
 
 	sClientLogger* testerPersistor;
 	sTimer* timer = new sTimer();
@@ -90,11 +90,15 @@ void sRoot::tester() {
 		
 		//-- 3.	get Simulation Length and start date[0]
 		safecall(testerCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
+
 		//--
+		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*));
+		simulationInferStartDate=(char**)malloc(simulationLength*sizeof(char*));
+		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*));
 		for (int s=0; s<simulationLength; s++) {
-			simulationTrainStartDate.push_back(DATE_FORMAT);
-			simulationInferStartDate.push_back(DATE_FORMAT);
-			simulationValidStartDate.push_back(DATE_FORMAT);
+			simulationTrainStartDate[s]=(char*)malloc(DATE_FORMAT_LEN); simulationTrainStartDate[s][0]='\0';
+			simulationInferStartDate[s]=(char*)malloc(DATE_FORMAT_LEN); simulationInferStartDate[s][0]='\0';
+			simulationValidStartDate[s]=(char*)malloc(DATE_FORMAT_LEN); simulationValidStartDate[s][0]='\0';
 		}
 
 		//-- 4. spawn forecaster
@@ -237,7 +241,7 @@ void sRoot::testDML() {
 	safecall(oradb1, loadW, pid, tid, epoch, Wcnt, W);
 
 }
-void sRoot::getStartDates(sDataSet* ds, string date00_, int len, string** oDates){
+void sRoot::getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates){
 	sFXDataSource* fxsrc; sGenericDataSource* filesrc; sMT4DataSource* mt4src;
 	switch (ds->sourceTS->sourceData->type) {
 	case DB_SOURCE:

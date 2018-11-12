@@ -204,7 +204,7 @@ void sTimeSerie::frees() {
 		for (int status=0; status<3; status++) {
 			free(val[source][status]);
 		}
-		free(val[source]);
+		//free(val[source]);
 	}
 	free(val);
 

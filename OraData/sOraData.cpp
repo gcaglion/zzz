@@ -130,7 +130,7 @@ void sOraData::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	((Connection*)conn)->terminateStatement((Statement*)stmt);
 
 }
-void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, string StartDate, int DatesCount, string* oDate) {
+void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char*** oDate) {
 	
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -143,13 +143,13 @@ void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, st
 	if (conn==nullptr) fail("DB Connection is closed. cannot continue.");
 
 	try {
-		sprintf_s(sql, SQL_MAXLEN, "select to_char(NewDateTime, '%s') from History.%s_%s%s where NewDateTime>=to_date('%s','%s') order by 1", DATE_FORMAT, symbol_, timeframe_, (isFilled_)?"_FILLED ":"", StartDate.c_str(), DATE_FORMAT);
+		sprintf_s(sql, SQL_MAXLEN, "select to_char(NewDateTime, '%s') from History.%s_%s%s where NewDateTime>=to_date('%s','%s') order by 1", DATE_FORMAT, symbol_, timeframe_, (isFilled_)?"_FILLED ":"", StartDate, DATE_FORMAT);
 		stmt = ((Connection*)conn)->createStatement(sql);
 		rset = ((Statement*)stmt)->executeQuery();
 
 		i=0;
 		while (rset->next()&&i<DatesCount) {
-			oDate[i] = rset->getString(1);
+			strcpy_s((*oDate)[i], DATE_FORMAT_LEN, rset->getString(1).c_str());
 			i++;
 		}
 

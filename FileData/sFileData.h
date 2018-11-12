@@ -20,7 +20,7 @@ struct sFileData : sCfgObj {
 
 	EXPORT void open(int mode_);
 	EXPORT void close();
-	EXPORT void getStartDates(string startDate_, int datesCnt_, string* oDate_);
+	EXPORT void getStartDates(char* StartDate, int DatesCount, char*** oDate);
 
 	EXPORT void saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV);
 	EXPORT void saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted);

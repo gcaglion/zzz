@@ -37,7 +37,7 @@ void sFileData::open(int mode_) {
 void sFileData::close() {
 	for (int f=0; f<filesCnt; f++) fclose(fileH[f]);
 }
-void sFileData::getStartDates(string startDate_, int datesCnt_, string* oDate_) {
+void sFileData::getStartDates(char* StartDate, int DatesCount, char*** oDate) {
 	fail("Not implemented!");
 }
 void sFileData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {

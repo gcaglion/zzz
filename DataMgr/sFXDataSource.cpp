@@ -40,7 +40,7 @@ void sFXDataSource::load(char* pDate0, int pRecCount, char** oBarTime, float* oB
 void sFXDataSource::open() {
 	safecall(oradb, open);
 }
-void sFXDataSource::getStartDates(string date0_, int datesCnt_, string* oStartDates_) {
+void sFXDataSource::getStartDates(char* date0_, int datesCnt_, char*** oStartDates_) {
 	if (type==DB_SOURCE) {
 		safecall(oradb, getStartDates, Symbol, TimeFrame, IsFilled, date0_, datesCnt_, oStartDates_);
 	} else {
