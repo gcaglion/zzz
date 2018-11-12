@@ -19,8 +19,6 @@ struct sDataSet : sCfgObj {
 
 	int selectedFeaturesCnt;
 	int* selectedFeature;
-	bool BWcalc;
-	int* BWfeature;
 
 	int samplesCnt;
 	int batchSamplesCnt;
@@ -37,7 +35,7 @@ struct sDataSet : sCfgObj {
 	//-- array of pointers to any of the above : 
 	numtype* _data[3][2];	//-- [Source][ordering]
 
-	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_=nullptr, bool doDump=false, const char* dumpPath_=nullptr);
+	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool doDump=false, const char* dumpPath_=nullptr);
 	EXPORT sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_);
 	EXPORT sDataSet(sObjParmsDef, sDataSet* trainDS_);
 	EXPORT ~sDataSet();
@@ -53,7 +51,6 @@ private:
 	bool isSelected(int ts_f);
 	void dumpPre(int valStatus, FILE** dumpFile);
 
-	int BWfeaturesCnt=2;
 	bool doDump;
 	char* dumpPath;
 };

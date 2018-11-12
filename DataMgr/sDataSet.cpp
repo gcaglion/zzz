@@ -1,15 +1,12 @@
 #include "sDataSet.h"
 
-sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
-	sourceTS=sourceTS_; sampleLen=sampleLen_; predictionLen=predictionLen_; batchSamplesCnt=batchSamplesCnt_; selectedFeaturesCnt=selectedFeaturesCnt_; BWcalc=BWcalc_;
+sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+	sourceTS=sourceTS_; sampleLen=sampleLen_; predictionLen=predictionLen_; batchSamplesCnt=batchSamplesCnt_; selectedFeaturesCnt=selectedFeaturesCnt_;
 	isCloned=false;
 
 	mallocs1();
 
 	for (int f=0; f<selectedFeaturesCnt; f++) selectedFeature[f]=selectedFeature_[f];
-	if (BWcalc_) {
-		BWfeature[0]=BWfeature_[0]; BWfeature[1]=BWfeature_[1];
-	}
 	doDump=doDump_;
 	if (dumpPath_!=nullptr) {
 		strcpy_s(dumpPath, MAX_PATH, dumpPath_);
@@ -28,8 +25,6 @@ sDataSet::sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_) : sCfgOb
 	//-- 1. get Parameters
 	safecall(cfgKey, getParm, &batchSamplesCnt, "BatchSamplesCount");
 	safecall(cfgKey, getParm, &selectedFeature, "SelectedFeatures", false, &selectedFeaturesCnt);
-	safecall(cfgKey, getParm, &BWcalc, "BarWidthCalc");
-	safecall(cfgKey, getParm, &BWfeature, "BarWidthFeatures", false, &BWfeaturesCnt);
 	safecall(cfgKey, getParm, &doDump, "Dump");
 	//-- 0. default dump path is dbg outfilepath
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
@@ -44,15 +39,12 @@ sDataSet::sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_) : sCfgOb
 }
 
 sDataSet::sDataSet(sObjParmsDef, sDataSet* trainDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
-	sourceTS=trainDS_->sourceTS; sampleLen=trainDS_->sampleLen; predictionLen=trainDS_->predictionLen; batchSamplesCnt=trainDS_->batchSamplesCnt; selectedFeaturesCnt=trainDS_->selectedFeaturesCnt; BWcalc=trainDS_->BWcalc;
+	sourceTS=trainDS_->sourceTS; sampleLen=trainDS_->sampleLen; predictionLen=trainDS_->predictionLen; batchSamplesCnt=trainDS_->batchSamplesCnt; selectedFeaturesCnt=trainDS_->selectedFeaturesCnt;
 	isCloned=true;
 
 	mallocs1();
 
 	for (int f=0; f<selectedFeaturesCnt; f++) selectedFeature[f]=trainDS_->selectedFeature[f];
-	if (trainDS_->BWcalc) {
-		BWfeature[0]=trainDS_->BWfeature[0]; BWfeature[1]=trainDS_->BWfeature[1];
-	}
 	doDump=trainDS_->doDump;
 	if (trainDS_->dumpPath!=nullptr) {
 		strcpy_s(dumpPath, MAX_PATH, trainDS_->dumpPath);
@@ -180,7 +172,6 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 //-- private stuff
 void sDataSet::mallocs1() {
 	selectedFeature=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
-	BWfeature=(int*)malloc(BWfeaturesCnt*sizeof(int));
 	dumpPath=(char*)malloc(MAX_PATH);
 }
 void sDataSet::mallocs2() {
