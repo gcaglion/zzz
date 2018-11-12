@@ -15,4 +15,6 @@ sCfgObj::sCfgObj(sCfgObjParmsDef) : sObj(sObjParmsVal) {
 		//cfg->currentKey=bkpKey;
 	}
 }
-sCfgObj::~sCfgObj() {}
+sCfgObj::~sCfgObj() {
+	//printf("sCfgObj Destructor called for %s\n", name->full);
+}

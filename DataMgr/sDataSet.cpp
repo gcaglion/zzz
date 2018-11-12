@@ -1,26 +1,34 @@
 #include "sDataSet.h"
 
-sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
-	sourceTS=sourceTS_; sampleLen=sampleLen_; predictionLen=predictionLen_; batchSamplesCnt=batchSamplesCnt_; selectedFeaturesCnt=selectedFeaturesCnt_; BWcalc=BWcalc_;
+sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+	sourceTS=sourceTS_; sampleLen=sampleLen_; predictionLen=predictionLen_; batchSamplesCnt=batchSamplesCnt_; selectedFeaturesCnt=selectedFeaturesCnt_;
+	isCloned=false;
+
 	mallocs1();
+
 	for (int f=0; f<selectedFeaturesCnt; f++) selectedFeature[f]=selectedFeature_[f];
-	if (BWcalc_) {
-		BWfeature[0]=BWfeature_[0]; BWfeature[1]=BWfeature_[1];
+	doDump=doDump_;
+	if (dumpPath_!=nullptr) {
+		strcpy_s(dumpPath, MAX_PATH, dumpPath_);
+	} else {
+		strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	}
 
 	mallocs2();
 }
 sDataSet::sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_) : sCfgObj(sCfgObjParmsVal) {
 	sampleLen=sampleLen_; predictionLen=predictionLen_;
+	isCloned=false;
 
 	mallocs1();
 
 	//-- 1. get Parameters
 	safecall(cfgKey, getParm, &batchSamplesCnt, "BatchSamplesCount");
 	safecall(cfgKey, getParm, &selectedFeature, "SelectedFeatures", false, &selectedFeaturesCnt);
-	safecall(cfgKey, getParm, &BWcalc, "BarWidthCalc");
-	safecall(cfgKey, getParm, &BWfeature, "BarWidthFeatures", false, &BWfeaturesCnt);
 	safecall(cfgKey, getParm, &doDump, "Dump");
+	//-- 0. default dump path is dbg outfilepath
+	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
+	safecall(cfgKey, getParm, &dumpPath, "DumpPath", true);
 	//-- 2. do stuff and spawn sub-Keys
 	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), defaultdbg, cfg, "TimeSerie");
 
@@ -29,182 +37,175 @@ sDataSet::sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_) : sCfgOb
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 }
+
+sDataSet::sDataSet(sObjParmsDef, sDataSet* trainDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+	sourceTS=trainDS_->sourceTS; sampleLen=trainDS_->sampleLen; predictionLen=trainDS_->predictionLen; batchSamplesCnt=trainDS_->batchSamplesCnt; selectedFeaturesCnt=trainDS_->selectedFeaturesCnt;
+	isCloned=true;
+
+	mallocs1();
+
+	for (int f=0; f<selectedFeaturesCnt; f++) selectedFeature[f]=trainDS_->selectedFeature[f];
+	doDump=trainDS_->doDump;
+	if (trainDS_->dumpPath!=nullptr) {
+		strcpy_s(dumpPath, MAX_PATH, trainDS_->dumpPath);
+	} else {
+		strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
+	}
+
+	mallocs2();
+	samplesCnt-=predictionLen;
+}
+
 sDataSet::~sDataSet() {
 	frees();
 }
-void sDataSet::build(float scaleMin_, float scaleMax_, int type) {
-	scaleMin=scaleMin_; scaleMax=scaleMax_;
 
-	numtype* v=nullptr;
-	switch (type) {
-	case VAL:	v=sourceTS->val; break;
-	case TRVAL: v=sourceTS->trval; break;
-	case TRSVAL:  v=sourceTS->trsval; break;
-	}
-	if (v==nullptr) fail("invalid data type: %d", type);
+void sDataSet::build(int fromValSource, int fromValStatus) {
+	FILE* dumpFile=nullptr;
+	int tsfcnt=sourceTS->sourceData->featuresCnt;
 
-	int s, b, f;
-	int si, ti, sidx, tidx;
-	si=0; ti=0;
-	tidx=0;
+	if (doDump) dumpPre(fromValStatus, &dumpFile);
 
-	//-- scale timeserie data, and save scaleM/P
-	sourceTS->scale(scaleMin, scaleMax, &scaleM, &scaleP, &dmin, &dmax);
+	int dsidxS=0;
+	int tsidxS=0;
+	int dsidxT=0;
+	int tsidxT=0;
+	for (int sample=0; sample<samplesCnt; sample++) {
 
-	//-- 2. populate sample[], target[] from sourceTS->d_tr
-	for (s=0; s<samplesCnt; s++) {
-		//-- samples
-		sidx=s*sourceTS->sourceData->featuresCnt;
-		for (b=0; b<sampleLen; b++) {
-			for (f=0; f<sourceTS->sourceData->featuresCnt; f++) {
-				if (isSelected(f)) {
-					sample[si]=v[sidx];
-					si++;
-				}
-				sidx++;
+		//-- sample
+		if (doDump) fprintf(dumpFile, "%d,", sample);
+		for (int bar=0; bar<sampleLen; bar++) {
+			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
+				tsidxS=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
+
+				if (isCloned) tsidxS+=predictionLen*tsfcnt;
+
+				sampleSBF[dsidxS] = sourceTS->val[fromValSource][fromValStatus][tsidxS]; 
+				if (doDump) fprintf(dumpFile, "%f,", sampleSBF[dsidxS]);
+				dsidxS++;
 			}
 		}
+		if (doDump) fprintf(dumpFile, "|,");
 
-		//-- targets
-		tidx=sidx;
-		for (b=0; b<predictionLen; b++) {
-			for (f=0; f<sourceTS->sourceData->featuresCnt; f++) {
-				if (isSelected(f)) {
-					target[ti]=v[tidx];
-					ti++;
-				}
-				tidx++;
+		//-- target
+		for (int bar=0; bar<predictionLen; bar++) {
+			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
+				tsidxT=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
+				tsidxT+=tsfcnt*sampleLen;
+
+				if (isCloned) tsidxT+=predictionLen*tsfcnt;
+
+				targetSBF[dsidxT] = sourceTS->val[fromValSource][fromValStatus][tsidxT];
+				if (doDump) fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
+				dsidxT++;
 			}
 		}
-
+		if (doDump) fprintf(dumpFile, "\n");
 	}
-
-	//-- 3. populate SFB targets and BFS sample/target for every batch
-	for (b=0; b<batchCnt; b++) {
-		SBF2BFS(b, sampleLen, sample, sampleBFS);
-		SBF2BFS(b, predictionLen, target, targetBFS);
-		BFS2SFB(b, predictionLen, targetBFS, targetSFB);
-	}
-
-	if (doDump) dump();
-
+	if (doDump)	fclose(dumpFile);
 }
-void sDataSet::unTRS() {
-	//-- 1. un-scale prediction0TRS to prediction0TR
+
+void sDataSet::reorder(int section, int FROMorderId, int TOorderId) {
+
+	int Bcnt=(section==SAMPLE)?sampleLen:predictionLen;
+	int Fcnt=selectedFeaturesCnt;
+	int Scnt=samplesCnt;
+
+	int idx[3];
+	int i, o;
+
+	for (int b=0; b<Bcnt; b++) {
+		for (int f=0; f<Fcnt; f++) {
+			for (int s=0; s<Scnt; s++) {
+
+				idx[SBF]=s*Bcnt*Fcnt+b*Fcnt+f;
+				idx[BFS]=b*Fcnt*Scnt+f*Scnt+s;
+				//idx[SFBorder]=s*Bcnt*Fcnt+f*Bcnt+b;
+
+				i=idx[FROMorderId]; o=idx[TOorderId];
+				_data[section][TOorderId][o] = _data[section][FROMorderId][i];
+
+			}
+		}
+	}
+}
+void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
+
+	int tsfcnt=sourceTS->sourceData->featuresCnt;
+	int dsfcnt=selectedFeaturesCnt;
+	int trowlen=predictionLen*dsfcnt;
+	int srowlen=sampleLen*tsfcnt;
+	int dsidx=0;
+	int tsidx=0;
+
+	//-- for the first sample, scan all the bars in sample
+	for (int bar=0; bar<sampleLen; bar++) {
+		for (int dsf=0; dsf<dsfcnt; dsf++) {
+			tsidx=bar*tsfcnt+selectedFeature[dsf];
+			if (isCloned) tsidx+=predictionLen*tsfcnt;
+			sourceTS->val[toValSource][toValStatus][tsidx] = EMPTY_VALUE;
+		}
+	}
+
+	//-- for each sample/target row, take first bar from the target section
 	for (int s=0; s<samplesCnt; s++) {
-		for (int f=0; f<selectedFeaturesCnt; f++) {
-			prediction0TR[s*selectedFeaturesCnt+f] = (prediction0TRS[s*selectedFeaturesCnt+f]-scaleP[selectedFeature[f]])/scaleM[selectedFeature[f]];
+		for (int dsf=0; dsf<dsfcnt; dsf++) {
+			dsidx=s*trowlen+dsf;
+			tsidx=srowlen+s*tsfcnt+selectedFeature[dsf];
+			if (isCloned) tsidx+=predictionLen*tsfcnt;
+			sourceTS->val[toValSource][toValStatus][tsidx] = _data[fromValSource][SBF][dsidx];
 		}
 	}
-	//-- 2. un-transform prediction0TR to prediction0
 
-}
-void sDataSet::dump(int type) {
-	int s, i, b, f;
-
-	char suffix[10];
-	if (type==VAL) strcpy_s(suffix, 10, "BASE");
-	if (type==TRVAL) strcpy_s(suffix, 10, "TR");
-	if (type==TRSVAL) strcpy_s(suffix, 10, "TRS");
-	char dumpFileName[MAX_PATH];
-	sprintf_s(dumpFileName, "%s/%s_%s_%s_dump_%p.csv", dbg->outfilepath, name->base, sourceTS->date0, suffix, this);
-	FILE* dumpFile;
-	if (fopen_s(&dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-
-	fprintf(dumpFile, "SampleId,");
-	for (b=0; b<(sampleLen); b++) {
-		for (f=0; f<selectedFeaturesCnt; f++) {
-			fprintf(dumpFile, "Bar%dF%d,", b, selectedFeature[f]);
+	//-- now we are on the last row of the target section. need to take all bars>0
+	for (int bar=1; bar<predictionLen; bar++) {
+		for (int dsf=0; dsf<dsfcnt; dsf++) {
+			dsidx=(samplesCnt-1)*trowlen+bar*dsfcnt+dsf;
+			tsidx=(samplesCnt+sampleLen)*tsfcnt+(bar-1)*tsfcnt+selectedFeature[dsf];
+			if (isCloned) tsidx+=predictionLen*tsfcnt;
+			sourceTS->val[toValSource][toValStatus][tsidx] = _data[fromValSource][SBF][dsidx];
 		}
 	}
-	fprintf(dumpFile, ",");
-	for (b=0; b<(predictionLen); b++) {
-		for (f=0; f<selectedFeaturesCnt; f++) {
-			fprintf(dumpFile, "  Prd%dF%d,", b, selectedFeature[f]);
-		}
-	}
-	fprintf(dumpFile, "\n");
-	for (i=0; i<(1+(sampleLen*selectedFeaturesCnt)); i++) fprintf(dumpFile, "---------,");
-	fprintf(dumpFile, ",");
-	for (i=0; i<(predictionLen*selectedFeaturesCnt); i++) fprintf(dumpFile, "---------,");
-	fprintf(dumpFile, "\n");
-
-	int si, ti, sidx, tidx;
-	si=0; ti=0;
-	for (s=0; s<samplesCnt; s++) {
-		//-- samples
-		sidx=s*sourceTS->sourceData->featuresCnt;
-		fprintf(dumpFile, "%d,", s);
-		for (b=0; b<sampleLen; b++) {
-			for (f=0; f<sourceTS->sourceData->featuresCnt; f++) {
-				if (isSelected(f)) {
-					fprintf(dumpFile, "%f,", sample[si]);
-					si++;
-				}
-				sidx++;
-			}
-		}
-		fprintf(dumpFile, "|,");
-
-		//-- targets
-		tidx=sidx;
-		for (b=0; b<predictionLen; b++) {
-			for (f=0; f<sourceTS->sourceData->featuresCnt; f++) {
-				if (isSelected(f)) {
-					if (tidx==sourceTS->len) {
-						tidx-=sourceTS->sourceData->featuresCnt;
-					}
-					fprintf(dumpFile, "%f,", target[ti]);
-					ti++;
-				}
-				tidx++;
-			}
-		}
-		fprintf(dumpFile, "\n");
-	}
-	fclose(dumpFile);
+	
 }
 
 //-- private stuff
 void sDataSet::mallocs1() {
 	selectedFeature=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
-	BWfeature=(int*)malloc(BWfeaturesCnt*sizeof(int));
+	dumpPath=(char*)malloc(MAX_PATH);
 }
 void sDataSet::mallocs2() {
-	samplesCnt=sourceTS->stepsCnt-sampleLen-predictionLen+1;
+	samplesCnt=sourceTS->stepsCnt-sampleLen+1 -predictionLen;
 	if ((samplesCnt%batchSamplesCnt)!=0) {
 		fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", samplesCnt, batchSamplesCnt)
 	} else {
 		batchCnt = samplesCnt/batchSamplesCnt;
 	}
 	//--
-	sample=(numtype*)malloc(samplesCnt*sampleLen*selectedFeaturesCnt*sizeof(numtype));
-	target=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
-	prediction=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+	sampleSBF=(numtype*)malloc(samplesCnt*sampleLen*selectedFeaturesCnt*sizeof(numtype));
+	targetSBF=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+	predictionSBF=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+	//--
 	sampleBFS=(numtype*)malloc(samplesCnt*sampleLen*selectedFeaturesCnt*sizeof(numtype));
 	targetBFS=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
 	predictionBFS=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
-	//--
-	targetSFB=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
-	predictionSFB=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
-	//--
-	target0TRS=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
-	prediction0TRS=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
-	//--
-	target0TR=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
-	prediction0TR=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
-	//--
-	target0=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
-	prediction0=(numtype*)malloc(samplesCnt*selectedFeaturesCnt*sizeof(numtype));
+
+	//-- generic pointers
+	_data[SAMPLE][SBF]=sampleSBF;
+	_data[SAMPLE][BFS]=sampleBFS;
+	_data[TARGET][SBF]=targetSBF;
+	_data[TARGET][BFS]=targetBFS;
+	_data[PREDICTED][SBF]=predictionSBF;
+	_data[PREDICTED][BFS]=predictionBFS;
+
 }
 void sDataSet::frees() {
-	free(sample); free(target); free(prediction);
-	free(sampleBFS); free(targetBFS); free(predictionBFS);
-	free(targetSFB); free(predictionSFB);
-	free(selectedFeature);
-	free(target0); free(prediction0);
-	free(target0TR); free(prediction0TR);
-	free(target0TRS); free(prediction0TRS);
+	free(sampleSBF);
+	free(targetSBF);
+	free(predictionSBF);
+	free(sampleBFS);
+	free(targetBFS);
+	free(predictionBFS);
 }
 bool sDataSet::isSelected(int ts_f) {
 	for (int ds_f=0; ds_f<selectedFeaturesCnt; ds_f++) {
@@ -212,76 +213,50 @@ bool sDataSet::isSelected(int ts_f) {
 	}
 	return false;
 }
-void sDataSet::SBF2BFS(int batchId, int barCnt, numtype* fromSBF, numtype* toBFS) {
-	int S=batchSamplesCnt;
-	int F=selectedFeaturesCnt;
-	int B=barCnt;
-	int idx;
-	int idx0=batchId*B*F*S;
-	int i=idx0;
-	for (int bar=0; bar<B; bar++) {												// i1=bar	l1=B
-		for (int f=0; f<F; f++) {										// i2=f		l2=F
-			for (int s=0; s<S; s++) {										// i3=s		l3=S
-				idx=idx0+s*F*B+bar*F+f;
-				toBFS[i]=fromSBF[idx];
-				i++;
-			}
-		}
-	}
-}
-void sDataSet::BFS2SBF(int batchId, int barCnt, numtype* fromBFS, numtype* toSBF) {
-	int S=batchSamplesCnt;
-	int F=selectedFeaturesCnt;
-	int B=barCnt;
-	int idx;
-	int idx0=batchId*B*F*S;
-	int i=idx0;
-	for (int s=0; s<S; s++) {												// i1=s		l1=S
-		for (int bar=0; bar<B; bar++) {											// i2=bar	l1=B
-			for (int f=0; f<F; f++) {									// i3=f		l3=F
-				idx=idx0+bar*F*S+f*S+s;
-				toSBF[i]=fromBFS[idx];
-				i++;
-			}
-		}
+void sDataSet::dumpPre(int valStatus, FILE** dumpFile) {
+	int b, f, i;
+
+	//-- set dumpFile name
+	char suffix1[10];
+	if (valStatus==BASE) strcpy_s(suffix1, 10, "BASE");
+	if (valStatus==TR) strcpy_s(suffix1, 10, "TR");
+	if (valStatus==TRS) strcpy_s(suffix1, 10, "TRS");
+	char suffix3[16];
+	if (isCloned) {
+		strcpy_s(suffix3, 16, "SHIFTEDFROM");
+	} else {
+		strcpy_s(suffix3, 16, "INDIPENDENT");
 	}
 
-}
-void sDataSet::BFS2SFBfull(int barCnt, numtype* fromBFS, numtype* toSFB) {
-	int S=batchSamplesCnt;
-	int F=selectedFeaturesCnt;
-	int B=barCnt;
-	int i, idx, idx0;
-	for (int batchId=0; batchId<batchCnt; batchId++) {
-		idx0=batchId*B*F*S;
-		i=idx0;
-		for (int s=0; s<S; s++) {												// i1=s		l1=S
-			for (int f=0; f<F; f++) {										// i2=f		l2=F
-				for (int bar=0; bar<B; bar++) {										// i3=bar	l3=B
-					idx=idx0+bar*F*S+f*S+s;
-					toSFB[i]=fromBFS[idx];
-					i++;
-				}
-			}
+	//-- open dumpFile
+	char dumpFileName[MAX_PATH];
+	sprintf_s(dumpFileName, "%s/%s_%s_%s-%s_dump_p%d_t%d_%p.csv", dumpPath, name->base, sourceTS->date0, suffix1, suffix3, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	if (fopen_s(dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
+
+	//-- print headers
+	fprintf((*dumpFile), "SampleId,");
+	for (b=0; b<(sampleLen); b++) {
+		for (f=0; f<selectedFeaturesCnt; f++) {
+			fprintf((*dumpFile), "Bar%dF%d,", b, selectedFeature[f]);
 		}
 	}
-
-}
-void sDataSet::BFS2SFB(int batchId, int barCnt, numtype* fromBFS, numtype* toSFB) {
-	int S=batchSamplesCnt;
-	int F=selectedFeaturesCnt;
-	int B=barCnt;
-	int idx;
-	int idx0=batchId*B*F*S;
-	int i=idx0;
-	for (int s=0; s<S; s++) {												// i1=s		l1=S
-		for (int f=0; f<F; f++) {										// i2=f		l2=F
-			for (int bar=0; bar<B; bar++) {										// i3=bar	l3=B
-				idx=idx0+bar*F*S+f*S+s;
-				toSFB[i]=fromBFS[idx];
-				i++;
-			}
+	fprintf((*dumpFile), ",");
+	for (b=0; b<(predictionLen); b++) {
+		for (f=0; f<selectedFeaturesCnt; f++) {
+			fprintf((*dumpFile), "  Target%dF%d,", b, selectedFeature[f]);
 		}
 	}
-
+	fprintf((*dumpFile), ",");
+	for (b=0; b<(predictionLen); b++) {
+		for (f=0; f<selectedFeaturesCnt; f++) {
+			fprintf((*dumpFile), "  Prediction%dF%d,", b, selectedFeature[f]);
+		}
+	}
+	fprintf((*dumpFile), "\n");
+	for (i=0; i<(1+(sampleLen*selectedFeaturesCnt)); i++) fprintf((*dumpFile), "---------,");
+	fprintf((*dumpFile), ",");
+	for (i=0; i<(predictionLen*selectedFeaturesCnt); i++) fprintf((*dumpFile), "---------,");
+	fprintf((*dumpFile), ",");
+	for (i=0; i<(predictionLen*selectedFeaturesCnt); i++) fprintf((*dumpFile), "---------,");
+	fprintf((*dumpFile), "\n");
 }

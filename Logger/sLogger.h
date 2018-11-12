@@ -14,12 +14,14 @@ struct sLogger : sCfgObj {
 	//-- Where
 	bool saveToDB;
 	bool saveToFile;
-	sOraData* db;
-	sFileData* file;
+	sOraData* oradb;
+	sFileData* filedb;
 
+	//EXPORT sLogger(sObjParmsDef);
 	EXPORT sLogger(sCfgObjParmsDef);
 	EXPORT ~sLogger();
 
-	EXPORT virtual void commit(){}
+	EXPORT virtual void open();
+	EXPORT virtual void commit() {}
 
 };

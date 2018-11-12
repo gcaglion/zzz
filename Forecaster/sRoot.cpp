@@ -1,86 +1,88 @@
 #include "sRoot.h"
 
-sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), nullptr) {
-		dbg->pauseOnError=true;
+sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), defaultdbg) {
+	dbg->verbose=false;
 
-		CLoverride(argc_, argv_);
-	}
+	pid=GetCurrentProcessId();
+	CLoverride(argc_, argv_);
+}
 sRoot::~sRoot() {}
 
-void sRoot::kaz3() {
-	s* s1= new s(nullptr, newsname("s1"), defaultdbg);
+
+void sRoot::kaz4() {
+	
+	printf("ProcessId: %d\n\n", GetCurrentProcessId());
+
+	sOraData* oradb1; safespawn(oradb1, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo.mavi");
+	sFXDataSource* fxdatasrc1; safespawn(fxdatasrc1, newsname("datasrc1"), defaultdbg, oradb1, "EURUSD", "H1", false);
+	const int TSFcnt=1; int TSF[TSFcnt]={ 2 };
+	sTimeSerie* ts1; safespawn(ts1, newsname("ts1"), defaultdbg, fxdatasrc1, "201608010000", 202, DT_DELTA, TSFcnt, TSF, "C:/temp/DataDump");
+
+	ts1->load(TARGET, BASE);
+	ts1->dump(TARGET, BASE);
+/*	ts1->transform(TARGET);
+	ts1->dump(TARGET, TR);
+	ts1->scale(TARGET, TR, -1, 1);
+	ts1->dump(TARGET, TRS);
+
+	ts1->dump(PREDICTED, TRS);
+	ts1->unscale(PREDICTED, -1, 1, TSFcnt, TSF, 0);
+	ts1->dump(PREDICTED, TR);
+	ts1->untransform(PREDICTED, TSFcnt, TSF);
+	ts1->dump(PREDICTED, BASE);
+*/		
+		const int selFcnt=2; int selF[selFcnt]={ 1,2 };
+		sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
+		ds1->build(TARGET, BASE);
+
+		ds1->reorder(SAMPLE, SBF, BFS);
+		ds1->reorder(TARGET, SBF, BFS);
+	
+		//-- core work...
+		size_t bfsSize=ds1->samplesCnt*ds1->predictionLen*ds1->selectedFeaturesCnt;
+		//-- perfect core!
+		for (int i=0; i<bfsSize; i++) ds1->predictionBFS[i]=ds1->targetBFS[i];
+		
+		ds1->reorder(PREDICTED, BFS, SBF);
+
+		ds1->unbuild(PREDICTED, PREDICTED, BASE);	//-- this means, unbuild from PREDICTED section of DataSet into PREDICTED-BASE section of TimeSerie
+		ts1->dump(PREDICTED, BASE);
+		
+		return;
+
+		sDataSet* ds2 = new sDataSet(this, newsname("ds2_using_ds1"), defaultdbg, ds1);
+		ds2->build(TARGET, BASE);
+		ds2->unbuild(TARGET, PREDICTED, BASE);
+		ts1->dump(PREDICTED, BASE);
+		return;
+/*		sDataSet* ds2 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
+		ds2->build(TARGET, TR);
+		sDataSet* ds3 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
+		ds3->build(TARGET, TRS);
+*/
+	
+
 }
-void sRoot::kaz2() {
-	sDataSet* ds1;
-	sTimeSerie* ts1;
-	sFXDataSource* fxsrc1;
-	sOraData* fxdb1;
 
-	fxdb1=new sOraData(this, newsname("fxdb1"), defaultdbg, "History", "HistoryPwd", "Algo", true);
-	fxsrc1=new sFXDataSource(this, newsname("fxsrc1"), defaultdbg, nullptr, nullptr, fxdb1, "EURUSD", "H1", false, true);
-	ts1=new sTimeSerie(this, newsname("ts1"), defaultdbg, fxsrc1, "201507010000", 100, DT_DELTA, 0, nullptr);
-	ts1->load();
-	ts1->dump();
-	//ts1->load("201608010000");
-	ts1->dump();
-	ts1->transform(DT_DELTA);
-	ts1->dump();
-//	ts1->scale(-1, 1);
-	ts1->dump();
-
-	const int featcnt=4; int selfeat[featcnt] ={ 0,1,2,3 };
-
-	ds1=new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 20, 3, 10, featcnt, selfeat, false);
-	ds1->build(0, 0, VAL);
-	ds1->dump(VAL);
-	ds1->build(0, 0, TRVAL);
-	ds1->dump(TRVAL);
-	ds1->build(-1,1, TRSVAL);
-	ds1->dump(TRSVAL);
-
-}
-void sRoot::kaz() {
-
-	sDataSet* ds1;
-	sTimeSerie* ts1;
-	sFXDataSource* fxsrc1;
-	sOraData* fxdb1;
-	const int tsfcnt=3; int tsf[tsfcnt] ={ 0,2,4 };
-
-	fxdb1=new sOraData(this, newsname("fxdb1"), defaultdbg, "History", "HistoryPwd", "Algo", true);
-	fxsrc1=new sFXDataSource(this, newsname("fxsrc1"), defaultdbg, nullptr, nullptr, fxdb1, "EURUSD", "H1", false, true);
-	ts1=new sTimeSerie(this, newsname("ts1"), defaultdbg, fxsrc1, "201608010000", 100, DT_DELTA, tsfcnt, tsf);
-	ts1->load("201507010000");
-	ts1->dump();
-	ts1->transform(DT_DELTA);
-	ts1->dump();
-//	ts1->scale(-1, 1);
-	ts1->dump();
-
-	const int dsFeaturesCnt=4; int dsFeatures[dsFeaturesCnt]={ 0,1,2,3 };
-	const int bwFeaturesCnt=2; int bwFeatures[bwFeaturesCnt]={ 1,2 };
-	ds1=new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 20, 3, 10, dsFeaturesCnt, dsFeatures, true, bwFeatures);
-	ds1->build();
-	ds1->dump(TRVAL);
-	ds1->build(-1, 1);
-	ts1->dump();
-	ds1->dump(TRSVAL);
-	int kaz=0;
-}
 
 void sRoot::tester() {
 
+	//-- client vars
 	int simulationLength;
 	char** simulationTrainStartDate;
 	char** simulationInferStartDate;
 	char** simulationValidStartDate;
 	sClientLogger* testerPersistor;
+	sTimer* timer = new sTimer();
 
 	try {
 
+		//-- 0. take client start time
+		timer->start();
+
 		//-- 1. load tester and Forecaster XML configurations
-		safespawn(testerCfg, newsname("testerCfg_Root"), dbg, testerCfgFileFullName);
-		safespawn(forecasterCfg, newsname("forecasterCfg_Root"), dbg, forecasterCfgFileFullName);
+		safespawn(testerCfg, newsname("testerCfg_Root"), erronlydbg, testerCfgFileFullName);
+		safespawn(forecasterCfg, newsname("forecasterCfg_Root"), erronlydbg, forecasterCfgFileFullName);
 
 		//-- 2. create tester persistor
 		safespawn(testerPersistor, newsname("Client_Persistor"), defaultdbg, testerCfg, "/Client/Persistor");
@@ -88,9 +90,14 @@ void sRoot::tester() {
 		//-- 3.	get Simulation Length and start date[0]
 		safecall(testerCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
 		//--
-		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationTrainStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
-		simulationInferStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationInferStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
-		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++) simulationValidStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
+		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++);
+		simulationInferStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++);
+		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++);
+		for (int s=0; s<simulationLength; s++) {
+			simulationTrainStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN); simulationTrainStartDate[s][0]='\0';
+			simulationInferStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN); simulationInferStartDate[s][0]='\0';
+			simulationValidStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN); simulationValidStartDate[s][0]='\0';
+		}
 
 		//-- 4. spawn forecaster
 		safespawn(forecaster, newsname("mainForecaster"), defaultdbg, forecasterCfg, "/Forecaster");
@@ -111,31 +118,40 @@ void sRoot::tester() {
 
 		//-- 6. for each simulation
 		for (int s=0; s<simulationLength; s++) {
+
 			//-- 6.1. Training
 			if (forecaster->data->doTraining) {
 				//-- 6.1.1. set date0 in trainDS->TimeSerie, and load it
-				safecall(forecaster->data->trainDS->sourceTS, load, simulationTrainStartDate[s]);
+				safecall(forecaster->data->trainDS->sourceTS, load, TARGET, BASE, simulationTrainStartDate[s]);
 				//-- 6.1.2. do training (also populates datasets)
 				safecall(forecaster->engine, train, s, forecaster->data->trainDS);
 				//-- 6.1.3. persist MSE logs
 				safecall(forecaster->engine, saveMSE);
+				//-- 6.1.4 destroy trining-related objects
 			}
+
 			//-- 6.2. Inference
 			if (forecaster->data->doInference) {
 				//-- 6.2.1. set date0 in testDS->TimeSerie, and load it
-				forecaster->data->testDS->sourceTS->load(simulationInferStartDate[s]);
+				safecall(forecaster->data->testDS->sourceTS, load, TARGET, BASE, simulationInferStartDate[s]);
 				//-- 6.2.2. do training (also populates datasets)
 				safecall(forecaster->engine, infer, s, forecaster->data->testDS);
 				//-- 6.2.3. persist Run logs
 				safecall(forecaster->engine, saveRun);
 			}
-			//-- 6.3 Commit persistor data
+
+			//-- 6.3 Commit engine persistor data
 			safecall(forecaster->engine, commit);
+
+			//-- 6.4. Save ClientInfo for
+			if (testerPersistor->saveClientInfoFlag) {
+				char* endtimeS = timer->stop();
+				safecall(testerPersistor, saveClientInfo, pid, "Root.Tester", timer->startTime, timer->elapsedTime, simulationLength, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], forecaster->data->doTraining, forecaster->data->doInference, forecaster->data->doTraining);
+			}
+
+			//-- 6.5. commit client persistor data
+
 		}
-
-		//-- 4.4 save logs (completely rivisited in Logger_Rehaul branch)
-
-		//-- 4.5. delete forecaster
 
 	} catch (std::exception exc) {
 		fail("Exception=%s", exc.what());
@@ -160,8 +176,12 @@ void sRoot::CLoverride(int argc, char* argv[]) {
 
 		for (int p=1; p<argc; p++) {
 			if (!getValuePair(argv[p], &orName[0], &orValS[0], '=')) fail("wrong parameter format in command line: %s", argv[p]);
+
 			if (_stricmp(orName, "--cfgFile")==0) {
+				//-- special parameters, 1: alternative configuration file
 				if (!getFullPath(orValS, forecasterCfgFileFullName)) fail("could not set cfgFileFullName from override parameter: %s", orValS);
+			} else if (_stricmp(orName, "--VerboseRoot")==0) {
+				dbg->verbose=(_stricmp(orValS, "TRUE")==0);
 			} else {
 				strcpy_s(cfgOverrideName[cfgOverrideCnt], XMLKEY_PARM_NAME_MAXLEN, orName);
 				strcpy_s(cfgOverrideValS[cfgOverrideCnt], XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT, orValS);
@@ -172,9 +192,9 @@ void sRoot::CLoverride(int argc, char* argv[]) {
 void sRoot::testDML() {
 
 	sOraData* oradb1;
-	safespawn(oradb1, newsname("InferOraDB"), defaultdbg, "CULogUser", "LogPwd", "Algo", true);
+	safespawn(oradb1, newsname("InferOraDB"), defaultdbg, "CULogUser", "LogPwd", "Algo");
 	sOraData* oradb2;
-	safespawn(oradb2, newsname("InferOraHistory"), defaultdbg, "History", "HistoryPwd", "Algo", true);
+	safespawn(oradb2, newsname("InferOraHistory"), defaultdbg, "History", "HistoryPwd", "Algo");
 
 	int sdatecnt=10;
 	char** sdate=(char**)malloc(sdatecnt*sizeof(char*)); for (int i=0; i<sdatecnt; i++) sdate[i]=(char*)malloc(DATE_FORMAT_LEN);
@@ -194,8 +214,9 @@ void sRoot::testDML() {
 
 	int setid=0, npid=pid, ntid=tid, barsCnt=1000, featuresCnt=4;
 	int feature[4]={ 0,1,2,3 };
-	numtype* prediction= (numtype*)malloc(barsCnt*featuresCnt*sizeof(numtype));
-	numtype* actual    = (numtype*)malloc(barsCnt*featuresCnt*sizeof(numtype));
+	int predictionLen=3;
+	numtype* prediction= (numtype*)malloc(barsCnt*predictionLen*featuresCnt*sizeof(numtype));
+	numtype* actual    = (numtype*)malloc(barsCnt*predictionLen*featuresCnt*sizeof(numtype));
 
 	int i=0;
 	for (int b=0; b<barsCnt; b++) {
@@ -205,7 +226,7 @@ void sRoot::testDML() {
 			i++;
 		}
 	}
-//	safecall(oradb1, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, prediction, actual);
+	//safecall(oradb1, saveRun, pid, tid, npid, ntid, barsCnt, featuresCnt, feature, predictionLen, predictionTRS, actual);
 
 	int Wcnt=35150;
 	numtype* W = (numtype*)malloc(Wcnt*sizeof(numtype));

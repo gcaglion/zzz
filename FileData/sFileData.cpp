@@ -1,13 +1,14 @@
 #include "sFileData.h"
 
-sFileData::sFileData(sCfgObjParmsDef, int openMode_, bool autoOpen_, int filesCnt_, char** fileFullName_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sFileData::sFileData(sObjParmsDef, int openMode_, bool autoOpen_, int filesCnt_, char** fileFullName_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	filesCnt=filesCnt_;
 	mallocs();
 	for (int f=0; f<filesCnt; f++) strcpy_s(fileFullName[f], MAX_PATH, fileFullName_[f]);
 
 	if (autoOpen_) open(openMode_);
 }
-sFileData::sFileData(sCfgObjParmsDef, int openMode_, bool autoOpen_) : sCfgObj(sCfgObjParmsVal) {}
+sFileData::sFileData(sObjParmsDef, int openMode_, bool autoOpen_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {}
+sFileData::sFileData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {}
 sFileData::~sFileData() {
 
 	for (int f=0; f<filesCnt; f++) {
@@ -36,11 +37,13 @@ void sFileData::open(int mode_) {
 void sFileData::close() {
 	for (int f=0; f<filesCnt; f++) fclose(fileH[f]);
 }
-void sFileData::getStartDates(sFileData* dateSource_, char* startDate_, int datesCnt_, char** oDate_) {}
+void sFileData::getStartDates(char* startDate_, int datesCnt_, char** oDate_) {
+	fail("Not implemented!");
+}
 void sFileData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
 	fail("not implemented.");
 }
-void sFileData::saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, numtype* actualTRS, numtype* predictedTRS, numtype* actual, numtype* predicted) {
+void sFileData::saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted) {
 	fail("not implemented.");
 }
 void sFileData::commit() {
@@ -50,4 +53,7 @@ void sFileData::mallocs() {
 	fileFullName=(char**)malloc(filesCnt*sizeof(char*));
 	fileH=(FILE**)malloc(filesCnt*sizeof(FILE*));
 	for (int f=0; f<filesCnt; f++) fileFullName[f]=(char*)malloc(MAX_PATH);
+}
+void sFileData::saveClientInfo(int pid, const char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun) {
+	fail("not implemented.");
 }

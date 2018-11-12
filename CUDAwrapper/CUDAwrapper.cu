@@ -46,8 +46,9 @@ static const char *cudaGetErrorEnum(cublasStatus_t error)
 
 EXPORT bool initCUDA() {
 	// init CUDA GPU
-	if (cudaSetDevice(0)!=cudaSuccess) {
-		printf("cudaSetDevice failed!  Do you have a CUDA-capable GPU installed?\n");
+	int ret=cudaSetDevice(0);
+	if (ret!=cudaSuccess) {
+		printf("cudaSetDevice failed!  Error %d . Do you have a CUDA-capable GPU installed?\n", ret);
 		return false;
 	}
 	return true;

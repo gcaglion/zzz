@@ -22,23 +22,19 @@ sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfg
 	Alg->myMalloc(&se, 1);
 	Alg->myMalloc(&tse, 1);
 
-	//-- 4. we need to malloc these here (issue when running with no training...)
-	//procArgs->mseT=(numtype*)malloc(1*sizeof(numtype));
-	//procArgs->mseV=(numtype*)malloc(1*sizeof(numtype));
-
 }
 sNN::~sNN() {
 	Alg->myFree(se);
 	Alg->myFree(tse);
 
-	free(procArgs->mseT); free(procArgs->mseV);
+	//free(procArgs->mseT); free(procArgs->mseV);
 
 	free(nodesCnt);
 	free(levelFirstNode);
 	free(ctxStart);
 
 	free(weightsCnt);
-	free(levelFirstWeight);
+	//free(levelFirstWeight);	// 
 
 }
 
@@ -275,9 +271,9 @@ void sNN::ForwardPass(sDataSet* ds, int batchId, bool haveTargets) {
 
 	//-- 1. load samples (and targets, if passed) from single batch in dataset onto input layer
 	LDstart=timeGetTime(); LDcnt++;
-	Alg->h2d(&F[(parms->useBias) ? 1 : 0], &ds->sampleBFS[batchId*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
+	Alg->h2d(&F[(parms->useBias) ? 1 : 0], &sample[batchId*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
 	if (haveTargets) {
-		Alg->h2d(&u[0], &ds->targetBFS[batchId*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
+		Alg->h2d(&u[0], &target[batchId*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
 	}
 	LDtimeTot+=((DWORD)(timeGetTime()-LDstart));
 
@@ -363,6 +359,15 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	Alg->Vinit(weightsCntTotal, dW, 0, 0);
 	Alg->Vinit(weightsCntTotal, dJdW, 0, 0);
 
+	//-- 3. convert samples and targets from SBF to BFS  in training dataset
+	trainArgs->ds->reorder(SAMPLE, SBF, BFS);
+	trainArgs->ds->reorder(TARGET, SBF, BFS);
+
+	//-- 3.1. use simple pointers to the above arrays
+	sample=trainArgs->ds->sampleBFS;
+	target=trainArgs->ds->targetBFS;
+	prediction=trainArgs->ds->predictionBFS;
+
 	//-- 1. for every epoch, train all batch with one Forward pass ( loadSamples(b)+FF()+calcErr() ), and one Backward pass (BP + calcdW + W update)
 	for (epoch=0; epoch<parms->MaxEpochs; epoch++) {
 
@@ -434,18 +439,27 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	//-- reset tse=0
 	safecall(Alg, Vinit, 1, tse, 0, 0);
 
+	//-- 3. convert SBF to BFS samples and targets in inference dataset
+	inferArgs->ds->reorder(SAMPLE, SBF, BFS);
+	inferArgs->ds->reorder(TARGET, SBF, BFS);
+
+	//-- 3.1. use simple pointers to the above arrays
+	sample=inferArgs->ds->sampleBFS;
+	target=inferArgs->ds->targetBFS;
+	prediction=inferArgs->ds->predictionBFS;
+
 	//-- batch run
 	for (int b=0; b<runSet->batchCnt; b++) {
 
 		//-- 1.1.1.  load samples/targets onto GPU
-		Alg->h2d(&F[(parms->useBias) ? 1 : 0], &runSet->sampleBFS[b*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
-		Alg->h2d(&u[0], &runSet->targetBFS[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
+		Alg->h2d(&F[(parms->useBias) ? 1 : 0], &sample[b*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
+		Alg->h2d(&u[0], &target[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
 
 		//-- 1.1.2. Feed Forward
 		FF();
 
 		//-- 1.1.3. copy last layer neurons (on dev) to prediction (on host)
-		Alg->d2h(&runSet->predictionBFS[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+		Alg->d2h(&prediction[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 
 		calcErr();
 	}
@@ -456,12 +470,8 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	numtype mseR=tse_h/nodesCnt[outputLevel]/runSet->batchCnt;
 	printf("\npid=%d, tid=%d, Run final MSE=%1.10f\n", pid, tid, mseR);
 
-	//-- convert prediction from BFS to SFB (fol all batches at once)
-	runSet->BFS2SFBfull(runSet->predictionLen, runSet->predictionBFS, runSet->predictionSFB);
-	//-- extract first bar only from target/prediction SFB
-	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->predictionLen, runSet->targetSFB, 0, inferArgs->actualTRS, true);
-	safecall(Alg, getMcol, runSet->batchCnt*runSet->batchSamplesCnt*runSet->selectedFeaturesCnt, runSet->predictionLen, runSet->predictionSFB, 0, inferArgs->predictedTRS, true);
-
+	//-- convert prediction in runSet from BFS to SBF order
+	runSet->reorder(PREDICTED, BFS, SBF);
 
 	//-- feee neurons()
 	destroyNeurons();

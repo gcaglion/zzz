@@ -10,6 +10,15 @@
 #define MAX_DATA_FEATURES 128
 #define MAX_TSF_CNT	32
 
+//-- val Source
+#define TARGET		0
+#define PREDICTED	1
+#define SAMPLE		2	//-- used only in sDataSet
+//-- val Status
+#define BASE	0
+#define TR	1
+#define TRS	2
+
 struct sTimeSerie : sCfgObj {
 
 	sDataSource* sourceData;
@@ -25,13 +34,8 @@ struct sTimeSerie : sCfgObj {
 
 	//-- these are of size [len]
 	char** dtime;
-	numtype* val;
-	numtype* trval;
-	numtype* trsval;
-	//-- these are set at the end of inference
-	numtype* outval;
-	numtype* outtrval;
-	numtype* outtrsval;
+	numtype*** val;	//-- [Source][Status][len]
+
 
 	//-- these are of size [featuresCnt]
 	char bdtime[DATE_FORMAT_LEN];
@@ -41,23 +45,25 @@ struct sTimeSerie : sCfgObj {
 	numtype* scaleM;
 	numtype* scaleP;
 
-
 	//-- 
 	bool doDump;
+	char* dumpPath;
 
 	//--
-	EXPORT sTimeSerie(sObjParmsDef, sDataSource* sourceData_, char* date0_, int stepsCnt_, int dt_, int tsfCnt_, int* tsf_);
+	EXPORT sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, int tsfCnt_, int* tsf_, const char* dumpPath_=nullptr);
 	EXPORT sTimeSerie(sCfgObjParmsDef);
 	EXPORT ~sTimeSerie();
 
-	EXPORT void load(char* date0_=nullptr);
-	EXPORT void transform(int dt_=-1);
-	EXPORT void scale(float scaleMin_, float scaleMax_, numtype** oScaleM_, numtype** oScaleP_, numtype** oDmin_, numtype** oDmax_);
-	EXPORT void dump();
+	EXPORT void load(int valSource, int valStatus, char* date0_=nullptr);
+	EXPORT void transform(int valSource, int dt_=-1);
+	EXPORT void untransform(int valSource, int selectedFeaturesCnt_, int* selectedFeature_);
+	EXPORT void scale(int valSource, int valStatus, float scaleMin_, float scaleMax_);
+	EXPORT void unscale(int valSource, float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int skipFirstN_);
+	EXPORT void dump(int valSource, int valStatus);
 
 private:
-	bool hasTR, hasTRS;
-	void mallocs();
+	void mallocs1();
+	void mallocs2();
 	void frees();
 	void setDataSource();
 };

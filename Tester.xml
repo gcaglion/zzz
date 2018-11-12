@@ -15,15 +15,15 @@
 	<Persistor>
 		saveClient	= true
 		saveToDB	= true
-		saveToFile	= true
-		<DestDB>
-			UserName	= CULogUser
+		saveToFile	= false
+		<DestOraData>
+			UserName	= LogUser
 			Password	= LogPwd
-			ConnString	= Algo
-		</DestDB>
-		<DestFiles>
+			ConnString	= Algo.mavi
+		</DestOraData>
+		<DestFileData>
 			Client		= c:\temp\logs\Persistor\Client.log
-		</DestFiles>
+		</DestFileData>
 	</Persistor>
 
 	</Client>

@@ -15,9 +15,9 @@ struct sFXDataSource : sDataSource {
 	char* TimeFrame = new char[FX_TIMEFRAME_MAXLEN];
 	bool IsFilled;
 
-	EXPORT sFXDataSource(sCfgObjParmsDef, sOraData* db_, char* symbol_, char* tf_, bool isFilled_, bool autoOpen);
-	EXPORT sFXDataSource(sCfgObjParmsDef, sFileData* file_, char* symbol_, char* tf_, bool isFilled_, bool autoOpen);
-	EXPORT sFXDataSource(sCfgObjParmsDef, bool autoOpen);
+	EXPORT sFXDataSource(sObjParmsDef, sOraData* db_, const char* symbol_, const char* tf_, bool isFilled_);
+	EXPORT sFXDataSource(sObjParmsDef, sFileData* file_, const char* symbol_, const char* tf_, bool isFilled_);
+	EXPORT sFXDataSource(sCfgObjParmsDef);
 	EXPORT ~sFXDataSource();
 	
 	EXPORT void getStartDates(char* date0_, int datesCnt_, char** oStartDates_);

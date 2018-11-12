@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Timer.h"
 #include "Forecaster.h"
 #include "sClientLogger.h"
 
@@ -27,9 +28,12 @@ struct s : sObj {
 
 struct sRoot : sObj {
 
+	int pid;
+
 	sCfg* testerCfg;
 	sCfg* forecasterCfg;
 	sForecaster* forecaster;
+
 	
 	EXPORT sRoot(int argc_=0, char* argv_[]=nullptr);
 	EXPORT ~sRoot();
@@ -38,6 +42,7 @@ struct sRoot : sObj {
 	EXPORT void kaz();
 	EXPORT void kaz2();
 	EXPORT void kaz3();
+	EXPORT void kaz4();
 
 private:
 	//-- variables
@@ -54,7 +59,6 @@ private:
 	//--
 	static numtype MyRndDbl(numtype min, numtype max);
 	void testDML();
-
 };
 
 //-- MetaTrader calls

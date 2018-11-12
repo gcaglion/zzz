@@ -16,8 +16,9 @@ struct sData : sCfgObj {
 	sDataSet* testDS;
 	sDataSet* validDS;
 	bool doTraining, doInference, doValidation;
+	bool useShiftedTrainDS;
 
-	EXPORT sData(sCfgObjParmsDef, sDataShape* shape_, sDataSet* trainDS_=nullptr, sDataSet* testDS_=nullptr, sDataSet* validDS_=nullptr);
+	EXPORT sData(sObjParmsDef, sDataShape* shape_, sDataSet* trainDS_=nullptr, sDataSet* testDS_=nullptr, sDataSet* validDS_=nullptr);
 	EXPORT sData(sCfgObjParmsDef);
 	EXPORT ~sData();
 

@@ -1,9 +1,9 @@
 #include "sMT4DataSource.h"
 
-sMT4DataSource::sMT4DataSource(sCfgObjParmsDef, int accountId_, bool autoOpen) : sDataSource(sCfgObjParmsVal, MT4_SOURCE, FXDATA_FEATURESCNT, true, FXHIGH, FXLOW) {
-	accountId=accountId_;
+sMT4DataSource::sMT4DataSource(sObjParmsDef, sMT4Data* MT4db_) : sDataSource(sObjParmsVal, FXDATA_FEATURESCNT, true, FXHIGH, FXLOW) {
+	mt4db=MT4db_;
 }
-sMT4DataSource::sMT4DataSource(sCfgObjParmsDef, bool autoOpen) : sDataSource(sCfgObjParmsVal, MT4_SOURCE, FXDATA_FEATURESCNT, true, FXHIGH, FXLOW) {
+sMT4DataSource::sMT4DataSource(sCfgObjParmsDef) : sDataSource(sCfgObjParmsVal) {
 	// accountId= getparm(...)
 }
 

@@ -22,15 +22,14 @@ struct sCoreProcArgs {
 	//-- infer-specific
 	int npid;
 	int ntid;
-	int runCnt;
-	int featuresCnt;
-	int* feature;
-	numtype* actualTRS;
-	numtype* predictedTRS;
-	numtype* actual;
-	numtype* predicted;
-	numtype* scaleM;
-	numtype* scaleP;
+	int tsFeaturesCnt;
+	int selectedFeaturesCnt;
+	int* selectedFeature;
+	int predictionLen;
+	numtype* targetBFS;
+	numtype* predictionBFS;
+	numtype* targetSBF;
+	numtype* predictionSBF;
 };
 
 struct sCore : sCfgObj {
@@ -46,8 +45,8 @@ struct sCore : sCfgObj {
 	EXPORT ~sCore();
 
 	//-- methods to be implemented indipendently by each subclass (sNN, sGA, ...)
-	virtual void train(sCoreProcArgs* procArgs_){}
-	virtual void infer(sCoreProcArgs* inferArgs_){}
+	virtual void train(sCoreProcArgs* procArgs_)=0;	
+	virtual void infer(sCoreProcArgs* inferArgs_)=0;	//-- should set sampleBSF, targetBSF, predictionBSF
 
 };
 

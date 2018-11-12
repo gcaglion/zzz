@@ -15,7 +15,12 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="zzz.cpp">
+    <ClInclude Include="sMT4Data.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="sMT4Data.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

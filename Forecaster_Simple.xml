@@ -6,25 +6,25 @@
 	MyList = abc, def, ghijkl, mnopqras
 	<Data>
 		<Shape>
-			SampleLen		= 100
+			SampleLen		= 10
 			PredictionLen	= 3
-			FeaturesCount	= 2
 		</Shape>
 		<Train>
 			Do	= true
 			<DataSet>
 				BatchSamplesCount	= 10
-				#SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-				SelectedFeatures	= FXOPEN, FXHIGH
+				SelectedFeatures	= FXHIGH, FXLOW
 				BarWidthCalc		= true
 				BarWidthFeatures	= 1,2
 				Dump 				= true
+				DumpPath			= c:\temp\DataDump
 				<TimeSerie>
 					Date0				= 201707010000
-					HistoryLen			= 802
+					HistoryLen			= 502
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					Dump				= true
+					DumpPath			= c:\temp\DataDump
 					<FXDB_DataSource>
 						Symbol				= EURUSD
 						TimeFrame			= H1
@@ -32,14 +32,14 @@
 						<DBConnection>
 							UserName	= History
 							Password	= HistoryPwd
-							ConnString	= Algo
+							ConnString	= Algo.mavi
 						</DBConnection>
 					</FXDB_DataSource>
 				</TimeSerie>
 			</DataSet>
 		</Train>
 		<Validation>
-			Do	= false
+			Do					= false
 			<DataSet>
 				<TimeSerie>
 					<File_DataSource>
@@ -54,13 +54,21 @@
 		</Validation>
 		<Test>
 			Do	= true
+			UseShiftedTrainDS	= false
 			<DataSet>
+				BatchSamplesCount	= 1
+				SelectedFeatures	= FXHIGH, FXLOW
+				BarWidthCalc		= true
+				BarWidthFeatures	= 1,2
+				Dump 				= true
+				DumpPath			= c:\temp\DataDump
 				<TimeSerie>
 					Date0				= 201607010000
-					HistoryLen			= 802
+					HistoryLen			= 502
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
-					Dump				= true
+					Dump				= false
+					DumpPath			= c:\temp\DataDump
 					<FXDB_DataSource>
 						Symbol				= EURUSD
 						TimeFrame			= H1
@@ -68,65 +76,36 @@
 						<DBConnection>
 							UserName	= History
 							Password	= HistoryPwd
-							ConnString	= Algo
+							ConnString	= Algo.mavi
 						</DBConnection>
 					</FXDB_DataSource>
 				</TimeSerie>
-				BatchSamplesCount	= 10
-				#SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-				SelectedFeatures	= FXOPEN, FXHIGH
-				BarWidthCalc		= true
-				BarWidthFeatures	= 1,2
-				Dump 				= true
 			</DataSet>
 		</Test>
 	</Data>
 	<Engine>
 		Type 		= ENGINE_CUSTOM
 		<Custom>
-			CoresCount	= 2
+			CoresCount	= 1
 			<Core0>
 				<Layout>
-					Type	= CORE_NN
+					Type	= CORE_GA
 					Parents			= 
 					ParentsConnType	= 
 				</Layout>
 				<Parameters>
-					<Topology>
-						LevelRatio			= 0.5
-						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-						UseContext			= false
-						UseBias				= false
-					</Topology>
-					<Training>
-						MaxEpochs			= 50
-						TargetMSE			= 0.0001
-						NetSaveFrequency	= 10
-						StopOnDivergence	= false
-						BP_Algo				= BP_STD
-						<BP_Std>
-							LearningRate		= 0.001
-							LearningMomentum	= 0.4
-						</BP_Std>
-						<BP_Qing>
-						</BP_Qing>
-						<BP_Qprop>
-						</BP_Qprop>
-						<BP_RProp>
-						</BP_RProp>
-					</Training>
 				</Parameters>
 				<Persistor>
-					saveMSE			= true
+					saveMSE			= false
 					saveRun			= true
 					saveInternals	= false
 					saveImage		= true
 					saveToDB		= true
 					saveToFile		= false
 					<DestOraData>
-						UserName	= CULogUser
+						UserName	= LogUser
 						Password	= LogPwd
-						ConnString	= Algo
+						ConnString	= Algo.mavi
 					</DestOraData>
 					<DestFileData>
 						Client		= c:\temp\logs\Persistor\Client.log
@@ -145,19 +124,19 @@
 				</Layout>
 				<Parameters>
 					<Topology>
-						LevelRatio			= 0.5
-						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+						LevelRatio			= 1,0.5
+						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
 						UseContext			= false
 						UseBias				= false
 					</Topology>
 					<Training>
-						MaxEpochs			= 50
+						MaxEpochs			= 1000
 						TargetMSE			= 0.0001
 						NetSaveFrequency	= 10
 						StopOnDivergence	= false
 						BP_Algo				= BP_STD
 						<BP_Std>
-							LearningRate		= 0.001
+							LearningRate		= 0.1
 							LearningMomentum	= 0.4
 						</BP_Std>
 						<BP_Qing>
@@ -176,9 +155,9 @@
 					saveToDB		= true
 					saveToFile		= false
 					<DestOraData>
-						UserName	= CULogUser
+						UserName	= LogUser
 						Password	= LogPwd
-						ConnString	= Algo
+						ConnString	= Algo.mavi
 					</DestOraData>
 					<DestFileData>
 						Client		= c:\temp\logs\Persistor\Client.log
@@ -205,9 +184,9 @@
 		saveToDB		= true
 		saveToFiles		= true
 		<DestOraData>
-			UserName	= CULogUser
+			UserName	= LogUser
 			Password	= LogPwd
-			ConnString	= Algo
+			ConnString	= Algo.mavi
 		</DestOraData>
 		<DestFileData>
 			Client		= c:\temp\logs\Persistor\Client.log

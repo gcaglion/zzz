@@ -67,25 +67,28 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgO
 			if (coreLayout[c]->layer==l) {
 				switch (coreLayout[c]->type) {
 				case CORE_NN:
-					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);					
 					NNcp->setScaleMinMax();
 					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", coreLayout[c], NNcp);
-					core[c]=NNc; coreParms[c]=NNcp;
+					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
-					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);					
+					GAcp->setScaleMinMax();
 					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, "../", coreLayout[c], GAcp);
-					core[c]=GAc; coreParms[c]=GAcp;
+					coreParms[c]=GAcp; core[c]=GAc;
 					break;
 				case CORE_SVM:
 					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					SVMcp->setScaleMinMax();
 					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, "../", coreLayout[c], SVMcp);
-					core[c]=SVMc;  coreParms[c]=SVMcp;
+					coreParms[c]=SVMcp; core[c]=SVMc;
 					break;
 				case CORE_SOM:
 					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					SOMcp->setScaleMinMax();
 					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, "../", coreLayout[c], SOMcp);
-					core[c]=SOMc; coreParms[c]=SOMcp;
+					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
 				default:
 					fail("Invalid Core Type: %d", type);
@@ -124,7 +127,6 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 	int threadsCnt;
 	HANDLE* procH;
 	sEngineProcArgs** procArgs;
-	void** ds;
 
 	HANDLE SMutex = CreateMutex(NULL, FALSE, NULL);
 
@@ -135,7 +137,7 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 		
 		//-- initialize layer-level structures
 		procArgs=(sEngineProcArgs**)malloc(threadsCnt*sizeof(sEngineProcArgs*));
-		ds = (void**)malloc(threadsCnt*sizeof(sDataSet*));	
+		//ds = (void**)malloc(threadsCnt*sizeof(sDataSet*));	
 		procH = (HANDLE*)malloc(threadsCnt*sizeof(HANDLE));
 		DWORD* kaz = (DWORD*)malloc(threadsCnt*sizeof(DWORD));
 		LPDWORD* tid = (LPDWORD*)malloc(threadsCnt*sizeof(LPDWORD)); 
@@ -143,33 +145,31 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 		for (t=0; t<threadsCnt; t++) {
 			procArgs[t]=new sEngineProcArgs();
 			tid[t] = &kaz[t];
-			//-- need to make a copy of ds for each core running concurrently in the layer
-			ds[t] = (void*)malloc(sizeof(*ds_));
-			memcpy_s(ds[t], sizeof(*ds_), ds_, sizeof(*ds_));
 		}	
 		//--
 
-		gotoxy(0, 2+l+((l>0) ? layerCoresCnt[l-1] : 0));  printf("Training Layer %d\n", l);
+		gotoxy(0, 2+l+((l>0) ? layerCoresCnt[l-1] : 0));  printf("Process %6d, %s Layer %d\n", pid, ((procid_==trainProc)?"Training":"Inferencing"), l);
 		t=0;
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
 
-				//-- rebuild training DataSet for current Core
-				((sDataSet*)ds[t])->build(coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+				//-- scale trdata and rebuild training DataSet for current Core
+				ds_->sourceTS->scale(TARGET, TR, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+				ds_->build(TARGET, TRS);
+				
 
-				//-- Create Training Thread for current Core
+				//-- Create Training or Infer Thread for current Core
 				procArgs[t]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
 				procArgs[t]->core=core[c];
-				procArgs[t]->coreProcArgs->ds = (sDataSet*)ds[t];
-				procArgs[t]->coreProcArgs->runCnt=procArgs[t]->coreProcArgs->ds->samplesCnt;
-				procArgs[t]->coreProcArgs->featuresCnt=procArgs[t]->coreProcArgs->ds->selectedFeaturesCnt;
-				procArgs[t]->coreProcArgs->feature=procArgs[t]->coreProcArgs->ds->selectedFeature;
-				procArgs[t]->coreProcArgs->actual = procArgs[t]->coreProcArgs->ds->target0;
-				procArgs[t]->coreProcArgs->predicted = procArgs[t]->coreProcArgs->ds->prediction0;
-				procArgs[t]->coreProcArgs->actualTRS = procArgs[t]->coreProcArgs->ds->target0TRS;
-				procArgs[t]->coreProcArgs->predictedTRS = procArgs[t]->coreProcArgs->ds->prediction0TRS;
-				procArgs[t]->coreProcArgs->scaleM = procArgs[t]->coreProcArgs->ds->sourceTS->scaleM;
-				procArgs[t]->coreProcArgs->scaleP = procArgs[t]->coreProcArgs->ds->sourceTS->scaleP;
+				procArgs[t]->coreProcArgs->ds = (sDataSet*)ds_;
+				procArgs[t]->coreProcArgs->tsFeaturesCnt=procArgs[t]->coreProcArgs->ds->sourceTS->sourceData->featuresCnt;
+				procArgs[t]->coreProcArgs->selectedFeaturesCnt=procArgs[t]->coreProcArgs->ds->selectedFeaturesCnt;
+				procArgs[t]->coreProcArgs->selectedFeature=procArgs[t]->coreProcArgs->ds->selectedFeature;
+				procArgs[t]->coreProcArgs->predictionLen=procArgs[t]->coreProcArgs->ds->predictionLen;
+				procArgs[t]->coreProcArgs->targetBFS = procArgs[t]->coreProcArgs->ds->targetBFS;
+				procArgs[t]->coreProcArgs->predictionBFS = procArgs[t]->coreProcArgs->ds->predictionBFS;
+				procArgs[t]->coreProcArgs->targetSBF = procArgs[t]->coreProcArgs->ds->targetSBF;
+				procArgs[t]->coreProcArgs->predictionSBF = procArgs[t]->coreProcArgs->ds->predictionSBF;
 
 				if (procid_==trainProc) {
 					procH[t] = CreateThread(NULL, 0, coreThreadTrain, &(*procArgs[t]), 0, tid[t]);
@@ -192,11 +192,8 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 		WaitForMultipleObjects(t, procH, TRUE, INFINITE);
 
 		//-- free(s)
-		for (t=0; t<threadsCnt; t++) {
-			free(procArgs[t]); 
-			free(ds[t]);
-		}
-		free(procArgs); free(ds); free(procH); free(kaz); free(tid);
+		for (t=0; t<threadsCnt; t++) free(procArgs[t]); 
+		free(procArgs); free(procH); free(kaz); free(tid);
 	}
 }
 void sEngine::train(int testid_, sDataSet* trainDS_) {
@@ -212,10 +209,27 @@ void sEngine::saveMSE() {
 }
 void sEngine::saveRun() {
 	for (int c=0; c<coresCnt; c++) {
-		//-- first, un-transform and un-scale
-		core[c]->ds->unTRS();
-		//-- then, call persistor
-		if (core[c]->persistor->saveRunFlag) safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->runCnt, core[c]->procArgs->featuresCnt, core[c]->procArgs->feature, core[c]->procArgs->actualTRS, core[c]->procArgs->predictedTRS, core[c]->procArgs->actual, core[c]->procArgs->predicted);
+
+		sDataSet* _ds = core[c]->procArgs->ds;
+		sTimeSerie* _ts = _ds->sourceTS;
+		int layer=core[c]->layout->layer;
+
+		//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
+		_ds->unbuild(PREDICTED, PREDICTED, TRS);
+
+		//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
+		_ts->unscale(PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedFeaturesCnt, _ds->selectedFeature, _ds->sampleLen);
+
+		//-- 4. copy trvalA into trvalP for the first <sampleLen> bars, so we have a baseval
+		size_t leftsz=core[c]->procArgs->ds->sampleLen*core[c]->procArgs->ds->sourceTS->sourceData->featuresCnt*sizeof(numtype);
+		memcpy_s(_ds->sourceTS->val[PREDICTED][TR], leftsz, _ds->sourceTS->val[TARGET][TR], leftsz);
+		
+		//-- 5. sourceTS->untransform into valP
+		_ds->sourceTS->untransform(PREDICTED, core[c]->procArgs->ds->selectedFeaturesCnt, core[c]->procArgs->ds->selectedFeature);
+		
+		//-- persist into runLog
+		int runStepsCnt=core[c]->procArgs->ds->samplesCnt +core[c]->procArgs->ds->sampleLen;
+		if (core[c]->persistor->saveRunFlag) core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, runStepsCnt, core[c]->procArgs->tsFeaturesCnt, core[c]->procArgs->selectedFeaturesCnt, core[c]->procArgs->selectedFeature, core[c]->procArgs->predictionLen, _ts->val[TARGET][TRS], _ts->val[PREDICTED][TRS], _ts->val[TARGET][TR], _ts->val[PREDICTED][TR], _ts->val[TARGET][BASE], _ts->val[PREDICTED][BASE] );
 	}
 }
 void sEngine::commit() {

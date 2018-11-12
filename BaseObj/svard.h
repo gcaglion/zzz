@@ -8,6 +8,7 @@
 struct svard {
 	int  pcnt;
 	bool lastp;
+	size_t plen;
 	char pmask[PARMS_MAXCNT][PARM_MASK_LEN];	// "%s", "%d%, "%f", "p". 
 	char   pvalS[PARMS_MAXCNT][PARM_VAL_MAXLEN];
 	int    pvalI[PARMS_MAXCNT];
@@ -16,15 +17,18 @@ struct svard {
 	char fullval[PARMS_MAXCNT*PARM_VAL_MAXLEN];
 
 	void select(const char* a) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "\"%s\", "); }
-	void select(char* a) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "\"%s\", "); }
+	void select(char* a) { plen=strlen(a); strcpy_s(pmask[pcnt], PARM_MASK_LEN, "\"%s\", "); }
 	void select(int a) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "%d, "); }
 	void select(numtype a) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "%f, "); }
+	void select(altnumtype a) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "%f, "); }
 	void select(void* a) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "%p, "); }
 
 	template <class T> void addParm(T a) {
-		sprintf_s(pvalS[pcnt], PARM_VAL_MAXLEN, pmask[pcnt], a);
-		strcat_s(fullval, PARMS_MAXCNT*PARM_VAL_MAXLEN, pvalS[pcnt]);
-		pcnt++;
+		if (plen<PARM_VAL_MAXLEN) {
+			sprintf_s(pvalS[pcnt], PARM_VAL_MAXLEN, pmask[pcnt], a);
+			strcat_s(fullval, PARMS_MAXCNT*PARM_VAL_MAXLEN, pvalS[pcnt]);
+			pcnt++;
+		}
 	}
 
 	void variadic() {}

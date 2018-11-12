@@ -7,4 +7,8 @@
 struct sSOM : sCore {
 	EXPORT sSOM(sCfgObjParmsDef, sCoreLayout* layout_, sSOMparms* SOMparms_);
 	EXPORT ~sSOM();
+
+	EXPORT void train(sCoreProcArgs* trainArgs);
+	EXPORT void infer(sCoreProcArgs* inferArgs);
+
 };

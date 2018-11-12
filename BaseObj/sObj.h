@@ -5,6 +5,8 @@
 #include "svard.h"
 #include "sDbg.h"
 #include <typeinfo>
+#include <vector>
+using namespace std;
 
 #define CmdMaxLen	4096
 #define sObjParmsDef sObj* parent_, sName* sname_, sDbg* dbg_
@@ -12,18 +14,16 @@
 
 struct sObj {
 	sName* name;
-	//--
 	sDbg* dbg;
 	int depth;
 	sObj* parent;
-	int childrenCnt;
-	sObj* child[ObjMaxChildren];
+	vector<sObj*> child;
 	//--
 	svard* cmdSvard;
 	char cmd[CmdMaxLen];
 
 	EXPORT sObj(sObjParmsDef);
-	EXPORT ~sObj();
+	EXPORT virtual ~sObj();
 
 	EXPORT void findChild(const char* relChildName, sObj** retObj);
 
@@ -69,6 +69,13 @@ struct sObj {
 	} \
 }
 
-#define silentcallB(bfunc_, ...)  if(!(bfunc_(__VA_ARGS__))) fail("%s FAILURE : %s(%s)", name->base, #bfunc_, __VA_ARGS__)
+#define silentcallB(bfunc_, ...) { \
+	cmdSvard=new svard(__VA_ARGS__); \
+	sprintf_s(cmd, CmdMaxLen, "%s(%s)", #bfunc_, cmdSvard->fullval); \
+	if(!(bfunc_(__VA_ARGS__))) { \
+		fail("%s FAILURE : %s", name->base, cmd); \
+	} \
+}
+
 
 

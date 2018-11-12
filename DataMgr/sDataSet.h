@@ -2,74 +2,55 @@
 
 #include "../ConfigMgr/sCfgObj.h"
 #include "sTimeSerie.h"
+#include "../Algebra/Algebra.h"
 
-#define VAL 0
-#define TRVAL 1
-#define TRSVAL 2
+
+//-- ordering Ids
+#define SBF	0
+#define BFS	1
 
 struct sDataSet : sCfgObj {
 
 	sTimeSerie* sourceTS;
-
-	float scaleMin;
-	float scaleMax;
-	numtype* scaleM;
-	numtype* scaleP;
-	numtype* dmin;
-	numtype* dmax;
+	bool isCloned;
 
 	int sampleLen;
 	int predictionLen;
 
 	int selectedFeaturesCnt;
 	int* selectedFeature;
-	bool BWcalc;
-	int* BWfeature;
 
 	int samplesCnt;
 	int batchSamplesCnt;
 	int batchCnt;
 
 	//-- sample, target, prediction are stored in  order (Sample-Bar-Feature)
-	numtype* sample;
-	numtype* target;
-	numtype* prediction;
+	numtype* sampleSBF;		
+	numtype* targetSBF;		
+	numtype* predictionSBF;	
 	//-- network training requires BFS ordering
-	numtype* sampleBFS;
-	numtype* targetBFS;
-	numtype* predictionBFS;
-	//-- network inference requires SFB ordering to get first-step prediction
-	numtype* targetSFB;
-	numtype* predictionSFB;
-	//-- one-step only target+prediction (required by run() ) ???????
-	numtype* target0TRS;
-	numtype* prediction0TRS;
-	//-- same as above, un-scaled
-	numtype* target0TR;
-	numtype* prediction0TR;
-	//-- same as above, un-transformed and un-scaled
-	numtype* target0;
-	numtype* prediction0;
+	numtype* sampleBFS;		
+	numtype* targetBFS;		
+	numtype* predictionBFS;	
+	//-- array of pointers to any of the above : 
+	numtype* _data[3][2];	//-- [Source][ordering]
 
-	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool BWcalc_, int* BWfeature_=nullptr);
+	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool doDump=false, const char* dumpPath_=nullptr);
 	EXPORT sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_);
+	EXPORT sDataSet(sObjParmsDef, sDataSet* trainDS_);
 	EXPORT ~sDataSet();
 
-	EXPORT void build(float scaleMin_=0, float scaleMax_=0, int type=TRSVAL);
-	EXPORT void dump(int type=TRSVAL);
-	EXPORT void unTRS();
-
-	//-- this is called directly from sNN
-	EXPORT void BFS2SFBfull(int barCnt, numtype* fromBFS, numtype* toSFB);
+	EXPORT void build(int fromValStatus, int fromValSource);
+	EXPORT void unbuild(int fromValSource, int toValSource, int toValStatus);	//-- takes step 0 from predictionSBF, copy it into sourceTS->trsvalP
+	EXPORT void reorder(int section, int FROMorderId, int TOorderId);
 
 private:
 	void mallocs1();
 	void mallocs2();
 	void frees();
 	bool isSelected(int ts_f);
-	void SBF2BFS(int batchId, int barCnt, numtype* fromSBF, numtype* toBFS);
-	void BFS2SBF(int batchId, int barCnt, numtype* fromBFS, numtype* toSBF);
-	void BFS2SFB(int batchId, int barCnt, numtype* fromBFS, numtype* toSFB);
-	int BWfeaturesCnt=2;
+	void dumpPre(int valStatus, FILE** dumpFile);
+
 	bool doDump;
+	char* dumpPath;
 };

@@ -1,6 +1,6 @@
 #include "sData.h"
 
-sData::sData(sCfgObjParmsDef, sDataShape* shape_, sDataSet* trainDS_, sDataSet* testDS_, sDataSet* validDS_) : sCfgObj(sCfgObjParmsVal) {
+sData::sData(sObjParmsDef, sDataShape* shape_, sDataSet* trainDS_, sDataSet* testDS_, sDataSet* validDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	shape=shape_;
 	trainDS=trainDS_; testDS=testDS_; validDS=validDS_;
 }
@@ -13,15 +13,19 @@ sData::sData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	//-- 2. do stuff and spawn sub-Keys
 	safespawn(shape, newsname("Shape"), nullptr, cfg, "Shape");
 	if(doTraining) safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, cfg, "Train/DataSet", shape->sampleLen, shape->predictionLen);
-	if(doInference) safespawn(testDS,  newsname("TestData"),  defaultdbg, cfg, "Test/DataSet", shape->sampleLen, shape->predictionLen);
-	if(doValidation) safespawn(validDS, newsname("ValidDataset"), defaultdbg, cfg, "Validation/DataSet", shape->sampleLen, shape->predictionLen);
+	if (doInference) {
+		safecall(cfgKey, getParm, &useShiftedTrainDS, "Test/UseShiftedTrainDS");
+		if (useShiftedTrainDS) {
+			if (!doTraining) fail("in order to use Shifted Train DataSet, DoTrain must be set to true!");
+			safespawn(testDS, newsname("TestDataSet"), defaultdbg, trainDS);
+		} else {
+			safespawn(testDS, newsname("TestDataSet"), defaultdbg, cfg, "Test/DataSet", shape->sampleLen, shape->predictionLen);
+		}
+	}
+	if (doValidation) safespawn(validDS, newsname("ValidDataset"), defaultdbg, cfg, "Validation/DataSet", shape->sampleLen, shape->predictionLen);
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 
 }
 sData::~sData() {
-	delete trainDS;
-	delete testDS;
-	delete validDS;
-	delete shape;
 }
