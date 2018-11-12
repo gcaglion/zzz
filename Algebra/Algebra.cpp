@@ -30,7 +30,6 @@ void sAlgebra::myMalloc(numtype** var, int size) {
 	CUWsafecallSilent(Malloc_cu, var, size);
 #else
 	(*var) = (numtype*)malloc(size*sizeof(numtype));
-	return true;
 #endif
 }
 EXPORT void sAlgebra::myFree(numtype* var) {
@@ -38,7 +37,6 @@ EXPORT void sAlgebra::myFree(numtype* var) {
 	CUWsafecallSilent(Free_cu, var);
 #else
 	free(var);
-	return true;
 #endif
 }
 
@@ -269,21 +267,37 @@ bool sAlgebra::VinitRnd(int Vlen, numtype* V, numtype rndmin, numtype rndmax, vo
 
 //-- gateway calls to CUDA wrapper
 EXPORT void CUWinitCUDA() {
+#ifdef USE_GPU
 	initCUDA();
+#endif
 }
 EXPORT void CUWinitCUBLAS(void* cublasH) {
+#ifdef USE_GPU
 	initCUBLAS(cublasH);
+#endif
 }
 EXPORT void CUWinitCURand(void* cuRandH) {
+#ifdef USE_GPU
 	initCURand(cuRandH);
+#endif
 }
 EXPORT void CUWinitCUstreams(void* cuStream[]) {
+#ifdef USE_GPU
 	initCUstreams(cuStream);
+#endif
 }
 //-- CPU<->GPU transfer functions
 EXPORT void CUWh2d_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]){
+#ifdef USE_GPU
 	h2d_cu(destAddr, srcAddr, size, cuStream);
+#else
+	memcpy_s(destAddr, size, srcAddr, size);
+#endif
 }
 EXPORT void CUWd2h_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]){
+#ifdef USE_GPU
 	d2h_cu(destAddr, srcAddr, size, cuStream);
+#else
+	memcpy_s(destAddr, size, srcAddr, size);
+#endif
 }

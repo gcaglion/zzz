@@ -80,7 +80,10 @@ void sRoot::tester() {
 			if (forecaster->data->doInference) {
 				//-- 6.2.1. set date0 in testDS->TimeSerie, and load it
 				safecall(forecaster->data->testDS->sourceTS, load, TARGET, BASE, simulationInferStartDate[s]);
-				//-- 6.2.2. do training (also populates datasets)
+
+				//-- run different datasets through existing engine
+
+				//-- 6.2.2. do inference (also populates datasets)
 				safecall(forecaster->engine, infer, s, forecaster->data->testDS);
 				//-- 6.2.3. persist Run logs
 				safecall(forecaster->engine, saveRun);

@@ -14,7 +14,12 @@ struct sNN : sCore {
 	EXPORT ~sNN();
 
 	EXPORT void train(sCoreProcArgs* trainArgs);
+	EXPORT void inferOLD(sCoreProcArgs* inferArgs);
+
 	EXPORT void infer(sCoreProcArgs* inferArgs);
+	EXPORT void inferNEW(int samplesCnt_, int sampleLen_, int predictionLen_, int featuresCnt_, numtype* INsampleSBF, numtype* INtargetSBF, numtype* OUTpredictionSBF);
+
+	void singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtype** singlePredictionSBF);
 
 private:
 	//-- MyAlgebra common structures
