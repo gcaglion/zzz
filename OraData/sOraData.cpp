@@ -59,13 +59,16 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCn
 
 	try {
 		//-- 1. History: open statement and result set
-		sprintf_s(sql, SQL_MAXLEN, "select to_char(newdatetime,'YYYYMMDDHH24MI'), open, high, low, close, nvl(volume,0) from %s_%s where NewDateTime<=to_date('%s','YYYYMMDDHH24MI') order by 1 desc", pSymbol, pTF, date0_);
+		sprintf_s(sql, SQL_MAXLEN, "select to_char(newdatetime,'%s'), open, high, low, close, nvl(volume,0) from %s_%s where NewDateTime<=to_date('%s','%s') order by 1 desc", DATE_FORMAT, pSymbol, pTF, date0_, DATE_FORMAT);
 		stmt = ((Connection*)conn)->createStatement(sql);
 		rset = ((Statement*)stmt)->executeQuery();
 		//-- 2. History: get all records
 		i=stepsCnt-1;
+		std::string dateS;
 		while (rset->next()&&i>=0) {
-			strcpy_s(oBarTime[i], DATE_FORMAT_LEN, rset->getString(1).c_str());
+			dateS=rset->getString(1);
+			strcpy_s(oBarTime[i], DATE_FORMAT_LEN, dateS.c_str());
+//			strcpy_s(oBarTime[i], DATE_FORMAT_LEN, rset->getString(1).c_str());
 			oBarData[5*i+0] = rset->getFloat(2);
 			oBarData[5*i+1] = rset->getFloat(3);
 			oBarData[5*i+2] = rset->getFloat(4);
@@ -127,7 +130,7 @@ void sOraData::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	((Connection*)conn)->terminateStatement((Statement*)stmt);
 
 }
-void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char** oDate) {
+void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, string StartDate, int DatesCount, string* oDate) {
 	
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -140,13 +143,13 @@ void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, ch
 	if (conn==nullptr) fail("DB Connection is closed. cannot continue.");
 
 	try {
-		sprintf_s(sql, SQL_MAXLEN, "select to_char(NewDateTime, 'YYYYMMDDHH24MI') from History.%s_%s%s where NewDateTime>=to_date('%s','YYYYMMDDHH24MI') order by 1", symbol_, timeframe_, (isFilled_)?"_FILLED ":"", StartDate);
+		sprintf_s(sql, SQL_MAXLEN, "select to_char(NewDateTime, '%s') from History.%s_%s%s where NewDateTime>=to_date('%s','%s') order by 1", DATE_FORMAT, symbol_, timeframe_, (isFilled_)?"_FILLED ":"", StartDate.c_str(), DATE_FORMAT);
 		stmt = ((Connection*)conn)->createStatement(sql);
 		rset = ((Statement*)stmt)->executeQuery();
 
 		i=0;
 		while (rset->next()&&i<DatesCount) {
-			strcpy_s(oDate[i], DATE_FORMAT_LEN, rset->getString(1).c_str());
+			oDate[i] = rset->getString(1);
 			i++;
 		}
 
@@ -299,12 +302,12 @@ void sOraData::saveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-void sOraData::saveClientInfo(int pid, const char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun) {
+void sOraData::saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
-	char stmtS[SQL_MAXLEN]; sprintf_s(stmtS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, ClientName, ClientStart, SimulationLen, Duration, SimulationStartTrain, SimulationStartInfer, SimulationStartValid, DoTraining, DoTrainRun) values(%d, '%s', sysdate, %d, %f, to_date('%s','YYYYMMDDHH24MI'), to_date('%s','YYYYMMDDHH24MI'), to_date('%s','YYYYMMDDHH24MI'), %d, %d)", pid, clientName, simulLen, elapsedSecs, simulStartTrain, simulStartInfer, simulStartValid, (doTrain?1:0), (doTestRun?1:0) );
+	char stmtS[SQL_MAXLEN]; sprintf_s(stmtS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, SimulationId, ClientName, ClientStart, Duration, SimulationStartTrain, SimulationStartInfer, SimulationStartValid, DoTraining, DoTrainRun) values(%d, %d, '%s', sysdate, %f, to_date('%s','%s'), to_date('%s','%s'), to_date('%s','%s'), %d, %d)",	pid, simulationId, clientName, elapsedSecs, simulStartTrain, DATE_FORMAT, simulStartInfer, DATE_FORMAT, simulStartValid, DATE_FORMAT, (doTrain?1:0), (doTestRun?1:0) );
 
 	try {
 		stmt = ((Connection*)conn)->createStatement(stmtS);

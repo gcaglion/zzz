@@ -69,9 +69,10 @@ void sRoot::tester() {
 
 	//-- client vars
 	int simulationLength;
-	char** simulationTrainStartDate;
-	char** simulationInferStartDate;
-	char** simulationValidStartDate;
+	vector<string> simulationTrainStartDate;
+	vector<string> simulationInferStartDate;
+	vector<string> simulationValidStartDate;
+
 	sClientLogger* testerPersistor;
 	sTimer* timer = new sTimer();
 
@@ -90,13 +91,10 @@ void sRoot::tester() {
 		//-- 3.	get Simulation Length and start date[0]
 		safecall(testerCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
 		//--
-		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++);
-		simulationInferStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++);
-		simulationValidStartDate=(char**)malloc(simulationLength*sizeof(char*)); for (int s=0; s<simulationLength; s++);
 		for (int s=0; s<simulationLength; s++) {
-			simulationTrainStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN); simulationTrainStartDate[s][0]='\0';
-			simulationInferStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN); simulationInferStartDate[s][0]='\0';
-			simulationValidStartDate[s]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN); simulationValidStartDate[s][0]='\0';
+			simulationTrainStartDate.push_back(DATE_FORMAT);
+			simulationInferStartDate.push_back(DATE_FORMAT);
+			simulationValidStartDate.push_back(DATE_FORMAT);
 		}
 
 		//-- 4. spawn forecaster
@@ -105,15 +103,15 @@ void sRoot::tester() {
 		//-- 5. if the dataset is used, read startdate from client xml for each dataset
 		if (forecaster->data->doTraining) {
 			safecall(testerCfg->currentKey, getParm, &simulationTrainStartDate[0], "Client/TrainStartDate");
-			getStartDates(forecaster->data->trainDS, simulationTrainStartDate[0], simulationLength, simulationTrainStartDate);
+			getStartDates(forecaster->data->trainDS, simulationTrainStartDate[0], simulationLength, &simulationTrainStartDate);
 		}
 		if (forecaster->data->doInference) {
 			safecall(testerCfg->currentKey, getParm, &simulationInferStartDate[0], "Client/InferStartDate");
-			getStartDates(forecaster->data->testDS, simulationInferStartDate[0], simulationLength, simulationInferStartDate);
+			getStartDates(forecaster->data->testDS, simulationInferStartDate[0], simulationLength, &simulationInferStartDate);
 		}
 		if (forecaster->data->doValidation) {
 			safecall(testerCfg->currentKey, getParm, &simulationValidStartDate[0], "Client/ValidationStartDate");
-			getStartDates(forecaster->data->validDS, simulationValidStartDate[0], simulationLength, simulationValidStartDate);
+			getStartDates(forecaster->data->validDS, simulationValidStartDate[0], simulationLength, &simulationValidStartDate);
 		}
 
 		//-- 6. for each simulation
@@ -140,16 +138,17 @@ void sRoot::tester() {
 				safecall(forecaster->engine, saveRun);
 			}
 
-			//-- 6.3 Commit engine persistor data
-			safecall(forecaster->engine, commit);
-
-			//-- 6.4. Save ClientInfo for
+			//-- 6.3. Save ClientInfo for
 			if (testerPersistor->saveClientInfoFlag) {
 				char* endtimeS = timer->stop();
-				safecall(testerPersistor, saveClientInfo, pid, "Root.Tester", timer->startTime, timer->elapsedTime, simulationLength, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], forecaster->data->doTraining, forecaster->data->doInference, forecaster->data->doTraining);
+				safecall(testerPersistor, saveClientInfo, pid, s, "Root.Tester", timer->startTime, timer->elapsedTime, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], forecaster->data->doTraining, forecaster->data->doInference, forecaster->data->doTraining);
 			}
 
+			//-- 6.4 Commit engine persistor data
+			safecall(forecaster->engine, commit);
+
 			//-- 6.5. commit client persistor data
+			safecall(testerPersistor, commit);
 
 		}
 
@@ -198,7 +197,7 @@ void sRoot::testDML() {
 
 	int sdatecnt=10;
 	char** sdate=(char**)malloc(sdatecnt*sizeof(char*)); for (int i=0; i<sdatecnt; i++) sdate[i]=(char*)malloc(DATE_FORMAT_LEN);
-	oradb1->getStartDates("EURUSD", "H1", false, "201612300000", sdatecnt, sdate);
+	oradb1->getStartDates("EURUSD", "H1", false, "201612300000", sdatecnt, &sdate);
 
 
 	int pid=99;
@@ -238,7 +237,7 @@ void sRoot::testDML() {
 	safecall(oradb1, loadW, pid, tid, epoch, Wcnt, W);
 
 }
-void sRoot::getStartDates(sDataSet* ds, char* date00_, int len, char** oDates){
+void sRoot::getStartDates(sDataSet* ds, string date00_, int len, string** oDates){
 	sFXDataSource* fxsrc; sGenericDataSource* filesrc; sMT4DataSource* mt4src;
 	switch (ds->sourceTS->sourceData->type) {
 	case DB_SOURCE:

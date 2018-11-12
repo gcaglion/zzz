@@ -10,6 +10,6 @@ sDataSource::sDataSource(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 sDataSource::~sDataSource() {}
 
-void sDataSource::getStartDates(char* date0_, int datesCnt_, char** oStartDates_) {}
+void sDataSource::getStartDates(string date0_, int datesCnt_, string* oStartDates_) {}
 void sDataSource::open() {
 }

@@ -3,10 +3,10 @@
 #Empty lines are ignored, too
 
 <Client>
-	SimulationLength 	= 1
-	TrainStartDate	 	= 201710310000
-	InferStartDate	 	= 201610310000
-	ValidationStartDate	= 201510310000
+	SimulationLength 	= 3
+	TrainStartDate	 	= 2017-10-31-00:00
+	InferStartDate	 	= 2016-10-31-00:00
+	ValidationStartDate	= 2015-10-31-00:00
 	
 	<ParmsCombinations>
 		# TO DO (v. TesterMulti)

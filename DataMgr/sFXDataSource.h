@@ -20,7 +20,7 @@ struct sFXDataSource : sDataSource {
 	EXPORT sFXDataSource(sCfgObjParmsDef);
 	EXPORT ~sFXDataSource();
 	
-	EXPORT void getStartDates(char* date0_, int datesCnt_, char** oStartDates_);
+	EXPORT void getStartDates(string date0_, int datesCnt_, string* oStartDates_);
 	EXPORT void open();
 	EXPORT void load(char* pDate0, int pRecCount, char** oBarTime, float* oBarData, char* oBaseTime, float* oBaseBar);
 

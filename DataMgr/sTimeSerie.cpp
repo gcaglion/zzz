@@ -40,7 +40,7 @@ sTimeSerie::~sTimeSerie() {
 }
 
 void sTimeSerie::load(int valSource, int valStatus, char* date0_) {
-	if (date0_!=nullptr) strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, date0_);
+	if (date0_!=nullptr) strcpy_s(date0, DATE_FORMAT_LEN, date0_);
 	safecall(sourceData, load, date0, stepsCnt, dtime, val[valSource][valStatus], bdtime, base);
 	if (doDump) dump(valSource, valStatus);
 	transform(valStatus);
@@ -195,16 +195,19 @@ void sTimeSerie::mallocs2() {
 
 }
 void sTimeSerie::frees() {
-	for (int i=0; i<len; i++) free(dtime[i]); free(dtime);
+	for (int i=0; i<len; i++) {
+		free(dtime[i]); 
+	}
+	free(dtime);
 
-/*	for (int source=0; source<2; source++) {
+	for (int source=0; source<2; source++) {
 		for (int status=0; status<3; status++) {
 			free(val[source][status]);
 		}
 		free(val[source]);
 	}
 	free(val);
-*/
+
 	free(base);
 	free(dmin);	free(dmax);
 	free(scaleM); free(scaleP);

@@ -36,10 +36,10 @@ alter table RunLog add constraint RunLog_PK primary key( ProcessId, ThreadId, Po
 drop table ClientInfo purge;
 create table ClientInfo(
 	ProcessId  number,
+	SimulationId number,
 	ClientName varchar2(128),
 	ClientStart date,
 	Duration number,
-	SimulationLen number,
 	SimulationStartTrain date,
 	SimulationStartInfer date,
 	SimulationStartValid date,
@@ -47,5 +47,5 @@ create table ClientInfo(
 	DoTrainRun number,
 	DoTestRun number
 ) storage (initial 2M minextents 4 pctincrease 0);
-alter table ClientInfo add constraint ClientIngo_PK primary key (ProcessId);
+alter table ClientInfo add constraint ClientIngo_PK primary key (ProcessId, SimulationId);
 

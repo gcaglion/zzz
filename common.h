@@ -10,8 +10,8 @@
 typedef float numtype;
 typedef double altnumtype;
 
-#define DATE_FORMAT "YYYYMMDDHHMI"
-#define DATE_FORMAT_LEN 12+1
+#define DATE_FORMAT_LEN 32
+#define DATE_FORMAT "YYYY-MM-DD-HH24:MI"
 
 #define USE_ORCL
 //#define USE_GPU
