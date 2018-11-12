@@ -25,9 +25,6 @@ void sRoot::kaz4() {
 	ts1->scale(TARGET, TR, -1, 1);
 	ts1->dump(TARGET, TRS);
 
-	//-- copy target TRS into predicted TRS
-	memcpy_s(ts1->val[PREDICTED][TRS], ts1->len*sizeof(numtype), ts1->val[TARGET][TRS], ts1->len*sizeof(numtype));
-
 	ts1->dump(PREDICTED, TRS);
 	ts1->unscale(PREDICTED, -1, 1, TSFcnt, TSF, 0);
 	ts1->dump(PREDICTED, TR);
@@ -38,7 +35,17 @@ void sRoot::kaz4() {
 		sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
 		ds1->build(TARGET, BASE);
 
-		ds1->unbuild(TARGET, PREDICTED, BASE);	//-- this means, unbuild from TARGET section of DataSet into PREDICTED-BASE section of TimeSerie
+		ds1->reorder(SAMPLE, SBF, BFS);
+		ds1->reorder(TARGET, SBF, BFS);
+	
+		//-- core work...
+		size_t bfsSize=ds1->samplesCnt*ds1->predictionLen*ds1->selectedFeaturesCnt;
+		//-- perfect core!
+		for (int i=0; i<bfsSize; i++) ds1->predictionBFS[i]=ds1->targetBFS[i];
+		
+		ds1->reorder(PREDICTED, BFS, SBF);
+
+		ds1->unbuild(PREDICTED, PREDICTED, BASE);	//-- this means, unbuild from PREDICTED section of DataSet into PREDICTED-BASE section of TimeSerie
 		ts1->dump(PREDICTED, BASE);
 		
 		return;

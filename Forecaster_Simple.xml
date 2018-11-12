@@ -20,7 +20,7 @@
 				DumpPath			= c:\temp\DataDump
 				<TimeSerie>
 					Date0				= 201707010000
-					HistoryLen			= 202
+					HistoryLen			= 502
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					Dump				= true
@@ -56,7 +56,7 @@
 			Do	= true
 			UseShiftedTrainDS	= false
 			<DataSet>
-				BatchSamplesCount	= 10
+				BatchSamplesCount	= 1
 				SelectedFeatures	= FXHIGH, FXLOW
 				BarWidthCalc		= true
 				BarWidthFeatures	= 1,2
@@ -64,7 +64,7 @@
 				DumpPath			= c:\temp\DataDump
 				<TimeSerie>
 					Date0				= 201607010000
-					HistoryLen			= 202
+					HistoryLen			= 502
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					Dump				= false
@@ -126,18 +126,18 @@
 					<Topology>
 						LevelRatio			= 1,0.5
 						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-						UseContext			= true
+						UseContext			= false
 						UseBias				= false
 					</Topology>
 					<Training>
-						MaxEpochs			= 100
+						MaxEpochs			= 1000
 						TargetMSE			= 0.0001
 						NetSaveFrequency	= 10
 						StopOnDivergence	= false
 						BP_Algo				= BP_STD
 						<BP_Std>
-							LearningRate		= 0.0001
-							LearningMomentum	= 0.2
+							LearningRate		= 0.1
+							LearningMomentum	= 0.4
 						</BP_Std>
 						<BP_Qing>
 						</BP_Qing>

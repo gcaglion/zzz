@@ -149,8 +149,8 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 	//-- for the first sample, scan all the bars in sample
 	for (int bar=0; bar<sampleLen; bar++) {
 		for (int dsf=0; dsf<dsfcnt; dsf++) {
-			//dsidx=bar*dsfcnt+dsf;
 			tsidx=bar*tsfcnt+selectedFeature[dsf];
+			if (isCloned) tsidx+=predictionLen*tsfcnt;
 			sourceTS->val[toValSource][toValStatus][tsidx] = EMPTY_VALUE;
 		}
 	}
@@ -170,19 +170,11 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 		for (int dsf=0; dsf<dsfcnt; dsf++) {
 			dsidx=(samplesCnt-1)*trowlen+bar*dsfcnt+dsf;
 			tsidx=(samplesCnt+sampleLen)*tsfcnt+(bar-1)*tsfcnt+selectedFeature[dsf];
+			if (isCloned) tsidx+=predictionLen*tsfcnt;
 			sourceTS->val[toValSource][toValStatus][tsidx] = _data[fromValSource][SBF][dsidx];
 		}
 	}
 	
-	//-- if isCloned,  need to set EMPTY_VALUE for the first missing <predictionLen> bars
-	if (isCloned) {
-		for (int bar=0; bar<predictionLen; bar++) {
-			for (int dsf=0; dsf<dsfcnt; dsf++) {
-				sourceTS->val[toValSource][toValStatus][bar*tsfcnt+selectedFeature[dsf]] = EMPTY_VALUE;
-			}
-		}
-	}
-
 }
 
 //-- private stuff
@@ -247,7 +239,7 @@ void sDataSet::dumpPre(int valStatus, FILE** dumpFile) {
 
 	//-- open dumpFile
 	char dumpFileName[MAX_PATH];
-	sprintf_s(dumpFileName, "%s/%s_%s_%s-%s_dump_%p.csv", dumpPath, name->base, sourceTS->date0, suffix1, suffix3, this);
+	sprintf_s(dumpFileName, "%s/%s_%s_%s-%s_dump_p%d_t%d_%p.csv", dumpPath, name->base, sourceTS->date0, suffix1, suffix3, GetCurrentProcessId(), GetCurrentThreadId(), this);
 	if (fopen_s(dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
 	//-- print headers

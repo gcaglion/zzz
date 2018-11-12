@@ -127,7 +127,7 @@ void sTimeSerie::dump(int valSource, int valStatus) {
 	}
 
 	char dumpFileName[MAX_PATH];
-	sprintf_s(dumpFileName, "%s/%s_%s_%s-%s_dump_%p.csv", dumpPath, name->base, date0, suffix2, suffix1, this);
+	sprintf_s(dumpFileName, "%s/%s_%s_%s-%s_dump_p%d_t%d_%p.csv", dumpPath, name->base, date0, suffix2, suffix1, GetCurrentProcessId(), GetCurrentThreadId(), this);
 	FILE* dumpFile;
 	if (fopen_s(&dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
