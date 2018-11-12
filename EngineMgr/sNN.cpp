@@ -106,7 +106,7 @@ void sNN::FF() {
 
 		//-- actual feed forward ( W10[nc1 X nc0] X F0[nc0 X batchSize] => a1 [nc1 X batchSize] )
 		FF0start=timeGetTime(); FF0cnt++;
-		Alg->MbyM(Ay, Ax, 1, false, A, By, Bx, 1, false, B, C);
+		silentcall(Alg, MbyM, Ay, Ax, 1, false, A, By, Bx, 1, false, B, C);
 		FF0timeTot+=((DWORD)(timeGetTime()-FF0start));
 
 		//-- activation sets F[l+1] and dF[l+1]
@@ -456,10 +456,10 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 		Alg->h2d(&u[0], &target[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
 
 		//-- 1.1.2. Feed Forward
-		FF();
+		silentcall(this, FF);
 
 		//-- 1.1.3. copy last layer neurons (on dev) to prediction (on host)
-		Alg->d2h(&prediction[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+		silentcall(Alg, d2h, &prediction[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 
 		calcErr();
 	}

@@ -197,10 +197,10 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 	}
 }
 void sEngine::train(int testid_, sDataSet* trainDS_) {
-	process(trainProc, testid_, trainDS_);
+	safecall(this, process, trainProc, testid_, trainDS_);
 }
 void sEngine::infer(int testid_, sDataSet* inferDS_) {
-	process(inferProc, testid_, inferDS_);
+	safecall(this, process, inferProc, testid_, inferDS_);
 }
 void sEngine::saveMSE() {
 	for (int c=0; c<coresCnt; c++) {
