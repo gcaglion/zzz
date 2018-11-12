@@ -19,7 +19,7 @@
 		<DestOraData>
 			UserName	= LogUser
 			Password	= LogPwd
-			ConnString	= Algo.mavi
+			ConnString	= Algo
 		</DestOraData>
 		<DestFileData>
 			Client		= c:\temp\logs\Persistor\Client.log

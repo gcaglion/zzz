@@ -16,6 +16,7 @@ create table RunLog(
 	NetProcessId number,
 	NetThreadId number,
 	Pos number,
+	PosLabel varchar2(64),
 	Feature number,
 	StepAhead number,
 	ActualTRS number,

@@ -23,11 +23,10 @@ struct sOraData : sCfgObj {
 	EXPORT void commit();
 	//--
 	EXPORT void getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char** oDate);
-	EXPORT void getFlatOHLCV(char* pSymbol, char* pTF, char* pDate0, int pastStepsCnt, char** oBarTimeH, float* oBarDataH, int futureStepsCnt, char** oBarTimeF, float* oBarDataF, char* oBarTime0, float* oBaseBar);
 	EXPORT void getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCnt, char** oBarTime, float* oBarData, char* oBarTime0, float* oBaseBar);
 	//--
 	EXPORT void saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV);
-	EXPORT void saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int tsFeaturesCnt_, int featuresCnt, int* feature, int predictionLen, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted);
+	EXPORT void saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted);
 	EXPORT void saveW(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void loadW(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void saveClientInfo(int pid, const char* clientName, double startTime, double elapsedSecs, int simulLen, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun);

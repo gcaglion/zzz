@@ -32,7 +32,7 @@ void sRoot::kaz4() {
 	ts1->dump(PREDICTED, BASE);
 */		
 		const int selFcnt=2; int selF[selFcnt]={ 1,2 };
-		sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
+		sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, true, "C:/temp/DataDump");
 		ds1->build(TARGET, BASE);
 
 		ds1->reorder(SAMPLE, SBF, BFS);

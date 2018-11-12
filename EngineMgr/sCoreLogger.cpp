@@ -55,12 +55,12 @@ void sCoreLogger::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* 
 		safecall(filedb, saveMSE, pid, tid, mseCnt, mseT, mseV);
 	}
 }
-void sCoreLogger::saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted) {
+void sCoreLogger::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted) {
 	if (saveToDB) {
-		safecall(oradb, saveRun, pid, tid, npid, ntid, barsCnt, tsFeaturesCnt_, selectedFeaturesCnt, selectedFeature, predictionLen, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted);
+		safecall(oradb, saveRun, pid, tid, npid, ntid, runStepsCnt, tsFeaturesCnt_, selectedFeaturesCnt, selectedFeature, predictionLen, posLabel, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted);
 	}
 	if (saveToFile) {
-		safecall(filedb, saveRun, pid, tid, npid, ntid, barsCnt, tsFeaturesCnt_, selectedFeaturesCnt, selectedFeature, predictionLen, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted);
+		safecall(filedb, saveRun, pid, tid, npid, ntid, runStepsCnt, tsFeaturesCnt_, selectedFeaturesCnt, selectedFeature, predictionLen, posLabel, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted);
 	}
 }
 void sCoreLogger::commit() {

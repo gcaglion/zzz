@@ -18,7 +18,7 @@ void sMT4Data::getStartDates(sMT4Data* dateSource_, char* startDate_, int datesC
 void sMT4Data::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
 	fail("not implemented.");
 }
-void sMT4Data::saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int featuresCnt, int* feature, int predictionLen, numtype* actual, numtype* predicted) {
+void sMT4Data::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted) {
 	fail("not implemented.");
 }
 void sMT4Data::commit() {
