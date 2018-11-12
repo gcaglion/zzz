@@ -106,7 +106,7 @@ void sNN::FF() {
 
 		//-- actual feed forward ( W10[nc1 X nc0] X F0[nc0 X batchSize] => a1 [nc1 X batchSize] )
 		FF0start=timeGetTime(); FF0cnt++;
-		silentcall(Alg, MbyM, Ay, Ax, 1, false, A, By, Bx, 1, false, B, C);
+		safecallSilent(Alg, MbyM, Ay, Ax, 1, false, A, By, Bx, 1, false, B, C);
 		FF0timeTot+=((DWORD)(timeGetTime()-FF0start));
 
 		//-- activation sets F[l+1] and dF[l+1]
@@ -381,10 +381,10 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 		for (b=0; b<trainSet->batchCnt; b++) {
 
 			//-- forward pass, with targets
-			ForwardPass(trainSet, b, true);
+			safecallSilent(this, ForwardPass, trainSet, b, true);
 
 			//-- backward pass, with weights update
-			BackwardPass(trainSet, b, true);
+			safecallSilent(this, BackwardPass, trainSet, b, true);
 
 		}
 
@@ -452,14 +452,14 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	for (int b=0; b<runSet->batchCnt; b++) {
 
 		//-- 1.1.1.  load samples/targets onto GPU
-		Alg->h2d(&F[(parms->useBias) ? 1 : 0], &sample[b*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
-		Alg->h2d(&u[0], &target[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
+		safecallSilent(Alg, h2d, &F[(parms->useBias) ? 1 : 0], &sample[b*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
+		safecallSilent(Alg, h2d, &u[0], &target[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
 
 		//-- 1.1.2. Feed Forward
-		silentcall(this, FF);
+		safecallSilent(this, FF);
 
 		//-- 1.1.3. copy last layer neurons (on dev) to prediction (on host)
-		silentcall(Alg, d2h, &prediction[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+		safecallSilent(Alg, d2h, &prediction[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 
 		calcErr();
 	}

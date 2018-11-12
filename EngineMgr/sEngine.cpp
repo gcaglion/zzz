@@ -207,6 +207,11 @@ void sEngine::saveMSE() {
 		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
 	}
 }
+void sEngine::saveImage() {
+	for (int c=0; c<coresCnt; c++) {
+		//if (core[c]->persistor->saveImageFlag) safecall(core[c]->persistor, saveImage, ...
+	}
+}
 void sEngine::saveRun() {
 	for (int c=0; c<coresCnt; c++) {
 

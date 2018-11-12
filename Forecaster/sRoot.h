@@ -26,23 +26,35 @@ struct s : sObj {
 	}
 };
 
+struct sFork {
+
+	virtual bool getStatus()=0;
+
+private:
+	bool isSet=false;
+	bool status;
+
+};
+
 struct sRoot : sObj {
 
 	int pid;
 
+	sTimer* timer;
+	sClientLogger* testerPersistor;
 	sCfg* testerCfg;
 	sCfg* forecasterCfg;
 	sForecaster* forecaster;
-
+	sEngine* engine;
+	
 	
 	EXPORT sRoot(int argc_=0, char* argv_[]=nullptr);
 	EXPORT ~sRoot();
 
 	EXPORT void tester();
-	EXPORT void kaz();
-	EXPORT void kaz2();
-	EXPORT void kaz3();
-	EXPORT void kaz4();
+	
+	void maintree();
+	void kaz4();
 
 private:
 	//-- variables
@@ -59,6 +71,9 @@ private:
 	//--
 	static numtype MyRndDbl(numtype min, numtype max);
 	void testDML();
+	//--
+	void block1();
+	void block2();
 };
 
 //-- MetaTrader calls

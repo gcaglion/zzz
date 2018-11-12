@@ -8,7 +8,7 @@
 #include <vector>
 using namespace std;
 
-#define CmdMaxLen	4096
+
 #define sObjParmsDef sObj* parent_, sName* sname_, sDbg* dbg_
 #define sObjParmsVal parent_, sname_, dbg_
 
@@ -57,6 +57,15 @@ struct sObj {
 	}\
 }
 
+#define safecallSilent(obj_, met_, ...){ \
+	try{ \
+		obj_->met_(__VA_ARGS__); \
+	} catch (std::exception exc) { \
+		fail("%s FAILURE : Exception: %s", name->base, exc.what()); \
+	}\
+}
+
+/*
 //-- the following call a bool function not belonging to an sObj object
 #define safecallB(bfunc_, ...) { \
 	cmdSvard=new svard(__VA_ARGS__); \
@@ -69,7 +78,7 @@ struct sObj {
 	} \
 }
 
-/*#define silentcallB(bfunc_, ...) { \
+#define silentcallB(bfunc_, ...) { \
 	cmdSvard=new svard(__VA_ARGS__); \
 	sprintf_s(cmd, CmdMaxLen, "%s(%s)", #bfunc_, cmdSvard->fullval); \
 	if(!(bfunc_(__VA_ARGS__))) { \
@@ -79,13 +88,3 @@ struct sObj {
 */
 
 
-#define silentcall(obj_, met_, ...){ \
-	try{ \
-		obj_->met_(__VA_ARGS__); \
-	} catch (std::exception exc) { \
-		fail("%s FAILURE : Exception: %s", name->base, exc.what()); \
-	}\
-}
-
-
-#define silentcallB(bfunc_, ...) if(!(bfunc_(__VA_ARGS__))) fail("%s FAILURE !", name->base);

@@ -18,9 +18,21 @@
     <ClInclude Include="Algebra.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Algebra.standalone.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sMatrix.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Algebra.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Algebra.standalone.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sMatrix.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

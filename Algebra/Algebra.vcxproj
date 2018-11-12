@@ -20,9 +20,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Algebra.h" />
+    <ClInclude Include="Algebra.standalone.h" />
+    <ClInclude Include="sMatrix.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Algebra.cpp" />
+    <ClCompile Include="Algebra.standalone.cpp" />
+    <ClCompile Include="sMatrix.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{EDE1D4BF-A838-40B5-B022-FF99CA0A93E2}</ProjectGuid>

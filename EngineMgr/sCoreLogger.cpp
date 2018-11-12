@@ -45,7 +45,8 @@ void sCoreLogger::mallocs() {
 	ffn=(char**)malloc(4*sizeof(char*));
 	for (int f=0; f<logsCnt; f++) ffn[f]=(char*)malloc(MAX_PATH);
 }
-void sCoreLogger::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
+void sCoreLogger::saveImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
+void sCoreLogger::loadImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
 
 void sCoreLogger::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
 	if (saveToDB) {
