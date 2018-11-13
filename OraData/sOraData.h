@@ -31,6 +31,9 @@ struct sOraData : sCfgObj {
 	EXPORT void coreNNsaveImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void coreNNloadImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun);
+	//--
+	EXPORT void saveEngineImage();
+	EXPORT void loadEngineImage();
 
 private:
 	void* env = nullptr;

@@ -8,8 +8,10 @@ sData::sData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	//-- 1. get Parameters
 	safecall(cfgKey, getParm, &doTraining,	"Train/Do");
-	safecall(cfgKey, getParm, &doInference,		"Test/Do");
+	safecall(cfgKey, getParm, &doInference, "Test/Do");
+	safecall(cfgKey, getParm, &enginePid, "Test/EnginePid");
 	safecall(cfgKey, getParm, &doValidation,"Validation/Do");
+
 	//-- 2. do stuff and spawn sub-Keys
 	safespawn(shape, newsname("Shape"), nullptr, cfg, "Shape");
 	if(doTraining) safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, cfg, "Train/DataSet", shape->sampleLen, shape->predictionLen);

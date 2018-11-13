@@ -86,50 +86,6 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCn
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-void sOraData::coreNNloadImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
-	char sql[SQL_MAXLEN];
-	ResultSet *rset;
-
-	//-- always check this, first!
-	if (!isOpen) safecall(this, open);
-
-	//-- if a specific epoch is not provided, we first need to find the last epoch
-	if (epoch==-1) {
-		sprintf_s(sql, SQL_MAXLEN, "select max(epoch) from CoreImage_NN where processId = %d and ThreadId = %d", pid, tid);
-		try {
-			stmt = ((Connection*)conn)->createStatement(sql);
-			rset = ((Statement*)stmt)->executeQuery();
-			if (rset->next() && !rset->isNull(1)) {
-				epoch=rset->getInt(1);
-			} else {
-				fail("Could not find max epoch for processId=%d, ThreadId=%d", pid, tid);
-			}
-		} catch (SQLException ex) {
-			fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
-		}
-		((Statement*)stmt)->closeResultSet(rset);
-		((Connection*)conn)->terminateStatement((Statement*)stmt);
-	}
-
-	//-- once we have the epoch, we load Ws for that pid, tid, epoch
-	int i=0;
-	sprintf_s(sql, SQL_MAXLEN, "select WId, W from CoreImage_NN where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1,2", pid, tid, epoch);
-	try{
-		stmt = ((Connection*)conn)->createStatement(sql);
-		rset = ((Statement*)stmt)->executeQuery();
-		while (rset->next()&&i<Wcnt) {
-			W[i] = rset->getFloat(2);
-			i++;
-		}
-	} catch(SQLException ex){
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
-	}
-
-	//-- close result set and terminate statement before exiting
-	((Statement*)stmt)->closeResultSet(rset);
-	((Connection*)conn)->terminateStatement((Statement*)stmt);
-
-}
 void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char*** oDate) {
 	
 	//-- always check this, first!
@@ -280,6 +236,23 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 	}
 
 }
+void sOraData::saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	char stmtS[SQL_MAXLEN]; sprintf_s(stmtS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, SimulationId, ClientName, ClientStart, Duration, SimulationStartTrain, SimulationStartInfer, SimulationStartValid, DoTraining, DoTrainRun) values(%d, %d, '%s', sysdate, %f, to_date('%s','%s'), to_date('%s','%s'), to_date('%s','%s'), %d, %d)",	pid, simulationId, clientName, elapsedSecs, simulStartTrain, DATE_FORMAT, simulStartInfer, DATE_FORMAT, simulStartValid, DATE_FORMAT, (doTrain?1:0), (doTestRun?1:0) );
+
+	try {
+		stmt = ((Connection*)conn)->createStatement(stmtS);
+		((Statement*)stmt)->executeUpdate();
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+	} catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+}
+
+//-- Save/Load core images
 void sOraData::coreNNsaveImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 
 	//-- always check this, first!
@@ -298,23 +271,84 @@ void sOraData::coreNNsaveImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 		}
 		((Statement*)stmt)->executeUpdate();
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
-	} catch (SQLException ex) {
+	}
+	catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-void sOraData::saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun) {
+void sOraData::coreNNloadImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+	char sql[SQL_MAXLEN];
+	ResultSet *rset;
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
-	char stmtS[SQL_MAXLEN]; sprintf_s(stmtS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, SimulationId, ClientName, ClientStart, Duration, SimulationStartTrain, SimulationStartInfer, SimulationStartValid, DoTraining, DoTrainRun) values(%d, %d, '%s', sysdate, %f, to_date('%s','%s'), to_date('%s','%s'), to_date('%s','%s'), %d, %d)",	pid, simulationId, clientName, elapsedSecs, simulStartTrain, DATE_FORMAT, simulStartInfer, DATE_FORMAT, simulStartValid, DATE_FORMAT, (doTrain?1:0), (doTestRun?1:0) );
+	//-- if a specific epoch is not provided, we first need to find the last epoch
+	if (epoch==-1) {
+		sprintf_s(sql, SQL_MAXLEN, "select max(epoch) from CoreImage_NN where processId = %d and ThreadId = %d", pid, tid);
+		try {
+			stmt = ((Connection*)conn)->createStatement(sql);
+			rset = ((Statement*)stmt)->executeQuery();
+			if (rset->next()&&!rset->isNull(1)) {
+				epoch=rset->getInt(1);
+			} else {
+				fail("Could not find max epoch for processId=%d, ThreadId=%d", pid, tid);
+			}
+		}
+		catch (SQLException ex) {
+			fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		}
+		((Statement*)stmt)->closeResultSet(rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+	}
+
+	//-- once we have the epoch, we load Ws for that pid, tid, epoch
+	int i=0;
+	sprintf_s(sql, SQL_MAXLEN, "select WId, W from CoreImage_NN where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1,2", pid, tid, epoch);
+	try {
+		stmt = ((Connection*)conn)->createStatement(sql);
+		rset = ((Statement*)stmt)->executeQuery();
+		while (rset->next()&&i<Wcnt) {
+			W[i] = rset->getFloat(2);
+			i++;
+		}
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
+	//-- close result set and terminate statement before exiting
+	((Statement*)stmt)->closeResultSet(rset);
+	((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+}
+
+//-- Save/Load engine info
+void sOraData::saveEngineImage(){
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	//-- 1. ENGINES
+	//-- 2. ENGINECORES
+	//-- 3. CORELAYOUTS
 
 	try {
-		stmt = ((Connection*)conn)->createStatement(stmtS);
+		stmt = ((Connection*)conn)->createStatement("insert into CoreImage_NN (ProcessId, ThreadId, Epoch, WId, W) values(:P01, :P02, :P03, :P04, :P05)");
+		((Statement*)stmt)->setMaxIterations(Wcnt);
+		for (int i=0; i<Wcnt; i++) {
+			((Statement*)stmt)->setInt(1, pid);
+			((Statement*)stmt)->setInt(2, tid);
+			((Statement*)stmt)->setInt(3, epoch);
+			((Statement*)stmt)->setInt(4, i);
+			((Statement*)stmt)->setFloat(5, W[i]);
+			if (i<(Wcnt-1)) ((Statement*)stmt)->addIteration();
+		}
 		((Statement*)stmt)->executeUpdate();
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
-	} catch (SQLException ex) {
+	}
+	catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-
+void sOraData::loadEngineImage() {}

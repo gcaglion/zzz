@@ -1,19 +1,28 @@
 #include "sEngine.h"
 
 //-- Engine stuff
+sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int loadingPid) : sCfgObj(sCfgObjParmsVal) {
 
+	inputCnt=inputCnt_; outputCnt=outputCnt_;
+	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
+	pid=GetCurrentProcessId();
+
+	this->load(loadingPid);
+
+}
 sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgObjParmsVal) {
 
 	inputCnt=inputCnt_; outputCnt=outputCnt_;
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
 	pid=GetCurrentProcessId();
 
-	//-- 1. get Parameters
+	//-- engine type
 	safecall(cfgKey, getParm, &type, "Type");
 
-	//-- 2. do stuff and spawn sub-Keys
-	int l, c;
+	//-- engine-level persistor
+	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
 
+	int l, c;
 	switch (type) {
 	case ENGINE_CUSTOM:
 		//-- 0. coresCnt
@@ -208,12 +217,15 @@ void sEngine::train(int testid_, sDataSet* trainDS_) {
 void sEngine::infer(int testid_, sDataSet* inferDS_) {
 	safecall(this, process, inferProc, testid_, inferDS_);
 }
+
 void sEngine::saveMSE() {
 	for (int c=0; c<coresCnt; c++) {
 		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
 	}
 }
 void sEngine::saveImage(int epoch) {
+
+	//-- cores Images
 	for (int c=0; c<coresCnt; c++) {
 		if (core[c]->persistor->saveImageFlag) safecall(core[c], saveImage, core[c]->procArgs->pid, core[c]->procArgs->tid, epoch);
 	}
@@ -249,6 +261,11 @@ void sEngine::commit() {
 	}
 }
 
+void sEngine::save() {
+//	if(persistor->saveToDB) safecall(persistor->oradb, type, coresCnt, )/
+}
+void sEngine::load(int pid) {}
+
 //-- private stuff
 void sEngine::setCoreLayer(sCoreLayout* cl) {
 	int ret=0;
@@ -263,3 +280,4 @@ void sEngine::setCoreLayer(sCoreLayout* cl) {
 	}
 	cl->layer=ret;
 }
+

@@ -27,15 +27,22 @@ struct sEngine : sCfgObj {
 	sCoreLayout** coreLayout;
 	sCoreParms** coreParms;
 
+	sLogger* persistor;
+
 	EXPORT sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_);
 	EXPORT ~sEngine();
+	EXPORT sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int loadingPid);
 
 	EXPORT void train(int testid_, sDataSet* trainDS_);
 	EXPORT void infer(int testid_, sDataSet* inferDS_);
+	//--
 	EXPORT void saveMSE();
 	EXPORT void saveRun();
 	EXPORT void saveImage(int epoch=-1);
 	EXPORT void commit();
+	//--
+	EXPORT void save();
+	EXPORT void load(int pid);
 
 private:
 	int pid;

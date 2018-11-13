@@ -7,7 +7,7 @@ sCoreLogger::sCoreLogger(sObjParmsDef, bool saveToDB_, bool saveToFile_, bool sa
 	saveInternalsFlag=saveInternalsFlag_;
 	saveImageFlag=saveImageFlag_;
 }
-sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
+sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sObjParmsVal) {
 	logsCnt=4; mallocs();
 	oradb=nullptr;  filedb=nullptr;
 	//-- 1. get Parameters
@@ -18,7 +18,7 @@ sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
 
 	safecall(cfgKey, getParm, &saveToDB, "saveToDB");
 	//-- spawn destination OraData
-	if (saveToDB) safespawn(oradb, newsname("Persistor_OraData"), defaultdbg, cfg, "DestOraData");
+	if (saveToDB) safespawn(oradb, newsname("Persistor_OraData"), defaultdbg, cfg, "OraData");
 
 	safecall(cfgKey, getParm, &saveToFile, "saveToFile");
 	//-- spawn destination FileData
@@ -28,7 +28,6 @@ sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
 		safecall(cfgKey, getParm, &ffn[2], "DestFileData/Internals");
 		safecall(cfgKey, getParm, &ffn[3], "DestFileData/Image");
 
-		//filedb= new sFileData(this, newsname("Persistor_FileData"), defaultdbg, FILE_MODE_WRITE, true);
 		safespawn(filedb, newsname("Persistor_FileData"), defaultdbg, FILE_MODE_WRITE, true);
 	}
 

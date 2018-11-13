@@ -1,6 +1,6 @@
 #include "sClientLogger.h"
 
-sClientLogger::sClientLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
+sClientLogger::sClientLogger(sCfgObjParmsDef) : sLogger(sObjParmsVal) {
 	logsCnt=1;
 
 	//-- 1. get Parameters
@@ -12,7 +12,7 @@ sClientLogger::sClientLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
 
 	//-- spawn destination OraData
 	safecall(cfgKey, getParm, &saveToDB, "saveToDB");
-	if (saveToDB) safespawn(oradb, newsname("Persistor_OraData"), defaultdbg, cfg, "DestOraData");
+	if (saveToDB) safespawn(oradb, newsname("Persistor_OraData"), defaultdbg, cfg, "OraData");
 	//-- spawn destination FileData
 	safecall(cfgKey, getParm, &saveToFile, "saveToFile");
 	if (saveToFile) {

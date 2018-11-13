@@ -17,7 +17,7 @@ struct sLogger : sCfgObj {
 	sOraData* oradb;
 	sFileData* filedb;
 
-	//EXPORT sLogger(sObjParmsDef);
+	EXPORT sLogger(sObjParmsDef);
 	EXPORT sLogger(sCfgObjParmsDef);
 	EXPORT ~sLogger();
 

@@ -10,7 +10,7 @@
 			PredictionLen	= 3
 		</Shape>
 		<Train>
-			Do	= true
+			Do	= false
 			<DataSet>
 				BatchSamplesCount	= 10
 				SelectedFeatures	= FXHIGH, FXLOW
@@ -38,9 +38,7 @@
 		</Train>
 		<Test>
 			Do	= true
-			# OBSOLETE UseShiftedTrainDS	= false
 			EnginePid	= 10900
-			EngineTid	= 8888
 			<DataSet>
 				BatchSamplesCount	= 1
 				SelectedFeatures	= FXHIGH, FXLOW
@@ -174,25 +172,19 @@
 		</WNN>
 	</Engine>
 	<Persistor>
-		saveNothing		= false		
-		saveClient		= true
-		saveMSE			= true
-		saveRun			= true
-		saveInternals	= false
-		saveImage		= true
 		saveToDB		= true
-		saveToFiles		= true
-		<DestOraData>
+		saveToFile		= true
+		<OraData>
 			UserName	= LogUser
 			Password	= LogPwd
 			ConnString	= Algo
-		</DestOraData>
-		<DestFileData>
+		</OraData>
+		<FileData>
 			Client		= c:\temp\logs\Persistor\Client.log
 			MSE			= c:\temp\logs\Persistor\MSE.log
 			Run			= c:\temp\logs\Persistor\Run.log
 			Internals	= c:\temp\logs\Persistor\Internals.log
 			Image		= c:\temp\logs\Persistor\Image.log
-		</DestFileData>
+		</FileData>
 	</Persistor>
 </Forecaster>
