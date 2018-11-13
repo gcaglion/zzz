@@ -39,10 +39,11 @@ struct sEngine : sCfgObj {
 	EXPORT void saveMSE();
 	EXPORT void saveRun();
 	EXPORT void saveImage(int epoch=-1);
-	EXPORT void commit();
 	//--
-	EXPORT void save();
+	EXPORT void saveInfo();
 	EXPORT void load(int pid);
+	//--
+	EXPORT void commit();
 
 private:
 	int pid;

@@ -1,13 +1,13 @@
 #include "sCoreLogger.h"
 
-sCoreLogger::sCoreLogger(sObjParmsDef, bool saveToDB_, bool saveToFile_, bool saveMSEFlag_, bool saveRunFlag_, bool saveInternalsFlag_, bool saveImageFlag_) : sLogger(sObjParmsVal, nullptr, nullptr) {
+sCoreLogger::sCoreLogger(sObjParmsDef, bool saveToDB_, bool saveToFile_, bool saveMSEFlag_, bool saveRunFlag_, bool saveInternalsFlag_, bool saveImageFlag_) : sLogger(sObjParmsVal) {
 	saveToDB=saveToDB_; saveToFile=saveToFile_;
 	saveMSEFlag=saveMSEFlag_;
 	saveRunFlag=saveRunFlag_;
 	saveInternalsFlag=saveInternalsFlag_;
 	saveImageFlag=saveImageFlag_;
 }
-sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sObjParmsVal) {
+sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
 	logsCnt=4; mallocs();
 	oradb=nullptr;  filedb=nullptr;
 	//-- 1. get Parameters
@@ -18,7 +18,7 @@ sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sObjParmsVal) {
 
 	safecall(cfgKey, getParm, &saveToDB, "saveToDB");
 	//-- spawn destination OraData
-	if (saveToDB) safespawn(oradb, newsname("Persistor_OraData"), defaultdbg, cfg, "OraData");
+	if (saveToDB) safespawn(oradb, newsname("Persistor_OraData"), defaultdbg, cfg, "Persistor/OraData");
 
 	safecall(cfgKey, getParm, &saveToFile, "saveToFile");
 	//-- spawn destination FileData

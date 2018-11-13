@@ -2,7 +2,6 @@
 
 #include "Timer.h"
 #include "Forecaster.h"
-#include "sClientLogger.h"
 
 #include "../DataMgr/sFXDataSource.h"
 #include "../DataMgr/sGenericDataSource.h"
@@ -41,8 +40,8 @@ struct sRoot : sObj {
 	int pid;
 
 	sTimer* timer;
-	sClientLogger* testerPersistor;
-	sCfg* testerCfg;
+	sLogger* clientPersistor;
+	sCfg* clientCfg;
 	sCfg* forecasterCfg;
 	sForecaster* forecaster;
 	sEngine* engine;
@@ -58,7 +57,7 @@ struct sRoot : sObj {
 
 private:
 	//-- variables
-	char testerCfgFileFullName[MAX_PATH];
+	char clientCfgFileFullName[MAX_PATH];
 	char forecasterCfgFileFullName[MAX_PATH];
 	//-- overrides are for forecasterCfg only
 	int cfgOverrideCnt=0;

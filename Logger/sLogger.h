@@ -24,4 +24,7 @@ struct sLogger : sCfgObj {
 	EXPORT virtual void open();
 	EXPORT virtual void commit() {}
 
+	//-- not sure it should be here, this is temporary
+	EXPORT void saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun);
+
 };

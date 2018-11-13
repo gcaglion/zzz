@@ -315,7 +315,7 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 }
 
 //-- Save/Load engine info
-void sOraData::saveEngineImage(int pid, int engineType, int coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -336,7 +336,7 @@ void sOraData::saveEngineImage(int pid, int engineType, int coresCnt, int* coreI
 	}
 
 }
-void sOraData::loadEngineImage(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);

@@ -12,18 +12,19 @@
 		# TO DO (v. TesterMulti)
 	</ParmsCombinations>
 
+	saveClient	= true
+
 	<Persistor>
-		saveClient	= true
 		saveToDB	= true
 		saveToFile	= false
-		<DestOraData>
+		<OraData>
 			UserName	= LogUser
 			Password	= LogPwd
 			ConnString	= Algo
-		</DestOraData>
-		<DestFileData>
+		</OraData>
+		<FileData>
 			Client		= c:\temp\logs\Persistor\Client.log
-		</DestFileData>
+		</FileData>
 	</Persistor>
 
 	</Client>

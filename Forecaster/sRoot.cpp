@@ -25,15 +25,18 @@ void sRoot::tester() {
 		//-- 0. take client start time
 		timer->start();
 
-		//-- 1. load tester and Forecaster XML configurations
-		safespawn(testerCfg, newsname("testerCfg_Root"), erronlydbg, testerCfgFileFullName);
+		//-- 1. load client and Forecaster XML configurations
+		safespawn(clientCfg, newsname("clientCfg_Root"), defaultdbg, clientCfgFileFullName);
 		safespawn(forecasterCfg, newsname("forecasterCfg_Root"), erronlydbg, forecasterCfgFileFullName);
 
-		//-- 2. create tester persistor
-		safespawn(testerPersistor, newsname("Client_Persistor"), defaultdbg, testerCfg, "/Client/Persistor");
+		//-- 2. create client persistor, if needed
+		bool saveClient;
+		safecall(clientCfg, setKey, "/Client");
+		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
+		if(saveClient) safespawn(clientPersistor, newsname("Client_Persistor"), defaultdbg, clientCfg, "Persistor");
 		
 		//-- 3.	get Simulation Length and start date[0]
-		safecall(testerCfg->currentKey, getParm, &simulationLength, "Client/SimulationLength");
+		safecall(clientCfg->currentKey, getParm, &simulationLength, "SimulationLength");
 
 		//--
 		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*));
@@ -50,15 +53,15 @@ void sRoot::tester() {
 
 		//-- 5. if the dataset is used, read startdate from client xml for each dataset
 		if (forecaster->data->doTraining) {
-			safecall(testerCfg->currentKey, getParm, &simulationTrainStartDate[0], "Client/TrainStartDate");
+			safecall(clientCfg->currentKey, getParm, &simulationTrainStartDate[0], "TrainStartDate");
 			getStartDates(forecaster->data->trainDS, simulationTrainStartDate[0], simulationLength, &simulationTrainStartDate);
 		}
 		if (forecaster->data->doInference) {
-			safecall(testerCfg->currentKey, getParm, &simulationInferStartDate[0], "Client/InferStartDate");
+			safecall(clientCfg->currentKey, getParm, &simulationInferStartDate[0], "InferStartDate");
 			getStartDates(forecaster->data->testDS, simulationInferStartDate[0], simulationLength, &simulationInferStartDate);
 		}
 		if (forecaster->data->doValidation) {
-			safecall(testerCfg->currentKey, getParm, &simulationValidStartDate[0], "Client/ValidationStartDate");
+			safecall(clientCfg->currentKey, getParm, &simulationValidStartDate[0], "ValidationStartDate");
 			getStartDates(forecaster->data->validDS, simulationValidStartDate[0], simulationLength, &simulationValidStartDate);
 		}
 
@@ -73,8 +76,10 @@ void sRoot::tester() {
 				safecall(forecaster->engine, train, s, forecaster->data->trainDS);
 				//-- 6.1.3. persist MSE logs
 				safecall(forecaster->engine, saveMSE);
-				//-- 6.1.4 persist Engine/Core logs
+				//-- 6.1.4 persist Core logs
 				safecall(forecaster->engine, saveImage);
+				//-- 6.1.4 persist Engine Info
+				safecall(forecaster->engine, saveInfo);
 			}
 
 			//-- 6.2. Inference
@@ -93,16 +98,16 @@ void sRoot::tester() {
 			}
 
 			//-- 6.3. Save ClientInfo
-			if (testerPersistor->saveClientInfoFlag) {
+			if (saveClient) {
 				char* endtimeS = timer->stop();
-				safecall(testerPersistor, saveClientInfo, pid, s, "Root.Tester", timer->startTime, timer->elapsedTime, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], forecaster->data->doTraining, forecaster->data->doInference, forecaster->data->doTraining);
+				safecall(clientPersistor, saveClientInfo, pid, s, "Root.Tester", timer->startTime, timer->elapsedTime, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], forecaster->data->doTraining, forecaster->data->doInference, forecaster->data->doTraining);
 			}
 
 			//-- 6.4 Commit engine persistor data
 			safecall(forecaster->engine, commit);
 
 			//-- 6.5. commit client persistor data
-			safecall(testerPersistor, commit);
+			safecall(clientPersistor, commit);
 
 		}
 
@@ -117,7 +122,7 @@ void sRoot::CLoverride(int argc, char* argv[]) {
 		char orValS[XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
 
 		//-- set default forecasterCfgFileFullName
-		getFullPath("../Tester.xml", testerCfgFileFullName);
+		getFullPath("../Tester.xml", clientCfgFileFullName);
 		getFullPath("../Forecaster.xml", forecasterCfgFileFullName);
 
 		for (int p=1; p<argc; p++) {

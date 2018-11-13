@@ -261,8 +261,36 @@ void sEngine::commit() {
 	}
 }
 
-void sEngine::save() {
-	if(persistor->saveToDB) safecall(persistor->oradb, type, coresCnt )
+void sEngine::saveInfo() {
+
+	//-- malloc temps
+	int* coreId_=(int*)malloc(coresCnt*sizeof(int));
+	int* coreType_=(int*)malloc(coresCnt*sizeof(int));
+	int* coreParentsCnt_=(int*)malloc(coresCnt*sizeof(int));
+	int** coreParent_=(int**)malloc(coresCnt*sizeof(int*));
+	int** parentConnType_=(int**)malloc(coresCnt*sizeof(int*));
+
+	//-- set temps
+	for (int c=0; c<coresCnt; c++) {
+		coreId_[c]=c;
+		coreType_[c]=coreLayout[c]->type;
+		coreParentsCnt_[c]=coreLayout[c]->parentsCnt;
+		coreParent_[c]=(int*)malloc(coreParentsCnt_[c]*sizeof(int));
+		parentConnType_[c]=(int*)malloc(coreParentsCnt_[c]*sizeof(int));
+		for (int p=0; p<coreParentsCnt_[c]; p++) {
+			coreParent_[c][p]=p;
+			parentConnType_[c][p]=core[c]->layout->parentConnType[p];
+		}
+	}
+
+	//-- actual call
+	if (persistor->saveToDB) safecall(persistor->oradb, saveEngineInfo, pid, type, coresCnt, coreId_, coreType_, coreParentsCnt_, coreParent_, parentConnType_);
+
+	//-- free temps
+	for (int c=0; c<coresCnt; c++) {
+		free(coreParent_[c]); free(parentConnType_[c]);
+	}
+	free(coreId_); free(coreType_); free(coreParentsCnt_); free(coreParent_); free(parentConnType_);
 }
 void sEngine::load(int pid) {}
 

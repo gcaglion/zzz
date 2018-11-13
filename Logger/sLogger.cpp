@@ -7,16 +7,8 @@ sLogger::sLogger(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &saveToDB, "saveToDB");
 	safecall(cfgKey, getParm, &saveToFile, "saveToFile");
 	
-	if (saveToDB) safespawn(oradb, newsname("OraData"), defaultdbg, cfg, "OraData");
-	if (saveToFile) safespawn(filedb, newsname("Persistor_FileData"), defaultdbg, FILE_MODE_WRITE, true); 
-/*		safecall(cfgKey, getParm, &ffn[0], "DestFileData/MSE");
-		safecall(cfgKey, getParm, &ffn[1], "DestFileData/Run");
-		safecall(cfgKey, getParm, &ffn[2], "DestFileData/Internals");
-		safecall(cfgKey, getParm, &ffn[3], "DestFileData/Image");
-*/
-	
-
 	//-- 2. do stuff and spawn sub-Keys
+	if (saveToDB) safespawn(oradb, newsname("Logger_OraData"), defaultdbg, cfg, "OraData");
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 
@@ -26,4 +18,9 @@ sLogger::~sLogger() {}
 void sLogger::open() {
 	if (saveToDB) safecall(oradb, open);
 	if (saveToFile) safecall(filedb, open, FILE_MODE_WRITE);
+}
+
+void sLogger::saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun) {
+	if (saveToDB) safecall(oradb, saveClientInfo, pid, simulationId, clientName, startTime, elapsedSecs, simulStartTrain, simulStartInfer, simulStartValid, doTrain, doTrainRun, doTestRun);
+	if (saveToFile) safecall(filedb, saveClientInfo, pid, simulationId, clientName, startTime, elapsedSecs, simulStartTrain, simulStartInfer, simulStartValid, doTrain, doTrainRun, doTestRun);
 }

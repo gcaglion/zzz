@@ -10,7 +10,7 @@
 			PredictionLen	= 3
 		</Shape>
 		<Train>
-			Do	= false
+			Do	= true
 			<DataSet>
 				BatchSamplesCount	= 10
 				SelectedFeatures	= FXHIGH, FXLOW
@@ -99,18 +99,18 @@
 					saveImage		= true
 					saveToDB		= true
 					saveToFile		= false
-					<DestOraData>
+					<OraData>
 						UserName	= LogUser
 						Password	= LogPwd
 						ConnString	= Algo
-					</DestOraData>
-					<DestFileData>
+					</OraData>
+					<FileData>
 						Client		= c:\temp\logs\Persistor\Client.log
 						MSE			= c:\temp\logs\Persistor\MSE.log
 						Run			= c:\temp\logs\Persistor\Run.log
 						Internals	= c:\temp\logs\Persistor\Internals.log
 						Image		= c:\temp\logs\Persistor\Image.log
-					</DestFileData>
+					</FileData>
 				</Persistor>
 			</Core1>
 			<Core0>
@@ -151,18 +151,18 @@
 					saveImage		= true
 					saveToDB		= true
 					saveToFile		= false
-					<DestOraData>
+					<OraData>
 						UserName	= LogUser
 						Password	= LogPwd
 						ConnString	= Algo
-					</DestOraData>
-					<DestFileData>
+					</OraData>
+					<FileData>
 						Client		= c:\temp\logs\Persistor\Client.log
 						MSE			= c:\temp\logs\Persistor\MSE.log
 						Run			= c:\temp\logs\Persistor\Run.log
 						Internals	= c:\temp\logs\Persistor\Internals.log
 						Image		= c:\temp\logs\Persistor\Image.log
-					</DestFileData>
+					</FileData>
 				</Persistor>
 			</Core0>
 		</Custom>
@@ -170,6 +170,25 @@
 		</XIE>
 		<WNN>
 		</WNN>
+
+		<Persistor>
+			saveToDB		= true
+			saveToFile		= true
+			<OraData>
+				UserName	= LogUser
+				Password	= LogPwd
+				ConnString	= Algo
+			</OraData>
+			<FileData>
+				Client		= c:\temp\logs\Persistor\Client.log
+				MSE			= c:\temp\logs\Persistor\MSE.log
+				Run			= c:\temp\logs\Persistor\Run.log
+				Internals	= c:\temp\logs\Persistor\Internals.log
+				Image		= c:\temp\logs\Persistor\Image.log
+			</FileData>
+		</Persistor>
+
+
 	</Engine>
 	<Persistor>
 		saveToDB		= true
