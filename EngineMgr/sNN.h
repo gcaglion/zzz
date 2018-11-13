@@ -13,12 +13,10 @@ struct sNN : sCore {
 	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
 	EXPORT ~sNN();
 
-	EXPORT void train(sCoreProcArgs* trainArgs);
-	EXPORT void inferOLD(sCoreProcArgs* inferArgs);
-
-	EXPORT void infer(sCoreProcArgs* inferArgs);
-	EXPORT void inferNEW(int samplesCnt_, int sampleLen_, int predictionLen_, int featuresCnt_, numtype* INsampleSBF, numtype* INtargetSBF, numtype* OUTpredictionSBF);
-
+	//-- local implementations of sCore virtual methods
+	void setLayout(int batchSamplesCnt_);
+	void mallocLayout();
+	void train(sCoreProcArgs* trainArgs);
 	void singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtype** singlePredictionSBF);
 
 private:
@@ -81,7 +79,6 @@ private:
 
 	//--
 	void setCommonLayout();
-	void setLayout(int batchSamplesCnt_);
 	void FF();
 	void Activate(int level);
 	void calcErr();
@@ -98,8 +95,5 @@ private:
 	void destroyNeurons();
 	void destroyWeights();
 
-private:
-	int _batchCnt;
-	int _batchSize;
 };
 

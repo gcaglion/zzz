@@ -34,7 +34,8 @@ struct sCoreProcArgs {
 
 struct sCore : sCfgObj {
 
-	//int pid, tid;
+	int _batchCnt;
+	int _batchSize;
 
 	sCoreParms* parms;
 	sCoreLayout* layout;
@@ -45,8 +46,13 @@ struct sCore : sCfgObj {
 	EXPORT ~sCore();
 
 	//-- methods to be implemented indipendently by each subclass (sNN, sGA, ...)
+	virtual void setLayout(int batchSize_)=0;
+	virtual void mallocLayout()=0;
 	virtual void train(sCoreProcArgs* procArgs_)=0;	
-	virtual void infer(sCoreProcArgs* inferArgs_)=0;	//-- should set sampleBSF, targetBSF, predictionBSF
+	virtual void singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtype** singlePredictionSBF)=0;	//-- should set singlePredictionSBF
+
+	void inferNEW(int samplesCnt_, int sampleLen_, int predictionLen_, int featuresCnt_, numtype* INsampleSBF, numtype* INtargetSBF, numtype* OUTpredictionSBF);
+
 
 };
 

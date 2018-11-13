@@ -73,6 +73,8 @@ void sCfgParm::decode(int elementId, int* oVal) {
 	optionLookup(CORE_GA, elementId);
 	optionLookup(CORE_SVM, elementId);
 	optionLookup(CORE_SOM, elementId);
+	optionLookup(CORE_DUMB, elementId);
+	//-- Core connections
 	optionLookup(CONN_DENSE, elementId);
 	optionLookup(CONN_LINEAR, elementId);
 	optionLookup(CONN_TRANSFORM, elementId);

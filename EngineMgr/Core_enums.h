@@ -5,6 +5,7 @@
 #define CORE_GA 1
 #define CORE_SVM 2
 #define CORE_SOM 3
+#define CORE_DUMB 9
 
 //-- Core Connection types
 #define CONN_DENSE		0

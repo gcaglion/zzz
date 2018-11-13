@@ -9,6 +9,7 @@
 #include "sGA.h"
 #include "sSVM.h"
 #include "sSOM.h"
+#include "sDUMB.h"
 
 #define MAX_ENGINE_LAYERS	8
 #define MAX_ENGINE_CORES	32

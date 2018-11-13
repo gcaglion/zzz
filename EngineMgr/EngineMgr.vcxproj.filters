@@ -72,6 +72,15 @@
     <ClInclude Include="sCoreLogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="sDUMBparms.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sDUMB.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sDUMBenums.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sCore.cpp">
@@ -111,6 +120,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sCoreLogger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sDUMBparms.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sDUMB.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

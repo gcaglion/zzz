@@ -2,15 +2,19 @@
 #include "../ConfigMgr/sCfgObj.h"
 #include "sCoreLayout.h"
 #include "sCore.h"
-#include "sSOMparms.h"
+#include "sDUMBparms.h"
 
-struct sSOM : sCore {
-	EXPORT sSOM(sCfgObjParmsDef, sCoreLayout* layout_, sSOMparms* SOMparms_);
-	EXPORT ~sSOM();
+struct sDUMB : sCore {
+
+	float scalingFactor;
+
+	EXPORT sDUMB(sCfgObjParmsDef, sCoreLayout* layout_, sDUMBparms* DUMBparms_);
+	EXPORT ~sDUMB();
 
 	//-- local implementations of sCore virtual methods
 	void setLayout(int batchSamplesCnt_);
 	void mallocLayout();
 	void train(sCoreProcArgs* trainArgs);
 	void singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtype** singlePredictionSBF);
+
 };

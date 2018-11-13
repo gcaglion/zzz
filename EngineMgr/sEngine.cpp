@@ -60,8 +60,8 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgO
 	}
 
 	//-- 6. spawn each core, layer by layer
-	sNN* NNc; sGA* GAc; sSVM* SVMc; sSOM* SOMc;
-	sNNparms* NNcp; sGAparms* GAcp; sSVMparms* SVMcp; sSOMparms* SOMcp;
+	sNN* NNc; sGA* GAc; sSVM* SVMc; sSOM* SOMc; sDUMB* DUMBc;
+	sNNparms* NNcp; sGAparms* GAcp; sSVMparms* SVMcp; sSOMparms* SOMcp; sDUMBparms* DUMBcp;
 	for (l=0; l<layersCnt; l++){
 		for (c=0; c<coresCnt; c++) {
 			if (coreLayout[c]->layer==l) {
@@ -90,6 +90,12 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgO
 					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, "../", coreLayout[c], SOMcp);
 					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
+				case CORE_DUMB:
+					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					DUMBcp->setScaleMinMax();
+					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, cfg, "../", coreLayout[c], DUMBcp);
+					coreParms[c]=DUMBcp; core[c]=DUMBc;
+					break;
 				default:
 					fail("Invalid Core Type: %d", type);
 					break;
@@ -115,7 +121,8 @@ DWORD coreThreadTrain(LPVOID vargs_) {
 }
 DWORD coreThreadInfer(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
-	args->core->infer(args->coreProcArgs);
+	sDataSet* ds = args->coreProcArgs->ds;
+	args->core->inferNEW(ds->samplesCnt, ds->sampleLen, ds->predictionLen, ds->selectedFeaturesCnt, ds->sampleSBF, ds->targetSBF, ds->predictionSBF);
 	return 1;
 }
 

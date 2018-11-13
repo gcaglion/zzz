@@ -48,51 +48,6 @@ void sNN::setCommonLayout() {
 	levelFirstWeight=(int*)malloc((outputLevel)*sizeof(int));
 }
 
-void sNN::setLayout(int batchSamplesCnt_) {
-	int l, nl;
-
-
-	//-- 0.3. set nodesCnt (single sample)
-	nodesCnt[0] = layout->inputCnt*batchSamplesCnt_;
-	nodesCnt[outputLevel] = layout->outputCnt*batchSamplesCnt_;
-	for (nl = 0; nl<(parms->levelsCnt-2); nl++) nodesCnt[nl+1] = (int)floor(nodesCnt[nl]*parms->levelRatio[nl]);
-
-	//-- add context neurons
-	if (parms->useContext) {
-		for (nl = outputLevel; nl>0; nl--) nodesCnt[nl-1] += nodesCnt[nl];
-	}
-	//-- add one bias neurons for each layer, except output layer
-	if (parms->useBias) {
-		for (nl = 0; nl<(outputLevel); nl++) nodesCnt[nl] += 1;
-	}
-
-	//-- 0.2. calc nodesCntTotal
-	nodesCntTotal=0;
-	for (l=0; l<parms->levelsCnt; l++) nodesCntTotal+=nodesCnt[l];
-
-	//-- 0.3. weights count
-	weightsCntTotal=0;
-	for (l=0; l<(outputLevel); l++) {
-		weightsCnt[l]=nodesCnt[l]/batchSamplesCnt_*nodesCnt[l+1]/batchSamplesCnt_;
-		weightsCntTotal+=weightsCnt[l];
-	}
-
-	//-- 0.4. set first node and first weight for each layer
-	for (l=0; l<parms->levelsCnt; l++) {
-		levelFirstNode[l]=0;
-		levelFirstWeight[l]=0;
-		for (int ll=0; ll<l; ll++) {
-			levelFirstNode[l]+=nodesCnt[ll];
-			levelFirstWeight[l]+=weightsCnt[ll];
-		}
-	}
-
-	//-- ctxStart[] can only be defined after levelFirstNode has been defined.
-	if (parms->useContext) {
-		for (nl=0; nl<(outputLevel); nl++) ctxStart[nl]=levelFirstNode[nl+1]-nodesCnt[nl+1]+((parms->useBias) ? 1 : 0);
-	}
-
-}
 
 void sNN::FF() {
 	for (int l=0; l<outputLevel; l++) {
@@ -324,6 +279,58 @@ bool sNN::epochSummary(int epoch, DWORD starttime, bool displayProgress) {
 
 	return false;
 }
+
+//-- local implementations of sCore virtual methods
+void sNN::setLayout(int batchSamplesCnt_) {
+	int l, nl;
+
+
+	//-- 0.3. set nodesCnt (single sample)
+	nodesCnt[0] = layout->inputCnt*batchSamplesCnt_;
+	nodesCnt[outputLevel] = layout->outputCnt*batchSamplesCnt_;
+	for (nl = 0; nl<(parms->levelsCnt-2); nl++) nodesCnt[nl+1] = (int)floor(nodesCnt[nl]*parms->levelRatio[nl]);
+
+	//-- add context neurons
+	if (parms->useContext) {
+		for (nl = outputLevel; nl>0; nl--) nodesCnt[nl-1] += nodesCnt[nl];
+	}
+	//-- add one bias neurons for each layer, except output layer
+	if (parms->useBias) {
+		for (nl = 0; nl<(outputLevel); nl++) nodesCnt[nl] += 1;
+	}
+
+	//-- 0.2. calc nodesCntTotal
+	nodesCntTotal=0;
+	for (l=0; l<parms->levelsCnt; l++) nodesCntTotal+=nodesCnt[l];
+
+	//-- 0.3. weights count
+	weightsCntTotal=0;
+	for (l=0; l<(outputLevel); l++) {
+		weightsCnt[l]=nodesCnt[l]/batchSamplesCnt_*nodesCnt[l+1]/batchSamplesCnt_;
+		weightsCntTotal+=weightsCnt[l];
+	}
+
+	//-- 0.4. set first node and first weight for each layer
+	for (l=0; l<parms->levelsCnt; l++) {
+		levelFirstNode[l]=0;
+		levelFirstWeight[l]=0;
+		for (int ll=0; ll<l; ll++) {
+			levelFirstNode[l]+=nodesCnt[ll];
+			levelFirstWeight[l]+=weightsCnt[ll];
+		}
+	}
+
+	//-- ctxStart[] can only be defined after levelFirstNode has been defined.
+	if (parms->useContext) {
+		for (nl=0; nl<(outputLevel); nl++) ctxStart[nl]=levelFirstNode[nl+1]-nodesCnt[nl+1]+((parms->useBias) ? 1 : 0);
+	}
+
+}
+void sNN::mallocLayout() {
+	//-- malloc + init neurons
+	safecall(this, mallocNeurons);
+	safecall(this, initNeurons);
+}
 void sNN::train(sCoreProcArgs* trainArgs) {
 	int l;
 	DWORD epoch_starttime;
@@ -425,7 +432,21 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	destroyNeurons();
 
 }
-void sNN::inferOLD(sCoreProcArgs* inferArgs) {
+void sNN::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtype** singlePredictionSBF) {
+
+	//-- 1. load input neurons. Need to MAKE SURE incoming array len is the same as inputcount!!!
+	int firstOutputNode=levelFirstNode[outputLevel];
+	Alg->h2d(&F[0], singleSampleSBF, nodesCnt[0]*sizeof(numtype), false);
+	Alg->h2d(&u[0], singleTargetSBF, nodesCnt[outputLevel]*sizeof(numtype), false);
+
+	//-- 2. forward pass
+	FF();
+
+	//-- 3. copy last layer neurons (on dev) to prediction (on host)
+	safecallSilent(Alg, d2h, (*singlePredictionSBF), &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+
+}
+/*void sNN::inferOLD(sCoreProcArgs* inferArgs) {
 
 	sDataSet* runSet=inferArgs->ds;	//-- just a local pointer
 
@@ -480,84 +501,4 @@ void sNN::inferOLD(sCoreProcArgs* inferArgs) {
 void sNN::infer(sCoreProcArgs* inferArgs){
 	inferNEW(inferArgs->ds->samplesCnt, inferArgs->ds->sampleLen, inferArgs->ds->predictionLen, inferArgs->ds->selectedFeaturesCnt, inferArgs->ds->sampleSBF, inferArgs->ds->targetSBF, inferArgs->ds->predictionSBF);
 }
-void sNN::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtype** singlePredictionSBF) {
-
-	//-- 1. load input neurons
-	//========= MAKE SURE incoming array len is the same as inputcount!!!
-
-	int firstOutputNode=levelFirstNode[outputLevel];
-	Alg->h2d(&F[0], singleSampleSBF, nodesCnt[0]*sizeof(numtype), false);
-	Alg->h2d(&u[0], singleTargetSBF, nodesCnt[outputLevel]*sizeof(numtype), false);
-
-
-	
-	//-- 2. forward pass
-	FF();
-
-	//-- 1.1.3. copy last layer neurons (on dev) to prediction (on host)
-	safecallSilent(Alg, d2h, (*singlePredictionSBF), &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
-
-
-}
-void sNN::inferNEW(int samplesCnt_, int sampleLen_, int predictionLen_, int featuresCnt_, numtype* INsampleSBF, numtype* INtargetSBF, numtype* OUTpredictionSBF) {
-
-
-	//-- set private _batchCnt and _batchSize for the network from dataset
-	_batchCnt=samplesCnt_;
-	_batchSize=1;
-	//-- set Layout. This should not change weightsCnt[] at all, just nodesCnt[]
-	setLayout(_batchSize);
-
-	//-- set Neurons Layout based on batchSampleCount of run set
-	setLayout(1);
-
-	//-- malloc + init neurons
-	safecall(this, mallocNeurons);
-	safecall(this, initNeurons);
-
-
-	int slen=sampleLen_*featuresCnt_;
-	int plen=predictionLen_*featuresCnt_;
-	numtype* singleSample=(numtype*)malloc(slen*sizeof(numtype));
-	numtype* singleTarget=(numtype*)malloc(plen*sizeof(numtype));
-	numtype* singlePrediction=(numtype*)malloc(plen*sizeof(numtype));
-
-	int sFromIdx, sToIdx;
-	int tFromIdx, tToIdx;
-
-	for (int s=0; s<samplesCnt_; s++) {
-
-		//-- build single sample
-		for (int b=0; b<sampleLen_; b++) {
-			for (int f=0; f<featuresCnt_; f++) {
-				sFromIdx=s*sampleLen_*featuresCnt_+b*featuresCnt_+f;
-				sToIdx=b*featuresCnt_+f;
-				singleSample[sToIdx]=INsampleSBF[sFromIdx];
-			}
-		}
-
-		//-- build single target
-		for (int b=0; b<predictionLen_; b++) {
-			for (int f=0; f<featuresCnt_; f++) {
-				tFromIdx=s*predictionLen_*featuresCnt_+b*featuresCnt_+f;
-				tToIdx=b*featuresCnt_+f;
-				singleTarget[tToIdx]=INtargetSBF[tFromIdx];
-			}
-		}
-
-		//-- infer prediction for single sample
-		singleInfer(singleSample, singleTarget, &singlePrediction);
-
-		//-- copy prediction back to OUTpredictionSBF
-		for (int b=0; b<predictionLen_; b++) {
-			for (int f=0; f<featuresCnt_; f++) {
-				tToIdx=s*predictionLen_*featuresCnt_+b*featuresCnt_+f;
-				tFromIdx=b*featuresCnt_+f;
-				OUTpredictionSBF[tToIdx]=singlePrediction[tFromIdx];
-			}
-		}
-
-	}
-
-	free(singleSample); free(singleTarget); free(singlePrediction);
-}
+*/
