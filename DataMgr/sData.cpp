@@ -14,13 +14,13 @@ sData::sData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safespawn(shape, newsname("Shape"), nullptr, cfg, "Shape");
 	if(doTraining) safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, cfg, "Train/DataSet", shape->sampleLen, shape->predictionLen);
 	if (doInference) {
-		safecall(cfgKey, getParm, &useShiftedTrainDS, "Test/UseShiftedTrainDS");
-		if (useShiftedTrainDS) {
-			if (!doTraining) fail("in order to use Shifted Train DataSet, DoTrain must be set to true!");
-			safespawn(testDS, newsname("TestDataSet"), defaultdbg, trainDS);
-		} else {
+//		safecall(cfgKey, getParm, &useShiftedTrainDS, "Test/UseShiftedTrainDS");
+//		if (useShiftedTrainDS) {
+//			if (!doTraining) fail("in order to use Shifted Train DataSet, DoTrain must be set to true!");
+//			safespawn(testDS, newsname("TestDataSet"), defaultdbg, trainDS);
+//		} else {
 			safespawn(testDS, newsname("TestDataSet"), defaultdbg, cfg, "Test/DataSet", shape->sampleLen, shape->predictionLen);
-		}
+//		}
 	}
 	if (doValidation) safespawn(validDS, newsname("ValidDataset"), defaultdbg, cfg, "Validation/DataSet", shape->sampleLen, shape->predictionLen);
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey

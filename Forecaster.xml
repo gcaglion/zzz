@@ -42,12 +42,12 @@
 			<DataSet>
 				BatchSamplesCount	= 1
 				SelectedFeatures	= FXHIGH, FXLOW
-				Dump 				= true
+				Dump 				= false
 				DumpPath			= c:\temp\DataDump
 				<TimeSerie>
 					Date0				= 2016-07-01-00:00
 					HistoryLen			= 202
-					DataTransformation	= DT_NONE
+					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					Dump				= false
 					DumpPath			= c:\temp\DataDump
@@ -83,7 +83,7 @@
 		Type 		= ENGINE_CUSTOM
 		<Custom>
 			CoresCount	= 1
-			<Core0>
+			<Core1>
 				<Layout>
 					Type	= CORE_DUMB
 					Parents			= 
@@ -112,8 +112,8 @@
 						Image		= c:\temp\logs\Persistor\Image.log
 					</DestFileData>
 				</Persistor>
-			</Core0>
-			<Core1>
+			</Core1>
+			<Core0>
 				<Layout>
 					Type	= CORE_NN
 					Parents			= 
@@ -164,7 +164,7 @@
 						Image		= c:\temp\logs\Persistor\Image.log
 					</DestFileData>
 				</Persistor>
-			</Core1>
+			</Core0>
 		</Custom>
 		<XIE>
 		</XIE>
