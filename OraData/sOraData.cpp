@@ -86,7 +86,7 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCn
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-void sOraData::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+void sOraData::coreNNloadImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	char sql[SQL_MAXLEN];
 	ResultSet *rset;
 
@@ -280,7 +280,7 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 	}
 
 }
-void sOraData::saveW(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+void sOraData::coreNNsaveImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);

@@ -49,3 +49,12 @@ create table ClientInfo(
 ) storage (initial 2M minextents 4 pctincrease 0);
 alter table ClientInfo add constraint ClientIngo_PK primary key (ProcessId, SimulationId);
 
+drop table CoreImage_NN purge;
+create table CoreImage_NN(
+	ProcessId number,
+	ThreadId number,
+	Epoch number,
+	WId number,
+	W number
+) storage (initial 1024M minextents 8 pctincrease 0);
+alter table CoreImage_NN add constraint CoreImage_NN_PK primary key( ProcessId, ThreadId, Epoch, WId ) using index tablespace LogIdx;

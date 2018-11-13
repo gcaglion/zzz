@@ -26,3 +26,9 @@ void sGA::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtyp
 	for (int i=0; i<layout->outputCnt; i++) (*singlePredictionSBF)[i]=singleTargetSBF[i];
 
 }
+void sGA::saveImage(int pid, int tid, int epoch) {
+	fail("Not implemented.");
+}
+void sGA::loadImage(int pid, int tid, int epoch) {
+	fail("Not implemented.");
+}

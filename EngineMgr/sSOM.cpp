@@ -26,3 +26,9 @@ void sSOM::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numty
 	for (int i=0; i<layout->outputCnt; i++) (*singlePredictionSBF)[i]=singleTargetSBF[i];
 
 }
+void sSOM::saveImage(int pid, int tid, int epoch) {
+	fail("Not implemented.");
+}
+void sSOM::loadImage(int pid, int tid, int epoch) {
+	fail("Not implemented.");
+}

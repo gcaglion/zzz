@@ -128,7 +128,6 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 
 void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 
-	int _pid=GetCurrentProcessId();
 	int t;
 	int ret = 0;
 	int threadsCnt;
@@ -185,7 +184,7 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 				}
 
 				//-- Store Engine Handler
-				procArgs[t]->coreProcArgs->pid = _pid;
+				procArgs[t]->coreProcArgs->pid = pid;
 				procArgs[t]->coreProcArgs->tid=(*tid[t]);
 				procArgs[t]->coreProcArgs->testid=testid_;
 
@@ -214,9 +213,9 @@ void sEngine::saveMSE() {
 		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
 	}
 }
-void sEngine::saveImage() {
+void sEngine::saveImage(int epoch) {
 	for (int c=0; c<coresCnt; c++) {
-		//if (core[c]->persistor->saveImageFlag) safecall(core[c]->persistor, saveImage, ...
+		if (core[c]->persistor->saveImageFlag) safecall(core[c], saveImage, core[c]->procArgs->pid, core[c]->procArgs->tid, epoch);
 	}
 }
 void sEngine::saveRun() {

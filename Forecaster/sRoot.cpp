@@ -73,7 +73,8 @@ void sRoot::tester() {
 				safecall(forecaster->engine, train, s, forecaster->data->trainDS);
 				//-- 6.1.3. persist MSE logs
 				safecall(forecaster->engine, saveMSE);
-				//-- 6.1.4 destroy trining-related objects
+				//-- 6.1.4 persist Engine/Core logs
+				safecall(forecaster->engine, saveImage);
 			}
 
 			//-- 6.2. Inference
@@ -214,7 +215,7 @@ void sRoot::testDML() {
 	pid=73624;
 	tid=76992;
 	int epoch=-1;
-	safecall(oradb1, loadW, pid, tid, epoch, Wcnt, W);
+	//safecall(oradb1, loadW, pid, tid, epoch, Wcnt, W);
 
 }
 void sRoot::kaz4() {

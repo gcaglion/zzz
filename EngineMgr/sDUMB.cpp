@@ -28,3 +28,9 @@ void sDUMB::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numt
 	for (int i=0; i<layout->outputCnt; i++) (*singlePredictionSBF)[i]=singleTargetSBF[i] * scalingFactor;
 
 }
+void sDUMB::saveImage(int pid, int tid, int epoch) {
+	fail("Not implemented.");
+}
+void sDUMB::loadImage(int pid, int tid, int epoch) {
+	fail("Not implemented.");
+}

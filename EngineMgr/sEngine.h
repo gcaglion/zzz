@@ -34,7 +34,7 @@ struct sEngine : sCfgObj {
 	EXPORT void infer(int testid_, sDataSet* inferDS_);
 	EXPORT void saveMSE();
 	EXPORT void saveRun();
-	EXPORT void saveImage();
+	EXPORT void saveImage(int epoch=-1);
 	EXPORT void commit();
 
 private:

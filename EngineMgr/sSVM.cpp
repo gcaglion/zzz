@@ -26,3 +26,9 @@ void sSVM::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numty
 	for (int i=0; i<layout->outputCnt; i++) (*singlePredictionSBF)[i]=singleTargetSBF[i];
 
 }
+void sSVM::saveImage(int pid, int tid, int epoch) {
+	fail("Not implemented.");
+}
+void sSVM::loadImage(int pid, int tid, int epoch) {
+	fail("Not implemented.");
+}

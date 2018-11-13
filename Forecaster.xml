@@ -14,14 +14,14 @@
 			<DataSet>
 				BatchSamplesCount	= 10
 				SelectedFeatures	= FXHIGH, FXLOW
-				Dump 				= true
+				Dump 				= false
 				DumpPath			= c:\temp\DataDump
 				<TimeSerie>
 					Date0				= 2017-07-01-00:00
 					HistoryLen			= 202
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
-					Dump				= true
+					Dump				= false
 					DumpPath			= c:\temp\DataDump
 					<FXDB_DataSource>
 						Symbol				= EURUSD
@@ -38,7 +38,9 @@
 		</Train>
 		<Test>
 			Do	= true
-			UseShiftedTrainDS	= false
+			# OBSOLETE UseShiftedTrainDS	= false
+			EnginePid	= 10900
+			EngineTid	= 8888
 			<DataSet>
 				BatchSamplesCount	= 1
 				SelectedFeatures	= FXHIGH, FXLOW
