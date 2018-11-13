@@ -57,9 +57,9 @@ void sFileData::mallocs() {
 void sFileData::saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun) {
 	fail("not implemented.");
 }
-void sFileData::coreNNsaveImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+void sFileData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	fail("Not implemented.");
 }
-void sFileData::coreNNloadImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+void sFileData::loadEngineImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	fail("Not implemented.");
 }

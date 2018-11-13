@@ -511,8 +511,8 @@ void sNN::saveImage(int pid, int tid, int epoch) {
 	//-- get data if it's on the GPU
 	Alg->d2h(hW, W, weightsCntTotal*sizeof(numtype));
 	//-- call persistor to save hW
-	if (persistor->saveToDB) safecall(persistor->oradb, coreNNsaveImage, pid, tid, epoch, weightsCntTotal, hW);
-	if (persistor->saveToFile) safecall(persistor->filedb, coreNNsaveImage, pid, tid, epoch, weightsCntTotal, hW);	
+	if (persistor->saveToDB) safecall(persistor->oradb, saveCoreNNImage, pid, tid, epoch, weightsCntTotal, hW);
+	if (persistor->saveToFile) safecall(persistor->filedb, saveCoreNNImage, pid, tid, epoch, weightsCntTotal, hW);
 	//-- free local copy
 	free(hW);
 
@@ -522,8 +522,8 @@ void sNN::loadImage(int pid, int tid, int epoch) {
 	//-- malloc clocal copy of W
 	numtype* hW = (numtype*)malloc(weightsCntTotal*sizeof(numtype));
 	//-- call persistor to save hW
-	if (persistor->saveToDB) safecall(persistor->oradb, coreNNsaveImage, pid, tid, epoch, weightsCntTotal, W);
-	if (persistor->saveToFile) safecall(persistor->filedb, coreNNsaveImage, pid, tid, epoch, weightsCntTotal, W);
+	if (persistor->saveToDB) safecall(persistor->oradb, saveCoreNNImage, pid, tid, epoch, weightsCntTotal, W);
+	if (persistor->saveToFile) safecall(persistor->filedb, saveCoreNNImage, pid, tid, epoch, weightsCntTotal, W);
 	//-- load data if it's on the GPU
 	Alg->h2d(W, hW, weightsCntTotal*sizeof(numtype));
 	//-- free local copy

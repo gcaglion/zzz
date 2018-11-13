@@ -28,12 +28,12 @@ struct sOraData : sCfgObj {
 	EXPORT void saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV);
 	EXPORT void saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted);
 	//--
-	EXPORT void coreNNsaveImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
-	EXPORT void coreNNloadImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
+	EXPORT void saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
+	EXPORT void loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun);
 	//--
-	EXPORT void saveEngineImage();
-	EXPORT void loadEngineImage();
+	EXPORT void saveEngineImage(int pid, int engineType, int coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType);
+	EXPORT void loadEngineImage(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType);
 
 private:
 	void* env = nullptr;
@@ -45,5 +45,7 @@ private:
 	char* DBPassword = new char[DBPASSWORD_MAXLEN];
 	char* DBConnString = new char[DBCONNSTRING_MAXLEN];
 
+	char sqlS[SQL_MAXLEN];
 
+	void sqlExec();
 };

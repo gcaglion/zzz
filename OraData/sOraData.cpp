@@ -52,15 +52,14 @@ void sOraData::commit() {
 void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCnt, char** oBarTime, float* oBarData, char* oBarTime0, float* oBaseBar) {
 	int i;
 	ResultSet *rset;
-	char sql[SQL_MAXLEN];
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
 	try {
 		//-- 1. History: open statement and result set
-		sprintf_s(sql, SQL_MAXLEN, "select to_char(newdatetime,'%s'), open, high, low, close, nvl(volume,0) from %s_%s where NewDateTime<=to_date('%s','%s') order by 1 desc", DATE_FORMAT, pSymbol, pTF, date0_, DATE_FORMAT);
-		stmt = ((Connection*)conn)->createStatement(sql);
+		sprintf_s(sqlS, SQL_MAXLEN, "select to_char(newdatetime,'%s'), open, high, low, close, nvl(volume,0) from %s_%s where NewDateTime<=to_date('%s','%s') order by 1 desc", DATE_FORMAT, pSymbol, pTF, date0_, DATE_FORMAT);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 		//-- 2. History: get all records
 		i=stepsCnt-1;
@@ -94,13 +93,12 @@ void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, ch
 	// Retrieves plain ordered list of NewDateTime starting from StartDate onwards for <DatesCount> records
 	int i;
 	ResultSet *rset;
-	char sql[SQL_MAXLEN];
 
 	if (conn==nullptr) fail("DB Connection is closed. cannot continue.");
 
 	try {
-		sprintf_s(sql, SQL_MAXLEN, "select to_char(NewDateTime, '%s') from History.%s_%s%s where NewDateTime>=to_date('%s','%s') order by 1", DATE_FORMAT, symbol_, timeframe_, (isFilled_)?"_FILLED ":"", StartDate, DATE_FORMAT);
-		stmt = ((Connection*)conn)->createStatement(sql);
+		sprintf_s(sqlS, SQL_MAXLEN, "select to_char(NewDateTime, '%s') from History.%s_%s%s where NewDateTime>=to_date('%s','%s') order by 1", DATE_FORMAT, symbol_, timeframe_, (isFilled_)?"_FILLED ":"", StartDate, DATE_FORMAT);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 
 		i=0;
@@ -241,19 +239,13 @@ void sOraData::saveClientInfo(int pid, int simulationId, const char* clientName,
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
-	char stmtS[SQL_MAXLEN]; sprintf_s(stmtS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, SimulationId, ClientName, ClientStart, Duration, SimulationStartTrain, SimulationStartInfer, SimulationStartValid, DoTraining, DoTrainRun) values(%d, %d, '%s', sysdate, %f, to_date('%s','%s'), to_date('%s','%s'), to_date('%s','%s'), %d, %d)",	pid, simulationId, clientName, elapsedSecs, simulStartTrain, DATE_FORMAT, simulStartInfer, DATE_FORMAT, simulStartValid, DATE_FORMAT, (doTrain?1:0), (doTestRun?1:0) );
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, SimulationId, ClientName, ClientStart, Duration, SimulationStartTrain, SimulationStartInfer, SimulationStartValid, DoTraining, DoTrainRun) values(%d, %d, '%s', sysdate, %f, to_date('%s','%s'), to_date('%s','%s'), to_date('%s','%s'), %d, %d)",	pid, simulationId, clientName, elapsedSecs, simulStartTrain, DATE_FORMAT, simulStartInfer, DATE_FORMAT, simulStartValid, DATE_FORMAT, (doTrain?1:0), (doTestRun?1:0) );
+	safecall(this, sqlExec);
 
-	try {
-		stmt = ((Connection*)conn)->createStatement(stmtS);
-		((Statement*)stmt)->executeUpdate();
-		((Connection*)conn)->terminateStatement((Statement*)stmt);
-	} catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
-	}
 }
 
 //-- Save/Load core images
-void sOraData::coreNNsaveImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -276,8 +268,7 @@ void sOraData::coreNNsaveImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-void sOraData::coreNNloadImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
-	char sql[SQL_MAXLEN];
+void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	ResultSet *rset;
 
 	//-- always check this, first!
@@ -285,9 +276,9 @@ void sOraData::coreNNloadImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 
 	//-- if a specific epoch is not provided, we first need to find the last epoch
 	if (epoch==-1) {
-		sprintf_s(sql, SQL_MAXLEN, "select max(epoch) from CoreImage_NN where processId = %d and ThreadId = %d", pid, tid);
+		sprintf_s(sqlS, SQL_MAXLEN, "select max(epoch) from CoreImage_NN where processId = %d and ThreadId = %d", pid, tid);
 		try {
-			stmt = ((Connection*)conn)->createStatement(sql);
+			stmt = ((Connection*)conn)->createStatement(sqlS);
 			rset = ((Statement*)stmt)->executeQuery();
 			if (rset->next()&&!rset->isNull(1)) {
 				epoch=rset->getInt(1);
@@ -304,9 +295,9 @@ void sOraData::coreNNloadImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 
 	//-- once we have the epoch, we load Ws for that pid, tid, epoch
 	int i=0;
-	sprintf_s(sql, SQL_MAXLEN, "select WId, W from CoreImage_NN where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1,2", pid, tid, epoch);
+	sprintf_s(sqlS, SQL_MAXLEN, "select WId, W from CoreImage_NN where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1,2", pid, tid, epoch);
 	try {
-		stmt = ((Connection*)conn)->createStatement(sql);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 		while (rset->next()&&i<Wcnt) {
 			W[i] = rset->getFloat(2);
@@ -324,26 +315,38 @@ void sOraData::coreNNloadImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 }
 
 //-- Save/Load engine info
-void sOraData::saveEngineImage(){
+void sOraData::saveEngineImage(int pid, int engineType, int coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
 	//-- 1. ENGINES
-	//-- 2. ENGINECORES
-	//-- 3. CORELAYOUTS
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType) values(%d, %d)", pid, engineType);
+	safecall(this, sqlExec);
 
-	try {
-		stmt = ((Connection*)conn)->createStatement("insert into CoreImage_NN (ProcessId, ThreadId, Epoch, WId, W) values(:P01, :P02, :P03, :P04, :P05)");
-		((Statement*)stmt)->setMaxIterations(Wcnt);
-		for (int i=0; i<Wcnt; i++) {
-			((Statement*)stmt)->setInt(1, pid);
-			((Statement*)stmt)->setInt(2, tid);
-			((Statement*)stmt)->setInt(3, epoch);
-			((Statement*)stmt)->setInt(4, i);
-			((Statement*)stmt)->setFloat(5, W[i]);
-			if (i<(Wcnt-1)) ((Statement*)stmt)->addIteration();
+	//-- 2. ENGINECORES
+	for (int c=0; c<coresCnt; c++) {
+		sprintf_s(sqlS, SQL_MAXLEN, "insert into EngineCores(EnginePid, CoreId, CoreType) values(%d, %d, %d)", pid, coreId[c], coreType[c]);
+		safecall(this, sqlExec);
+		//-- 3. CORELAYOUTS
+		for (int cp=0; cp<parentCoresCnt[cp]; cp++) {
+			sprintf_s(sqlS, SQL_MAXLEN, "insert into CoreLayouts(EnginePid, CoreId, ParentCoreId, ParentConnType) values(%d, %d, %d, %d)", pid, c, parentCore[c][cp], parentConnType[c][cp]);
+			safecall(this, sqlExec);
 		}
+	}
+
+}
+void sOraData::loadEngineImage(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+}
+
+//-- private stuff
+void sOraData::sqlExec() {
+	try {
+		stmt = ((Connection*)conn)->createStatement(sqlS);
 		((Statement*)stmt)->executeUpdate();
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
@@ -351,4 +354,3 @@ void sOraData::saveEngineImage(){
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-void sOraData::loadEngineImage() {}

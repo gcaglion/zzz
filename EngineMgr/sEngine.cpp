@@ -262,7 +262,7 @@ void sEngine::commit() {
 }
 
 void sEngine::save() {
-//	if(persistor->saveToDB) safecall(persistor->oradb, type, coresCnt, )/
+	if(persistor->saveToDB) safecall(persistor->oradb, type, coresCnt )
 }
 void sEngine::load(int pid) {}
 
