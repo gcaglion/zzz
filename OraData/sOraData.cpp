@@ -390,6 +390,8 @@ void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** lev
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
+	sprintf_s(sqlS, SQL_MAXLEN, "select LevelRatioS, LevelActivationS, UseContext, UseBias, MaxEpochs, TargetMSE, NetSaveFrequency, StopOnDivergence, BPAlgo, BPStd_LearningRate, BPStd_LearningMomentum \
+								from CoreNNparms where ProcessId=%d and ThreadId=%d", pid, tid);
 	try {
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
@@ -397,15 +399,15 @@ void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** lev
 		while (((ResultSet*)rset)->next()) {
 			strcpy_s((*levelRatioS_), XMLKEY_PARM_VAL_MAXLEN, ((ResultSet*)rset)->getString(1).c_str());
 			strcpy_s((*levelActivationS_), XMLKEY_PARM_VAL_MAXLEN, ((ResultSet*)rset)->getString(2).c_str());
-			(*useContext_)=(((ResultSet*)rset)->getInt(2)==1);
-			(*useBias_)=(((ResultSet*)rset)->getInt(3)==1);
-			(*maxEpochs_)=((ResultSet*)rset)->getInt(4);
-			(*targetMSE_)=((ResultSet*)rset)->getFloat(5);
-			(*netSaveFrequency_)=((ResultSet*)rset)->getInt(6);
-			(*stopOnDivergence_)=(((ResultSet*)rset)->getInt(7)==1);
-			(*BPalgo_)=((ResultSet*)rset)->getInt(8);
-			(*learningRate_)=((ResultSet*)rset)->getFloat(9);
-			(*learningMomentum_)=((ResultSet*)rset)->getFloat(10);
+			(*useContext_)=(((ResultSet*)rset)->getInt(3)==1);
+			(*useBias_)=(((ResultSet*)rset)->getInt(4)==1);
+			(*maxEpochs_)=((ResultSet*)rset)->getInt(5);
+			(*targetMSE_)=((ResultSet*)rset)->getFloat(6);
+			(*netSaveFrequency_)=((ResultSet*)rset)->getInt(7);
+			(*stopOnDivergence_)=(((ResultSet*)rset)->getInt(8)==1);
+			(*BPalgo_)=((ResultSet*)rset)->getInt(9);
+			(*learningRate_)=((ResultSet*)rset)->getFloat(10);
+			(*learningMomentum_)=((ResultSet*)rset)->getFloat(11);
 		}
 
 		((Statement*)stmt)->closeResultSet((ResultSet*)rset);

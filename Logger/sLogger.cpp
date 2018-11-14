@@ -34,7 +34,10 @@ void sLogger::open() {
 	if (saveToDB) safecall(oradb, open);
 	if (saveToFile) safecall(filedb, open, FILE_MODE_WRITE);
 }
-
+void sLogger::commit() {
+	if (saveToDB) safecall(oradb, commit);
+	if (saveToFile) safecall(filedb, commit);
+}
 void sLogger::saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun) {
 	if (saveToDB) safecall(oradb, saveClientInfo, pid, simulationId, clientName, startTime, elapsedSecs, simulStartTrain, simulStartInfer, simulStartValid, doTrain, doTrainRun, doTestRun);
 	if (saveToFile) safecall(filedb, saveClientInfo, pid, simulationId, clientName, startTime, elapsedSecs, simulStartTrain, simulStartInfer, simulStartValid, doTrain, doTrainRun, doTestRun);

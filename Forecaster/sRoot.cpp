@@ -292,6 +292,8 @@ void sRoot::kaz5() {
 
 	sNNparms* nn1parms; safespawn(nn1parms, newsname("NN1Parms"), defaultdbg, forecasterCfg, "/Forecaster/Engine/Custom/Core0/Parameters");
 	nn1parms->save(pers1, pid, tid);
+	pers1->commit();
 
-	sNNparms* nn2parms; safespawn(nn2parms, newsname("NN2Parms"), defaultdbg, pers1, pid);
+	sNNparms* nn2parms; safespawn(nn2parms, newsname("NN2Parms"), defaultdbg, pers1, pid, tid);
+
 }
