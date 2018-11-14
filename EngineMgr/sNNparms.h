@@ -30,8 +30,8 @@ struct sNNparms : sCoreParms {
 
 	//-- local implementations of virtual functions defined in sCoreParms
 	EXPORT void setScaleMinMax();
-	EXPORT void save(int pid, int tid);
-	EXPORT void load(int pid, int tid);
+	EXPORT void save(sLogger* persistor_, int pid_, int tid_);
+	EXPORT void load(sLogger* persistor_, int pid_, int tid_);
 
 private:
 	void mallocs();

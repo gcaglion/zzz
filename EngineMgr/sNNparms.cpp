@@ -73,8 +73,10 @@ void sNNparms::setScaleMinMax() {
 		}
 	}
 }
-void sNNparms::save(int pid, int tid) {}
-void sNNparms::load(int pid, int tid) {}
+void sNNparms::save(sLogger* persistor_, int pid_, int tid_) {
+	persistor_->saveCoreNNparms(pid_, tid_, )
+}
+void sNNparms::load(sLogger* persistor_, int pid_, int tid_) {}
 
 //-- private stuff
 void sNNparms::mallocs() {
