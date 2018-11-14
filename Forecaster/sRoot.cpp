@@ -278,3 +278,20 @@ void sRoot::kaz4() {
 
 
 }
+void sRoot::kaz5() {
+
+	int pid=GetCurrentProcessId();
+	int tid=GetCurrentThreadId();
+	printf("ProcessId: %d ; ThreadId: %d\n\n", pid, tid);
+
+	sOraData* oradb1; safespawn(oradb1, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo.mavi");
+	sLogger* pers1; safespawn(pers1, newsname("pers1"), defaultdbg, oradb1);
+	safecall(pers1, open);
+
+	safespawn(forecasterCfg, newsname("forecasterCfg_Root"), erronlydbg, forecasterCfgFileFullName);
+
+	sNNparms* nn1parms; safespawn(nn1parms, newsname("NN1Parms"), defaultdbg, forecasterCfg, "/Forecaster/Engine/Custom/Core0/Parameters");
+	nn1parms->save(pid, tid);
+
+	sNNparms* nn2parms; safespawn(nn2parms, newsname("NN2Parms"), defaultdbg, pers1, pid);
+}
