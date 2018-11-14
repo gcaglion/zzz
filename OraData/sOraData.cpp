@@ -309,7 +309,7 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 }
 
 //-- Save/Load engine info
-void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -320,7 +320,7 @@ void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId
 
 	//-- 2. ENGINECORES
 	for (int c=0; c<coresCnt; c++) {
-		sprintf_s(sqlS, SQL_MAXLEN, "insert into EngineCores(EnginePid, CoreId, CoreType) values(%d, %d, %d)", pid, coreId[c], coreType[c]);
+		sprintf_s(sqlS, SQL_MAXLEN, "insert into EngineCores(EnginePid, CoreId, CoreThreadId, CoreType) values(%d, %d, %d, %d)", pid, coreId[c], tid[c], coreType[c]);
 		safecall(this, sqlExec, sqlS);
 		//-- 3. CORELAYOUTS
 		for (int cp=0; cp<parentCoresCnt[c]; cp++) {

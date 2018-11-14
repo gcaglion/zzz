@@ -75,6 +75,7 @@ drop table EngineCores purge;
 create table EngineCores(
 	EnginePid number,
 	CoreId number,
+	CoreThreadId number,
 	CoreType number
 );
 alter table EngineCores add constraint EngineCores_PK primary key(EnginePid, CoreId) using index tablespace LogIdx;
