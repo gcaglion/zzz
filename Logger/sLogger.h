@@ -7,7 +7,7 @@
 #include "../OraData/sOraData.h"
 
 struct sLogger : sCfgObj {
-	
+
 	//-- How many logs
 	int logsCnt;
 
@@ -17,7 +17,10 @@ struct sLogger : sCfgObj {
 	sOraData* oradb;
 	sFileData* filedb;
 
-	EXPORT sLogger(sObjParmsDef);
+	EXPORT sLogger(sObjParmsDef, bool saveToDB_, bool saveToFile_);	//-- this is called by one of sCoreLogger constructors
+	EXPORT sLogger(sObjParmsDef, sOraData* oradb_);
+	EXPORT sLogger(sObjParmsDef, sFileData* filedb_);
+	EXPORT sLogger(sObjParmsDef, sOraData* oradb_, sFileData* filedb_);
 	EXPORT sLogger(sCfgObjParmsDef);
 	EXPORT ~sLogger();
 
