@@ -3,14 +3,17 @@
 # To include another xml: <Include File=c:\temp\kaz.xml />
 
 <Forecaster>
-	MyList = abc, def, ghijkl, mnopqras
-	<Data>
-		<Shape>
-			SampleLen		= 10
-			PredictionLen	= 3
-		</Shape>
+	DoTraining		= true
+	DoInference		= true
+	InferFromPid	= 8822
+	DoValidation	= false
+	
+	<DataShape>
+		SampleLen		= 10
+		PredictionLen	= 3
+	</DataShape>
+
 		<Train>
-			Do	= true
 			<DataSet>
 				BatchSamplesCount	= 10
 				SelectedFeatures	= FXHIGH, FXLOW
@@ -37,7 +40,6 @@
 			</DataSet>
 		</Train>
 		<Test>
-			Do	= true
 			EnginePid	= 10900
 			<DataSet>
 				BatchSamplesCount	= 1
@@ -65,7 +67,6 @@
 			</DataSet>
 		</Test>
 		<Validation>
-			Do					= false
 			<DataSet>
 				<TimeSerie>
 					<File_DataSource>
@@ -78,7 +79,7 @@
 				</TimeSerie>
 			</DataSet>
 		</Validation>
-    </Data>
+ 
 	<Engine>
 		Type 		= ENGINE_CUSTOM
 		<Custom>

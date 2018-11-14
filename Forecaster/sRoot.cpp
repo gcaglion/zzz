@@ -25,9 +25,8 @@ void sRoot::tester() {
 		//-- 0. take client start time
 		timer->start();
 
-		//-- 1. load client and Forecaster XML configurations
+		//-- 1. load client XML configurations
 		safespawn(clientCfg, newsname("clientCfg_Root"), defaultdbg, clientCfgFileFullName);
-		safespawn(forecasterCfg, newsname("forecasterCfg_Root"), erronlydbg, forecasterCfgFileFullName);
 
 		//-- 2. create client persistor, if needed
 		bool saveClient;
@@ -48,51 +47,51 @@ void sRoot::tester() {
 			simulationValidStartDate[s]=(char*)malloc(DATE_FORMAT_LEN); simulationValidStartDate[s][0]='\0';
 		}
 
-		//-- 4. spawn forecaster
+		//-- 4. Load Forecaster configuration
+		safespawn(forecasterCfg, newsname("forecasterCfg_Root"), erronlydbg, forecasterCfgFileFullName);
+		//-- 4.1. spawn forecaster
 		safespawn(forecaster, newsname("mainForecaster"), defaultdbg, forecasterCfg, "/Forecaster");
 
 		//-- 5. if the dataset is used, read startdate from client xml for each dataset
-		if (forecaster->data->doTraining) {
+		if (forecaster->doTraining) {
 			safecall(clientCfg->currentKey, getParm, &simulationTrainStartDate[0], "TrainStartDate");
-			getStartDates(forecaster->data->trainDS, simulationTrainStartDate[0], simulationLength, &simulationTrainStartDate);
+			getStartDates(forecaster->trainDS, simulationTrainStartDate[0], simulationLength, &simulationTrainStartDate);
 		}
-		if (forecaster->data->doInference) {
+		if (forecaster->doInference) {
 			safecall(clientCfg->currentKey, getParm, &simulationInferStartDate[0], "InferStartDate");
-			getStartDates(forecaster->data->testDS, simulationInferStartDate[0], simulationLength, &simulationInferStartDate);
+			getStartDates(forecaster->inferDS, simulationInferStartDate[0], simulationLength, &simulationInferStartDate);
 		}
-		if (forecaster->data->doValidation) {
+		if (forecaster->doValidation) {
 			safecall(clientCfg->currentKey, getParm, &simulationValidStartDate[0], "ValidationStartDate");
-			getStartDates(forecaster->data->validDS, simulationValidStartDate[0], simulationLength, &simulationValidStartDate);
+			getStartDates(forecaster->validDS, simulationValidStartDate[0], simulationLength, &simulationValidStartDate);
 		}
 
 		//-- 6. for each simulation
 		for (int s=0; s<simulationLength; s++) {
 
 			//-- 6.1. Training
-			if (forecaster->data->doTraining) {
+			if (forecaster->doTraining) {
 				//-- 6.1.1. set date0 in trainDS->TimeSerie, and load it
-				safecall(forecaster->data->trainDS->sourceTS, load, TARGET, BASE, simulationTrainStartDate[s]);
-				//-- 6.1.2. do training (also populates datasets)
-				safecall(forecaster->engine, train, s, forecaster->data->trainDS);
-				//-- 6.1.3. persist MSE logs
+				safecall(forecaster->trainDS->sourceTS, load, TARGET, BASE, simulationTrainStartDate[s]);
+				//-- 6.1.2. spawn engine from config file
+
+				//-- 6.1.3. do training (also populates datasets)
+				safecall(forecaster->engine, train, s, forecaster->trainDS);
+				//-- 6.1.4. persist MSE logs
 				safecall(forecaster->engine, saveMSE);
-				//-- 6.1.4 persist Core logs
+				//-- 6.1.5 persist Core logs
 				safecall(forecaster->engine, saveImage);
-				//-- 6.1.4 persist Engine Info
+				//-- 6.1.6 persist Engine Info
 				safecall(forecaster->engine, saveInfo);
 			}
 
 			//-- 6.2. Inference
-			if (forecaster->data->doInference) {
+			if (forecaster->doInference) {
 				//-- 6.2.1. set date0 in testDS->TimeSerie, and load it
-				safecall(forecaster->data->testDS->sourceTS, load, TARGET, BASE, simulationInferStartDate[s]);
-
-				//-- 6.2.2 load Engine
-
-				//-- run different datasets through existing engine
+				safecall(forecaster->inferDS->sourceTS, load, TARGET, BASE, simulationInferStartDate[s]);
 
 				//-- 6.2.2. do inference (also populates datasets)
-				safecall(forecaster->engine, infer, s, forecaster->data->testDS);
+				safecall(forecaster->engine, infer, s, forecaster->inferDS);
 				//-- 6.2.3. persist Run logs
 				safecall(forecaster->engine, saveRun);
 			}
@@ -100,7 +99,7 @@ void sRoot::tester() {
 			//-- 6.3. Save ClientInfo
 			if (saveClient) {
 				char* endtimeS = timer->stop();
-				safecall(clientPersistor, saveClientInfo, pid, s, "Root.Tester", timer->startTime, timer->elapsedTime, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], forecaster->data->doTraining, forecaster->data->doInference, forecaster->data->doTraining);
+				safecall(clientPersistor, saveClientInfo, pid, s, "Root.Tester", timer->startTime, timer->elapsedTime, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], forecaster->doTraining, forecaster->doInference, forecaster->doTraining);
 			}
 
 			//-- 6.4 Commit engine persistor data

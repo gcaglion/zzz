@@ -7,34 +7,6 @@
 #include "../DataMgr/sGenericDataSource.h"
 #include "../DataMgr/sMT4DataSource.h"
 
-struct sss : sObj {
-	sss(sObjParmsDef) : sObj(sObjParmsVal) {
-		fail("Failure");
-	}
-};
-struct ss : sObj {
-	sss* sss1;
-	ss(sObjParmsDef) : sObj(sObjParmsVal) {
-		sss1=new sss(this, newsname("sss1"), defaultdbg);
-	}
-};
-struct s : sObj {
-	ss* ss1;
-	s(sObjParmsDef) : sObj(sObjParmsVal) {
-		ss1=new ss(this, newsname("ss1"), defaultdbg);
-	}
-};
-
-struct sFork {
-
-	virtual bool getStatus()=0;
-
-private:
-	bool isSet=false;
-	bool status;
-
-};
-
 struct sRoot : sObj {
 
 	int pid;
@@ -43,8 +15,8 @@ struct sRoot : sObj {
 	sLogger* clientPersistor;
 	sCfg* clientCfg;
 	sCfg* forecasterCfg;
+
 	sForecaster* forecaster;
-	sEngine* engine;
 	
 	
 	EXPORT sRoot(int argc_=0, char* argv_[]=nullptr);
@@ -52,7 +24,6 @@ struct sRoot : sObj {
 
 	EXPORT void tester();
 	
-	void maintree();
 	void kaz4();
 
 private:
@@ -70,9 +41,7 @@ private:
 	//--
 	static numtype MyRndDbl(numtype min, numtype max);
 	void testDML();
-	//--
-	void block1();
-	void block2();
+
 };
 
 //-- MetaTrader calls
