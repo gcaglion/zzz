@@ -144,6 +144,8 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 	for (int l=0; l<layersCnt; l++) {
 		for (int c=0; c<coresCnt; c++) {
 			if (coreLayout[c]->layer==l) {
+				//-- before loading core from db, we ned to find tid it was saved with
+
 				switch (coreLayout[c]->type) {
 				case CORE_NN:
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, persistor, loadingPid);

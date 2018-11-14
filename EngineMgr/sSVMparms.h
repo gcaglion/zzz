@@ -7,13 +7,17 @@
 #define MAX_LEVELS 128
 
 struct sSVMparms : sCoreParms {
+
+	//-- placeholders
+	int parm1=0;
+	int parm2=0;
+
 	EXPORT sSVMparms(sCfgObjParmsDef);
-	EXPORT sSVMparms(sObjParmsDef, sLogger* persistor_, int loadingPid_);
+	EXPORT sSVMparms(sObjParmsDef, sLogger* persistor_, int loadingPid_, int loadingTid_);
 	EXPORT ~sSVMparms();
 
 	//-- local implementations of virtual functions defined in sCoreParms
 	EXPORT void setScaleMinMax();
-	EXPORT void save(int pid, int tid);
-	EXPORT void load(int pid, int tid);
+	EXPORT void save(sLogger* persistor_, int pid_, int tid_);
 
 };

@@ -24,16 +24,15 @@ struct sNNparms : sCoreParms {
 	float LearningMomentum;
 
 	EXPORT sNNparms(sCfgObjParmsDef);
-	EXPORT sNNparms(sObjParmsDef, sLogger* persistor_, int loadingPid_);
+	EXPORT sNNparms(sObjParmsDef, sLogger* persistor_, int loadingPid_, int loadingTid_);
 	EXPORT ~sNNparms();
 
 	//-- local implementations of virtual functions defined in sCoreParms
 	EXPORT void setScaleMinMax();
 	EXPORT void save(sLogger* persistor_, int pid_, int tid_);
-	EXPORT void load(sLogger* persistor_, int pid_, int tid_);
 
 private:
 	void mallocs();
-	char levelRatioS[XMLKEY_PARM_VAL_MAXLEN]; 
-	char levelActivationS[XMLKEY_PARM_VAL_MAXLEN];
+	char* levelRatioS = new char[XMLKEY_PARM_VAL_MAXLEN]; 
+	char* levelActivationS = new char[XMLKEY_PARM_VAL_MAXLEN];
 };

@@ -1,7 +1,7 @@
 #include "sSOMparms.h"
 
 sSOMparms::sSOMparms(sCfgObjParmsDef) : sCoreParms(sCfgObjParmsVal) {}
-sSOMparms::sSOMparms(sObjParmsDef, sLogger* persistor_, int loadingPid_) : sCoreParms(sObjParmsVal, persistor_, loadingPid_) {
+sSOMparms::sSOMparms(sObjParmsDef, sLogger* persistor_, int loadingPid_, int loadingTid_) : sCoreParms(sObjParmsVal, persistor_, loadingPid_, loadingTid_) {
 }
 sSOMparms::~sSOMparms() {}
 
@@ -12,5 +12,6 @@ void sSOMparms::setScaleMinMax() {
 		scaleMax[l] = 1;
 	}
 }
-void sSOMparms::save(int pid, int tid) {}
-void sSOMparms::load(int pid, int tid) {}
+void sSOMparms::save(sLogger* persistor_, int pid_, int tid_) {
+	safecall(persistor_, saveCoreSOMparms, pid_, tid_, parm1, parm2);
+}

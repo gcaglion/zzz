@@ -33,5 +33,11 @@ struct sLogger : sCfgObj {
 
 	//--
 	EXPORT void saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* levelActivationS_, bool useContext_, bool useBias_, int maxEpochs_, numtype targetMSE_, int netSaveFrequency_, bool stopOnDivergence_, int BPalgo_, float learningRate_, float learningMomentum_);
+	EXPORT void saveCoreGAparms(int pid, int tid, int p1, int p2);
+	EXPORT void saveCoreSOMparms(int pid, int tid, int p1, int p2);
+	EXPORT void saveCoreSVMparms(int pid, int tid, int p1, int p2);
+	EXPORT void saveCoreDUMBparms(int pid, int tid, int p1, int p2);
+	//--
+	EXPORT void loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, numtype* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_);
 
 };

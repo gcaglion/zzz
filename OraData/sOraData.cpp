@@ -385,7 +385,36 @@ void sOraData::saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* level
 	safecall(this, sqlExec, sqlS);
 
 }
+void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, numtype* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_) {
 
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	try {
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+
+		while (((ResultSet*)rset)->next()) {
+			strcpy_s((*levelRatioS_), XMLKEY_PARM_VAL_MAXLEN, ((ResultSet*)rset)->getString(1).c_str());
+			strcpy_s((*levelActivationS_), XMLKEY_PARM_VAL_MAXLEN, ((ResultSet*)rset)->getString(2).c_str());
+			(*useContext_)=(((ResultSet*)rset)->getInt(2)==1);
+			(*useBias_)=(((ResultSet*)rset)->getInt(3)==1);
+			(*maxEpochs_)=((ResultSet*)rset)->getInt(4);
+			(*targetMSE_)=((ResultSet*)rset)->getFloat(5);
+			(*netSaveFrequency_)=((ResultSet*)rset)->getInt(6);
+			(*stopOnDivergence_)=(((ResultSet*)rset)->getInt(7)==1);
+			(*BPalgo_)=((ResultSet*)rset)->getInt(8);
+			(*learningRate_)=((ResultSet*)rset)->getFloat(9);
+			(*learningMomentum_)=((ResultSet*)rset)->getFloat(10);
+		}
+
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+	} catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+}
 
 
 //-- private stuff

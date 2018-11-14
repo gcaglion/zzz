@@ -3,7 +3,7 @@
 sDUMBparms::sDUMBparms(sCfgObjParmsDef) : sCoreParms(sCfgObjParmsVal) {
 	levelsCnt=1;
 }
-sDUMBparms::sDUMBparms(sObjParmsDef, sLogger* persistor_, int loadingPid_) : sCoreParms(sObjParmsVal, persistor_, loadingPid_) {
+sDUMBparms::sDUMBparms(sObjParmsDef, sLogger* persistor_, int loadingPid_, int loadingTid_) : sCoreParms(sObjParmsVal, persistor_, loadingPid_, loadingTid_) {
 	levelsCnt=1;
 }
 sDUMBparms::~sDUMBparms() {}
@@ -15,5 +15,6 @@ void sDUMBparms::setScaleMinMax() {
 		scaleMax[l] = 1;
 	}
 }
-void sDUMBparms::save(int pid, int tid) {}
-void sDUMBparms::load(int pid, int tid) {}
+void sDUMBparms::save(sLogger* persistor_, int pid_, int tid_) {
+	safecall(persistor_, saveCoreDUMBparms, pid_, tid_, parm1, parm2);
+}

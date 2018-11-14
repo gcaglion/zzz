@@ -49,4 +49,20 @@ void sLogger::saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* levelA
 	if (saveToDB) safecall(oradb, saveCoreNNparms, pid, tid, levelRatioS_, levelActivationS_, useContext_, useBias_, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_);
 	if (saveToFile) safecall(filedb, saveCoreNNparms, pid, tid, levelRatioS_, levelActivationS_, useContext_, useBias_, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_);
 }
-
+void sLogger::saveCoreGAparms(int pid, int tid, int p1, int p2) {
+	fail("Not implemented.");
+}
+void sLogger::saveCoreSOMparms(int pid, int tid, int p1, int p2) {
+	fail("Not implemented.");
+}
+void sLogger::saveCoreSVMparms(int pid, int tid, int p1, int p2) {
+	fail("Not implemented.");
+}
+void sLogger::saveCoreDUMBparms(int pid, int tid, int p1, int p2) {
+	fail("Not implemented.");
+}
+//--
+void sLogger::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, numtype* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_) {
+	if (saveToDB) safecall(oradb, loadCoreNNparms, pid, tid, levelRatioS_, levelActivationS_, useContext_, useBias_, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_);
+	if (saveToFile) safecall(filedb, loadCoreNNparms, pid, tid, levelRatioS_, levelActivationS_, useContext_, useBias_, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_);
+}

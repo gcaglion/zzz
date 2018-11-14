@@ -1,7 +1,7 @@
 #include "sSVMparms.h"
 
 sSVMparms::sSVMparms(sCfgObjParmsDef) : sCoreParms(sCfgObjParmsVal) {}
-sSVMparms::sSVMparms(sObjParmsDef, sLogger* persistor_, int loadingPid_) : sCoreParms(sObjParmsVal, persistor_, loadingPid_) {
+sSVMparms::sSVMparms(sObjParmsDef, sLogger* persistor_, int loadingPid_, int loadingTid_) : sCoreParms(sObjParmsVal, persistor_, loadingPid_, loadingTid_) {
 }
 sSVMparms::~sSVMparms(){}
 
@@ -12,5 +12,6 @@ void sSVMparms::setScaleMinMax() {
 		scaleMax[l] = 1;
 	}
 }
-void sSVMparms::save(int pid, int tid) {}
-void sSVMparms::load(int pid, int tid) {}
+void sSVMparms::save(sLogger* persistor_, int pid_, int tid_) {
+	safecall(persistor_, saveCoreSVMparms, pid_, tid_, parm1, parm2);
+}

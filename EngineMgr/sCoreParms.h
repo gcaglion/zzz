@@ -13,12 +13,11 @@ struct sCoreParms : sCfgObj {
 	float scaleMin[CORE_MAX_INTERNAL_LEVELS];
 	float scaleMax[CORE_MAX_INTERNAL_LEVELS];
 
-	EXPORT sCoreParms(sObjParmsDef, sLogger* persistor_, int loadingPid_);
+	EXPORT sCoreParms(sObjParmsDef, sLogger* persistor_, int loadingPid_, int loadingTid_);
 	EXPORT sCoreParms(sCfgObjParmsDef);
 	EXPORT ~sCoreParms();
 
 	virtual void setScaleMinMax()=0;
-	//virtual void save(int pid, int tid)=0;
-	//virtual void load(int pid, int tid)=0;
+	virtual void save(sLogger* persistor_, int pid_, int tid_)=0;
 
 };

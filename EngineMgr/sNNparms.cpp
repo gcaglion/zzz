@@ -39,8 +39,9 @@ sNNparms::sNNparms(sCfgObjParmsDef) : sCoreParms(sCfgObjParmsVal) {
 	}
 
 }
-sNNparms::sNNparms(sObjParmsDef, sLogger* persistor_, int loadingPid_) : sCoreParms(sObjParmsVal, persistor_, loadingPid_) {
+sNNparms::sNNparms(sObjParmsDef, sLogger* persistor_, int loadingPid_, int loadingTid_) : sCoreParms(sObjParmsVal, persistor_, loadingPid_, loadingTid_) {
 	mallocs();
+	persistor_->loadCoreNNparms(loadingPid_, loadingTid_, &levelRatioS, &levelActivationS, &useContext, &useBias, &MaxEpochs, &TargetMSE, &NetSaveFreq, &StopOnDivergence, &BP_Algo, &LearningRate, &LearningMomentum);
 }
 sNNparms::~sNNparms() {
 	free(levelRatio);
@@ -77,7 +78,6 @@ void sNNparms::setScaleMinMax() {
 void sNNparms::save(sLogger* persistor_, int pid_, int tid_) {
 	safecall(persistor_, saveCoreNNparms, pid_, tid_, levelRatioS, levelActivationS, useContext, useBias, MaxEpochs, TargetMSE, NetSaveFreq, StopOnDivergence, BP_Algo, LearningRate, LearningMomentum);
 }
-void sNNparms::load(sLogger* persistor_, int pid_, int tid_) {}
 
 //-- private stuff
 void sNNparms::mallocs() {
