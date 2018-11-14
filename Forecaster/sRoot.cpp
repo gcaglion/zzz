@@ -22,7 +22,7 @@ void sRoot::tester() {
 
 	try {
 
-		//-- 0. take client start time
+		//-- 0. take start time
 		timer->start();
 
 		//-- 1. load client XML configurations

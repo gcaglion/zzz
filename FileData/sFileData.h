@@ -28,7 +28,7 @@ struct sFileData : sCfgObj {
 	EXPORT void commit();
 	//--
 	EXPORT void saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
-	EXPORT void loadEngineImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
+	EXPORT void loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType);
 
 
 private:

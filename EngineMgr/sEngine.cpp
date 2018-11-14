@@ -7,29 +7,39 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int loadingPid)
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
 	pid=GetCurrentProcessId();
 
+	//-- 
 	//-- load from persistor
+
+	//-- 0. mallocs
+	int* coreId=new int(MAX_ENGINE_CORES);
+	int* coreType=new int(MAX_ENGINE_CORES);
+	int* coreParentsCnt=new int(MAX_ENGINE_CORES);
+	int** coreParent=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParent[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
+	int** coreParentConnType=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParentConnType[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 
 	//-- 1. spawn persistor
 	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
 
 	//-- 2. load info from persistor
-	int* coreId=new int(MAX_ENGINE_CORES);
-	int* coreType=new int(MAX_ENGINE_CORES);
-	persistor->loadEngineInfo(pid, &type, &coresCnt, coreId, coreType,  )
-	//-- get engine type
-	//-- get coresCnt
-	//-- malloc one core, one coreLayout and one coreParms for each core
+	persistor->loadEngineInfo(pid, &type, &coresCnt, coreId, coreType, coreParentsCnt, coreParent, coreParentConnType);
+
+	//-- 3. malloc one core, one coreLayout and one coreParms for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
 	coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
 	//-- for each Core, get layout info, and set base coreLayout properties  (type, desc, connType, outputCnt)
 	for (int c=0; c<coresCnt; c++) {
-		//-- get coreLayout[c]
+		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Custom/Core%d/Layout", c))->base, inputCnt, outputCnt);
 	}
 
 	//-- populate
 	populate();
 
+	//-- free(s)
+	for (int i=0; i<MAX_ENGINE_CORES; i++) {
+		free(coreParent[i]); free(coreParentConnType[i]);
+	}
+	free(coreParent); free(coreParentConnType); free(coreParentsCnt); free(coreType); free(coreId);
 }
 sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgObjParmsVal) {
 
@@ -286,6 +296,7 @@ void sEngine::commit() {
 	for (int c=0; c<coresCnt; c++) {
 		safecall(core[c]->persistor, commit);
 	}
+	safecall(this->persistor, commit);
 }
 
 void sEngine::saveInfo() {

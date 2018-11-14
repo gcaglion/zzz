@@ -39,6 +39,7 @@ private:
 	void* env = nullptr;
 	void* conn = nullptr;
 	void* stmt = nullptr;
+	void* rset = nullptr;
 	bool isOpen = false;
 
 	char* DBUserName = new char[DBUSERNAME_MAXLEN];
@@ -47,5 +48,11 @@ private:
 
 	char sqlS[SQL_MAXLEN];
 
-	void sqlExec();
+	//-- generic dml
+	void sqlExec(char* sqlS);
+	//-- generic select. each returns a single array for a single data field
+	void sqlGet(int len, int** valP, const char* sqlMask, ...);
+	void sqlGet(int len, numtype** valP, const char* sqlMask, ...);
+	void sqlGet(int len, char*** valP, const char* sqlMask, ...);
+	void sqlGet(int len, bool** valP, const char* sqlMask, ...);
 };

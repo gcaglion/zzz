@@ -35,7 +35,9 @@ void sFileData::open(int mode_) {
 	}
 }
 void sFileData::close() {
-	for (int f=0; f<filesCnt; f++) fclose(fileH[f]);
+	for (int f=0; f<filesCnt; f++) {
+		if(fileH[f]!=nullptr) fclose(fileH[f]);
+	}
 }
 void sFileData::getStartDates(char* StartDate, int DatesCount, char*** oDate) {
 	fail("Not implemented!");
@@ -60,6 +62,6 @@ void sFileData::saveClientInfo(int pid, int simulationId, const char* clientName
 void sFileData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	fail("Not implemented.");
 }
-void sFileData::loadEngineImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+void sFileData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType) {
 	fail("Not implemented.");
 }

@@ -268,8 +268,8 @@ bool sNN::epochSummary(int epoch, DWORD starttime, bool displayProgress) {
 	procArgs->mseT[epoch]=tse_h/nodesCnt[outputLevel]/_batchCnt;
 	procArgs->mseV[epoch]=0;	// TO DO !
 	if (displayProgress) {
-		gotoxy(0, procArgs->screenLine); 
-		printf("\rTestId %3d, Process %6d, Thread %6d, Epoch %6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms", testid, pid, tid, epoch, procArgs->mseT[epoch], procArgs->mseV[epoch], (timeGetTime()-starttime));
+		//gotoxy(0, procArgs->screenLine); 
+		//printf("\rTestId %3d, Process %6d, Thread %6d, Epoch %6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms", testid, pid, tid, epoch, procArgs->mseT[epoch], procArgs->mseV[epoch], (timeGetTime()-starttime));
 	}
 	if (procArgs->mseT[epoch]<parms->TargetMSE) return true;
 	if ((parms->StopOnDivergence && epoch>1&&procArgs->mseT[epoch]>procArgs->mseT[epoch-1])) return true;
@@ -408,7 +408,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
 
 	//-- calc and display final epoch MSE
-	printf("\n"); epochSummary(trainArgs->mseCnt-1, epoch_starttime); printf("\n");
+	//printf("\n"); epochSummary(trainArgs->mseCnt-1, epoch_starttime); printf("\n");
 
 
 /*	float elapsed_tot=(float)timeGetTime()-(float)training_starttime;
