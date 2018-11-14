@@ -372,6 +372,21 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* core
 
 	//--
 }
+//-- Save/Load Core<XXX>Paameters
+void sOraData::saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* levelActivationS_, bool useContext_, bool useBias_, int maxEpochs_, numtype targetMSE_, int netSaveFrequency_, bool stopOnDivergence_, int BPalgo_, float learningRate_, float learningMomentum_) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into CoreNNparms(ProcessId, ThreadId, LevelRatioS, LevelActivationS, UseContext, UseBias, MaxEpochs, TargetMSE, NetSaveFrequency, StopOnDivergence, BPAlgo, BPStd_LearningRate, BPStd_LearningMomentum) \
+														 values(%d, %d, '%s', '%s', %d, %d, %d, %f, %d, %d, %d, %f, %f)", \
+		pid, tid, levelRatioS_, levelActivationS_, (useContext_) ? 1 : 0, (useBias_) ? 1 : 0, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_ \
+	);
+	safecall(this, sqlExec, sqlS);
+
+}
+
+
 
 //-- private stuff
 void sOraData::sqlExec(char* sqlS) {

@@ -7,10 +7,9 @@
 struct sNNparms : sCoreParms {
 
 	//-- topology
-	//int levelsCnt;
 	float* levelRatio;
 	int* ActivationFunction;	// can be different for each level
-	//int batchSamplesCnt;	// usually referred to as Batch Size
+
 	bool useContext;
 	bool useBias;
 
@@ -35,4 +34,6 @@ struct sNNparms : sCoreParms {
 
 private:
 	void mallocs();
+	char levelRatioS[XMLKEY_PARM_VAL_MAXLEN]; 
+	char levelActivationS[XMLKEY_PARM_VAL_MAXLEN];
 };

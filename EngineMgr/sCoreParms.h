@@ -18,7 +18,7 @@ struct sCoreParms : sCfgObj {
 	EXPORT ~sCoreParms();
 
 	virtual void setScaleMinMax()=0;
-	virtual void save(int pid, int tid)=0;
-	virtual void load(int pid, int tid)=0;
+	//virtual void save(int pid, int tid)=0;
+	//virtual void load(int pid, int tid)=0;
 
 };

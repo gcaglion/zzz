@@ -5,6 +5,7 @@ sNNparms::sNNparms(sCfgObjParmsDef) : sCoreParms(sCfgObjParmsVal) {
 	int levelActsCnt;
 	safecall(cfgKey, getParm, &levelRatio, "Topology/LevelRatio", false, &levelsCnt); levelsCnt+=2;
 	safecall(cfgKey, getParm, &ActivationFunction, "Topology/LevelActivation", false, &levelActsCnt);
+
 	if (levelActsCnt!=levelsCnt) fail("Too few Level Activations specified (%d vs. %d required)", levelActsCnt, levelsCnt);
 	safecall(cfgKey, getParm, &useContext, "Topology/UseContext");
 	safecall(cfgKey, getParm, &useBias, "Topology/UseBias");
@@ -74,7 +75,7 @@ void sNNparms::setScaleMinMax() {
 	}
 }
 void sNNparms::save(sLogger* persistor_, int pid_, int tid_) {
-	persistor_->saveCoreNNparms(pid_, tid_, )
+	safecall(persistor_, saveCoreNNparms, pid_, tid_, levelRatioS, levelActivationS, useContext, useBias, MaxEpochs, TargetMSE, NetSaveFreq, StopOnDivergence, BP_Algo, LearningRate, LearningMomentum);
 }
 void sNNparms::load(sLogger* persistor_, int pid_, int tid_) {}
 
@@ -82,4 +83,5 @@ void sNNparms::load(sLogger* persistor_, int pid_, int tid_) {}
 void sNNparms::mallocs() {
 	levelRatio=(float*)malloc((CORE_MAX_INTERNAL_LEVELS-2)*sizeof(float));
 	ActivationFunction=(int*)malloc(CORE_MAX_INTERNAL_LEVELS*sizeof(int));
+	levelRatioS[0]='\0'; levelActivationS[0]='\0';
 }

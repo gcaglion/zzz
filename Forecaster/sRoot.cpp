@@ -284,7 +284,7 @@ void sRoot::kaz5() {
 	int tid=GetCurrentThreadId();
 	printf("ProcessId: %d ; ThreadId: %d\n\n", pid, tid);
 
-	sOraData* oradb1; safespawn(oradb1, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo.mavi");
+	sOraData* oradb1; safespawn(oradb1, newsname("oradb1"), defaultdbg, "LogUser", "LogPwd", "Algo");
 	sLogger* pers1; safespawn(pers1, newsname("pers1"), defaultdbg, oradb1);
 	safecall(pers1, open);
 
