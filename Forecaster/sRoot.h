@@ -25,7 +25,7 @@ struct sRoot : sObj {
 	EXPORT void tester();
 	
 	void kaz4();
-	void kaz5();
+	EXPORT void kaz5();
 
 private:
 	//-- variables

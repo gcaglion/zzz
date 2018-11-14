@@ -7,9 +7,10 @@
 #define MAX_LEVELS 128
 
 struct sGAparms : sCoreParms {
-	sGAparms(sCfgObjParmsDef);
-	sGAparms(sObjParmsDef, sLogger* persistor_, int loadingPid_);
-	~sGAparms();
+	
+	EXPORT sGAparms(sCfgObjParmsDef);
+	EXPORT sGAparms(sObjParmsDef, sLogger* persistor_, int loadingPid_);
+	EXPORT ~sGAparms();
 
 	//-- local implementations of virtual functions defined in sCoreParms
 	EXPORT void setScaleMinMax();

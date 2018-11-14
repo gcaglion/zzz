@@ -24,9 +24,9 @@ struct sNNparms : sCoreParms {
 	float LearningRate;
 	float LearningMomentum;
 
-	sNNparms(sCfgObjParmsDef);
-	sNNparms(sObjParmsDef, sLogger* persistor_, int loadingPid_);
-	~sNNparms();
+	EXPORT sNNparms(sCfgObjParmsDef);
+	EXPORT sNNparms(sObjParmsDef, sLogger* persistor_, int loadingPid_);
+	EXPORT ~sNNparms();
 
 	//-- local implementations of virtual functions defined in sCoreParms
 	EXPORT void setScaleMinMax();

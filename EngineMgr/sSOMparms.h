@@ -7,9 +7,10 @@
 #define MAX_LEVELS 128
 
 struct sSOMparms : sCoreParms {
-	sSOMparms(sCfgObjParmsDef);
-	sSOMparms(sObjParmsDef, sLogger* persistor_, int loadingPid_);
-	~sSOMparms();
+	
+	EXPORT sSOMparms(sCfgObjParmsDef);
+	EXPORT sSOMparms(sObjParmsDef, sLogger* persistor_, int loadingPid_);
+	EXPORT ~sSOMparms();
 
 	//-- local implementations of virtual functions defined in sCoreParms
 	EXPORT void setScaleMinMax();

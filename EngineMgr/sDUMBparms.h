@@ -7,9 +7,9 @@
 #define MAX_LEVELS 128
 
 struct sDUMBparms : sCoreParms {
-	sDUMBparms(sCfgObjParmsDef);
-	sDUMBparms(sObjParmsDef, sLogger* persistor_, int loadingPid_);
-	~sDUMBparms();
+	EXPORT sDUMBparms(sCfgObjParmsDef);
+	EXPORT sDUMBparms(sObjParmsDef, sLogger* persistor_, int loadingPid_);
+	EXPORT ~sDUMBparms();
 
 	//-- local implementations of virtual functions defined in sCoreParms
 	EXPORT void setScaleMinMax();
