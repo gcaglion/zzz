@@ -7,7 +7,28 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int loadingPid)
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
 	pid=GetCurrentProcessId();
 
-	this->load(loadingPid);
+	//-- load from persistor
+
+	//-- 1. spawn persistor
+	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
+
+	//-- 2. load info from persistor
+	int* coreId=new int(MAX_ENGINE_CORES);
+	int* coreType=new int(MAX_ENGINE_CORES);
+	persistor->loadEngineInfo(pid, &type, &coresCnt, coreId, coreType,  )
+	//-- get engine type
+	//-- get coresCnt
+	//-- malloc one core, one coreLayout and one coreParms for each core
+	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
+	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
+	coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
+	//-- for each Core, get layout info, and set base coreLayout properties  (type, desc, connType, outputCnt)
+	for (int c=0; c<coresCnt; c++) {
+		//-- get coreLayout[c]
+	}
+
+	//-- populate
+	populate();
 
 }
 sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgObjParmsVal) {
@@ -16,13 +37,12 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgO
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
 	pid=GetCurrentProcessId();
 
-	//-- engine type
-	safecall(cfgKey, getParm, &type, "Type");
-
 	//-- engine-level persistor
 	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
 
-	int l, c;
+	//-- engine type
+	safecall(cfgKey, getParm, &type, "Type");
+
 	switch (type) {
 	case ENGINE_CUSTOM:
 		//-- 0. coresCnt
@@ -31,8 +51,8 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgO
 		core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 		coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
 		coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
-		//-- 2. for each Core, create persistor and layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
-		for (c=0; c<coresCnt; c++) {
+		//-- 2. for each Core, create layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
+		for (int c=0; c<coresCnt; c++) {
 			safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Custom/Core%d/Layout", c))->base, inputCnt, outputCnt);
 		}
 		break;
@@ -48,8 +68,23 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgO
 		fail("Invalid Engine Type: %d", type);
 		break;
 	}
+	
+	//-- populate
+	populate();
 
-	//-- 3. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
+	//-- 7. restore cfg->currentKey from sCfgObj->bkpKey
+	cfg->currentKey=bkpKey;
+
+}
+sEngine::~sEngine() {
+	free(core); free(coreLayout); free(coreParms);
+	free(layerCoresCnt);
+}
+
+void sEngine::populate() {
+	int c, l;
+
+	//-- common to all constructors. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
 	for (c=0; c<coresCnt; c++) {
 		setCoreLayer(coreLayout[c]);
 		layerCoresCnt[coreLayout[c]->layer]++;
@@ -71,18 +106,18 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgO
 	//-- 6. spawn each core, layer by layer
 	sNN* NNc; sGA* GAc; sSVM* SVMc; sSOM* SOMc; sDUMB* DUMBc;
 	sNNparms* NNcp; sGAparms* GAcp; sSVMparms* SVMcp; sSOMparms* SOMcp; sDUMBparms* DUMBcp;
-	for (l=0; l<layersCnt; l++){
+	for (l=0; l<layersCnt; l++) {
 		for (c=0; c<coresCnt; c++) {
 			if (coreLayout[c]->layer==l) {
 				switch (coreLayout[c]->type) {
 				case CORE_NN:
-					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);					
+					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
 					NNcp->setScaleMinMax();
 					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", coreLayout[c], NNcp);
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
-					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);					
+					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
 					GAcp->setScaleMinMax();
 					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, "../", coreLayout[c], GAcp);
 					coreParms[c]=GAcp; core[c]=GAc;
@@ -113,14 +148,6 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgO
 			}
 		}
 	}
-	
-	//-- 7. restore cfg->currentKey from sCfgObj->bkpKey
-	cfg->currentKey=bkpKey;
-
-}
-sEngine::~sEngine() {
-	free(core); free(coreLayout); free(coreParms);
-	free(layerCoresCnt);
 }
 
 DWORD coreThreadTrain(LPVOID vargs_) {
@@ -292,7 +319,6 @@ void sEngine::saveInfo() {
 	}
 	free(coreId_); free(coreType_); free(coreParentsCnt_); free(coreParent_); free(parentConnType_);
 }
-void sEngine::load(int pid) {}
 
 //-- private stuff
 void sEngine::setCoreLayer(sCoreLayout* cl) {

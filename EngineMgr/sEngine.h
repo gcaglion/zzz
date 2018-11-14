@@ -41,12 +41,12 @@ struct sEngine : sCfgObj {
 	EXPORT void saveImage(int epoch=-1);
 	//--
 	EXPORT void saveInfo();
-	EXPORT void load(int pid);
 	//--
 	EXPORT void commit();
 
 private:
 	int pid;
+	void populate();
 	void setCoreLayer(sCoreLayout* cl);
 	const int trainProc = 0;
 	const int inferProc = 1;

@@ -3,7 +3,7 @@
 # To include another xml: <Include File=c:\temp\kaz.xml />
 
 <Forecaster>
-	DoTraining		= true
+	DoTraining		= false
 	DoInference		= true
 	InferFromPid	= 8822
 	DoValidation	= false

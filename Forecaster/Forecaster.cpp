@@ -15,7 +15,6 @@ sForecaster::sForecaster(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &doTraining, "DoTraining");
 	safecall(cfgKey, getParm, &doInference, "DoInference");
 	safecall(cfgKey, getParm, &doValidation, "DoValidation");
-	if (doInference) safecall(cfgKey, getParm, &enginePid, "InferFromPid");
 
 	//-- data shape is common across datasets and engine
 	safespawn(shape, newsname("DataShape"), defaultdbg, cfg, "DataShape");
@@ -26,21 +25,20 @@ sForecaster::sForecaster(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	}
 	if (doTraining) {
 		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, cfg, "Train/DataSet", shape->sampleLen, shape->predictionLen);
-	} else {
-		//-- load pid
 	}
 
 	//-- Engine featuresCnt is determined by trainig Dataset if we do training: by inference dataset otherwise
 	featuresCnt=(doTraining) ? trainDS->selectedFeaturesCnt : inferDS->selectedFeaturesCnt;
+
 	if (doTraining) {
+		//-- spawn engine standard way
 		safespawn(engine, newsname("Engine"), defaultdbg, cfg, "Engine", shape->sampleLen*featuresCnt, shape->predictionLen*featuresCnt);
+
 	} else {
 		if (doInference) {
-			//--load pid
 			safecall(cfgKey, getParm, &enginePid, "InferFromPid");
+			//-- spawn engine with pid
 			safespawn(engine, newsname("Engine"), defaultdbg, cfg, "Engine", shape->sampleLen*featuresCnt, shape->predictionLen*featuresCnt, enginePid);
-		} else {
-			return;
 		}
 	}
 

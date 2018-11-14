@@ -10,7 +10,7 @@ struct sForecaster : sCfgObj {
 	int pid;
 	
 	bool doTraining, doInference, doValidation;
-	int enginePid=0;	//-- used to load the engine before inferencing
+	int enginePid;
 
 	sDataShape* shape;	//-- common across datasets
 	int featuresCnt;	//-- specific for the engine. depends on datasets used
