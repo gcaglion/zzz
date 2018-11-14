@@ -26,5 +26,5 @@ void sLogger::saveClientInfo(int pid, int simulationId, const char* clientName, 
 }
 void sLogger::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType) {
 	if (saveToDB) safecall(oradb, loadEngineInfo, pid, engineType, coresCnt, coreId, coreType, parentCoresCnt, parentCore, parentConnType);
-	if (saveToFile) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, coreId, coreType, parentCoresCnt, parentCore, parentConnType);
+//	if (saveToFile) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, coreId, coreType, parentCoresCnt, parentCore, parentConnType);
 }

@@ -25,14 +25,14 @@ struct sNNparms : sCoreParms {
 	float LearningMomentum;
 
 	sNNparms(sCfgObjParmsDef);
-	sNNparms(sObjParmsDef);
+	sNNparms(sObjParmsDef, sLogger* persistor_, int loadingPid_);
 	~sNNparms();
 
+	//-- local implementations of virtual functions defined in sCoreParms
 	EXPORT void setScaleMinMax();
+	EXPORT void save(int pid, int tid);
+	EXPORT void load(int pid, int tid);
 
 private:
-	void mallocs() {
-		levelRatio=(float*)malloc((CORE_MAX_INTERNAL_LEVELS-2)*sizeof(float));
-		ActivationFunction=(int*)malloc(CORE_MAX_INTERNAL_LEVELS*sizeof(int));
-	}
+	void mallocs();
 };

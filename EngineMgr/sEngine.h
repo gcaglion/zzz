@@ -31,7 +31,7 @@ struct sEngine : sCfgObj {
 
 	EXPORT sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_);
 	EXPORT ~sEngine();
-	EXPORT sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int loadingPid);
+	EXPORT sEngine(sObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersistor_, int loadingPid);
 
 	EXPORT void train(int testid_, sDataSet* trainDS_);
 	EXPORT void infer(int testid_, sDataSet* inferDS_);
@@ -46,8 +46,12 @@ struct sEngine : sCfgObj {
 
 private:
 	int pid;
-	void populate();
+	sNN* NNc; sGA* GAc; sSVM* SVMc; sSOM* SOMc; sDUMB* DUMBc;
+	sNNparms* NNcp; sGAparms* GAcp; sSVMparms* SVMcp; sSOMparms* SOMcp; sDUMBparms* DUMBcp;
+	void spawnCoresFromXML();
+	void spawnCoresFromDB(int loadingPid);
 	void setCoreLayer(sCoreLayout* cl);
+	void setLayerProps();
 	const int trainProc = 0;
 	const int inferProc = 1;
 	void process(int procid_, int testid_, sDataSet* ds_);

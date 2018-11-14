@@ -1,14 +1,11 @@
 #include "sEngine.h"
 
 //-- Engine stuff
-sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int loadingPid) : sCfgObj(sCfgObjParmsVal) {
+sEngine::sEngine(sObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersistor_, int loadingPid) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 
 	inputCnt=inputCnt_; outputCnt=outputCnt_;
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
 	pid=GetCurrentProcessId();
-
-	//-- 
-	//-- load from persistor
 
 	//-- 0. mallocs
 	int* coreId=new int(MAX_ENGINE_CORES);
@@ -17,11 +14,9 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int loadingPid)
 	int** coreParent=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParent[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	int** coreParentConnType=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParentConnType[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 
-	//-- 1. spawn persistor
-	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
-
 	//-- 2. load info from persistor
-	persistor->loadEngineInfo(pid, &type, &coresCnt, coreId, coreType, coreParentsCnt, coreParent, coreParentConnType);
+	fromPersistor_->loadEngineInfo(loadingPid, &type, &coresCnt, coreId, coreType, coreParentsCnt, coreParent, coreParentConnType);
+	if (coresCnt==0) fail("Engine pid %d not found.", loadingPid);
 
 	//-- 3. malloc one core, one coreLayout and one coreParms for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
@@ -29,11 +24,14 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int loadingPid)
 	coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
 	//-- for each Core, get layout info, and set base coreLayout properties  (type, desc, connType, outputCnt)
 	for (int c=0; c<coresCnt; c++) {
-		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Custom/Core%d/Layout", c))->base, inputCnt, outputCnt);
+		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, inputCnt, outputCnt, coreType[c], coreParentsCnt[c], coreParent[c], coreParentConnType[c]);
 	}
 
-	//-- populate
-	populate();
+	//-- common to all constructors. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
+	setLayerProps();
+
+	//-- spawn cores
+	spawnCoresFromDB(loadingPid);
 
 	//-- free(s)
 	for (int i=0; i<MAX_ENGINE_CORES; i++) {
@@ -79,8 +77,11 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgO
 		break;
 	}
 	
-	//-- populate
-	populate();
+	//-- common to all constructors. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
+	setLayerProps();
+
+	//-- spawn cores
+	spawnCoresFromXML();
 
 	//-- 7. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
@@ -91,33 +92,11 @@ sEngine::~sEngine() {
 	free(layerCoresCnt);
 }
 
-void sEngine::populate() {
-	int c, l;
+void sEngine::spawnCoresFromXML() {
 
-	//-- common to all constructors. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
-	for (c=0; c<coresCnt; c++) {
-		setCoreLayer(coreLayout[c]);
-		layerCoresCnt[coreLayout[c]->layer]++;
-	}
-	//-- 4. determine layersCnt, and InputCnt for each Core
-	for (l=0; l<MAX_ENGINE_LAYERS; l++) {
-		for (c=0; c<layerCoresCnt[l]; c++) {
-			if (l==0) {
-				//-- do nothing. keep core shape same as engine shape
-			} else {
-				//-- change sampleLen
-				coreLayout[c]->inputCnt=layerCoresCnt[l-1]*coreLayout[c]->outputCnt;
-			}
-		}
-		if (c==0) break;
-		layersCnt++;
-	}
-
-	//-- 6. spawn each core, layer by layer
-	sNN* NNc; sGA* GAc; sSVM* SVMc; sSOM* SOMc; sDUMB* DUMBc;
-	sNNparms* NNcp; sGAparms* GAcp; sSVMparms* SVMcp; sSOMparms* SOMcp; sDUMBparms* DUMBcp;
-	for (l=0; l<layersCnt; l++) {
-		for (c=0; c<coresCnt; c++) {
+	//-- spawn each core, layer by layer
+	for (int l=0; l<layersCnt; l++) {
+		for (int c=0; c<coresCnt; c++) {
 			if (coreLayout[c]->layer==l) {
 				switch (coreLayout[c]->type) {
 				case CORE_NN:
@@ -155,6 +134,51 @@ void sEngine::populate() {
 					break;
 				}
 				cfg->currentKey=cfgKey;
+			}
+		}
+	}
+}
+void sEngine::spawnCoresFromDB(int loadingPid) {
+
+	//-- spawn each core, layer by layer
+	for (int l=0; l<layersCnt; l++) {
+		for (int c=0; c<coresCnt; c++) {
+			if (coreLayout[c]->layer==l) {
+				switch (coreLayout[c]->type) {
+				case CORE_NN:
+					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, persistor, loadingPid);
+					NNcp->setScaleMinMax();
+					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, persistor, loadingPid);
+					coreParms[c]=NNcp; core[c]=NNc;
+					break;
+				case CORE_GA:
+					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, persistor, loadingPid);
+					GAcp->setScaleMinMax();
+					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, persistor, loadingPid);
+					coreParms[c]=GAcp; core[c]=GAc;
+					break;
+				case CORE_SVM:
+					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, persistor, loadingPid);
+					SVMcp->setScaleMinMax();
+					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, persistor, loadingPid);
+					coreParms[c]=SVMcp; core[c]=SVMc;
+					break;
+				case CORE_SOM:
+					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, persistor, loadingPid);
+					SOMcp->setScaleMinMax();
+					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, persistor, loadingPid);
+					coreParms[c]=SOMcp; core[c]=SOMc;
+					break;
+				case CORE_DUMB:
+					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, persistor, loadingPid);
+					DUMBcp->setScaleMinMax();
+					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, persistor, loadingPid);
+					coreParms[c]=DUMBcp; core[c]=DUMBc;
+					break;
+				default:
+					fail("Invalid Core Type: %d", type);
+					break;
+				}
 			}
 		}
 	}
@@ -224,9 +248,9 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 				procArgs[t]->coreProcArgs->predictionSBF = procArgs[t]->coreProcArgs->ds->predictionSBF;
 
 				if (procid_==trainProc) {
-					procH[t] = CreateThread(NULL, 0, coreThreadTrain, &(*procArgs[t]), 0, tid[t]);
+					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadTrain, &(*procArgs[t]), 0, tid[t]);
 				} else {
-					procH[t] = CreateThread(NULL, 0, coreThreadInfer, &(*procArgs[t]), 0, tid[t]);
+					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadInfer, &(*procArgs[t]), 0, tid[t]);
 				}
 
 				//-- Store Engine Handler
@@ -345,4 +369,23 @@ void sEngine::setCoreLayer(sCoreLayout* cl) {
 	}
 	cl->layer=ret;
 }
-
+void sEngine::setLayerProps() {
+	int l, c;
+	for (c=0; c<coresCnt; c++) {
+		setCoreLayer(coreLayout[c]);
+		layerCoresCnt[coreLayout[c]->layer]++;
+	}
+	//-- 4. determine layersCnt, and InputCnt for each Core
+	for (l=0; l<MAX_ENGINE_LAYERS; l++) {
+		for (c=0; c<layerCoresCnt[l]; c++) {
+			if (l==0) {
+				//-- do nothing. keep core shape same as engine shape
+			} else {
+				//-- change sampleLen
+				coreLayout[c]->inputCnt=layerCoresCnt[l-1]*coreLayout[c]->outputCnt;
+			}
+		}
+		if (c==0) break;
+		layersCnt++;
+	}
+}

@@ -19,6 +19,8 @@ sForecaster::sForecaster(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	//-- data shape is common across datasets and engine
 	safespawn(shape, newsname("DataShape"), defaultdbg, cfg, "DataShape");
 
+	//-- forecaster-level persistor. this is used, among other things, to spawn engine by pid
+	safespawn(persistor, newsname("ForecasterPersistor"), defaultdbg, cfg, "Persistor");
 
 	if (doInference) {
 		safespawn(inferDS, newsname("InferDataSet"), defaultdbg, cfg, "Test/DataSet", shape->sampleLen, shape->predictionLen);
@@ -37,8 +39,8 @@ sForecaster::sForecaster(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	} else {
 		if (doInference) {
 			safecall(cfgKey, getParm, &enginePid, "InferFromPid");
-			//-- spawn engine with pid
-			safespawn(engine, newsname("Engine"), defaultdbg, cfg, "Engine", shape->sampleLen*featuresCnt, shape->predictionLen*featuresCnt, enginePid);
+			//-- spawn engine from forecaster->persistor with pid
+			safespawn(engine, newsname("Engine"), defaultdbg, shape->sampleLen*featuresCnt, shape->predictionLen*featuresCnt, persistor, enginePid);
 		}
 	}
 

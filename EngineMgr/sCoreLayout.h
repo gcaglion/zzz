@@ -17,6 +17,7 @@ struct sCoreLayout : sCfgObj {
 	int outputCnt;
 
 
+	EXPORT sCoreLayout(sObjParmsDef, int inputCnt_, int outputCnt_, int type_, int parentsCnt, int* parentId_, int* parentConnType_);
 	EXPORT sCoreLayout(sCfgObjParmsDef, int inputCnt_, int outputCnt_);
 	EXPORT ~sCoreLayout();
 

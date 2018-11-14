@@ -12,6 +12,8 @@ struct sForecaster : sCfgObj {
 	bool doTraining, doInference, doValidation;
 	int enginePid;
 
+	sLogger* persistor;
+
 	sDataShape* shape;	//-- common across datasets
 	int featuresCnt;	//-- specific for the engine. depends on datasets used
 	sDataSet* trainDS;

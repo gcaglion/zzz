@@ -348,7 +348,7 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* core
 			coreId[i]=((ResultSet*)rset)->getInt(1);
 			coreType[i]=((ResultSet*)rset)->getInt(2);
 			
-			sprintf_s(nsqlS, SQL_MAXLEN, "select ParentCoreId, ParentCoreType from CoreLayouts where EnginePid= %d and CoreId= %d", pid, coreId[i]);
+			sprintf_s(nsqlS, SQL_MAXLEN, "select ParentCoreId, ParentConnType from CoreLayouts where EnginePid= %d and CoreId= %d", pid, coreId[i]);
 			nstmt = ((Connection*)conn)->createStatement(nsqlS);
 			nrset = ((Statement*)nstmt)->executeQuery();
 			int ni=0;

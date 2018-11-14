@@ -45,11 +45,14 @@ struct sCore : sCfgObj {
 	EXPORT sCore(sCfgObjParmsDef, sCoreLayout* layout_);
 	EXPORT ~sCore();
 
-	//-- methods to be implemented indipendently by each subclass (sNN, sGA, ...)
+	//-- methods to be implemented indipendently by each subclass(sNN, sGA, ...)
+	
+	//-- Internal layout
 	virtual void setLayout(int batchSize_)=0;
 	virtual void mallocLayout()=0;
 	virtual void train(sCoreProcArgs* procArgs_)=0;	
 	virtual void singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtype** singlePredictionSBF)=0;	//-- should set singlePredictionSBF
+	//-- I/O	
 	virtual void saveImage(int pid, int tid, int epoch)=0;
 	virtual void loadImage(int pid, int tid, int epoch)=0;
 

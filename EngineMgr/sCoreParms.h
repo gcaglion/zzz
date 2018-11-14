@@ -1,6 +1,7 @@
 #pragma once
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
+#include "../Logger/sLogger.h"
 
 #define CORE_MAX_INTERNAL_LEVELS 128
 
@@ -12,8 +13,12 @@ struct sCoreParms : sCfgObj {
 	float scaleMin[CORE_MAX_INTERNAL_LEVELS];
 	float scaleMax[CORE_MAX_INTERNAL_LEVELS];
 
+	EXPORT sCoreParms(sObjParmsDef, sLogger* persistor_, int loadingPid_);
 	EXPORT sCoreParms(sCfgObjParmsDef);
 	EXPORT ~sCoreParms();
 
 	virtual void setScaleMinMax()=0;
+	virtual void save(int pid, int tid)=0;
+	virtual void load(int pid, int tid)=0;
+
 };

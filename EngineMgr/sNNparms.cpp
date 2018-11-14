@@ -38,7 +38,7 @@ sNNparms::sNNparms(sCfgObjParmsDef) : sCoreParms(sCfgObjParmsVal) {
 	}
 
 }
-sNNparms::sNNparms(sObjParmsDef) : sCoreParms(sObjParmsVal, nullptr, nullptr) {
+sNNparms::sNNparms(sObjParmsDef, sLogger* persistor_, int loadingPid_) : sCoreParms(sObjParmsVal, persistor_, loadingPid_) {
 	mallocs();
 }
 sNNparms::~sNNparms() {
@@ -46,6 +46,7 @@ sNNparms::~sNNparms() {
 	free(ActivationFunction);
 }
 
+//-- local implementations of virtual functions defined in sCoreParms
 void sNNparms::setScaleMinMax() {
 	for (int l=0; l<levelsCnt; l++) {
 		switch (ActivationFunction[l]) {
@@ -71,4 +72,12 @@ void sNNparms::setScaleMinMax() {
 			break;
 		}
 	}
+}
+void sNNparms::save(int pid, int tid) {}
+void sNNparms::load(int pid, int tid) {}
+
+//-- private stuff
+void sNNparms::mallocs() {
+	levelRatio=(float*)malloc((CORE_MAX_INTERNAL_LEVELS-2)*sizeof(float));
+	ActivationFunction=(int*)malloc(CORE_MAX_INTERNAL_LEVELS*sizeof(int));
 }

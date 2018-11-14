@@ -30,9 +30,6 @@
     <ClInclude Include="sCoreParms.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sNN.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sGA.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -42,13 +39,7 @@
     <ClInclude Include="sSOM.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sNNparms.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sGAparms.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sNNenums.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sSOMenums.h">
@@ -79,6 +70,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sDUMBenums.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sNN.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sNNenums.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sNNparms.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

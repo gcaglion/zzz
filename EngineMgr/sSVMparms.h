@@ -8,8 +8,12 @@
 
 struct sSVMparms : sCoreParms {
 	sSVMparms(sCfgObjParmsDef);
-	sSVMparms(sObjParmsDef);
+	sSVMparms(sObjParmsDef, sLogger* persistor_, int loadingPid_);
 	~sSVMparms();
 
+	//-- local implementations of virtual functions defined in sCoreParms
 	EXPORT void setScaleMinMax();
+	EXPORT void save(int pid, int tid);
+	EXPORT void load(int pid, int tid);
+
 };
