@@ -148,31 +148,31 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 				case CORE_NN:
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, persistor, loadingPid);
 					NNcp->setScaleMinMax();
-					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, persistor, loadingPid);
+//					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, persistor, loadingPid);
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
 					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, persistor, loadingPid);
 					GAcp->setScaleMinMax();
-					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, persistor, loadingPid);
+//					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, persistor, loadingPid);
 					coreParms[c]=GAcp; core[c]=GAc;
 					break;
 				case CORE_SVM:
 					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, persistor, loadingPid);
 					SVMcp->setScaleMinMax();
-					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, persistor, loadingPid);
+//					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, persistor, loadingPid);
 					coreParms[c]=SVMcp; core[c]=SVMc;
 					break;
 				case CORE_SOM:
 					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, persistor, loadingPid);
 					SOMcp->setScaleMinMax();
-					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, persistor, loadingPid);
+//					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, persistor, loadingPid);
 					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
 				case CORE_DUMB:
 					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, persistor, loadingPid);
 					DUMBcp->setScaleMinMax();
-					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, persistor, loadingPid);
+//					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, persistor, loadingPid);
 					coreParms[c]=DUMBcp; core[c]=DUMBc;
 					break;
 				default:
