@@ -331,6 +331,7 @@ void sEngine::saveInfo() {
 	//-- malloc temps
 	int* coreId_=(int*)malloc(coresCnt*sizeof(int));
 	int* coreType_=(int*)malloc(coresCnt*sizeof(int));
+	int* coreThreadId_=(int*)malloc(coresCnt*sizeof(int));
 	int* coreParentsCnt_=(int*)malloc(coresCnt*sizeof(int));
 	int** coreParent_=(int**)malloc(coresCnt*sizeof(int*));
 	int** parentConnType_=(int**)malloc(coresCnt*sizeof(int*));
@@ -339,6 +340,7 @@ void sEngine::saveInfo() {
 	for (int c=0; c<coresCnt; c++) {
 		coreId_[c]=c;
 		coreType_[c]=coreLayout[c]->type;
+		coreThreadId_[c]=core[c]->procArgs->tid;
 		coreParentsCnt_[c]=coreLayout[c]->parentsCnt;
 		coreParent_[c]=(int*)malloc(coreParentsCnt_[c]*sizeof(int));
 		parentConnType_[c]=(int*)malloc(coreParentsCnt_[c]*sizeof(int));
@@ -349,13 +351,13 @@ void sEngine::saveInfo() {
 	}
 
 	//-- actual call
-	if (persistor->saveToDB) safecall(persistor->oradb, saveEngineInfo, pid, type, coresCnt, coreId_, coreType_, coreParentsCnt_, coreParent_, parentConnType_);
+	if (persistor->saveToDB) safecall(persistor->oradb, saveEngineInfo, pid, type, coresCnt, coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_);
 
 	//-- free temps
 	for (int c=0; c<coresCnt; c++) {
 		free(coreParent_[c]); free(parentConnType_[c]);
 	}
-	free(coreId_); free(coreType_); free(coreParentsCnt_); free(coreParent_); free(parentConnType_);
+	free(coreId_); free(coreType_); free(coreThreadId_); free(coreParentsCnt_); free(coreParent_); free(parentConnType_);
 }
 
 //-- private stuff

@@ -75,6 +75,7 @@ drop table EngineCores purge;
 create table EngineCores(
 	EnginePid number,
 	CoreId number,
+	CoreThreadId number,
 	CoreType number
 );
 alter table EngineCores add constraint EngineCores_PK primary key(EnginePid, CoreId) using index tablespace LogIdx;
@@ -88,9 +89,10 @@ create table CoreLayouts(
 );
 alter table CoreLayouts add constraint CoreLayouts_PK primary key(EnginePid, CoreId, ParentCoreId) using index tablespace LogIdx;
 
-drop table CoreParametersNN purge;
-create table CoreParametersNN(
-	EnginePid number,
+drop table CoreNNparms purge;
+create table CoreNNparms(
+	ProcessId number,
+	ThreadId number,
 	CoreId number,
 	LevelRatioS varchar2(64),
 	LevelActivationS varchar2(1024),
@@ -105,4 +107,4 @@ create table CoreParametersNN(
 	BPStd_LearningRate number,
 	BPStd_LearningMomentum number
 );
-alter table CoreParametersNN add constraint CoreParametersNN_PK primary key(EnginePid, CoreId) using index tablespace LogIdx;
+alter table CoreNNparms add constraint CoreNNparms_PK primary key(ProcessId, ThreadId) using index tablespace LogIdx;
