@@ -40,7 +40,7 @@ sForecaster::sForecaster(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 		if (doInference) {
 			safecall(cfgKey, getParm, &enginePid, "InferFromPid");
 			//-- spawn engine from forecaster->persistor with pid
-			safespawn(engine, newsname("Engine"), defaultdbg, shape->sampleLen*featuresCnt, shape->predictionLen*featuresCnt, persistor, enginePid);
+			safespawn(engine, newsname("Engine"), defaultdbg, cfg, "Engine", shape->sampleLen*featuresCnt, shape->predictionLen*featuresCnt, persistor, enginePid);
 		}
 	}
 

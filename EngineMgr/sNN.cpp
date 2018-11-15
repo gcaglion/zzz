@@ -1,6 +1,6 @@
 #include "sNN.h"
 
-sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_) {
+sNN::sNN(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sObjParmsVal, layout_, persistor_) {
 	
 	parms=NNparms_;
 
@@ -9,7 +9,6 @@ sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfg
 
 	//parms->MaxEpochs=0;	//-- we need this so destructor does not fail when NN object is used to run-only
 
-						//-- bias still not working(!) Better abort until it does
 	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
 
 	//-- set Common Layout, independent by batchSampleCnt.

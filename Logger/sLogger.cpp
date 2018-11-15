@@ -28,6 +28,7 @@ sLogger::sLogger(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	//-- 2. do stuff and spawn sub-Keys
 	if (saveToDB) safespawn(oradb, newsname("Logger_OraData"), defaultdbg, cfg, "OraData");
+	if (saveToFile) safespawn(filedb, newsname("Logger_FileData"), defaultdbg, cfg, "FileData");
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 

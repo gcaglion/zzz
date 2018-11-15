@@ -5,7 +5,7 @@
 <Forecaster>
 	DoTraining		= false
 	DoInference		= true
-	InferFromPid	= 12660
+	InferFromPid	= 2132
 	DoValidation	= false
 	
 	<DataShape>
@@ -177,7 +177,7 @@
 		<Persistor>
 			readFrom		= OraData
 			saveToDB		= true
-			saveToFile		= true
+			saveToFile		= false
 			<OraData>
 				UserName	= LogUser
 				Password	= LogPwd
@@ -197,7 +197,7 @@
 	<Persistor>
 		readFrom		= OraData
 		saveToDB		= true
-		saveToFile		= true
+		saveToFile		= false
 		<OraData>
 			UserName	= LogUser
 			Password	= LogPwd

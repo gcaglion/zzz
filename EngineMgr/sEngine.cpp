@@ -1,7 +1,7 @@
 #include "sEngine.h"
 
 //-- Engine stuff
-sEngine::sEngine(sObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersistor_, int loadingPid) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersistor_, int loadingPid) : sCfgObj(sCfgObjParmsVal) {
 
 	inputCnt=inputCnt_; outputCnt=outputCnt_;
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
@@ -15,8 +15,11 @@ sEngine::sEngine(sObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersi
 	int** coreParent=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParent[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	int** coreParentConnType=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParentConnType[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 
-	//-- 2. load info from persistor
-	fromPersistor_->loadEngineInfo(loadingPid, &type, &coresCnt, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType);
+	//-- engine-level persistor
+	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
+
+	//-- 2. load info from FROM persistor
+	safecall(fromPersistor_, loadEngineInfo, loadingPid, &type, &coresCnt, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType);
 	if (coresCnt==0) fail("Engine pid %d not found.", loadingPid);
 
 	//-- 3. malloc one core, one coreLayout and one coreParms for each core
@@ -32,7 +35,7 @@ sEngine::sEngine(sObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersi
 	setLayerProps();
 
 	//-- spawn cores
-	spawnCoresFromDB(loadingPid);
+	safecall(this, spawnCoresFromDB, loadingPid);
 
 	//-- free(s)
 	for (int i=0; i<MAX_ENGINE_CORES; i++) {
@@ -103,7 +106,7 @@ void sEngine::spawnCoresFromXML() {
 				case CORE_NN:
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
 					NNcp->setScaleMinMax();
-					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", coreLayout[c], NNcp);
+					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, coreLayout[c], NNcp);
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
@@ -151,7 +154,8 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 				case CORE_NN:
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					NNcp->setScaleMinMax();
-//					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
+					NNc=new sNN(this, newsname("Core%d_NN", c), defaultdbg, coreLayout[c], NNcp);
+					//safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, coreLayout[c], NNcp);
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:

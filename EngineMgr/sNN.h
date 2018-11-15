@@ -10,7 +10,7 @@
 
 struct sNN : sCore {
 
-	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
+	EXPORT sNN(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_);
 	EXPORT ~sNN();
 
 	//-- local implementations of sCore virtual methods

@@ -31,7 +31,7 @@ struct sEngine : sCfgObj {
 
 	EXPORT sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_);
 	EXPORT ~sEngine();
-	EXPORT sEngine(sObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersistor_, int loadingPid);
+	EXPORT sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersistor_, int loadingPid);
 
 	EXPORT void train(int testid_, sDataSet* trainDS_);
 	EXPORT void infer(int testid_, sDataSet* inferDS_);

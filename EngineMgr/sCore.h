@@ -42,6 +42,7 @@ struct sCore : sCfgObj {
 	sCoreLogger* persistor;
 	sCoreProcArgs* procArgs;
 
+	EXPORT sCore(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_);
 	EXPORT sCore(sCfgObjParmsDef, sCoreLayout* layout_);
 	EXPORT ~sCore();
 
