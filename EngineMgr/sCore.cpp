@@ -16,7 +16,7 @@ sCore::sCore(sCfgObjParmsDef, sCoreLayout* layout_) : sCfgObj(sCfgObjParmsVal) {
 }
 sCore::~sCore() {}
 
-void sCore::inferNEW(int samplesCnt_, int sampleLen_, int predictionLen_, int featuresCnt_, numtype* INsampleSBF, numtype* INtargetSBF, numtype* OUTpredictionSBF) {
+void sCore::infer(int samplesCnt_, int sampleLen_, int predictionLen_, int featuresCnt_, numtype* INsampleSBF, numtype* INtargetSBF, numtype* OUTpredictionSBF) {
 	int sFromIdx, sToIdx, tFromIdx, tToIdx;
 	int slen=sampleLen_*featuresCnt_;
 	int plen=predictionLen_*featuresCnt_;

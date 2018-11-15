@@ -55,12 +55,12 @@ struct sCore : sCfgObj {
 	virtual void setLayout(int batchSize_)=0;
 	virtual void mallocLayout()=0;
 	virtual void train(sCoreProcArgs* procArgs_)=0;	
-	virtual void singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtype** singlePredictionSBF)=0;	//-- should set singlePredictionSBF
+	virtual void infer(int samplesCnt_, int sampleLen_, int predictionLen_, int featuresCnt_, numtype* INsampleSBF, numtype* INtargetSBF, numtype* OUTpredictionSBF);	// NOT abstract
+	virtual void singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtype** singlePredictionSBF)=0;
 	//-- I/O	
 	virtual void saveImage(int pid, int tid, int epoch)=0;
 	virtual void loadImage(int pid, int tid, int epoch)=0;
 
-	void inferNEW(int samplesCnt_, int sampleLen_, int predictionLen_, int featuresCnt_, numtype* INsampleSBF, numtype* INtargetSBF, numtype* OUTpredictionSBF);
 
 
 };

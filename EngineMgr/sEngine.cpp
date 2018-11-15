@@ -139,6 +139,7 @@ void sEngine::spawnCoresFromXML() {
 				}
 				cfg->currentKey=cfgKey;
 			}
+			core[c]->parms=coreParms[c];
 		}
 	}
 }
@@ -154,8 +155,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 				case CORE_NN:
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					NNcp->setScaleMinMax();
-					NNc=new sNN(this, newsname("Core%d_NN", c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, coreLayout[c], NNcp);
-					//safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, coreLayout[c], NNcp);
+					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, coreLayout[c], NNcp);
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
@@ -186,6 +186,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					fail("Invalid Core Type: %d", type);
 					break;
 				}
+				core[c]->parms=coreParms[c];
 			}
 		}
 	}
@@ -199,7 +200,7 @@ DWORD coreThreadTrain(LPVOID vargs_) {
 DWORD coreThreadInfer(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
 	sDataSet* ds = args->coreProcArgs->ds;
-	args->core->inferNEW(ds->samplesCnt, ds->sampleLen, ds->predictionLen, ds->selectedFeaturesCnt, ds->sampleSBF, ds->targetSBF, ds->predictionSBF);
+	args->core->infer(ds->samplesCnt, ds->sampleLen, ds->predictionLen, ds->selectedFeaturesCnt, ds->sampleSBF, ds->targetSBF, ds->predictionSBF);
 	return 1;
 }
 
@@ -352,6 +353,8 @@ void sEngine::saveInfo() {
 			coreParent_[c][p]=p;
 			parentConnType_[c][p]=core[c]->layout->parentConnType[p];
 		}
+		//-- for each core, save core Parameters
+		safecall(core[c]->parms, save, persistor, pid, coreThreadId_[c]);
 	}
 
 	//-- actual call
