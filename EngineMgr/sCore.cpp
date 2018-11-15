@@ -1,6 +1,6 @@
 #include "sCore.h"
 
-sCore::sCore(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sCore::sCore(sCfgObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_) : sCfgObj(sCfgObjParmsVal) {
 	layout=layout_;
 	persistor=persistor_;
 

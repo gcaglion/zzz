@@ -10,6 +10,105 @@ sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), defa
 sRoot::~sRoot() {}
 
 //-- core stuff
+
+void sRoot::newClient() {
+
+	char* endtimeS;
+	sTimer* timer=new sTimer();
+	sLogger* clientPersistor=nullptr;
+	sCfg* clientCfg;
+	sCfg* forecasterCfg;
+
+	//-- client vars
+	int simulationLength;
+	char** simulationTrainStartDate=nullptr;
+	char** simulationInferStartDate=nullptr;
+	char** simulationValidStartDate=nullptr;
+
+
+	try {
+
+		//-- 1. load client XML configurations
+		safespawn(clientCfg, newsname("clientCfg_Root"), defaultdbg, clientCfgFileFullName);
+
+		//-- 2. create client persistor, if needed
+		bool saveClient;
+		safecall(clientCfg, setKey, "/Client");
+		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
+		if (saveClient) safespawn(clientPersistor, newsname("Client_Persistor"), defaultdbg, clientCfg, "Persistor");
+
+		//-- 3. set simulation dates
+		safecall(this, mallocSimulationDates, clientCfg, &simulationLength, &simulationTrainStartDate, &simulationInferStartDate, &simulationValidStartDate);
+
+		//-- 4. Load Forecaster configuration
+		safespawn(forecasterCfg, newsname("forecasterCfg_Root"), erronlydbg, forecasterCfgFileFullName);
+
+
+		//-- 5. for each simulation date,
+		for (int s=0; s<simulationLength; s++) {
+			//-- 5.0. start timer
+			timer->start();
+			//-- 5.1. spawn forecaster
+			safespawn(forecaster, newsname("mainForecaster"), defaultdbg, forecasterCfg, "/Forecaster");
+			//-- 5.2. get simulation date for s
+			safecall(this, getSimulationDates, clientCfg, &simulationLength, simulationTrainStartDate, simulationInferStartDate, simulationValidStartDate);
+			//-- 5.3. spawn engine (either from xml or db based on configuration)
+			safecall(forecaster, setEngine);
+			//-- 5.4. training block
+			safecall(forecaster, trainBlock, s, simulationTrainStartDate[s]);
+			//-- 5.5. inference block
+			safecall(forecaster, inferBlock, s, simulationInferStartDate[s]);
+			//-- 5.6 Commit engine persistor data
+			safecall(forecaster->engine, commit);
+			//-- 5.7. stop timer, and save client info
+			endtimeS=timer->stop();
+			safecall(clientPersistor, saveClientInfo, pid, s, "Root.Tester", timer->startTime, timer->elapsedTime, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], forecaster->doTraining, forecaster->doInference, forecaster->doTraining);
+
+			//-- 5.8. delete forecaster (and engine along with it)
+			delete forecaster;
+		}
+
+	} catch (std::exception exc) {
+		fail("Exception=%s", exc.what());
+	}
+}
+
+void sRoot::mallocSimulationDates(sCfg* clientCfg_, int* simLen, char*** simTrainStart, char*** simInferStart, char*** simValidStart) {
+
+	//-- get Simulation Length and start date[0]
+	safecall(clientCfg_->currentKey, getParm, simLen, "SimulationLength");
+	int sl=(*simLen);
+	//--
+	(*simTrainStart)=(char**)malloc(sl*sizeof(char*));
+	(*simInferStart)=(char**)malloc((*simLen)*sizeof(char*));
+	(*simValidStart)=(char**)malloc((*simLen)*sizeof(char*));
+	for (int s=0; s<(*simLen); s++) {
+		(*simTrainStart)[s]=(char*)malloc(DATE_FORMAT_LEN); (*simTrainStart)[s][0]='\0';
+		(*simInferStart)[s]=(char*)malloc(DATE_FORMAT_LEN); (*simInferStart)[s][0]='\0';
+		(*simValidStart)[s]=(char*)malloc(DATE_FORMAT_LEN); (*simValidStart)[s][0]='\0';
+	}
+
+}
+void sRoot::getSimulationDates(sCfg* clientCfg_, int* simLen, char** simTrainStart, char** simInferStart, char** simValidStart) {
+
+	//-- if the dataset is used, read startdate from client xml for each dataset
+	if (forecaster->doTraining) {
+		safecall(clientCfg_->currentKey, getParm, &simTrainStart[0], "TrainStartDate");
+		getStartDates(forecaster->trainDS, simTrainStart[0], (*simLen), &simTrainStart);
+	}
+	if (forecaster->doInference) {
+		safecall(clientCfg_->currentKey, getParm, &simInferStart[0], "InferStartDate");
+		getStartDates(forecaster->inferDS, simInferStart[0], (*simLen), &simInferStart);
+	}
+	if (forecaster->doValidation) {
+		safecall(clientCfg_->currentKey, getParm, &simValidStart[0], "ValidationStartDate");
+		getStartDates(forecaster->validDS, simValidStart[0], (*simLen), &simValidStart);
+	}
+
+}
+
+
+/*
 void sRoot::tester() {
 
 	//-- client vars
@@ -34,8 +133,9 @@ void sRoot::tester() {
 		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
 		if(saveClient) safespawn(clientPersistor, newsname("Client_Persistor"), defaultdbg, clientCfg, "Persistor");
 		
-		//-- 3.	get Simulation Length and start date[0]
+		//-- 3.	get Simulation Length and start date[0] from client config
 		safecall(clientCfg->currentKey, getParm, &simulationLength, "SimulationLength");
+
 
 		//--
 		simulationTrainStartDate=(char**)malloc(simulationLength*sizeof(char*));
@@ -114,7 +214,7 @@ void sRoot::tester() {
 		fail("Exception=%s", exc.what());
 	}
 }
-
+*/
 //-- utils stuff
 void sRoot::CLoverride(int argc, char* argv[]) {
 		char orName[XMLKEY_PARM_NAME_MAXLEN];
@@ -166,6 +266,7 @@ bool MTcreateForecasterEnv(char* baseConfigFileFullName, int overridesCnt, char*
 }
 
 //-- temp stuff
+/*
 numtype sRoot::MyRndDbl(numtype min, numtype max) {
 	unsigned int number;
 	int err;
@@ -235,7 +336,7 @@ void sRoot::kaz4() {
 
 	ts1->load(TARGET, BASE);
 	ts1->dump(TARGET, BASE);
-	/*	ts1->transform(TARGET);
+	ts1->transform(TARGET);
 	ts1->dump(TARGET, TR);
 	ts1->scale(TARGET, TR, -1, 1);
 	ts1->dump(TARGET, TRS);
@@ -245,7 +346,7 @@ void sRoot::kaz4() {
 	ts1->dump(PREDICTED, TR);
 	ts1->untransform(PREDICTED, TSFcnt, TSF);
 	ts1->dump(PREDICTED, BASE);
-	*/
+	
 	const int selFcnt=2; int selF[selFcnt]={ 1,2 };
 	sDataSet* ds1 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, true, "C:/temp/DataDump");
 	ds1->build(TARGET, BASE);
@@ -270,11 +371,11 @@ void sRoot::kaz4() {
 	ds2->unbuild(TARGET, PREDICTED, BASE);
 	ts1->dump(PREDICTED, BASE);
 	return;
-	/*		sDataSet* ds2 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
-	ds2->build(TARGET, TR);
-	sDataSet* ds3 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
-	ds3->build(TARGET, TRS);
-	*/
+//	sDataSet* ds2 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
+//	ds2->build(TARGET, TR);
+//	sDataSet* ds3 = new sDataSet(this, newsname("ds1"), defaultdbg, ts1, 10, 3, 10, selFcnt, selF, false, nullptr, true, "C:/temp/DataDump");
+//	ds3->build(TARGET, TRS);
+	
 
 
 }
@@ -297,3 +398,4 @@ void sRoot::kaz5() {
 	sNNparms* nn2parms; safespawn(nn2parms, newsname("NN2Parms"), defaultdbg, pers1, pid, tid);
 
 }
+*/

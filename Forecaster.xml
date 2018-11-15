@@ -5,7 +5,7 @@
 <Forecaster>
 	DoTraining		= false
 	DoInference		= true
-	InferFromPid	= 2132
+	InferFromPid	= 9124
 	DoValidation	= false
 	
 	<DataShape>

@@ -129,7 +129,11 @@ void sCfg::setActualKeyDesc(const char* keyDesc_) {
 		strcpy_s(keyDesc, XMLKEY_PATH_MAXLEN, currentKey->name->full);
 		//-- append sought keyDesc, without initial '/'
 		strcat_s(keyDesc, XMLKEY_PATH_MAXLEN, "/");
-		strcat_s(keyDesc, XMLKEY_PATH_MAXLEN, keyDesc_);
+		//--check if current path ("." or "./") is specified
+		int s=0;
+		if (keyDesc_[0]=='.') s++;
+		if (keyDesc_[1]=='/') s++;
+		strcat_s(keyDesc, XMLKEY_PATH_MAXLEN, &keyDesc_[s]);
 	}
 
 	//-- cut out this cfg name from initial part of keyDesc, so to make it relative

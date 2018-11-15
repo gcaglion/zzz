@@ -1,21 +1,21 @@
 #include "sNN.h"
 
-sNN::sNN(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sObjParmsVal, layout_, persistor_) {
-	
+sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_, persistor_) {
 	parms=NNparms_;
+
+}
+sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_) {
+	parms=NNparms_;
+	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
 
 	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
 	safespawn(Alg, newsname("%s_Algebra", name->base), dbg);
 
-	//parms->MaxEpochs=0;	//-- we need this so destructor does not fail when NN object is used to run-only
-
-	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
 
 	//-- set Common Layout, independent by batchSampleCnt.
 	setCommonLayout();	
 	//-- weights can be set now, as they are not affected by batchSampleCnt
 	createWeights();
-	//safecall(this, createWeights);
 
 	//-- 3. malloc device-based scalar value, to be used by reduction functions (sum, ssum, ...)
 	Alg->myMalloc(&se, 1);

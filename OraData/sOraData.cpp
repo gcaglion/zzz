@@ -370,6 +370,7 @@ void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** lev
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 
+		int i=0;
 		while (((ResultSet*)rset)->next()) {
 			strcpy_s((*levelRatioS_), XMLKEY_PARM_VAL_MAXLEN, ((ResultSet*)rset)->getString(1).c_str());
 			strcpy_s((*levelActivationS_), XMLKEY_PARM_VAL_MAXLEN, ((ResultSet*)rset)->getString(2).c_str());
@@ -382,13 +383,15 @@ void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** lev
 			(*BPalgo_)=((ResultSet*)rset)->getInt(9);
 			(*learningRate_)=((ResultSet*)rset)->getFloat(10);
 			(*learningMomentum_)=((ResultSet*)rset)->getFloat(11);
+			i++;
 		}
 
 		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 
-	}
-	catch (SQLException ex) {
+		if (i==0) fail("Core Parameters not found for ProcessId=%d, ThreadId=%d", pid, tid);
+
+	} catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }

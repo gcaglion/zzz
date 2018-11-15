@@ -11,23 +11,21 @@ struct sRoot : sObj {
 
 	int pid;
 
-	sTimer* timer;
-	sLogger* clientPersistor;
-	sCfg* clientCfg;
-	sCfg* forecasterCfg;
-
 	sForecaster* forecaster;
-	
 	
 	EXPORT sRoot(int argc_=0, char* argv_[]=nullptr);
 	EXPORT ~sRoot();
 
-	EXPORT void tester();
+	//EXPORT void tester();
 	
 	void kaz4();
 	EXPORT void kaz5();
+	EXPORT void newClient();
 
 private:
+
+	sTimer timer;
+
 	//-- variables
 	char clientCfgFileFullName[MAX_PATH];
 	char forecasterCfgFileFullName[MAX_PATH];
@@ -35,13 +33,13 @@ private:
 	int cfgOverrideCnt=0;
 	char cfgOverrideName[XMLLINE_MAXCNT][XMLKEY_PARM_NAME_MAXLEN];
 	char cfgOverrideValS[XMLKEY_PARM_MAXCNT][XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
+	//--
+	void CLoverride(int argc, char* argv[]);
 
 	//-- functions
+	void mallocSimulationDates(sCfg* clientCfg, int* simLen, char*** simTrainStart, char*** simInferStart, char*** simValidStart);
 	void getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates);
-	void CLoverride(int argc, char* argv[]);
-	//--
-	static numtype MyRndDbl(numtype min, numtype max);
-	void testDML();
+	void getSimulationDates(sCfg* clientCfg_, int* simLen, char** simTrainStart, char** simInferStart, char** simValidStart);
 
 };
 

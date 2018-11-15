@@ -106,7 +106,7 @@ void sEngine::spawnCoresFromXML() {
 				case CORE_NN:
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
 					NNcp->setScaleMinMax();
-					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, coreLayout[c], NNcp);
+					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", coreLayout[c], NNcp);
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
@@ -154,7 +154,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 				case CORE_NN:
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					NNcp->setScaleMinMax();
-					NNc=new sNN(this, newsname("Core%d_NN", c), defaultdbg, coreLayout[c], NNcp);
+					NNc=new sNN(this, newsname("Core%d_NN", c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, coreLayout[c], NNcp);
 					//safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, coreLayout[c], NNcp);
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;

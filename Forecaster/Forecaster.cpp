@@ -32,18 +32,6 @@ sForecaster::sForecaster(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	//-- Engine featuresCnt is determined by trainig Dataset if we do training: by inference dataset otherwise
 	featuresCnt=(doTraining) ? trainDS->selectedFeaturesCnt : inferDS->selectedFeaturesCnt;
 
-	if (doTraining) {
-		//-- spawn engine standard way
-		safespawn(engine, newsname("Engine"), defaultdbg, cfg, "Engine", shape->sampleLen*featuresCnt, shape->predictionLen*featuresCnt);
-
-	} else {
-		if (doInference) {
-			safecall(cfgKey, getParm, &enginePid, "InferFromPid");
-			//-- spawn engine from forecaster->persistor with pid
-			safespawn(engine, newsname("Engine"), defaultdbg, cfg, "Engine", shape->sampleLen*featuresCnt, shape->predictionLen*featuresCnt, persistor, enginePid);
-		}
-	}
-
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 
@@ -54,3 +42,47 @@ void sForecaster::getForecast(char* trainDate0_, char* testDate0_, char* validDa
 
 }
 
+void sForecaster::setEngine(){
+
+	//-- 1. spawn engine from either xml or db
+	if (doTraining) {
+		//-- spawn engine standard way
+		safespawn(engine, newsname("Engine"), defaultdbg, cfg, "/Forecaster/Engine", shape->sampleLen*featuresCnt, shape->predictionLen*featuresCnt);
+
+	} else {
+		if (doInference) {
+			safecall(cfgKey, getParm, &enginePid, "InferFromPid");
+			//-- spawn engine from forecaster->persistor with pid
+			safespawn(engine, newsname("Engine"), defaultdbg, cfg, "/Forecaster/Engine", shape->sampleLen*featuresCnt, shape->predictionLen*featuresCnt, persistor, enginePid);
+		}
+	}
+
+
+}
+void sForecaster::trainBlock(int simulId, char* startDate) {
+	if (doTraining) {
+		//-- 6.1.1. set date0 in trainDS->TimeSerie, and load it
+		safecall(trainDS->sourceTS, load, TARGET, BASE, startDate);
+		//-- 6.1.2. spawn engine from config file
+
+		//-- 6.1.3. do training (also populates datasets)
+		safecall(engine, train, simulId, trainDS);
+		//-- 6.1.4. persist MSE logs
+		safecall(engine, saveMSE);
+		//-- 6.1.5 persist Core logs
+		safecall(engine, saveImage);
+		//-- 6.1.6 persist Engine Info
+		safecall(engine, saveInfo);
+	}
+}
+void sForecaster::inferBlock(int simulId, char* startDate) {
+	if (doInference) {
+		//-- 6.2.1. set date0 in testDS->TimeSerie, and load it
+		safecall(inferDS->sourceTS, load, TARGET, BASE, startDate);
+
+		//-- 6.2.2. do inference (also populates datasets)
+		safecall(engine, infer, simulId, inferDS);
+		//-- 6.2.3. persist Run logs
+		safecall(engine, saveRun);
+	}
+}
