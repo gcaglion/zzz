@@ -352,7 +352,7 @@ void sEngine::saveInfo() {
 	}
 
 	//-- actual call
-	if (persistor->saveToDB) safecall(persistor->oradb, saveEngineInfo, pid, type, coresCnt, coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_);
+	safecall(persistor, saveEngineInfo, pid, type, coresCnt, coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_);
 
 	//-- free temps
 	for (int c=0; c<coresCnt; c++) {
