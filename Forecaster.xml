@@ -5,7 +5,7 @@
 <Forecaster>
 	DoTraining		= false
 	DoInference		= true
-	InferFromPid	= 9068
+	InferFromPid	= 12660
 	DoValidation	= false
 	
 	<DataShape>
@@ -98,6 +98,7 @@
 					saveRun			= true
 					saveInternals	= false
 					saveImage		= true
+					readFrom		= OraData
 					saveToDB		= true
 					saveToFile		= false
 					<OraData>
@@ -150,6 +151,7 @@
 					saveRun			= true
 					saveInternals	= false
 					saveImage		= true
+					readFrom		= OraData
 					saveToDB		= true
 					saveToFile		= false
 					<OraData>
@@ -173,6 +175,7 @@
 		</WNN>
 
 		<Persistor>
+			readFrom		= OraData
 			saveToDB		= true
 			saveToFile		= true
 			<OraData>
@@ -192,6 +195,7 @@
 
 	</Engine>
 	<Persistor>
+		readFrom		= OraData
 		saveToDB		= true
 		saveToFile		= true
 		<OraData>

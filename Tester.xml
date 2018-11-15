@@ -15,6 +15,7 @@
 	saveClient	= true
 
 	<Persistor>
+		readFrom	= OraData
 		saveToDB	= true
 		saveToFile	= false
 		<OraData>

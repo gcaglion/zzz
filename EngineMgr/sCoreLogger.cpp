@@ -1,6 +1,6 @@
 #include "sCoreLogger.h"
 
-sCoreLogger::sCoreLogger(sObjParmsDef, bool saveToDB_, bool saveToFile_, bool saveMSEFlag_, bool saveRunFlag_, bool saveInternalsFlag_, bool saveImageFlag_) : sLogger(sObjParmsVal, saveToDB_, saveToFile_) {
+sCoreLogger::sCoreLogger(sObjParmsDef, int readFrom_, bool saveToDB_, bool saveToFile_, bool saveMSEFlag_, bool saveRunFlag_, bool saveInternalsFlag_, bool saveImageFlag_) : sLogger(sObjParmsVal, readFrom_, saveToDB_, saveToFile_) {
 	saveToDB=saveToDB_; saveToFile=saveToFile_;
 	saveMSEFlag=saveMSEFlag_;
 	saveRunFlag=saveRunFlag_;

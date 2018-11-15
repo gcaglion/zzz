@@ -1,24 +1,28 @@
 #include "sLogger.h"
 
-sLogger::sLogger(sObjParmsDef, bool saveToDB_, bool saveToFile_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
-	saveToDB=saveToDB_;
+sLogger::sLogger(sObjParmsDef, int readFrom_, bool saveToDB_, bool saveToFile_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+	source=readFrom_; saveToDB=saveToDB_;
 	saveToFile=saveToFile_;
 }
 sLogger::sLogger(sObjParmsDef, sOraData* oradb_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+	source=OraData;
 	saveToDB=true; oradb=oradb_;
 	saveToFile=false;
 }
 sLogger::sLogger(sObjParmsDef, sFileData* filedb_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+	source=FileData;
 	saveToDB=false;
 	saveToFile=true; filedb=filedb_;
 }
-sLogger::sLogger(sObjParmsDef, sOraData* oradb_, sFileData* filedb_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sLogger::sLogger(sObjParmsDef, int readFrom_, sOraData* oradb_, sFileData* filedb_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+	source=readFrom_; 
 	saveToDB=true; oradb=oradb_;
 	saveToFile=true; filedb=filedb_;
 }
 sLogger::sLogger(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	//-- 1. get Parameters
+	safecall(cfgKey, getParm, &source, "ReadFrom");
 	safecall(cfgKey, getParm, &saveToDB, "saveToDB");
 	safecall(cfgKey, getParm, &saveToFile, "saveToFile");
 
@@ -62,8 +66,8 @@ void sLogger::saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId,
 	if (saveToFile) safecall(filedb, saveEngineInfo, pid, engineType, coresCnt, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType);
 }
 void sLogger::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* coreThreadId, int* parentCoresCnt, int** parentCore, int** parentConnType) {
-	if (saveToDB) safecall(oradb, loadEngineInfo, pid, engineType, coresCnt, coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
-	if (saveToFile) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
+	if (source==OraData) safecall(oradb, loadEngineInfo, pid, engineType, coresCnt, coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
+	if (source==FileData) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
 }
 //-- Save/Load Core<XXX>Image
 void sLogger::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
@@ -87,24 +91,24 @@ void sLogger::saveCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* 
 	if (saveToFile) safecall(filedb, saveCoreDUMBImage, pid, tid, epoch, Wcnt, W);
 }
 void sLogger::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
-	if (saveToDB) safecall(oradb, loadCoreNNImage, pid, tid, epoch, Wcnt, W);
-	if (saveToFile) safecall(filedb, loadCoreNNImage, pid, tid, epoch, Wcnt, W);
+	if (source==OraData) safecall(oradb, loadCoreNNImage, pid, tid, epoch, Wcnt, W);
+	if (source==FileData) safecall(filedb, loadCoreNNImage, pid, tid, epoch, Wcnt, W);
 }
 void sLogger::loadCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
-	if (saveToDB) safecall(oradb, loadCoreGAImage, pid, tid, epoch, Wcnt, W);
-	if (saveToFile) safecall(filedb, loadCoreGAImage, pid, tid, epoch, Wcnt, W);
+	if (source==OraData) safecall(oradb, loadCoreGAImage, pid, tid, epoch, Wcnt, W);
+	if (source==FileData) safecall(filedb, loadCoreGAImage, pid, tid, epoch, Wcnt, W);
 }
 void sLogger::loadCoreSOMImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
-	if (saveToDB) safecall(oradb, loadCoreSOMImage, pid, tid, epoch, Wcnt, W);
-	if (saveToFile) safecall(filedb, loadCoreSOMImage, pid, tid, epoch, Wcnt, W);
+	if (source==OraData) safecall(oradb, loadCoreSOMImage, pid, tid, epoch, Wcnt, W);
+	if (source==FileData) safecall(filedb, loadCoreSOMImage, pid, tid, epoch, Wcnt, W);
 }
 void sLogger::loadCoreSVMImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
-	if (saveToDB) safecall(oradb, loadCoreSVMImage, pid, tid, epoch, Wcnt, W);
-	if (saveToFile) safecall(filedb, loadCoreSVMImage, pid, tid, epoch, Wcnt, W);
+	if (source==OraData) safecall(oradb, loadCoreSVMImage, pid, tid, epoch, Wcnt, W);
+	if (source==FileData) safecall(filedb, loadCoreSVMImage, pid, tid, epoch, Wcnt, W);
 }
 void sLogger::loadCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
-	if (saveToDB) safecall(oradb, loadCoreDUMBImage, pid, tid, epoch, Wcnt, W);
-	if (saveToFile) safecall(filedb, loadCoreDUMBImage, pid, tid, epoch, Wcnt, W);
+	if (source==OraData) safecall(oradb, loadCoreDUMBImage, pid, tid, epoch, Wcnt, W);
+	if (source==FileData) safecall(filedb, loadCoreDUMBImage, pid, tid, epoch, Wcnt, W);
 }
 //-- Save/Load Core<XXX>Paameters
 void sLogger::saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* levelActivationS_, bool useContext_, bool useBias_, int maxEpochs_, numtype targetMSE_, int netSaveFrequency_, bool stopOnDivergence_, int BPalgo_, float learningRate_, float learningMomentum_) {
@@ -124,8 +128,8 @@ void sLogger::saveCoreDUMBparms(int pid, int tid, int p1, int p2) {
 	fail("Not implemented.");
 }
 void sLogger::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, numtype* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_) {
-	if (saveToDB) safecall(oradb, loadCoreNNparms, pid, tid, levelRatioS_, levelActivationS_, useContext_, useBias_, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_);
-	if (saveToFile) safecall(filedb, loadCoreNNparms, pid, tid, levelRatioS_, levelActivationS_, useContext_, useBias_, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_);
+	if (source==OraData) safecall(oradb, loadCoreNNparms, pid, tid, levelRatioS_, levelActivationS_, useContext_, useBias_, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_);
+	if (source==FileData) safecall(filedb, loadCoreNNparms, pid, tid, levelRatioS_, levelActivationS_, useContext_, useBias_, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_);
 }
 void sLogger::loadCoreGAparms(int pid, int tid, int p1, int p2) {
 	fail("Not implemented.");

@@ -151,31 +151,31 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 				case CORE_NN:
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					NNcp->setScaleMinMax();
-//					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, persistor, loadingPid, _tempTid);
+//					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
 					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					GAcp->setScaleMinMax();
-//					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, persistor, loadingPid, _tempTid);
+//					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					coreParms[c]=GAcp; core[c]=GAc;
 					break;
 				case CORE_SVM:
 					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					SVMcp->setScaleMinMax();
-//					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, persistor, loadingPid, _tempTid);
+//					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					coreParms[c]=SVMcp; core[c]=SVMc;
 					break;
 				case CORE_SOM:
 					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					SOMcp->setScaleMinMax();
-//					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, persistor, loadingPid, _tempTid);
+//					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
 				case CORE_DUMB:
 					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					DUMBcp->setScaleMinMax();
-//					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, persistor, loadingPid, _tempTid);
+//					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					coreParms[c]=DUMBcp; core[c]=DUMBc;
 					break;
 				default:

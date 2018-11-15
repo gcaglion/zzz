@@ -162,6 +162,7 @@
     <ClCompile Include="sLogger.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Logger_enums.h" />
     <ClInclude Include="sLogger.h" />
     <ClInclude Include="sPersitentObj.h" />
   </ItemGroup>

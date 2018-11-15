@@ -13,7 +13,7 @@ struct sCoreLogger : sLogger {
 	bool saveInternalsFlag;
 	bool saveImageFlag;
 
-	sCoreLogger(sObjParmsDef, bool saveToDB_, bool saveToFile_, bool saveMSEFlag_, bool saveRunFlag_, bool saveInternalsFlag_, bool saveImageFlag_);
+	sCoreLogger(sObjParmsDef, int readFrom_, bool saveToDB_, bool saveToFile_, bool saveMSEFlag_, bool saveRunFlag_, bool saveInternalsFlag_, bool saveImageFlag_);
 	sCoreLogger(sCfgObjParmsDef);
 	~sCoreLogger();
 

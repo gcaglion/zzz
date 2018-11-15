@@ -11,16 +11,24 @@ struct sLogger : sCfgObj {
 	//-- How many logs
 	int logsCnt;
 
-	//-- Where
+	
+	//-- Read sources. only one can be used
+	const int OraData  = 0;
+	const int FileData = 1;
+	int source;
+
+	//-- Write destinations. can be more than 1 simultaneously
 	bool saveToDB;
 	bool saveToFile;
+
+	//-- databases. for both read and write
 	sOraData* oradb;
 	sFileData* filedb;
 
-	EXPORT sLogger(sObjParmsDef, bool saveToDB_, bool saveToFile_);	//-- this is called by one of sCoreLogger constructors
+	EXPORT sLogger(sObjParmsDef, int readFrom_, bool saveToDB_, bool saveToFile_);	//-- this is called by one of sCoreLogger constructors
 	EXPORT sLogger(sObjParmsDef, sOraData* oradb_);
 	EXPORT sLogger(sObjParmsDef, sFileData* filedb_);
-	EXPORT sLogger(sObjParmsDef, sOraData* oradb_, sFileData* filedb_);
+	EXPORT sLogger(sObjParmsDef, int readFrom_, sOraData* oradb_, sFileData* filedb_);
 	EXPORT sLogger(sCfgObjParmsDef);
 	EXPORT ~sLogger();
 
