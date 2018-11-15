@@ -229,6 +229,8 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 	}
 
 }
+
+//-- Save Client Info
 void sOraData::saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doTrainRun, bool doTestRun) {
 
 	//-- always check this, first!
@@ -262,6 +264,18 @@ void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 	catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
+}
+void sOraData::saveCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+	fail("Not implemented.");
+}
+void sOraData::saveCoreSOMImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+	fail("Not implemented.");
+}
+void sOraData::saveCoreSVMImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+	fail("Not implemented.");
+}
+void sOraData::saveCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+	fail("Not implemented.");
 }
 void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 
@@ -306,6 +320,89 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 	((Statement*)stmt)->closeResultSet((ResultSet*)rset);
 	((Connection*)conn)->terminateStatement((Statement*)stmt);
 
+}
+void sOraData::loadCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+	fail("Not implemented.");
+}
+void sOraData::loadCoreSVMImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+	fail("Not implemented.");
+}
+void sOraData::loadCoreSOMImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+	fail("Not implemented.");
+}
+void sOraData::loadCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+	fail("Not implemented.");
+}
+
+//-- Save/Load Core<XXX>Paameters
+void sOraData::saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* levelActivationS_, bool useContext_, bool useBias_, int maxEpochs_, numtype targetMSE_, int netSaveFrequency_, bool stopOnDivergence_, int BPalgo_, float learningRate_, float learningMomentum_) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into CoreNNparms(ProcessId, ThreadId, LevelRatioS, LevelActivationS, UseContext, UseBias, MaxEpochs, TargetMSE, NetSaveFrequency, StopOnDivergence, BPAlgo, BPStd_LearningRate, BPStd_LearningMomentum) \
+														 values(%d, %d, '%s', '%s', %d, %d, %d, %f, %d, %d, %d, %f, %f)", \
+		pid, tid, levelRatioS_, levelActivationS_, (useContext_) ? 1 : 0, (useBias_) ? 1 : 0, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_ \
+	);
+	safecall(this, sqlExec, sqlS);
+
+}
+void sOraData::saveCoreGAparms(int pid, int tid, int p1, numtype p2) {
+	fail("Not implemented.");
+}
+void sOraData::saveCoreSVMparms(int pid, int tid, int p1, numtype p2) {
+	fail("Not implemented.");
+}
+void sOraData::saveCoreSOMparms(int pid, int tid, int p1, numtype p2) {
+	fail("Not implemented.");
+}
+void sOraData::saveCoreDUMBparms(int pid, int tid, int p1, numtype p2) {
+	fail("Not implemented.");
+}
+void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, numtype* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open) {}
+
+	sprintf_s(sqlS, SQL_MAXLEN, "select LevelRatioS, LevelActivationS, UseContext, UseBias, MaxEpochs, TargetMSE, NetSaveFrequency, StopOnDivergence, BPAlgo, BPStd_LearningRate, BPStd_LearningMomentum \
+								from CoreNNparms where ProcessId=%d and ThreadId=%d", pid, tid);
+	try {
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+
+		while (((ResultSet*)rset)->next()) {
+			strcpy_s((*levelRatioS_), XMLKEY_PARM_VAL_MAXLEN, ((ResultSet*)rset)->getString(1).c_str());
+			strcpy_s((*levelActivationS_), XMLKEY_PARM_VAL_MAXLEN, ((ResultSet*)rset)->getString(2).c_str());
+			(*useContext_)=(((ResultSet*)rset)->getInt(3)==1);
+			(*useBias_)=(((ResultSet*)rset)->getInt(4)==1);
+			(*maxEpochs_)=((ResultSet*)rset)->getInt(5);
+			(*targetMSE_)=((ResultSet*)rset)->getFloat(6);
+			(*netSaveFrequency_)=((ResultSet*)rset)->getInt(7);
+			(*stopOnDivergence_)=(((ResultSet*)rset)->getInt(8)==1);
+			(*BPalgo_)=((ResultSet*)rset)->getInt(9);
+			(*learningRate_)=((ResultSet*)rset)->getFloat(10);
+			(*learningMomentum_)=((ResultSet*)rset)->getFloat(11);
+		}
+
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+}
+void sOraData::loadCoreGAparms(int pid, int tid, int* p1, numtype* p2) {
+	fail("Not implemented.");
+}
+void sOraData::loadCoreSVMparms(int pid, int tid, int* p1, numtype* p2) {
+	fail("Not implemented.");
+}
+void sOraData::loadCoreSOMparms(int pid, int tid, int* p1, numtype* p2) {
+	fail("Not implemented.");
+}
+void sOraData::loadCoreDUMBparms(int pid, int tid, int* p1, numtype* p2) {
+	fail("Not implemented.");
 }
 
 //-- Save/Load engine info
@@ -371,51 +468,6 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* core
 	}
 
 	//--
-}
-//-- Save/Load Core<XXX>Paameters
-void sOraData::saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* levelActivationS_, bool useContext_, bool useBias_, int maxEpochs_, numtype targetMSE_, int netSaveFrequency_, bool stopOnDivergence_, int BPalgo_, float learningRate_, float learningMomentum_) {
-
-	//-- always check this, first!
-	if (!isOpen) safecall(this, open);
-
-	sprintf_s(sqlS, SQL_MAXLEN, "insert into CoreNNparms(ProcessId, ThreadId, LevelRatioS, LevelActivationS, UseContext, UseBias, MaxEpochs, TargetMSE, NetSaveFrequency, StopOnDivergence, BPAlgo, BPStd_LearningRate, BPStd_LearningMomentum) \
-														 values(%d, %d, '%s', '%s', %d, %d, %d, %f, %d, %d, %d, %f, %f)", \
-		pid, tid, levelRatioS_, levelActivationS_, (useContext_) ? 1 : 0, (useBias_) ? 1 : 0, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_ \
-	);
-	safecall(this, sqlExec, sqlS);
-
-}
-void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, numtype* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_) {
-
-	//-- always check this, first!
-	if (!isOpen) safecall(this, open);
-
-	sprintf_s(sqlS, SQL_MAXLEN, "select LevelRatioS, LevelActivationS, UseContext, UseBias, MaxEpochs, TargetMSE, NetSaveFrequency, StopOnDivergence, BPAlgo, BPStd_LearningRate, BPStd_LearningMomentum \
-								from CoreNNparms where ProcessId=%d and ThreadId=%d", pid, tid);
-	try {
-		stmt = ((Connection*)conn)->createStatement(sqlS);
-		rset = ((Statement*)stmt)->executeQuery();
-
-		while (((ResultSet*)rset)->next()) {
-			strcpy_s((*levelRatioS_), XMLKEY_PARM_VAL_MAXLEN, ((ResultSet*)rset)->getString(1).c_str());
-			strcpy_s((*levelActivationS_), XMLKEY_PARM_VAL_MAXLEN, ((ResultSet*)rset)->getString(2).c_str());
-			(*useContext_)=(((ResultSet*)rset)->getInt(3)==1);
-			(*useBias_)=(((ResultSet*)rset)->getInt(4)==1);
-			(*maxEpochs_)=((ResultSet*)rset)->getInt(5);
-			(*targetMSE_)=((ResultSet*)rset)->getFloat(6);
-			(*netSaveFrequency_)=((ResultSet*)rset)->getInt(7);
-			(*stopOnDivergence_)=(((ResultSet*)rset)->getInt(8)==1);
-			(*BPalgo_)=((ResultSet*)rset)->getInt(9);
-			(*learningRate_)=((ResultSet*)rset)->getFloat(10);
-			(*learningMomentum_)=((ResultSet*)rset)->getFloat(11);
-		}
-
-		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
-		((Connection*)conn)->terminateStatement((Statement*)stmt);
-
-	} catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
-	}
 }
 
 

@@ -140,6 +140,7 @@ void sEngine::spawnCoresFromXML() {
 }
 void sEngine::spawnCoresFromDB(int loadingPid) {
 
+	//-- 
 	int _tempTid=0;
 	//-- spawn each core, layer by layer
 	for (int l=0; l<layersCnt; l++) {

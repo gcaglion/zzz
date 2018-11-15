@@ -45,6 +45,9 @@ struct sCore : sCfgObj {
 	EXPORT sCore(sCfgObjParmsDef, sCoreLayout* layout_);
 	EXPORT ~sCore();
 
+
+
+
 	//-- methods to be implemented indipendently by each subclass(sNN, sGA, ...)
 	
 	//-- Internal layout
