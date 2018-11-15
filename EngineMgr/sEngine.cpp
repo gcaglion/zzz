@@ -10,12 +10,13 @@ sEngine::sEngine(sObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersi
 	//-- 0. mallocs
 	int* coreId=new int(MAX_ENGINE_CORES);
 	int* coreType=new int(MAX_ENGINE_CORES);
+	int* coreThreadId=new int(MAX_ENGINE_CORES);
 	int* coreParentsCnt=new int(MAX_ENGINE_CORES);
 	int** coreParent=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParent[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	int** coreParentConnType=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParentConnType[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 
 	//-- 2. load info from persistor
-	fromPersistor_->loadEngineInfo(loadingPid, &type, &coresCnt, coreId, coreType, coreParentsCnt, coreParent, coreParentConnType);
+	fromPersistor_->loadEngineInfo(loadingPid, &type, &coresCnt, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType);
 	if (coresCnt==0) fail("Engine pid %d not found.", loadingPid);
 
 	//-- 3. malloc one core, one coreLayout and one coreParms for each core
@@ -24,7 +25,7 @@ sEngine::sEngine(sObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersi
 	coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
 	//-- for each Core, get layout info, and set base coreLayout properties  (type, desc, connType, outputCnt)
 	for (int c=0; c<coresCnt; c++) {
-		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, inputCnt, outputCnt, coreType[c], coreParentsCnt[c], coreParent[c], coreParentConnType[c]);
+		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, inputCnt, outputCnt, coreType[c], coreParentsCnt[c], coreParent[c], coreParentConnType[c], coreThreadId[c]);
 	}
 
 	//-- common to all constructors. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
@@ -37,7 +38,7 @@ sEngine::sEngine(sObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersi
 	for (int i=0; i<MAX_ENGINE_CORES; i++) {
 		free(coreParent[i]); free(coreParentConnType[i]);
 	}
-	free(coreParent); free(coreParentConnType); free(coreParentsCnt); free(coreType); free(coreId);
+	free(coreParent); free(coreParentConnType); free(coreParentsCnt); free(coreType); free(coreThreadId); free(coreId);
 }
 sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgObjParmsVal) {
 
@@ -140,8 +141,6 @@ void sEngine::spawnCoresFromXML() {
 }
 void sEngine::spawnCoresFromDB(int loadingPid) {
 
-	//-- 
-	int _tempTid=0;
 	//-- spawn each core, layer by layer
 	for (int l=0; l<layersCnt; l++) {
 		for (int c=0; c<coresCnt; c++) {
@@ -150,31 +149,31 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 
 				switch (coreLayout[c]->type) {
 				case CORE_NN:
-					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, persistor, loadingPid, _tempTid);
+					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					NNcp->setScaleMinMax();
 //					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, persistor, loadingPid, _tempTid);
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
-					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, persistor, loadingPid, _tempTid);
+					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					GAcp->setScaleMinMax();
 //					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, persistor, loadingPid, _tempTid);
 					coreParms[c]=GAcp; core[c]=GAc;
 					break;
 				case CORE_SVM:
-					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, persistor, loadingPid, _tempTid);
+					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					SVMcp->setScaleMinMax();
 //					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, persistor, loadingPid, _tempTid);
 					coreParms[c]=SVMcp; core[c]=SVMc;
 					break;
 				case CORE_SOM:
-					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, persistor, loadingPid, _tempTid);
+					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					SOMcp->setScaleMinMax();
 //					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, persistor, loadingPid, _tempTid);
 					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
 				case CORE_DUMB:
-					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, persistor, loadingPid, _tempTid);
+					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					DUMBcp->setScaleMinMax();
 //					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, persistor, loadingPid, _tempTid);
 					coreParms[c]=DUMBcp; core[c]=DUMBc;

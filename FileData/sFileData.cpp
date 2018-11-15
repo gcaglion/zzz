@@ -123,7 +123,7 @@ void sFileData::loadCoreDUMBparms(int pid, int tid, int* p1, numtype* p2) {
 }
 
 
-void sFileData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+void sFileData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* coreThreadId, int* parentCoresCnt, int** parentCore, int** parentConnType) {
 	fail("Not implemented.");
 }
 void sFileData::saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {

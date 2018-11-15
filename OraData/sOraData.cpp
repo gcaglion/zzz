@@ -427,7 +427,7 @@ void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId
 	}
 
 }
-void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -436,7 +436,7 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* core
 	char nsqlS[SQL_MAXLEN]; Statement* nstmt; ResultSet* nrset;
 
 	//-- 1. coresCnt, coreId, coreType
-	sprintf_s(sqlS, SQL_MAXLEN, "select CoreId, CoreType from EngineCores where EnginePid= %d", pid);
+	sprintf_s(sqlS, SQL_MAXLEN, "select CoreId, CoreType, CoreThreadId from EngineCores where EnginePid= %d", pid);
 	try{
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
@@ -444,7 +444,8 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* core
 		while (((ResultSet*)rset)->next()) {
 			coreId[i]=((ResultSet*)rset)->getInt(1);
 			coreType[i]=((ResultSet*)rset)->getInt(2);
-			
+			tid[i]=((ResultSet*)rset)->getInt(3);
+
 			sprintf_s(nsqlS, SQL_MAXLEN, "select ParentCoreId, ParentConnType from CoreLayouts where EnginePid= %d and CoreId= %d", pid, coreId[i]);
 			nstmt = ((Connection*)conn)->createStatement(nsqlS);
 			nrset = ((Statement*)nstmt)->executeQuery();

@@ -1,7 +1,8 @@
 #include "sCoreLayout.h"
 
-sCoreLayout::sCoreLayout(sObjParmsDef, int inputCnt_, int outputCnt_, int type_, int parentsCnt, int* parentId_, int* parentConnType_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sCoreLayout::sCoreLayout(sObjParmsDef, int inputCnt_, int outputCnt_, int type_, int parentsCnt, int* parentId_, int* parentConnType_, int tid_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	inputCnt=inputCnt_; outputCnt=outputCnt_;
+	tid=(tid_==0) ? GetCurrentThreadId() : tid_;
 	//-- 0. mallocs
 	parentId=(int*)malloc(CORE_MAX_PARENTS*sizeof(int));
 	parentConnType=(int*)malloc(CORE_MAX_PARENTS*sizeof(int));
@@ -13,8 +14,9 @@ sCoreLayout::sCoreLayout(sObjParmsDef, int inputCnt_, int outputCnt_, int type_,
 		parentConnType[p]=parentConnType_[p];
 	}
 }
-sCoreLayout::sCoreLayout(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgObjParmsVal) {
+sCoreLayout::sCoreLayout(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int tid_) : sCfgObj(sCfgObjParmsVal) {
 	inputCnt=inputCnt_; outputCnt=outputCnt_;
+	tid=(tid_==0) ? GetCurrentThreadId() : tid_;
 	//-- 0. mallocs
 	parentId=(int*)malloc(CORE_MAX_PARENTS*sizeof(int));
 	parentConnType=(int*)malloc(CORE_MAX_PARENTS*sizeof(int));

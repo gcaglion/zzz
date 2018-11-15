@@ -61,9 +61,9 @@ void sLogger::saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId,
 	if (saveToDB) safecall(oradb, saveEngineInfo, pid, engineType, coresCnt, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType);
 	if (saveToFile) safecall(filedb, saveEngineInfo, pid, engineType, coresCnt, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType);
 }
-void sLogger::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* parentCoresCnt, int** parentCore, int** parentConnType) {
-	if (saveToDB) safecall(oradb, loadEngineInfo, pid, engineType, coresCnt, coreId, coreType, parentCoresCnt, parentCore, parentConnType);
-	if (saveToFile) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, coreId, coreType, parentCoresCnt, parentCore, parentConnType);
+void sLogger::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* coreThreadId, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+	if (saveToDB) safecall(oradb, loadEngineInfo, pid, engineType, coresCnt, coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
+	if (saveToFile) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
 }
 //-- Save/Load Core<XXX>Image
 void sLogger::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
