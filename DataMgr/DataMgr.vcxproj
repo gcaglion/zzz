@@ -166,12 +166,10 @@
     <ClCompile Include="sGenericDataSource.cpp" />
     <ClCompile Include="sFXDataSource.cpp" />
     <ClCompile Include="sMT4DataSource.cpp" />
-    <ClCompile Include="sData.cpp" />
     <ClCompile Include="sTimeSerie.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="sDataShape.h" />
-    <ClInclude Include="sData.h" />
     <ClInclude Include="sDataSet.h" />
     <ClInclude Include="sDataSource.h" />
     <ClInclude Include="DataSource_enums.h" />

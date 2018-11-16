@@ -2,17 +2,17 @@
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "../EngineMgr/sCoreParms.h"
-#include "sGAenums.h"
+//#include "sDUMBenums.h"
 
-struct sSOMparms : sCoreParms {
-	
+struct sDUMBparms : sCoreParms {
+
 	//-- placeholders
 	int parm1=0;
 	int parm2=0;
 
-	EXPORT sSOMparms(sCfgObjParmsDef);
-	EXPORT sSOMparms(sObjParmsDef, sLogger* persistor_, int loadingPid_, int loadingTid_);
-	EXPORT ~sSOMparms();
+	EXPORT sDUMBparms(sCfgObjParmsDef);
+	EXPORT sDUMBparms(sObjParmsDef, sLogger* persistor_, int loadingPid_, int loadingTid_);
+	EXPORT ~sDUMBparms();
 
 	//-- local implementations of virtual functions defined in sCoreParms
 	EXPORT void setScaleMinMax();

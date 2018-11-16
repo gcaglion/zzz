@@ -1,6 +1,6 @@
 #include "sCoreLogger.h"
 
-sCoreLogger::sCoreLogger(sObjParmsDef, bool saveToDB_, bool saveToFile_, bool saveMSEFlag_, bool saveRunFlag_, bool saveInternalsFlag_, bool saveImageFlag_) : sLogger(sObjParmsVal, nullptr, nullptr) {
+sCoreLogger::sCoreLogger(sObjParmsDef, int readFrom_, bool saveToDB_, bool saveToFile_, bool saveMSEFlag_, bool saveRunFlag_, bool saveInternalsFlag_, bool saveImageFlag_) : sLogger(sObjParmsVal, readFrom_, saveToDB_, saveToFile_) {
 	saveToDB=saveToDB_; saveToFile=saveToFile_;
 	saveMSEFlag=saveMSEFlag_;
 	saveRunFlag=saveRunFlag_;
@@ -18,7 +18,7 @@ sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
 
 	safecall(cfgKey, getParm, &saveToDB, "saveToDB");
 	//-- spawn destination OraData
-	if (saveToDB) safespawn(oradb, newsname("Persistor_OraData"), defaultdbg, cfg, "DestOraData");
+	if (saveToDB) safespawn(oradb, newsname("Persistor_OraData"), defaultdbg, cfg, "Persistor/OraData");
 
 	safecall(cfgKey, getParm, &saveToFile, "saveToFile");
 	//-- spawn destination FileData
@@ -28,7 +28,6 @@ sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
 		safecall(cfgKey, getParm, &ffn[2], "DestFileData/Internals");
 		safecall(cfgKey, getParm, &ffn[3], "DestFileData/Image");
 
-		//filedb= new sFileData(this, newsname("Persistor_FileData"), defaultdbg, FILE_MODE_WRITE, true);
 		safespawn(filedb, newsname("Persistor_FileData"), defaultdbg, FILE_MODE_WRITE, true);
 	}
 
@@ -44,30 +43,4 @@ sCoreLogger::~sCoreLogger(){
 void sCoreLogger::mallocs() {
 	ffn=(char**)malloc(4*sizeof(char*));
 	for (int f=0; f<logsCnt; f++) ffn[f]=(char*)malloc(MAX_PATH);
-}
-void sCoreLogger::loadW(int pid, int tid, int epoch, int Wcnt, numtype* W) {}
-
-void sCoreLogger::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
-	if (saveToDB) {
-		safecall(oradb, saveMSE, pid, tid, mseCnt, mseT, mseV);
-	}
-	if (saveToFile) {
-		safecall(filedb, saveMSE, pid, tid, mseCnt, mseT, mseV);
-	}
-}
-void sCoreLogger::saveRun(int pid, int tid, int npid, int ntid, int barsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted) {
-	if (saveToDB) {
-		safecall(oradb, saveRun, pid, tid, npid, ntid, barsCnt, tsFeaturesCnt_, selectedFeaturesCnt, selectedFeature, predictionLen, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted);
-	}
-	if (saveToFile) {
-		safecall(filedb, saveRun, pid, tid, npid, ntid, barsCnt, tsFeaturesCnt_, selectedFeaturesCnt, selectedFeature, predictionLen, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted);
-	}
-}
-void sCoreLogger::commit() {
-	if (saveToDB) {
-		safecall(oradb, commit);
-	}
-	if (saveToFile) {
-		safecall(filedb, commit);
-	}
 }

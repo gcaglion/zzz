@@ -6,7 +6,7 @@
 #include "../DataMgr/FXData_enums.h"
 #include "../DataMgr/DBConnection_enums.h"
 #include "../DataMgr/TimeSerie_enums.h"
-//#include "../Logger/Logger_enums.h"
+#include "../Logger/Logger_enums.h"
 #include "../EngineMgr/Engine_enums.h"
 #include "../EngineMgr/Core_enums.h"
 #include "../EngineMgr/sNNenums.h"
@@ -30,8 +30,8 @@ void sCfgParm::decode(int elementId, int* oVal) {
 	optionLookup(MT4_SOURCE, elementId);
 
 	//-- Logger enums
-	//optionLookup(ORCL_DEST, elementId);
-	//optionLookup(FILE_DEST, elementId);
+	optionLookup(ORADATA, elementId);
+	optionLookup(FILEDATA, elementId);
 	//-- Debugger enums
 	optionLookup(DEFAULT_DBG_VERBOSITY, elementId);
 	optionLookup(DEFAULT_DBG_TIMING, elementId);
@@ -73,6 +73,8 @@ void sCfgParm::decode(int elementId, int* oVal) {
 	optionLookup(CORE_GA, elementId);
 	optionLookup(CORE_SVM, elementId);
 	optionLookup(CORE_SOM, elementId);
+	optionLookup(CORE_DUMB, elementId);
+	//-- Core connections
 	optionLookup(CONN_DENSE, elementId);
 	optionLookup(CONN_LINEAR, elementId);
 	optionLookup(CONN_TRANSFORM, elementId);

@@ -11,17 +11,17 @@
 #define FAIL_INITCU "CUDA/CUBLAS Initialization Failed. \n"
 #define FAIL_CUDAMALLOC "CUDA malloc failed. \n"
 
-EXPORT bool initCUDA();
-EXPORT bool initCUBLAS(void* cublasH);
-EXPORT bool initCURand(void* cuRandH);
-EXPORT bool initCUstreams(void* cuStream[]);
+EXPORT void initCUDA();
+EXPORT void initCUBLAS(void* cublasH);
+EXPORT void initCURand(void* cuRandH);
+EXPORT void initCUstreams(void* cuStream[]);
 
-EXPORT bool Malloc_cu(numtype** var, int size);
-EXPORT bool Free_cu(numtype* var);
+EXPORT void Malloc_cu(numtype** var, int size);
+EXPORT void Free_cu(numtype* var);
 
 //-- CPU<->GPU transfer functions
-EXPORT bool h2d_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]);
-EXPORT bool d2h_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]);
+EXPORT void h2d_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]);
+EXPORT void d2h_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]);
 
 EXPORT bool loadBatchData_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]);
 EXPORT bool MbyM_cu(void* cublasH, int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, numtype* C);
@@ -60,4 +60,31 @@ EXPORT bool SoftPlus_cu(int vlen, numtype* in, numtype* out);
 EXPORT bool dSoftPlus_cu(int vlen, numtype* in, numtype* out);
 
 EXPORT bool cuMtr_naive(int my, int mx, numtype* m, numtype* omt);
+
+#define CU_MSG_MAXLEN 2048
+
+#define info(msgMask_, ...) dbg->out(DBG_MSG_INFO, __func__, depth, msgMask_, __VA_ARGS__)
+#define err(msgMask_, ...) dbg->out(DBG_MSG_ERR, __func__, depth, msgMask_, __VA_ARGS__)
+#define fail(msgMask_, ...) { dbg->out(DBG_MSG_ERR, __func__, depth, msgMask_, __VA_ARGS__); throw std::exception(dbg->msg);}
+
+
+#define CUWfail(msgMask_, ...) { \
+	char failmsg[CU_MSG_MAXLEN]; \
+	sprintf_s(failmsg, CU_MSG_MAXLEN, msgMask_, __VA_ARGS__); throw std::exception(failmsg); \
+}
+
+#define CUWsafecall(func_, ...){ \
+	try{ \
+		func_(__VA_ARGS__); \
+	} catch (std::exception exc) { \
+		fail("%s FAILURE : %s . Exception: %s", name->base, cmd, exc.what()); \
+	}\
+}
+#define CUWsafecallSilent(func_, ...){ \
+	try{ \
+		func_(__VA_ARGS__); \
+	} catch (std::exception exc) { \
+		fail("%s FAILURE : Exception: %s", name->base, exc.what()); \
+	}\
+}
 

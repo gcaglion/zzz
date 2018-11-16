@@ -7,10 +7,9 @@
 struct sNNparms : sCoreParms {
 
 	//-- topology
-	//int levelsCnt;
 	float* levelRatio;
 	int* ActivationFunction;	// can be different for each level
-	//int batchSamplesCnt;	// usually referred to as Batch Size
+
 	bool useContext;
 	bool useBias;
 
@@ -24,15 +23,16 @@ struct sNNparms : sCoreParms {
 	float LearningRate;
 	float LearningMomentum;
 
-	sNNparms(sCfgObjParmsDef);
-	sNNparms(sObjParmsDef);
-	~sNNparms();
+	EXPORT sNNparms(sCfgObjParmsDef);
+	EXPORT sNNparms(sObjParmsDef, sLogger* persistor_, int loadingPid_, int loadingTid_);
+	EXPORT ~sNNparms();
 
+	//-- local implementations of virtual functions defined in sCoreParms
 	EXPORT void setScaleMinMax();
+	EXPORT void save(sLogger* persistor_, int pid_, int tid_);
 
 private:
-	void mallocs() {
-		levelRatio=(float*)malloc((CORE_MAX_INTERNAL_LEVELS-2)*sizeof(float));
-		ActivationFunction=(int*)malloc(CORE_MAX_INTERNAL_LEVELS*sizeof(int));
-	}
+	void mallocs();
+	char* levelRatioS;
+	char* levelActivationS;
 };

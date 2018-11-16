@@ -162,6 +162,9 @@
   <ItemGroup>
     <ClInclude Include="Core_enums.h" />
     <ClInclude Include="sCoreLogger.h" />
+    <ClInclude Include="sDUMB.h" />
+    <ClInclude Include="sDUMBenums.h" />
+    <ClInclude Include="sDUMBparms.h" />
     <ClInclude Include="sGA.h" />
     <ClInclude Include="sGAenums.h" />
     <ClInclude Include="sGAparms.h" />
@@ -182,6 +185,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="sCoreLogger.cpp" />
+    <ClCompile Include="sDUMB.cpp" />
+    <ClCompile Include="sDUMBparms.cpp" />
     <ClCompile Include="sGA.cpp" />
     <ClCompile Include="sGAparms.cpp" />
     <ClCompile Include="sNN.cpp" />

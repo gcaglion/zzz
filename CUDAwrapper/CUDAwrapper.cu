@@ -44,83 +44,70 @@ static const char *cudaGetErrorEnum(cublasStatus_t error)
 	return "<unknown>";
 }
 
-EXPORT bool initCUDA() {
+EXPORT void initCUDA() {
 	// init CUDA GPU
 	int ret=cudaSetDevice(0);
-	if (ret!=cudaSuccess) {
-		printf("cudaSetDevice failed!  Error %d . Do you have a CUDA-capable GPU installed?\n", ret);
-		return false;
-	}
-	return true;
+	if (ret!=cudaSuccess) CUWfail("cudaSetDevice failed!  Error %d . Do you have a CUDA-capable GPU installed?\n", ret);
 }
-EXPORT bool initCUBLAS(void* cublasH) {
-	// init CUBLAS
+EXPORT void initCUBLAS(void* cublasH) {
 
-	if (cublasCreate((cublasHandle_t*)cublasH)!=CUBLAS_STATUS_SUCCESS) {
-		printf("CUBLAS initialization error!\n");
-		return false;
-	}
+	if (cublasCreate((cublasHandle_t*)cublasH)!=CUBLAS_STATUS_SUCCESS) CUWfail("CUBLAS initialization error!\n");
 
-	return true;
 }
-EXPORT bool initCURand(void* cuRandH) {
+EXPORT void initCURand(void* cuRandH) {
 	if (curandCreateGenerator((curandGenerator_t*)cuRandH, CURAND_RNG_PSEUDO_DEFAULT)!=CURAND_STATUS_SUCCESS) {
 		//if (curandCreateGenerator((curandGenerator_t*)cuRandH, CURAND_RNG_PSEUDO_DEFAULT)!=CURAND_STATUS_SUCCESS) {
-		printf("CURAND initialization error!\n");
-		return false;
+		CUWfail("CURAND initialization error!\n");
 	}
 	/* Set seed */
-	if (curandSetPseudoRandomGeneratorSeed((*(curandGenerator_t*)cuRandH), timeGetTime())!=CURAND_STATUS_SUCCESS) return false;
-	return true;
-}
-EXPORT bool initCUstreams(void* cuStream[]) {
-	for (int s=0; s<MAX_STREAMS; s++) {
-		if (cudaStreamCreate((cudaStream_t*)cuStream[s])!=cudaSuccess) return false;
+	if (curandSetPseudoRandomGeneratorSeed((*(curandGenerator_t*)cuRandH), timeGetTime())!=CURAND_STATUS_SUCCESS) {
+		CUWfail("CURAND initialization error!\n");
 	}
-	return true;
+}
+EXPORT void initCUstreams(void* cuStream[]) {
+	for (int s=0; s<MAX_STREAMS; s++) {
+		if (cudaStreamCreate((cudaStream_t*)cuStream[s])!=cudaSuccess) CUWfail("CU stream %d creation failed.", s);
+	}
 }
 
-EXPORT bool Malloc_cu(numtype** var, int size) {
-	return ((cudaMalloc(var, size*sizeof(numtype))==cudaSuccess));
+EXPORT void Malloc_cu(numtype** var, int size) {
+	if (cudaMalloc(var, size*sizeof(numtype))!=cudaSuccess) CUWfail("F41LUR3!-1111");
 }
-EXPORT bool Free_cu(numtype* var) {
-	return (cudaFree(var)==cudaSuccess);
+EXPORT void Free_cu(numtype* var) {
+	if (cudaFree(var)!=cudaSuccess) CUWfail("F41LUR3!-2222");
 }
 
 //-- CPU<->GPU transfer functions
-EXPORT bool h2d_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]) {
+EXPORT void h2d_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]) {
 	if(cuStream==nullptr) {
-		return ((cudaMemcpy(destAddr, srcAddr, size, cudaMemcpyHostToDevice)==cudaSuccess));
+		if (cudaMemcpy(destAddr, srcAddr, size, cudaMemcpyHostToDevice)!=cudaSuccess) CUWfail("F41LUR3!-333")
 	} else {
 		int streamSize=size/sizeof(numtype)/MAX_STREAMS;
 		size_t streamBytes=streamSize*sizeof(numtype);
 		for (int s=0; s<MAX_STREAMS; s++) {
 			int offset=s*streamSize;
 			if (cudaMemcpyAsync(&destAddr[offset], &srcAddr[offset], streamBytes, cudaMemcpyHostToDevice, (*(cudaStream_t*)cuStream[s]))!=cudaSuccess) {
-				printf("s=%d ; CUDA error %d\n", s, cudaGetLastError());
-				return false;
+				CUWfail("s=%d ; CUDA error %d\n", s, cudaGetLastError());
 			}
 		}
-		return true;
 	}
 }
-EXPORT bool d2h_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]) {
+EXPORT void d2h_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]) {
 	if (cuStream==nullptr) {
-		return ((cudaMemcpy(destAddr, srcAddr, size, cudaMemcpyDeviceToHost)==cudaSuccess));
+		if(cudaMemcpy(destAddr, srcAddr, size, cudaMemcpyDeviceToHost)!=cudaSuccess) CUWfail("F41LUR3!-444")
 	} else {
 		int streamSize=size/sizeof(numtype)/MAX_STREAMS;
 		size_t streamBytes=streamSize*sizeof(numtype);
 		for (int s=0; s<MAX_STREAMS; s++) {
 			int offset=s*streamSize;
 			if (cudaMemcpyAsync(&destAddr[offset], &srcAddr[offset], streamBytes, cudaMemcpyDeviceToHost, (*(cudaStream_t*)cuStream[s]))!=cudaSuccess) {
-				printf("s=%d ; CUDA error %d\n", s, cudaGetLastError());
-				return false;
+				CUWfail("s=%d ; CUDA error %d\n", s, cudaGetLastError());
 			}
 		}
-		return true;
 	}
 }
 
+//==================================
 __global__	void initGPUData_ker(float *data, int numElements, float value) {
 	int tid = blockIdx.x * blockDim.x+threadIdx.x;
 	if (tid < numElements) {
@@ -210,7 +197,7 @@ EXPORT bool MbyM_cu(void* cublasH, int Ay, int Ax, numtype Ascale, bool Atr, num
 	}
 
 	if (!Vinit_cu(m*n, C, 0, 0)) return false;
-	if (cublasSgemm((*(cublasHandle_t*)cublasH), Bop, Aop, m, n, k, alpha, vB, ldB, vA, ldA, beta, C, ldC)!=CUBLAS_STATUS_SUCCESS) return false;
+	if (cublasSgemm((*(cublasHandle_t*)cublasH), Bop, Aop, m, n, k, alpha, vB, ldB, vA, ldA, beta, C, ldC)!=CUBLAS_STATUS_SUCCESS) throw(new std::exception("call to cublasSgem()"));
 
 	return true;
 }

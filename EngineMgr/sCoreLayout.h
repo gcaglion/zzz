@@ -7,6 +7,7 @@
 
 struct sCoreLayout : sCfgObj {
 	int type;	//-- core type
+	int tid;	//-- thread id. 
 	int layer=-1;
 	int parentsCnt;
 	int* parentId;
@@ -17,7 +18,8 @@ struct sCoreLayout : sCfgObj {
 	int outputCnt;
 
 
-	EXPORT sCoreLayout(sCfgObjParmsDef, int inputCnt_, int outputCnt_);
+	EXPORT sCoreLayout(sObjParmsDef, int inputCnt_, int outputCnt_, int type_, int parentsCnt, int* parentId_, int* parentConnType_, int tid_=0);
+	EXPORT sCoreLayout(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int tid_=0);
 	EXPORT ~sCoreLayout();
 
 };

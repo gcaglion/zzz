@@ -2,11 +2,14 @@
 #include "../ConfigMgr/sCfgObj.h"
 #include "sCoreLayout.h"
 #include "sCore.h"
-#include "sGAparms.h"
+#include "sDUMBparms.h"
 
-struct sGA : sCore {
-	EXPORT sGA(sCfgObjParmsDef, sCoreLayout* layout_, sGAparms* GAparms_);
-	EXPORT ~sGA();
+struct sDUMB : sCore {
+
+	float scalingFactor;
+
+	EXPORT sDUMB(sCfgObjParmsDef, sCoreLayout* layout_, sDUMBparms* DUMBparms_);
+	EXPORT ~sDUMB();
 
 	//-- local implementations of sCore virtual methods
 	void setLayout(int batchSamplesCnt_);

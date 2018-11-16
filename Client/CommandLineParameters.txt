@@ -1,0 +1,4 @@
+
+Special parameters:
+--cfgFileC="../Tester.xml"	
+--cfgFileF="../Forecaster.xml"

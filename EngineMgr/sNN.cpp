@@ -1,22 +1,21 @@
 #include "sNN.h"
 
-sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_) {
-	
+sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_, persistor_) {
 	parms=NNparms_;
+
+}
+sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_) {
+	parms=NNparms_;
+	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
 
 	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
 	safespawn(Alg, newsname("%s_Algebra", name->base), dbg);
 
-	//parms->MaxEpochs=0;	//-- we need this so destructor does not fail when NN object is used to run-only
-
-						//-- bias still not working(!) Better abort until it does
-	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
 
 	//-- set Common Layout, independent by batchSampleCnt.
 	setCommonLayout();	
 	//-- weights can be set now, as they are not affected by batchSampleCnt
 	createWeights();
-	//safecall(this, createWeights);
 
 	//-- 3. malloc device-based scalar value, to be used by reduction functions (sum, ssum, ...)
 	Alg->myMalloc(&se, 1);
@@ -48,51 +47,6 @@ void sNN::setCommonLayout() {
 	levelFirstWeight=(int*)malloc((outputLevel)*sizeof(int));
 }
 
-void sNN::setLayout(int batchSamplesCnt_) {
-	int l, nl;
-
-
-	//-- 0.3. set nodesCnt (single sample)
-	nodesCnt[0] = layout->inputCnt*batchSamplesCnt_;
-	nodesCnt[outputLevel] = layout->outputCnt*batchSamplesCnt_;
-	for (nl = 0; nl<(parms->levelsCnt-2); nl++) nodesCnt[nl+1] = (int)floor(nodesCnt[nl]*parms->levelRatio[nl]);
-
-	//-- add context neurons
-	if (parms->useContext) {
-		for (nl = outputLevel; nl>0; nl--) nodesCnt[nl-1] += nodesCnt[nl];
-	}
-	//-- add one bias neurons for each layer, except output layer
-	if (parms->useBias) {
-		for (nl = 0; nl<(outputLevel); nl++) nodesCnt[nl] += 1;
-	}
-
-	//-- 0.2. calc nodesCntTotal
-	nodesCntTotal=0;
-	for (l=0; l<parms->levelsCnt; l++) nodesCntTotal+=nodesCnt[l];
-
-	//-- 0.3. weights count
-	weightsCntTotal=0;
-	for (l=0; l<(outputLevel); l++) {
-		weightsCnt[l]=nodesCnt[l]/batchSamplesCnt_*nodesCnt[l+1]/batchSamplesCnt_;
-		weightsCntTotal+=weightsCnt[l];
-	}
-
-	//-- 0.4. set first node and first weight for each layer
-	for (l=0; l<parms->levelsCnt; l++) {
-		levelFirstNode[l]=0;
-		levelFirstWeight[l]=0;
-		for (int ll=0; ll<l; ll++) {
-			levelFirstNode[l]+=nodesCnt[ll];
-			levelFirstWeight[l]+=weightsCnt[ll];
-		}
-	}
-
-	//-- ctxStart[] can only be defined after levelFirstNode has been defined.
-	if (parms->useContext) {
-		for (nl=0; nl<(outputLevel); nl++) ctxStart[nl]=levelFirstNode[nl+1]-nodesCnt[nl+1]+((parms->useBias) ? 1 : 0);
-	}
-
-}
 
 void sNN::FF() {
 	for (int l=0; l<outputLevel; l++) {
@@ -106,7 +60,7 @@ void sNN::FF() {
 
 		//-- actual feed forward ( W10[nc1 X nc0] X F0[nc0 X batchSize] => a1 [nc1 X batchSize] )
 		FF0start=timeGetTime(); FF0cnt++;
-		Alg->MbyM(Ay, Ax, 1, false, A, By, Bx, 1, false, B, C);
+		safecallSilent(Alg, MbyM, Ay, Ax, 1, false, A, By, Bx, 1, false, B, C);
 		FF0timeTot+=((DWORD)(timeGetTime()-FF0start));
 
 		//-- activation sets F[l+1] and dF[l+1]
@@ -324,6 +278,58 @@ bool sNN::epochSummary(int epoch, DWORD starttime, bool displayProgress) {
 
 	return false;
 }
+
+//-- local implementations of sCore virtual methods
+void sNN::setLayout(int batchSamplesCnt_) {
+	int l, nl;
+
+
+	//-- 0.3. set nodesCnt (single sample)
+	nodesCnt[0] = layout->inputCnt*batchSamplesCnt_;
+	nodesCnt[outputLevel] = layout->outputCnt*batchSamplesCnt_;
+	for (nl = 0; nl<(parms->levelsCnt-2); nl++) nodesCnt[nl+1] = (int)floor(nodesCnt[nl]*parms->levelRatio[nl]);
+
+	//-- add context neurons
+	if (parms->useContext) {
+		for (nl = outputLevel; nl>0; nl--) nodesCnt[nl-1] += nodesCnt[nl];
+	}
+	//-- add one bias neurons for each layer, except output layer
+	if (parms->useBias) {
+		for (nl = 0; nl<(outputLevel); nl++) nodesCnt[nl] += 1;
+	}
+
+	//-- 0.2. calc nodesCntTotal
+	nodesCntTotal=0;
+	for (l=0; l<parms->levelsCnt; l++) nodesCntTotal+=nodesCnt[l];
+
+	//-- 0.3. weights count
+	weightsCntTotal=0;
+	for (l=0; l<(outputLevel); l++) {
+		weightsCnt[l]=nodesCnt[l]/batchSamplesCnt_*nodesCnt[l+1]/batchSamplesCnt_;
+		weightsCntTotal+=weightsCnt[l];
+	}
+
+	//-- 0.4. set first node and first weight for each layer
+	for (l=0; l<parms->levelsCnt; l++) {
+		levelFirstNode[l]=0;
+		levelFirstWeight[l]=0;
+		for (int ll=0; ll<l; ll++) {
+			levelFirstNode[l]+=nodesCnt[ll];
+			levelFirstWeight[l]+=weightsCnt[ll];
+		}
+	}
+
+	//-- ctxStart[] can only be defined after levelFirstNode has been defined.
+	if (parms->useContext) {
+		for (nl=0; nl<(outputLevel); nl++) ctxStart[nl]=levelFirstNode[nl+1]-nodesCnt[nl+1]+((parms->useBias) ? 1 : 0);
+	}
+
+}
+void sNN::mallocLayout() {
+	//-- malloc + init neurons
+	safecall(this, mallocNeurons);
+	safecall(this, initNeurons);
+}
 void sNN::train(sCoreProcArgs* trainArgs) {
 	int l;
 	DWORD epoch_starttime;
@@ -381,10 +387,10 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 		for (b=0; b<trainSet->batchCnt; b++) {
 
 			//-- forward pass, with targets
-			ForwardPass(trainSet, b, true);
+			safecallSilent(this, ForwardPass, trainSet, b, true);
 
 			//-- backward pass, with weights update
-			BackwardPass(trainSet, b, true);
+			safecallSilent(this, BackwardPass, trainSet, b, true);
 
 		}
 
@@ -425,7 +431,21 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	destroyNeurons();
 
 }
-void sNN::infer(sCoreProcArgs* inferArgs) {
+void sNN::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtype** singlePredictionSBF) {
+
+	//-- 1. load input neurons. Need to MAKE SURE incoming array len is the same as inputcount!!!
+	int firstOutputNode=levelFirstNode[outputLevel];
+	Alg->h2d(&F[0], singleSampleSBF, nodesCnt[0]*sizeof(numtype), false);
+	Alg->h2d(&u[0], singleTargetSBF, nodesCnt[outputLevel]*sizeof(numtype), false);
+
+	//-- 2. forward pass
+	FF();
+
+	//-- 3. copy last layer neurons (on dev) to prediction (on host)
+	safecallSilent(Alg, d2h, (*singlePredictionSBF), &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+
+}
+/*void sNN::inferOLD(sCoreProcArgs* inferArgs) {
 
 	sDataSet* runSet=inferArgs->ds;	//-- just a local pointer
 
@@ -452,14 +472,14 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	for (int b=0; b<runSet->batchCnt; b++) {
 
 		//-- 1.1.1.  load samples/targets onto GPU
-		Alg->h2d(&F[(parms->useBias) ? 1 : 0], &sample[b*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
-		Alg->h2d(&u[0], &target[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
+		safecallSilent(Alg, h2d, &F[(parms->useBias) ? 1 : 0], &sample[b*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
+		safecallSilent(Alg, h2d, &u[0], &target[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
 
 		//-- 1.1.2. Feed Forward
-		FF();
+		safecallSilent(this, FF);
 
 		//-- 1.1.3. copy last layer neurons (on dev) to prediction (on host)
-		Alg->d2h(&prediction[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+		safecallSilent(Alg, d2h, &prediction[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 
 		calcErr();
 	}
@@ -476,3 +496,35 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	//-- feee neurons()
 	destroyNeurons();
 }
+
+void sNN::infer(sCoreProcArgs* inferArgs){
+	inferNEW(inferArgs->ds->samplesCnt, inferArgs->ds->sampleLen, inferArgs->ds->predictionLen, inferArgs->ds->selectedFeaturesCnt, inferArgs->ds->sampleSBF, inferArgs->ds->targetSBF, inferArgs->ds->predictionSBF);
+}
+*/
+
+//-- local implementations of sCore virtual methods
+void sNN::saveImage(int pid, int tid, int epoch) {
+
+	//-- malloc clocal copy of W
+	numtype* hW = (numtype*)malloc(weightsCntTotal*sizeof(numtype));
+	//-- get data if it's on the GPU
+	Alg->d2h(hW, W, weightsCntTotal*sizeof(numtype));
+	//-- call persistor to save hW
+	safecall(persistor, saveCoreNNImage, pid, tid, epoch, weightsCntTotal, hW);
+	//-- free local copy
+	free(hW);
+
+}
+void sNN::loadImage(int pid, int tid, int epoch) {
+
+	//-- malloc clocal copy of W
+	numtype* hW = (numtype*)malloc(weightsCntTotal*sizeof(numtype));
+	//-- call persistor to save hW
+	safecall(persistor, saveCoreNNImage, pid, tid, epoch, weightsCntTotal, W);
+	//-- load data if it's on the GPU
+	Alg->h2d(W, hW, weightsCntTotal*sizeof(numtype));
+	//-- free local copy
+	free(hW);
+
+}
+

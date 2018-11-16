@@ -2,63 +2,41 @@
 
 #include "Timer.h"
 #include "Forecaster.h"
-#include "sClientLogger.h"
 
 #include "../DataMgr/sFXDataSource.h"
 #include "../DataMgr/sGenericDataSource.h"
 #include "../DataMgr/sMT4DataSource.h"
 
-struct sss : sObj {
-	sss(sObjParmsDef) : sObj(sObjParmsVal) {
-		fail("Failure");
-	}
-};
-struct ss : sObj {
-	sss* sss1;
-	ss(sObjParmsDef) : sObj(sObjParmsVal) {
-		sss1=new sss(this, newsname("sss1"), defaultdbg);
-	}
-};
-struct s : sObj {
-	ss* ss1;
-	s(sObjParmsDef) : sObj(sObjParmsVal) {
-		ss1=new ss(this, newsname("ss1"), defaultdbg);
-	}
-};
-
 struct sRoot : sObj {
 
 	int pid;
 
-	sCfg* testerCfg;
-	sCfg* forecasterCfg;
 	sForecaster* forecaster;
-
 	
 	EXPORT sRoot(int argc_=0, char* argv_[]=nullptr);
 	EXPORT ~sRoot();
 
-	EXPORT void tester();
-	EXPORT void kaz();
-	EXPORT void kaz2();
-	EXPORT void kaz3();
-	EXPORT void kaz4();
+	EXPORT void newClient();
 
 private:
+
+	sTimer timer;
+
 	//-- variables
-	char testerCfgFileFullName[MAX_PATH];
+	char clientCfgFileFullName[MAX_PATH];
 	char forecasterCfgFileFullName[MAX_PATH];
 	//-- overrides are for forecasterCfg only
 	int cfgOverrideCnt=0;
 	char cfgOverrideName[XMLLINE_MAXCNT][XMLKEY_PARM_NAME_MAXLEN];
 	char cfgOverrideValS[XMLKEY_PARM_MAXCNT][XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
+	//--
+	void CLoverride(int argc, char* argv[]);
 
 	//-- functions
-	void getStartDates(sDataSet* ds, char* date00_, int len, char** oDates);
-	void CLoverride(int argc, char* argv[]);
-	//--
-	static numtype MyRndDbl(numtype min, numtype max);
-	void testDML();
+	void mallocSimulationDates(sCfg* clientCfg, int* simLen, char*** simTrainStart, char*** simInferStart, char*** simValidStart);
+	void getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates);
+	void getSimulationDates(sCfg* clientCfg_, int* simLen, char** simTrainStart, char** simInferStart, char** simValidStart);
+
 };
 
 //-- MetaTrader calls

@@ -1,7 +1,22 @@
 #include "sCoreLayout.h"
 
-sCoreLayout::sCoreLayout(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgObjParmsVal) {
+sCoreLayout::sCoreLayout(sObjParmsDef, int inputCnt_, int outputCnt_, int type_, int parentsCnt, int* parentId_, int* parentConnType_, int tid_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	inputCnt=inputCnt_; outputCnt=outputCnt_;
+	tid=(tid_==0) ? GetCurrentThreadId() : tid_;
+	//-- 0. mallocs
+	parentId=(int*)malloc(CORE_MAX_PARENTS*sizeof(int));
+	parentConnType=(int*)malloc(CORE_MAX_PARENTS*sizeof(int));
+	parentDesc=(char**)malloc(CORE_MAX_PARENTS*sizeof(char*)); for (int p=0; p<CORE_MAX_PARENTS; p++) parentDesc[p]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
+	//-- 1. get Parameters
+	type=type_;
+	for (int p=0; p<parentsCnt; p++) {
+		parentId[p]=parentId_[p];
+		parentConnType[p]=parentConnType_[p];
+	}
+}
+sCoreLayout::sCoreLayout(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int tid_) : sCfgObj(sCfgObjParmsVal) {
+	inputCnt=inputCnt_; outputCnt=outputCnt_;
+	tid=(tid_==0) ? GetCurrentThreadId() : tid_;
 	//-- 0. mallocs
 	parentId=(int*)malloc(CORE_MAX_PARENTS*sizeof(int));
 	parentConnType=(int*)malloc(CORE_MAX_PARENTS*sizeof(int));

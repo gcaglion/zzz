@@ -1,3 +1,8 @@
+--drop user LogUser cascade;
+--create user LogUser identified by LogPwd default tablespace LogData;
+--grant dba to LogUser;
+--connect LogUser/LogPwd@Algo
+
 drop table TrainLog purge;
 create table TrainLog(
 	ProcessId number,
@@ -16,6 +21,7 @@ create table RunLog(
 	NetProcessId number,
 	NetThreadId number,
 	Pos number,
+	PosLabel varchar2(64),
 	Feature number,
 	StepAhead number,
 	ActualTRS number,
@@ -35,10 +41,10 @@ alter table RunLog add constraint RunLog_PK primary key( ProcessId, ThreadId, Po
 drop table ClientInfo purge;
 create table ClientInfo(
 	ProcessId  number,
+	SimulationId number,
 	ClientName varchar2(128),
 	ClientStart date,
 	Duration number,
-	SimulationLen number,
 	SimulationStartTrain date,
 	SimulationStartInfer date,
 	SimulationStartValid date,
@@ -46,5 +52,59 @@ create table ClientInfo(
 	DoTrainRun number,
 	DoTestRun number
 ) storage (initial 2M minextents 4 pctincrease 0);
-alter table ClientInfo add constraint ClientIngo_PK primary key (ProcessId);
+alter table ClientInfo add constraint ClientIngo_PK primary key (ProcessId, SimulationId);
 
+drop table CoreImage_NN purge;
+create table CoreImage_NN(
+	ProcessId number,
+	ThreadId number,
+	Epoch number,
+	WId number,
+	W number
+) storage (initial 1024M minextents 8 pctincrease 0);
+alter table CoreImage_NN add constraint CoreImage_NN_PK primary key( ProcessId, ThreadId, Epoch, WId ) using index tablespace LogIdx;
+
+drop table Engines purge;
+create table Engines(
+	ProcessId number,
+	EngineType number	
+) storage (initial 2M minextents 4 pctincrease 0);
+alter table Engines add constraint Engine_PK primary key(ProcessId) using index tablespace LogIdx;
+
+drop table EngineCores purge;
+create table EngineCores(
+	EnginePid number,
+	CoreId number,
+	CoreThreadId number,
+	CoreType number
+);
+alter table EngineCores add constraint EngineCores_PK primary key(EnginePid, CoreId) using index tablespace LogIdx;
+
+drop table CoreLayouts purge;
+create table CoreLayouts(
+	EnginePid number,
+	CoreId number,
+	ParentCoreId number,
+	ParentConnType number
+);
+alter table CoreLayouts add constraint CoreLayouts_PK primary key(EnginePid, CoreId, ParentCoreId) using index tablespace LogIdx;
+
+drop table CoreNNparms purge;
+create table CoreNNparms(
+	ProcessId number,
+	ThreadId number,
+	CoreId number,
+	LevelRatioS varchar2(64),
+	LevelActivationS varchar2(1024),
+	UseContext	number,
+	UseBias number,
+	--
+	MaxEpochs number,
+	TargetMSE number,
+	NetSaveFrequency number,
+	StopOnDivergence number,
+	BPAlgo number,
+	BPStd_LearningRate number,
+	BPStd_LearningMomentum number
+);
+alter table CoreNNparms add constraint CoreNNparms_PK primary key(ProcessId, ThreadId) using index tablespace LogIdx;

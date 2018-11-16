@@ -10,11 +10,17 @@
 
 struct sNN : sCore {
 
+	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_);
 	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
 	EXPORT ~sNN();
 
-	EXPORT void train(sCoreProcArgs* trainArgs);
-	EXPORT void infer(sCoreProcArgs* inferArgs);
+	//-- local implementations of sCore virtual methods
+	void setLayout(int batchSamplesCnt_);
+	void mallocLayout();
+	void train(sCoreProcArgs* trainArgs);
+	void singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtype** singlePredictionSBF);
+	void saveImage(int pid, int tid, int epoch);
+	void loadImage(int pid, int tid, int epoch);
 
 private:
 	//-- MyAlgebra common structures
@@ -76,7 +82,6 @@ private:
 
 	//--
 	void setCommonLayout();
-	void setLayout(int batchSamplesCnt_);
 	void FF();
 	void Activate(int level);
 	void calcErr();
@@ -93,8 +98,5 @@ private:
 	void destroyNeurons();
 	void destroyWeights();
 
-private:
-	int _batchCnt;
-	int _batchSize;
 };
 

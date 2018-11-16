@@ -3,27 +3,28 @@
 # To include another xml: <Include File=c:\temp\kaz.xml />
 
 <Forecaster>
-	MyList = abc, def, ghijkl, mnopqras
-	<Data>
-		<Shape>
-			SampleLen		= 10
-			PredictionLen	= 3
-		</Shape>
+	DoTraining		= true
+	DoInference		= true
+	InferFromPid	= 10036
+	DoValidation	= false
+	
+	<DataShape>
+		SampleLen		= 10
+		PredictionLen	= 3
+	</DataShape>
+
 		<Train>
-			Do	= true
 			<DataSet>
 				BatchSamplesCount	= 10
-				SelectedFeatures	= FXHIGH, FXLOW
-				BarWidthCalc		= true
-				BarWidthFeatures	= 1,2
-				Dump 				= true
+				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+				Dump 				= false
 				DumpPath			= c:\temp\DataDump
 				<TimeSerie>
-					Date0				= 201707010000
-					HistoryLen			= 502
+					Date0				= 2017-07-01-00:00
+					HistoryLen			= 1002
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
-					Dump				= true
+					Dump				= false
 					DumpPath			= c:\temp\DataDump
 					<FXDB_DataSource>
 						Symbol				= EURUSD
@@ -32,14 +33,39 @@
 						<DBConnection>
 							UserName	= History
 							Password	= HistoryPwd
-							ConnString	= Algo.mavi
+							ConnString	= Algo
 						</DBConnection>
 					</FXDB_DataSource>
 				</TimeSerie>
 			</DataSet>
 		</Train>
+		<Test>
+			<DataSet>
+				BatchSamplesCount	= 1
+				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+				Dump 				= false
+				DumpPath			= c:\temp\DataDump
+				<TimeSerie>
+					Date0				= 2016-07-01-00:00
+					HistoryLen			= 202
+					DataTransformation	= DT_DELTA
+					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
+					Dump				= false
+					DumpPath			= c:\temp\DataDump
+					<FXDB_DataSource>
+						Symbol				= EURUSD
+						TimeFrame			= H1
+						IsFilled			= false
+						<DBConnection>
+							UserName	= History
+							Password	= HistoryPwd
+							ConnString	= Algo
+						</DBConnection>
+					</FXDB_DataSource>
+				</TimeSerie>
+			</DataSet>
+		</Test>
 		<Validation>
-			Do					= false
 			<DataSet>
 				<TimeSerie>
 					<File_DataSource>
@@ -52,71 +78,43 @@
 				</TimeSerie>
 			</DataSet>
 		</Validation>
-		<Test>
-			Do	= true
-			UseShiftedTrainDS	= false
-			<DataSet>
-				BatchSamplesCount	= 1
-				SelectedFeatures	= FXHIGH, FXLOW
-				BarWidthCalc		= true
-				BarWidthFeatures	= 1,2
-				Dump 				= true
-				DumpPath			= c:\temp\DataDump
-				<TimeSerie>
-					Date0				= 201607010000
-					HistoryLen			= 502
-					DataTransformation	= DT_DELTA
-					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
-					Dump				= false
-					DumpPath			= c:\temp\DataDump
-					<FXDB_DataSource>
-						Symbol				= EURUSD
-						TimeFrame			= H1
-						IsFilled			= false
-						<DBConnection>
-							UserName	= History
-							Password	= HistoryPwd
-							ConnString	= Algo.mavi
-						</DBConnection>
-					</FXDB_DataSource>
-				</TimeSerie>
-			</DataSet>
-		</Test>
-	</Data>
+ 
 	<Engine>
 		Type 		= ENGINE_CUSTOM
 		<Custom>
 			CoresCount	= 1
-			<Core0>
+			<Core1>
 				<Layout>
-					Type	= CORE_GA
+					Type	= CORE_DUMB
 					Parents			= 
 					ParentsConnType	= 
 				</Layout>
 				<Parameters>
+					ScalingFactor	= 0.8
 				</Parameters>
 				<Persistor>
 					saveMSE			= false
 					saveRun			= true
 					saveInternals	= false
 					saveImage		= true
+					readFrom		= OraData
 					saveToDB		= true
 					saveToFile		= false
-					<DestOraData>
+					<OraData>
 						UserName	= LogUser
 						Password	= LogPwd
-						ConnString	= Algo.mavi
-					</DestOraData>
-					<DestFileData>
+						ConnString	= Algo
+					</OraData>
+					<FileData>
 						Client		= c:\temp\logs\Persistor\Client.log
 						MSE			= c:\temp\logs\Persistor\MSE.log
 						Run			= c:\temp\logs\Persistor\Run.log
 						Internals	= c:\temp\logs\Persistor\Internals.log
 						Image		= c:\temp\logs\Persistor\Image.log
-					</DestFileData>
+					</FileData>
 				</Persistor>
-			</Core0>
-			<Core1>
+			</Core1>
+			<Core0>
 				<Layout>
 					Type	= CORE_NN
 					Parents			= 
@@ -124,8 +122,8 @@
 				</Layout>
 				<Parameters>
 					<Topology>
-						LevelRatio			= 1,0.5
-						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+						LevelRatio			= 0.5
+						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
 						UseContext			= false
 						UseBias				= false
 					</Topology>
@@ -136,7 +134,7 @@
 						StopOnDivergence	= false
 						BP_Algo				= BP_STD
 						<BP_Std>
-							LearningRate		= 0.1
+							LearningRate		= 0.01
 							LearningMomentum	= 0.4
 						</BP_Std>
 						<BP_Qing>
@@ -152,48 +150,64 @@
 					saveRun			= true
 					saveInternals	= false
 					saveImage		= true
+					readFrom		= OraData
 					saveToDB		= true
 					saveToFile		= false
-					<DestOraData>
+					<OraData>
 						UserName	= LogUser
 						Password	= LogPwd
-						ConnString	= Algo.mavi
-					</DestOraData>
-					<DestFileData>
+						ConnString	= Algo
+					</OraData>
+					<FileData>
 						Client		= c:\temp\logs\Persistor\Client.log
 						MSE			= c:\temp\logs\Persistor\MSE.log
 						Run			= c:\temp\logs\Persistor\Run.log
 						Internals	= c:\temp\logs\Persistor\Internals.log
 						Image		= c:\temp\logs\Persistor\Image.log
-					</DestFileData>
+					</FileData>
 				</Persistor>
-			</Core1>
+			</Core0>
 		</Custom>
 		<XIE>
 		</XIE>
 		<WNN>
 		</WNN>
+
+		<Persistor>
+			readFrom		= OraData
+			saveToDB		= true
+			saveToFile		= false
+			<OraData>
+				UserName	= LogUser
+				Password	= LogPwd
+				ConnString	= Algo
+			</OraData>
+			<FileData>
+				Client		= c:\temp\logs\Persistor\Client.log
+				MSE			= c:\temp\logs\Persistor\MSE.log
+				Run			= c:\temp\logs\Persistor\Run.log
+				Internals	= c:\temp\logs\Persistor\Internals.log
+				Image		= c:\temp\logs\Persistor\Image.log
+			</FileData>
+		</Persistor>
+
+
 	</Engine>
 	<Persistor>
-		saveNothing		= false		
-		saveClient		= true
-		saveMSE			= true
-		saveRun			= true
-		saveInternals	= false
-		saveImage		= true
+		readFrom		= OraData
 		saveToDB		= true
-		saveToFiles		= true
-		<DestOraData>
+		saveToFile		= false
+		<OraData>
 			UserName	= LogUser
 			Password	= LogPwd
-			ConnString	= Algo.mavi
-		</DestOraData>
-		<DestFileData>
+			ConnString	= Algo
+		</OraData>
+		<FileData>
 			Client		= c:\temp\logs\Persistor\Client.log
 			MSE			= c:\temp\logs\Persistor\MSE.log
 			Run			= c:\temp\logs\Persistor\Run.log
 			Internals	= c:\temp\logs\Persistor\Internals.log
 			Image		= c:\temp\logs\Persistor\Image.log
-		</DestFileData>
+		</FileData>
 	</Persistor>
 </Forecaster>

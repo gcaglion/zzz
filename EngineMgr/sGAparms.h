@@ -4,12 +4,18 @@
 #include "../EngineMgr/sCoreParms.h"
 #include "sGAenums.h"
 
-#define MAX_LEVELS 128
-
 struct sGAparms : sCoreParms {
-	sGAparms(sCfgObjParmsDef);
-	sGAparms(sObjParmsDef);
-	~sGAparms();
+	
+	//-- placeholders
+	int parm1=0;
+	int parm2=0;
 
+	EXPORT sGAparms(sCfgObjParmsDef);
+	EXPORT sGAparms(sObjParmsDef, sLogger* persistor_, int loadingPid_, int loadingTid_);
+	EXPORT ~sGAparms();
+
+	//-- local implementations of virtual functions defined in sCoreParms
 	EXPORT void setScaleMinMax();
+	EXPORT void save(sLogger* persistor_, int pid_, int tid_);
+
 };

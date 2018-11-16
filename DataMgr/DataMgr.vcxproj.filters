@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="sData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sDataSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -51,9 +48,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FXData_enums.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sDataSet.h">

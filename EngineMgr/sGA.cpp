@@ -3,33 +3,32 @@
 sGA::sGA(sCfgObjParmsDef, sCoreLayout* layout_, sGAparms* GAparms_): sCore(sCfgObjParmsVal, layout_){}
 sGA::~sGA(){}
 
+//-- abstract methods implementations
+void sGA::setLayout(int batchSize_) {
+
+}
+void sGA::mallocLayout() {
+	//-- malloc + init neurons ...
+}
 void sGA::train(sCoreProcArgs* trainArgs) {
 	trainArgs->mseCnt=10;
 	info("GA training complete.");
 }
-void sGA::infer(sCoreProcArgs* inferArgs) {
+void sGA::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtype** singlePredictionSBF) {
 
-	inferArgs->ds->reorder(SAMPLE, SBF, BFS);
-	inferArgs->ds->reorder(TARGET, SBF, BFS);
+	//-- 1. load input neurons. Need to MAKE SURE incoming array len is the same as inputcount!!!
 
+	//-- 2. forward pass
 
-	//-- 3.1. use simple pointers to the above arrays. Let's say sGA doen't need BFS conversion
-	numtype* sample=inferArgs->ds->sampleBFS;
-	numtype* target=inferArgs->ds->targetBFS;
-	numtype* prediction=inferArgs->ds->predictionBFS;
-//	numtype* sample=inferArgs->ds->sampleSBF;
-//	numtype* target=inferArgs->ds->targetSBF;
-//	numtype* prediction=inferArgs->ds->predictionSBF;
+	//-- 3. copy last layer neurons (on dev) to prediction (on host)
 
+	//-- 3.1. perfect core!
+	for (int i=0; i<layout->outputCnt; i++) (*singlePredictionSBF)[i]=singleTargetSBF[i];
 
-	//-- core work...
-	size_t bfsSize=inferArgs->ds->samplesCnt*inferArgs->ds->predictionLen*inferArgs->ds->selectedFeaturesCnt;
-	//-- perfect core!
-	for (int i=0; i<bfsSize; i++) prediction[i]=target[i];
-
-	//-- convert prediction in runSet from BFS to SBF order
-	inferArgs->ds->reorder(PREDICTED, BFS, SBF);
-
-	info("GA inference complete.");
-
+}
+void sGA::saveImage(int pid, int tid, int epoch) {
+	fail("Not implemented.");
+}
+void sGA::loadImage(int pid, int tid, int epoch) {
+	fail("Not implemented.");
 }

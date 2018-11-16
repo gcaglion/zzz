@@ -230,7 +230,7 @@ void sDataSet::dumpPre(int valStatus, FILE** dumpFile) {
 
 	//-- open dumpFile
 	char dumpFileName[MAX_PATH];
-	sprintf_s(dumpFileName, "%s/%s_%s_%s-%s_dump_p%d_t%d_%p.csv", dumpPath, name->base, sourceTS->date0, suffix1, suffix3, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(dumpFileName, "%s/%s_%s-%s_dump_p%d_t%d_%p.csv", dumpPath, name->base, suffix1, suffix3, GetCurrentProcessId(), GetCurrentThreadId(), this);
 	if (fopen_s(dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
 	//-- print headers
