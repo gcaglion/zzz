@@ -221,15 +221,18 @@ void sRoot::CLoverride(int argc, char* argv[]) {
 		char orValS[XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
 
 		//-- set default forecasterCfgFileFullName
-		getFullPath("../Tester.xml", clientCfgFileFullName);
-		getFullPath("../Forecaster.xml", forecasterCfgFileFullName);
+		getFullPath("Tester.xml", clientCfgFileFullName);
+		getFullPath("Forecaster.xml", forecasterCfgFileFullName);
 
 		for (int p=1; p<argc; p++) {
 			if (!getValuePair(argv[p], &orName[0], &orValS[0], '=')) fail("wrong parameter format in command line: %s", argv[p]);
 
-			if (_stricmp(orName, "--cfgFile")==0) {
-				//-- special parameters, 1: alternative configuration file
+			if (_stricmp(orName, "--cfgFileF")==0) {
+				//-- special parameters, 1: alternative configuration file (forecaster)
 				if (!getFullPath(orValS, forecasterCfgFileFullName)) fail("could not set cfgFileFullName from override parameter: %s", orValS);
+			} else if (_stricmp(orName, "--cfgFileC")==0) {
+				//-- special parameters, 1: alternative configuration file (forecaster)
+				if (!getFullPath(orValS, clientCfgFileFullName)) fail("could not set cfgFileFullName from override parameter: %s", orValS);
 			} else if (_stricmp(orName, "--VerboseRoot")==0) {
 				dbg->verbose=(_stricmp(orValS, "TRUE")==0);
 			} else {

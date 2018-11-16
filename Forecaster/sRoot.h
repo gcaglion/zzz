@@ -16,10 +16,6 @@ struct sRoot : sObj {
 	EXPORT sRoot(int argc_=0, char* argv_[]=nullptr);
 	EXPORT ~sRoot();
 
-	//EXPORT void tester();
-	
-	void kaz4();
-	EXPORT void kaz5();
 	EXPORT void newClient();
 
 private:

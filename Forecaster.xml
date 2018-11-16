@@ -3,7 +3,7 @@
 # To include another xml: <Include File=c:\temp\kaz.xml />
 
 <Forecaster>
-	DoTraining		= false
+	DoTraining		= true
 	DoInference		= true
 	InferFromPid	= 10036
 	DoValidation	= false
@@ -16,12 +16,12 @@
 		<Train>
 			<DataSet>
 				BatchSamplesCount	= 10
-				SelectedFeatures	= FXHIGH, FXLOW
+				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 				Dump 				= false
 				DumpPath			= c:\temp\DataDump
 				<TimeSerie>
 					Date0				= 2017-07-01-00:00
-					HistoryLen			= 202
+					HistoryLen			= 1002
 					DataTransformation	= DT_DELTA
 					StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 					Dump				= false
@@ -40,10 +40,9 @@
 			</DataSet>
 		</Train>
 		<Test>
-			EnginePid	= 10900
 			<DataSet>
 				BatchSamplesCount	= 1
-				SelectedFeatures	= FXHIGH, FXLOW
+				SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 				Dump 				= false
 				DumpPath			= c:\temp\DataDump
 				<TimeSerie>
@@ -123,20 +122,20 @@
 				</Layout>
 				<Parameters>
 					<Topology>
-						LevelRatio			= 1,1,0.5
-						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+						LevelRatio			= 0.5
+						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
 						UseContext			= false
 						UseBias				= false
 					</Topology>
 					<Training>
-						MaxEpochs			= 500
+						MaxEpochs			= 1000
 						TargetMSE			= 0.0001
 						NetSaveFrequency	= 10
 						StopOnDivergence	= false
 						BP_Algo				= BP_STD
 						<BP_Std>
 							LearningRate		= 0.01
-							LearningMomentum	= 0.8
+							LearningMomentum	= 0.4
 						</BP_Std>
 						<BP_Qing>
 						</BP_Qing>
