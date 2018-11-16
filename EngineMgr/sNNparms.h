@@ -33,6 +33,6 @@ struct sNNparms : sCoreParms {
 
 private:
 	void mallocs();
-	char* levelRatioS = new char[XMLKEY_PARM_VAL_MAXLEN]; 
-	char* levelActivationS = new char[XMLKEY_PARM_VAL_MAXLEN];
+	char* levelRatioS;
+	char* levelActivationS;
 };

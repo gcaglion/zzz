@@ -4,8 +4,8 @@
 
 struct sCfgParm : sObj {
 
-	sCfgParm(sObjParmsDef, char* parmName_, char* parmValS_);
-	~sCfgParm();
+	EXPORT sCfgParm(sObjParmsDef, char* parmName_, char* parmValS_);
+	EXPORT ~sCfgParm();
 
 	//-- id props
 	int valScnt;
