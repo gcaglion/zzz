@@ -10,6 +10,80 @@ sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), defa
 sRoot::~sRoot() {}
 
 //-- core stuff
+void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_) {
+	
+	//-- client vars
+	int simulationLength;
+	char** simulationTrainStartDate=nullptr;
+	char** simulationInferStartDate=nullptr;
+	char** simulationValidStartDate=nullptr;
+
+	char* endtimeS;
+	sTimer* timer=new sTimer();
+	
+	sDataShape* shape;
+	sDataSet* trainDS; sLogger* trainLog;
+	sEngine* engine; 
+	sLogger* clientLog;
+
+	//-- 1. load separate sCfg* for client, dataShape, trainDataset, Engine
+	sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientXMLfile_);
+	sCfg* shapeCfg; safespawn(shapeCfg, newsname("shapeCfg"), defaultdbg, shapeXMLfile_);
+	sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), defaultdbg, trainXMLfile_);
+	sCfg* engCfg; safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineXMLfile_);
+
+	//-- 2. spawn DataShape
+	safespawn(shape, newsname("TrainDataShape"), defaultdbg, shapeCfg, "/DataShape");
+	//-- 3. spawn Train DataSet and its persistor
+	safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/Train/DataSet", shape->sampleLen, shape->predictionLen);
+	safespawn(trainLog, newsname("TrainLogger"), defaultdbg, trainCfg, "/Train/Persistor");
+	//-- 4. spawn engine the standard way
+	safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", shape->sampleLen*trainDS->selectedFeaturesCnt, shape->predictionLen*trainDS->selectedFeaturesCnt);
+
+	//=====================================================================================================================================================================
+	//-- 5.1 create client persistor, if needed
+	bool saveClient;
+	safecall(clientCfg, setKey, "/Client");
+	safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
+	safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
+
+	//-- 5.2 set simulation dates
+	safecall(this, mallocSimulationDates, clientCfg, &simulationLength, &simulationTrainStartDate, &simulationInferStartDate, &simulationValidStartDate);
+	//=====================================================================================================================================================================
+
+	//-- 5. for each simulation date,
+	for (int s=0; s<simulationLength; s++) {
+		//-- 5.1. start timer
+		timer->start();
+		//-- 5.2. get simulation date for s
+		safecall(this, getSimulationDates, clientCfg, &simulationLength, simulationTrainStartDate, simulationInferStartDate, simulationValidStartDate);
+		//-- 5.3. training block
+
+			//-- set date0 in trainDS->TimeSerie, and load it
+			safecall(trainDS->sourceTS, load, TARGET, BASE, simulationTrainStartDate[s]);
+			//-- do training (also populates datasets)
+			safecall(engine, train, s, trainDS);
+			//-- persist MSE logs
+			safecall(engine, saveMSE);
+			//-- persist Core logs
+			safecall(engine, saveImage);
+			//-- persist Engine Info
+			safecall(engine, saveInfo);
+
+		//-- 5.4 Commit engine persistor data
+		safecall(forecaster->engine, commit);
+		//-- 5.5. stop timer, and save client info
+		endtimeS=timer->stop();
+		safecall(clientLog, saveClientInfo, pid, s, "Root.Tester", timer->startTime, timer->elapsedTime, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], forecaster->doTraining, forecaster->doInference, forecaster->doTraining);
+		
+
+	}
+
+}
+void sRoot::inferClient(const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, int savedEnginePid_) {
+
+}
+
 
 void sRoot::newClient() {
 

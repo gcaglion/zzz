@@ -17,6 +17,8 @@ struct sRoot : sObj {
 	EXPORT ~sRoot();
 
 	EXPORT void newClient();
+	EXPORT void trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_);
+	EXPORT void inferClient(const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, int savedEnginePid_);
 
 private:
 
