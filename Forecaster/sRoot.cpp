@@ -11,7 +11,7 @@ sRoot::~sRoot() {}
 
 //-- core stuff
 void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_) {
-	
+
 	//-- full filenames
 	char clientffname[MAX_PATH];
 	char shapeffname[MAX_PATH];
@@ -26,14 +26,14 @@ void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 
 	char* endtimeS;
 	sTimer* timer=new sTimer();
-	
+
 	sDataShape* shape;
 	sDataSet* trainDS; sLogger* trainLog;
-	sEngine* engine; 
+	sEngine* engine;
 	sLogger* clientLog;
 
 
-	try{
+	try {
 		//-- 0. set full file name for each of the input files
 		getFullPath(clientXMLfile_, clientffname);
 		getFullPath(shapeXMLfile_, shapeffname);
@@ -94,13 +94,101 @@ void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 			//-- 
 		}
 
-	} catch (std::exception exc) {
+	}
+	catch (std::exception exc) {
 		fail("Exception=%s", exc.what());
 	}
 
 
 }
-void sRoot::inferClient(const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, int savedEnginePid_) {
+void sRoot::inferClient(const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_) {
+
+	//-- full filenames
+	char clientffname[MAX_PATH];
+	char shapeffname[MAX_PATH];
+	char inferffname[MAX_PATH];
+	char engineffname[MAX_PATH];
+
+	//-- client vars
+	int simulationLength;
+	char** simulationTrainStartDate=nullptr;
+	char** simulationInferStartDate=nullptr;
+	char** simulationValidStartDate=nullptr;
+
+	char* endtimeS;
+	sTimer* timer=new sTimer();
+
+	sDataShape* shape;
+	sDataSet* inferDS; sLogger* inferLog;
+	sEngine* engine;
+	sLogger* clientLog;
+	sLogger* engLog;
+
+	try {
+		//-- 0. set full file name for each of the input files
+		getFullPath(clientXMLfile_, clientffname);
+		getFullPath(shapeXMLfile_, shapeffname);
+		getFullPath(inferXMLfile_, inferffname);
+		getFullPath(engineXMLfile_, engineffname);
+
+		//-- 1. load separate sCfg* for client, dataShape, inferDataset, Engine
+		sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
+		sCfg* shapeCfg; safespawn(shapeCfg, newsname("shapeCfg"), defaultdbg, shapeffname);
+		sCfg* inferCfg; safespawn(inferCfg, newsname("inferCfg"), defaultdbg, inferffname);
+		sCfg* engCfg; safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineffname);
+
+		//-- 2. spawn DataShape
+		safespawn(shape, newsname("inferDataShape"), defaultdbg, shapeCfg, "/DataShape");
+		//-- 3. spawn infer DataSet and its persistor
+		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/infer/DataSet", shape->sampleLen, shape->predictionLen);
+		safespawn(inferLog, newsname("inferLogger"), defaultdbg, inferCfg, "/infer/Persistor");
+		//-- root-level persistor. this is used, among other things, to spawn engine by pid
+		safespawn(engLog, newsname("ForecasterPersistor"), defaultdbg, engCfg, "/Engine/Persistor");
+		//-- spawn engine from savedEnginePid_ with pid
+		safespawn(engine, newsname("Engine"), defaultdbg, engCfg, "/Engine", shape->sampleLen*inferDS->selectedFeaturesCnt, shape->predictionLen*inferDS->selectedFeaturesCnt, engLog, savedEnginePid_);
+
+		//=====================================================================================================================================================================
+		//-- 5.1 create client persistor, if needed
+		bool saveClient;
+		safecall(clientCfg, setKey, "/Client");
+		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
+		safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
+
+		//-- 5.2 set simulation dates
+		mallocSimulationDates(clientCfg, &simulationLength, &simulationTrainStartDate, &simulationInferStartDate, &simulationValidStartDate);
+		safecall(this, mallocSimulationDates, clientCfg, &simulationLength, &simulationTrainStartDate, &simulationInferStartDate, &simulationValidStartDate);
+		//=====================================================================================================================================================================
+
+		//-- 6. get simulation date for s
+		safecall(clientCfg->currentKey, getParm, simulationInferStartDate, "inferStartDate");
+		getStartDates(inferDS, simulationInferStartDate[0], simulationLength, &simulationInferStartDate);
+		//-- 6.0 for each simulation date,
+		for (int s=0; s<simulationLength; s++) {
+
+			//-- 6.1. start timer
+			timer->start();
+			//-- 6.2. set date0 in testDS->TimeSerie, and load it
+			safecall(inferDS->sourceTS, load, TARGET, BASE, simulationInferStartDate[s]);
+			//-- 6.3. do inference (also populates datasets)
+			safecall(engine, infer, s, inferDS);
+			//-- 6.4. persist Run logs
+			safecall(engine, saveRun);
+			//-- 6.5 Commit engine persistor data
+			safecall(engine, commit);
+
+			//-- 6.6. stop timer, and save client info
+			endtimeS=timer->stop();
+			safecall(clientLog, saveClientInfo, pid, s, "Root.Tester", timer->startTime, timer->elapsedTime, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], false, true, false);
+			//-- 5.4 Commit clientpersistor data
+			safecall(clientLog, commit);
+
+		}
+
+	}
+	catch (std::exception exc) {
+		fail("Exception=%s", exc.what());
+	}
+
 
 }
 
