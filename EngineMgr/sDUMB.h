@@ -6,7 +6,7 @@
 
 struct sDUMB : sCore {
 
-	float scalingFactor;
+	float fixedTRSerror;
 
 	EXPORT sDUMB(sCfgObjParmsDef, sCoreLayout* layout_, sDUMBparms* DUMBparms_);
 	EXPORT ~sDUMB();

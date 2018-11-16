@@ -49,7 +49,7 @@ EXPORT bool MTgetForecast(int paramOverrideCnt, char** paramOverride, void* LogD
 	delete root; \
 	int ret; \
 	if(success_){ \
-		printf("Client success. \n"); \
+		printf("Client success. ProcessId=%d\n", GetCurrentProcessId()); \
 		ret = 0; \
 	} else { \
 		printf("Client failed: %s\n", __VA_ARGS__); \

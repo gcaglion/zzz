@@ -1,7 +1,7 @@
 #include "sDUMB.h"
 
 sDUMB::sDUMB(sCfgObjParmsDef, sCoreLayout* layout_, sDUMBparms* DUMBparms_): sCore(sCfgObjParmsVal, layout_) {
-	safecall(cfgKey, getParm, &scalingFactor, "Parameters/ScalingFactor");
+	safecall(cfgKey, getParm, &fixedTRSerror, "Parameters/FixedTRSerror");
 }
 sDUMB::~sDUMB(){}
 
@@ -25,7 +25,7 @@ void sDUMB::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numt
 	//-- 3. copy last layer neurons (on dev) to prediction (on host)
 
 	//-- 3.1. perfect core!
-	for (int i=0; i<layout->outputCnt; i++) (*singlePredictionSBF)[i]=singleTargetSBF[i] * scalingFactor;
+	for (int i=0; i<layout->outputCnt; i++) (*singlePredictionSBF)[i]=singleTargetSBF[i] +fixedTRSerror;
 
 }
 void sDUMB::saveImage(int pid, int tid, int epoch) {
