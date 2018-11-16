@@ -5,7 +5,7 @@
 <Forecaster>
 	DoTraining		= false
 	DoInference		= true
-	InferFromPid	= 1516
+	InferFromPid	= 10036
 	DoValidation	= false
 	
 	<DataShape>
@@ -125,7 +125,7 @@
 					<Topology>
 						LevelRatio			= 1,1,0.5
 						LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-						UseContext			= true
+						UseContext			= false
 						UseBias				= false
 					</Topology>
 					<Training>
@@ -135,8 +135,8 @@
 						StopOnDivergence	= false
 						BP_Algo				= BP_STD
 						<BP_Std>
-							LearningRate		= 0.02
-							LearningMomentum	= 0.4
+							LearningRate		= 0.01
+							LearningMomentum	= 0.8
 						</BP_Std>
 						<BP_Qing>
 						</BP_Qing>

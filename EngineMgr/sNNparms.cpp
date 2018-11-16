@@ -1,10 +1,5 @@
 #include "sNNparms.h"
 
-void arr2csl(int len, char** elem, char* oCSL) {}
-void arr2csl(int len, bool* elem, char* oCSL) {}
-void arr2csl(int len, double* elem, char* oCSL) {}
-
-
 void arr2csl(int vlen, float* elem, int cslLen, char** oCSL) {
 	char elemS[XMLKEY_PARM_VAL_MAXLEN];
 
