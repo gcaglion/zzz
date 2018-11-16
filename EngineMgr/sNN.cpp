@@ -519,8 +519,8 @@ void sNN::loadImage(int pid, int tid, int epoch) {
 
 	//-- malloc clocal copy of W
 	numtype* hW = (numtype*)malloc(weightsCntTotal*sizeof(numtype));
-	//-- call persistor to save hW
-	safecall(persistor, saveCoreNNImage, pid, tid, epoch, weightsCntTotal, W);
+	//-- call persistor to load hW
+	safecall(persistor, loadCoreNNImage, pid, tid, epoch, weightsCntTotal, hW);
 	//-- load data if it's on the GPU
 	Alg->h2d(W, hW, weightsCntTotal*sizeof(numtype));
 	//-- free local copy

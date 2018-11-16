@@ -153,33 +153,58 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 
 				switch (coreLayout[c]->type) {
 				case CORE_NN:
+					//-- 1. core parameters
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					NNcp->setScaleMinMax();
+					//-- 2. core
 					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, coreLayout[c], NNcp);
+					//-- 3. core image
+					safecall(NNc, loadImage, loadingPid, coreLayout[c]->tid, -1);
+					//-- 4. set parent classes
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
+					//-- 1. core parameters
 					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					GAcp->setScaleMinMax();
-//					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
+					//-- 2. core
+					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, coreLayout[c], GAcp);
+					//-- 3. core image
+					safecall(GAc, loadImage, loadingPid, coreLayout[c]->tid, -1);
+					//-- 4. set parent classes
 					coreParms[c]=GAcp; core[c]=GAc;
 					break;
 				case CORE_SVM:
+					//-- 1. core parameters
 					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					SVMcp->setScaleMinMax();
-//					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
+					//-- 2. core
+					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, coreLayout[c], SVMcp);
+					//-- 3. core image
+					safecall(SVMc, loadImage, loadingPid, coreLayout[c]->tid, -1);
+					//-- 4. set parent classes
 					coreParms[c]=SVMcp; core[c]=SVMc;
 					break;
 				case CORE_SOM:
+					//-- 1. core parameters
 					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					SOMcp->setScaleMinMax();
-//					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
+					//-- 2. core
+					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, coreLayout[c], SOMcp);
+					//-- 3. core image
+					safecall(SOMc, loadImage, loadingPid, coreLayout[c]->tid, -1);
+					//-- 4. set parent classes
 					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
 				case CORE_DUMB:
+					//-- 1. core parameters
 					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					DUMBcp->setScaleMinMax();
-//					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
+					//-- 2. core
+					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, coreLayout[c], DUMBcp);
+					//-- 3. core image
+					safecall(DUMBc, loadImage, loadingPid, coreLayout[c]->tid, -1);
+					//-- 4. set parent classes
 					coreParms[c]=DUMBcp; core[c]=DUMBc;
 					break;
 				default:
