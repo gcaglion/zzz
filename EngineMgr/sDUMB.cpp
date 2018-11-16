@@ -29,8 +29,8 @@ void sDUMB::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numt
 
 }
 void sDUMB::saveImage(int pid, int tid, int epoch) {
-	fail("Not implemented.");
+	safecall(persistor, saveCoreDUMBImage, pid, tid, epoch, 0, (numtype*)nullptr);
 }
 void sDUMB::loadImage(int pid, int tid, int epoch) {
-	fail("Not implemented.");
+	safecall(persistor, loadCoreDUMBImage, pid, tid, epoch, 0, (numtype*)nullptr);
 }

@@ -275,7 +275,7 @@ void sOraData::saveCoreSVMImage(int pid, int tid, int epoch, int Wcnt, numtype* 
 	fail("Not implemented.");
 }
 void sOraData::saveCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
-	fail("Not implemented.");
+	//fail("Not implemented.");
 }
 void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 
