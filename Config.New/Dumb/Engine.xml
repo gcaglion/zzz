@@ -9,7 +9,24 @@
 				ParentsConnType	= 
 			</Layout>
 			<Parameters>
-				FixedTRSerror	= 0.1
+				FixedTRSError	= 0
+				<Training>
+					MaxEpochs			= 500
+					TargetMSE			= 0.001
+					NetSaveFrequency	= 10
+					StopOnDivergence	= false
+					BP_Algo				= BP_STD
+					<BP_Std>
+						LearningRate		= 0.001
+						LearningMomentum	= 0.4
+					</BP_Std>
+					<BP_Qing>
+					</BP_Qing>
+					<BP_Qprop>
+					</BP_Qprop>
+					<BP_RProp>
+					</BP_RProp>
+				</Training>
 			</Parameters>
 			<Persistor>
 				saveMSE			= false

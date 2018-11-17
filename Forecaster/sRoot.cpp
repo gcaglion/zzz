@@ -140,8 +140,8 @@ void sRoot::inferClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 		//-- 2. spawn DataShape
 		safespawn(shape, newsname("inferDataShape"), defaultdbg, shapeCfg, "/DataShape");
 		//-- 3. spawn infer DataSet and its persistor
-		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/infer/DataSet", shape->sampleLen, shape->predictionLen);
-		safespawn(inferLog, newsname("inferLogger"), defaultdbg, inferCfg, "/infer/Persistor");
+		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/DataSet", shape->sampleLen, shape->predictionLen);
+		safespawn(inferLog, newsname("inferLogger"), defaultdbg, inferCfg, "/DataSet/Persistor");
 		//-- root-level persistor. this is used, among other things, to spawn engine by pid
 		safespawn(engLog, newsname("ForecasterPersistor"), defaultdbg, engCfg, "/Engine/Persistor");
 		//-- spawn engine from savedEnginePid_ with pid
@@ -324,8 +324,8 @@ void sRoot::trainAndRun(const char* clientXMLfile_, const char* shapeXMLfile_, c
 		//-- 2. spawn DataShape
 		safespawn(shape, newsname("TrainDataShape"), defaultdbg, shapeCfg, "/DataShape");
 		//-- 3. spawn Train DataSet and its persistor
-		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/Train/DataSet", shape->sampleLen, shape->predictionLen);
-		safespawn(trainLog, newsname("TrainLogger"), defaultdbg, trainCfg, "/Train/Persistor");
+		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/DataSet", shape->sampleLen, shape->predictionLen);
+		safespawn(trainLog, newsname("TrainLogger"), defaultdbg, trainCfg, "/DataSet/Persistor");
 		//-- 4. spawn engine the standard way
 		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", shape->sampleLen*trainDS->selectedFeaturesCnt, shape->predictionLen*trainDS->selectedFeaturesCnt);
 

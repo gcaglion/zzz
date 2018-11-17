@@ -8,7 +8,7 @@
 		HistoryLen			= 1002
 		DataTransformation	= DT_DELTA
 		StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
-		Dump				= false
+		Dump				= true
 		DumpPath			= c:\temp\DataDump
 		<FXDB_DataSource>
 			Symbol				= EURUSD

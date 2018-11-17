@@ -437,7 +437,7 @@ void sOraData::loadCoreSOMImage(int pid, int tid, int epoch, int Wcnt, numtype* 
 	fail("Not implemented.");
 }
 void sOraData::loadCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
-	fail("Not implemented.");
+	info("Done nothing.");
 }
 
 //-- Save/Load Core<XXX>Paameters

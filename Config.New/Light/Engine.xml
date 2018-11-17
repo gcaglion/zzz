@@ -4,15 +4,37 @@
 		CoresCount	= 1
 		<Core0>
 			<Layout>
-				Type	= CORE_DUMB
+				Type	= CORE_NN
 				Parents			= 
 				ParentsConnType	= 
 			</Layout>
 			<Parameters>
-				FixedTRSerror	= 0.1
+				<Topology>
+					LevelRatio			= 2
+					LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+					UseContext			= false
+					UseBias				= false
+				</Topology>
+				<Training>
+					MaxEpochs			= 500
+					TargetMSE			= 0.001
+					NetSaveFrequency	= 10
+					StopOnDivergence	= false
+					BP_Algo				= BP_STD
+					<BP_Std>
+						LearningRate		= 0.001
+						LearningMomentum	= 0.4
+					</BP_Std>
+					<BP_Qing>
+					</BP_Qing>
+					<BP_Qprop>
+					</BP_Qprop>
+					<BP_RProp>
+					</BP_RProp>
+				</Training>
 			</Parameters>
 			<Persistor>
-				saveMSE			= false
+				saveMSE			= true
 				saveRun			= true
 				saveInternals	= false
 				saveImage		= true
