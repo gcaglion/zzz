@@ -16,7 +16,7 @@ void sDUMB::train(sCoreProcArgs* trainArgs) {
 	trainArgs->mseCnt=10;
 	info("DUMB training complete.");
 }
-void sDUMB::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtype** singlePredictionSBF) {
+void sDUMB::singleInfer(int sampleLen_, int sampleFeaturesCnt_, int batchSamplesCnt_, numtype* singleSampleBF, numtype* singleTargetBF, numtype** singlePredictionBF) {
 
 	//-- 1. load input neurons. Need to MAKE SURE incoming array len is the same as inputcount!!!
 
@@ -25,7 +25,7 @@ void sDUMB::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numt
 	//-- 3. copy last layer neurons (on dev) to prediction (on host)
 
 	//-- 3.1. perfect core!
-	for (int i=0; i<layout->outputCnt; i++) (*singlePredictionSBF)[i]=singleTargetSBF[i] +fixedTRSerror;
+	for (int i=0; i<layout->outputCnt; i++) (*singlePredictionBF)[i]=singleTargetBF[i] +fixedTRSerror;
 
 }
 void sDUMB::saveImage(int pid, int tid, int epoch) {

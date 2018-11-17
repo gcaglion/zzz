@@ -35,7 +35,7 @@ void sCore::infer(int samplesCnt_, int sampleLen_, int predictionLen_, int featu
 
 	for (int s=0; s<samplesCnt_; s++) {
 
-		//-- build single sample
+		//-- build single sample (BF)
 		for (int b=0; b<sampleLen_; b++) {
 			for (int f=0; f<featuresCnt_; f++) {
 				sFromIdx=s*sampleLen_*featuresCnt_+b*featuresCnt_+f;
@@ -44,7 +44,7 @@ void sCore::infer(int samplesCnt_, int sampleLen_, int predictionLen_, int featu
 			}
 		}
 
-		//-- build single target
+		//-- build single target (BF)
 		for (int b=0; b<predictionLen_; b++) {
 			for (int f=0; f<featuresCnt_; f++) {
 				tFromIdx=s*predictionLen_*featuresCnt_+b*featuresCnt_+f;
@@ -54,7 +54,7 @@ void sCore::infer(int samplesCnt_, int sampleLen_, int predictionLen_, int featu
 		}
 
 		//-- infer prediction for single sample
-		singleInfer(singleSample, singleTarget, &singlePrediction);
+		safecall(this, singleInfer, sampleLen_, featuresCnt_, _batchSize, singleSample, singleTarget, &singlePrediction);
 
 		//-- copy prediction back to OUTpredictionSBF
 		for (int b=0; b<predictionLen_; b++) {

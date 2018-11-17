@@ -6,14 +6,14 @@
 	<DataSet>
 		BatchSamplesCount	= 1
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-		Dump 				= true
+		Dump 				= false
 		DumpPath			= c:\temp\DataDump
 		<TimeSerie>
 			Date0				= 2016-07-01-00:00
 			HistoryLen			= 202
-			DataTransformation	= DT_NONE
+			DataTransformation	= DT_DELTA
 			StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
-			Dump				= true
+			Dump				= false
 			DumpPath			= c:\temp\DataDump
 			<FXDB_DataSource>
 				Symbol				= EURUSD

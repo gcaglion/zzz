@@ -43,7 +43,7 @@ void sTimeSerie::load(int valSource, int valStatus, char* date0_) {
 	if (date0_!=nullptr) strcpy_s(date0, DATE_FORMAT_LEN, date0_);
 	safecall(sourceData, load, date0, stepsCnt, dtime, val[valSource][valStatus], bdtime, base);
 	if (doDump) dump(valSource, valStatus);
-	transform(valStatus);
+	transform(valSource, dt);
 }
 void sTimeSerie::transform(int valSource, int dt_) {
 	dt=(dt_==-1) ? dt : dt_;
@@ -248,7 +248,7 @@ void sTimeSerie::setDataSource() {
 	//safecall(sourceData, open);
 }
 
-void sTimeSerie::untransform(int valSource, int selectedFeaturesCnt_, int* selectedFeature_){
+void sTimeSerie::untransform(int fromValSource, int toValSource, int selectedFeaturesCnt_, int* selectedFeature_){
 
 	int i=0;
 	
@@ -258,20 +258,20 @@ void sTimeSerie::untransform(int valSource, int selectedFeaturesCnt_, int* selec
 		for (int tf=0; tf<sourceData->featuresCnt; tf++) {
 			for (int df=0; df<selectedFeaturesCnt_; df++) {
 				if (selectedFeature_[df]==tf) {
-					if (val[valSource][TR][i]==EMPTY_VALUE) {
-						val[valSource][BASE][i]=EMPTY_VALUE;
+					if (val[fromValSource][TR][i]==EMPTY_VALUE) {
+						val[fromValSource][BASE][i]=EMPTY_VALUE;
 					} else {
 						switch (dt) {
 						case DT_NONE:
-							val[valSource][BASE][i] = val[valSource][TR][i];
+							val[toValSource][BASE][i] = val[fromValSource][TR][i];
 							break;
 						case DT_DELTA:
 							if (s==0) {
-								val[valSource][BASE][i] = val[valSource][TR][i]+base[tf];
+								val[toValSource][BASE][i] = val[fromValSource][TR][i]+base[tf];
 							} else {
-								val[valSource][BASE][i] = val[valSource][TR][i]+prevval[tf];
+								val[toValSource][BASE][i] = val[fromValSource][TR][i]+prevval[tf];
 							}
-							prevval[tf] = val[valSource][BASE][i];
+							prevval[tf] = val[toValSource][BASE][i];
 							break;
 						case DT_LOG:
 							break;

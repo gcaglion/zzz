@@ -273,3 +273,14 @@ void sRoot::getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates){
 		break;
 	}
 }
+
+//-- temp stuff
+void sRoot::kaz() {
+	sCfg* ds1Cfg=new sCfg(this, newsname("ds1Cfg"), defaultdbg, "InferOnTrain.xml");
+	sDataSet* ds1=new sDataSet(this, newsname("ds1"), defaultdbg, ds1Cfg, "/infer/DataSet", 100, 3);
+	ds1->sourceTS->load(TARGET, BASE, "2016-07-01-00:00");
+	ds1->sourceTS->untransform(TARGET, PREDICTED, ds1->selectedFeaturesCnt, ds1->selectedFeature);
+	ds1->build(TARGET, BASE);
+	for (int i=0; i<1010; i++) ds1->sourceTS->val[1][0][i]=0;
+	ds1->unbuild(TARGET, PREDICTED, BASE);
+}

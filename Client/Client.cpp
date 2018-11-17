@@ -11,6 +11,14 @@ void usage() {
 }
 int main(int argc, char* argv[]) {
 
+/*	sRoot* root=nullptr;
+	try {
+		root->kaz();
+	} catch (std::exception exc) {
+		terminate(false, "Exception thrown by root. See stack.");
+	}
+	terminate(true, "");
+*/
 	if (argc<6) clifail;
 
 	//-- 1. create root object. root constructor does everything else
@@ -28,4 +36,5 @@ int main(int argc, char* argv[]) {
 	}
 
 	terminate(true, "");
+
 }

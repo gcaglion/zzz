@@ -1,19 +1,15 @@
-<Infer>
-	<DataShape>
-		SampleLen		= 10
-		PredictionLen	= 3
-	</DataShape>
+<Train>
 	<DataSet>
-		BatchSamplesCount	= 1
+		BatchSamplesCount	= 10
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-		Dump 				= true
+		Dump 				= false
 		DumpPath			= c:\temp\DataDump
 		<TimeSerie>
-			Date0				= 2016-07-01-00:00
-			HistoryLen			= 202
-			DataTransformation	= DT_NONE
+			Date0				= 2017-07-01-00:00
+			HistoryLen			= 102
+			DataTransformation	= DT_DELTA
 			StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
-			Dump				= true
+			Dump				= false
 			DumpPath			= c:\temp\DataDump
 			<FXDB_DataSource>
 				Symbol				= EURUSD
@@ -44,5 +40,4 @@
 			Image		= c:\temp\logs\Persistor\Image.log
 		</FileData>
 	</Persistor>
-</Infer>
-
+</Train>

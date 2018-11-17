@@ -14,7 +14,7 @@ void sSOM::train(sCoreProcArgs* trainArgs) {
 	trainArgs->mseCnt=10;
 	info("GA training complete.");
 }
-void sSOM::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtype** singlePredictionSBF) {
+void sSOM::singleInfer(int sampleLen_, int sampleFeaturesCnt_, int batchSamplesCnt_, numtype* singleSampleBF, numtype* singleTargetBF, numtype** singlePredictionBF) {
 
 	//-- 1. load input neurons. Need to MAKE SURE incoming array len is the same as inputcount!!!
 
@@ -23,7 +23,7 @@ void sSOM::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numty
 	//-- 3. copy last layer neurons (on dev) to prediction (on host)
 
 	//-- 3.1. perfect core!
-	for (int i=0; i<layout->outputCnt; i++) (*singlePredictionSBF)[i]=singleTargetSBF[i];
+	for (int i=0; i<layout->outputCnt; i++) (*singlePredictionBF)[i]=singleTargetBF[i];
 
 }
 void sSOM::saveImage(int pid, int tid, int epoch) {

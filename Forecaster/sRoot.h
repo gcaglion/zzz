@@ -19,6 +19,8 @@ struct sRoot : sObj {
 	EXPORT void trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_);
 	EXPORT void inferClient(const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_);
 
+	EXPORT void kaz();
+
 private:
 
 	sTimer timer;

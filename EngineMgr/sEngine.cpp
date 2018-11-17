@@ -342,7 +342,7 @@ void sEngine::saveRun() {
 		memcpy_s(_ds->sourceTS->val[PREDICTED][TR], leftsz, _ds->sourceTS->val[TARGET][TR], leftsz);
 		
 		//-- 5. sourceTS->untransform into valP
-		_ds->sourceTS->untransform(PREDICTED, core[c]->procArgs->ds->selectedFeaturesCnt, core[c]->procArgs->ds->selectedFeature);
+		_ds->sourceTS->untransform(PREDICTED, PREDICTED, core[c]->procArgs->ds->selectedFeaturesCnt, core[c]->procArgs->ds->selectedFeature);
 		
 		//-- persist into runLog
 		int runStepsCnt=core[c]->procArgs->ds->samplesCnt +core[c]->procArgs->ds->sampleLen;
