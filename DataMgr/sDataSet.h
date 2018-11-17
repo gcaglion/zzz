@@ -12,7 +12,6 @@
 struct sDataSet : sCfgObj {
 
 	sTimeSerie* sourceTS;
-	bool isCloned;
 
 	int sampleLen;
 	int predictionLen;

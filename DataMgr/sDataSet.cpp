@@ -2,7 +2,6 @@
 
 sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	sourceTS=sourceTS_; sampleLen=sampleLen_; predictionLen=predictionLen_; batchSamplesCnt=batchSamplesCnt_; selectedFeaturesCnt=selectedFeaturesCnt_;
-	isCloned=false;
 
 	mallocs1();
 
@@ -18,7 +17,6 @@ sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int pred
 }
 sDataSet::sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_) : sCfgObj(sCfgObjParmsVal) {
 	sampleLen=sampleLen_; predictionLen=predictionLen_;
-	isCloned=false;
 
 	mallocs1();
 
@@ -40,7 +38,6 @@ sDataSet::sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_) : sCfgOb
 
 sDataSet::sDataSet(sObjParmsDef, sDataSet* trainDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	sourceTS=trainDS_->sourceTS; sampleLen=trainDS_->sampleLen; predictionLen=trainDS_->predictionLen; batchSamplesCnt=trainDS_->batchSamplesCnt; selectedFeaturesCnt=trainDS_->selectedFeaturesCnt;
-	isCloned=true;
 
 	mallocs1();
 
@@ -78,8 +75,6 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
 				tsidxS=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
 
-				if (isCloned) tsidxS+=predictionLen*tsfcnt;
-
 				sampleSBF[dsidxS] = sourceTS->val[fromValSource][fromValStatus][tsidxS]; 
 				if (doDump) fprintf(dumpFile, "%f,", sampleSBF[dsidxS]);
 				dsidxS++;
@@ -92,8 +87,6 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
 				tsidxT=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
 				tsidxT+=tsfcnt*sampleLen;
-
-				if (isCloned) tsidxT+=predictionLen*tsfcnt;
 
 				targetSBF[dsidxT] = sourceTS->val[fromValSource][fromValStatus][tsidxT];
 				if (doDump) fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
@@ -142,7 +135,6 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 	for (int bar=0; bar<sampleLen; bar++) {
 		for (int dsf=0; dsf<dsfcnt; dsf++) {
 			tsidx=bar*tsfcnt+selectedFeature[dsf];
-			if (isCloned) tsidx+=predictionLen*tsfcnt;
 			sourceTS->val[toValSource][toValStatus][tsidx] = EMPTY_VALUE;
 		}
 	}
@@ -152,7 +144,6 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 		for (int dsf=0; dsf<dsfcnt; dsf++) {
 			dsidx=s*trowlen+dsf;
 			tsidx=srowlen+s*tsfcnt+selectedFeature[dsf];
-			if (isCloned) tsidx+=predictionLen*tsfcnt;
 			sourceTS->val[toValSource][toValStatus][tsidx] = _data[fromValSource][SBF][dsidx];
 		}
 	}
@@ -162,11 +153,10 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 		for (int dsf=0; dsf<dsfcnt; dsf++) {
 			dsidx=(samplesCnt-1)*trowlen+bar*dsfcnt+dsf;
 			tsidx=(samplesCnt+sampleLen)*tsfcnt+(bar-1)*tsfcnt+selectedFeature[dsf];
-			if (isCloned) tsidx+=predictionLen*tsfcnt;
 			sourceTS->val[toValSource][toValStatus][tsidx] = _data[fromValSource][SBF][dsidx];
 		}
 	}
-	
+
 }
 
 //-- private stuff
@@ -222,11 +212,7 @@ void sDataSet::dumpPre(int valStatus, FILE** dumpFile) {
 	if (valStatus==TR) strcpy_s(suffix1, 10, "TR");
 	if (valStatus==TRS) strcpy_s(suffix1, 10, "TRS");
 	char suffix3[16];
-	if (isCloned) {
-		strcpy_s(suffix3, 16, "SHIFTEDFROM");
-	} else {
-		strcpy_s(suffix3, 16, "INDIPENDENT");
-	}
+	strcpy_s(suffix3, 16, "INDIPENDENT");
 
 	//-- open dumpFile
 	char dumpFileName[MAX_PATH];
