@@ -1,0 +1,31 @@
+#These are ignored
+
+#Empty lines are ignored, too
+
+<Client>
+	SimulationLength 	= 1
+	TrainStartDate	 	= 2017-10-31-00:00
+	InferStartDate	 	= 2017-10-31-00:00
+	ValidationStartDate	= 2015-10-31-00:00
+	
+	<ParmsCombinations>
+		# TO DO (v. TesterMulti)
+	</ParmsCombinations>
+
+	saveClient	= true
+
+	<Persistor>
+		readFrom	= OraData
+		saveToDB	= true
+		saveToFile	= false
+		<OraData>
+			UserName	= LogUser
+			Password	= LogPwd
+			ConnString	= Algo
+		</OraData>
+		<FileData>
+			Client		= c:\temp\logs\Persistor\Client.log
+		</FileData>
+	</Persistor>
+
+</Client>

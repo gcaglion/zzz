@@ -54,7 +54,7 @@ void sCore::infer(int samplesCnt_, int sampleLen_, int predictionLen_, int featu
 		}
 
 		//-- infer prediction for single sample
-		safecall(this, singleInfer, sampleLen_, featuresCnt_, _batchSize, singleSample, singleTarget, &singlePrediction);
+		safecallSilent(this, singleInfer, sampleLen_, featuresCnt_, _batchSize, singleSample, singleTarget, &singlePrediction);
 
 		//-- copy prediction back to OUTpredictionSBF
 		for (int b=0; b<predictionLen_; b++) {
