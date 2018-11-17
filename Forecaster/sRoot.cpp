@@ -49,8 +49,8 @@ void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 		//-- 2. spawn DataShape
 		safespawn(shape, newsname("TrainDataShape"), defaultdbg, shapeCfg, "/DataShape");
 		//-- 3. spawn Train DataSet and its persistor
-		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/Train/DataSet", shape->sampleLen, shape->predictionLen);
-		safespawn(trainLog, newsname("TrainLogger"), defaultdbg, trainCfg, "/Train/Persistor");
+		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/DataSet", shape->sampleLen, shape->predictionLen);
+		safespawn(trainLog, newsname("TrainLogger"), defaultdbg, trainCfg, "/DataSet/Persistor");
 		//-- 4. spawn engine the standard way
 		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", shape->sampleLen*trainDS->selectedFeaturesCnt, shape->predictionLen*trainDS->selectedFeaturesCnt);
 
