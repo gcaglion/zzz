@@ -2,37 +2,6 @@
 	Type 		= ENGINE_CUSTOM
 	<Custom>
 		CoresCount	= 1
-		<Core1>
-			<Layout>
-				Type	= CORE_DUMB
-				Parents			= 
-				ParentsConnType	= 
-			</Layout>
-			<Parameters>
-				FixedTRSerror	= 0.1
-			</Parameters>
-			<Persistor>
-				saveMSE			= false
-				saveRun			= true
-				saveInternals	= false
-				saveImage		= true
-				readFrom		= OraData
-				saveToDB		= true
-				saveToFile		= false
-				<OraData>
-					UserName	= LogUser
-					Password	= LogPwd
-					ConnString	= Algo
-				</OraData>
-				<FileData>
-					Client		= c:\temp\logs\Persistor\Client.log
-					MSE			= c:\temp\logs\Persistor\MSE.log
-					Run			= c:\temp\logs\Persistor\Run.log
-					Internals	= c:\temp\logs\Persistor\Internals.log
-					Image		= c:\temp\logs\Persistor\Image.log
-				</FileData>
-			</Persistor>
-		</Core1>
 		<Core0>
 			<Layout>
 				Type	= CORE_NN
@@ -41,19 +10,19 @@
 			</Layout>
 			<Parameters>
 				<Topology>
-					LevelRatio			= 0.5
-					LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-					UseContext			= false
+					LevelRatio			= 1, 1 , 0.5
+					LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+					UseContext			= true
 					UseBias				= false
 				</Topology>
 				<Training>
-					MaxEpochs			= 200
+					MaxEpochs			= 500
 					TargetMSE			= 0.0001
 					NetSaveFrequency	= 10
 					StopOnDivergence	= false
 					BP_Algo				= BP_STD
 					<BP_Std>
-						LearningRate		= 0.03
+						LearningRate		= 0.001
 						LearningMomentum	= 0.4
 					</BP_Std>
 					<BP_Qing>

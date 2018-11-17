@@ -26,7 +26,7 @@ struct sAlgebra : public sObj {
 
 	void* cublasH;
 	void* cuRandH;
-	void* cuStream[MAX_STREAMS];
+	void* cuStream[1+MAX_STREAMS];
 	numtype* ss;	// shared scalar
 
 					//-- class constructor/destructor
@@ -49,7 +49,7 @@ struct sAlgebra : public sObj {
 
 	EXPORT bool getMcol_cpu(int Ay, int Ax, numtype* A, int col, numtype* oCol);
 	EXPORT bool MbyM_std(int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, numtype* C);
-	EXPORT bool Vinit(int size, numtype* v, numtype start, numtype inc);
+	EXPORT bool Vinit(int Vlen, numtype* v, numtype start, numtype inc);
 	EXPORT bool VbyV2V(int Vlen, numtype* V1, numtype* V2, numtype* oV);
 	EXPORT bool Vdiff(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov);
 	EXPORT bool Vadd(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov);

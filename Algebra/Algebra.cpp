@@ -69,7 +69,7 @@ void sAlgebra::MbyM(int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By
 }
 void sAlgebra::h2d(numtype* destAddr, numtype* srcAddr, int size, bool useStreams) {
 #ifdef USE_GPU
-	CUWsafecallSilent(h2d_cu, destAddr, srcAddr, size, ((useStreams)?cuStream:nullptr) );
+	CUWsafecallSilent(h2d_cu, destAddr, srcAddr, size, ((useStreams) ? cuStream : nullptr));
 #else
 	memcpy_s(destAddr, size, srcAddr, size);
 #endif
@@ -123,11 +123,11 @@ bool sAlgebra::MbyM_std(int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, in
 	//printf("\n");
 	return true;
 }
-bool sAlgebra::Vinit(int size, numtype* v, numtype start, numtype inc) {
+bool sAlgebra::Vinit(int Vlen, numtype* v, numtype start, numtype inc) {
 #ifdef USE_GPU
-	return(Vinit_cu(size, v, start, inc));
+	return(Vinit_cu(Vlen, v, start, inc));
 #else
-	for (int i=0; i<size; i++) v[i]=start+i*inc;
+	for (int i=0; i<Vlen; i++) v[i]=start+i*inc;
 	return true;
 #endif
 }

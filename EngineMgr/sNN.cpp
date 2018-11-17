@@ -225,10 +225,15 @@ void sNN::ForwardPass(sDataSet* ds, int batchId, bool haveTargets) {
 
 	//-- 1. load samples (and targets, if passed) from single batch in dataset onto input layer
 	LDstart=timeGetTime(); LDcnt++;
-	Alg->h2d(&F[(parms->useBias) ? 1 : 0], &sample[batchId*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
-	if (haveTargets) {
-		Alg->h2d(&u[0], &target[batchId*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
-	}
+
+	int L0SampleNodesCnt=ds->sampleLen*ds->selectedFeaturesCnt*ds->batchSamplesCnt;
+	int L0CtxNodesCnt=nodesCnt[0]-L0SampleNodesCnt;
+	//-- zero context neurons on level 0
+	//Alg->Vinit(L0CtxNodesCnt, &F[L0SampleNodesCnt], 0, 0);
+	//-- load batch samples on L0
+	Alg->h2d(&F[(parms->useBias)?1:0], &sample[batchId*L0SampleNodesCnt], L0SampleNodesCnt*sizeof(numtype));
+	//-- load batch target on output level
+	if (haveTargets) Alg->h2d(&u[0], &target[batchId*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 	LDtimeTot+=((DWORD)(timeGetTime()-LDstart));
 
 	//-- 2. Feed Forward
@@ -435,8 +440,8 @@ void sNN::singleInfer(numtype* singleSampleSBF, numtype* singleTargetSBF, numtyp
 
 	//-- 1. load input neurons. Need to MAKE SURE incoming array len is the same as inputcount!!!
 	int firstOutputNode=levelFirstNode[outputLevel];
-	Alg->h2d(&F[0], singleSampleSBF, nodesCnt[0]*sizeof(numtype), false);
-	Alg->h2d(&u[0], singleTargetSBF, nodesCnt[outputLevel]*sizeof(numtype), false);
+	Alg->h2d(&F[0], singleSampleSBF, nodesCnt[0]*sizeof(numtype));
+	Alg->h2d(&u[0], singleTargetSBF, nodesCnt[outputLevel]*sizeof(numtype));
 
 	//-- 2. forward pass
 	FF();

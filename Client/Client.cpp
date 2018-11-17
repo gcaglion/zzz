@@ -7,6 +7,7 @@ void usage() {
 	printf("Usage:\n------\n");
 	printf("zzz Train <Client XML file> <DataShape XML file> <trainDataSet XML file> <Engine XML file> \n");
 	printf("zzz Infer <Client XML file> <DataShape XML file> <inferDataSet XML file> <Engine XML file> <Saved Engine pid> \n");
+	system("pause");
 }
 int main(int argc, char* argv[]) {
 

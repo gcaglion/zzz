@@ -79,7 +79,7 @@ EXPORT void Free_cu(numtype* var) {
 
 //-- CPU<->GPU transfer functions
 EXPORT void h2d_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]) {
-	if(cuStream==nullptr) {
+	if(MAX_STREAMS==0) {
 		if (cudaMemcpy(destAddr, srcAddr, size, cudaMemcpyHostToDevice)!=cudaSuccess) CUWfail("F41LUR3!-333")
 	} else {
 		int streamSize=size/sizeof(numtype)/MAX_STREAMS;
@@ -93,7 +93,7 @@ EXPORT void h2d_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream
 	}
 }
 EXPORT void d2h_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]) {
-	if (cuStream==nullptr) {
+	if(MAX_STREAMS==0) {
 		if(cudaMemcpy(destAddr, srcAddr, size, cudaMemcpyDeviceToHost)!=cudaSuccess) CUWfail("F41LUR3!-444")
 	} else {
 		int streamSize=size/sizeof(numtype)/MAX_STREAMS;
