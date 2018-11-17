@@ -242,7 +242,7 @@ void sOraData::saveClientInfo(int pid, int simulationId, const char* clientName,
 }
 
 //-- Save/Load core images
-void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+/*void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -265,6 +265,50 @@ void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
+*/
+void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	try {
+		stmt = ((Connection*)conn)->createStatement("insert into CoreImage_NN (ProcessId, ThreadId, Epoch, WId, W) values(:P01, :P02, :P03, :P04, :P05)");
+
+		//-- this version uses arrayUpdate()
+		ub2* intLen = (ub2*)malloc(Wcnt*sizeof(int));
+		ub2* floatLen = (ub2*)malloc(Wcnt*sizeof(numtype));
+		for (int i=0; i<Wcnt; i++) {
+			intLen[i]=sizeof(int);
+			floatLen[i]=sizeof(numtype);
+		}
+
+		//-- first, need to malloc and init arrays for constant pid and tid. Cannot use Vinit, as I don't have an Alg, here
+		int* pidArr=(int*)malloc(Wcnt*sizeof(int)); 
+		int* tidArr=(int*)malloc(Wcnt*sizeof(int)); 
+		int* epochArr=(int*)malloc(Wcnt*sizeof(int));
+		int* WidArr=(int*)malloc(Wcnt*sizeof(int)); 
+
+		for (int i=0; i<Wcnt; i++) {
+			pidArr[i]=pid;
+			tidArr[i]=tid;
+			epochArr[i]=epoch;
+			WidArr[i]=i;
+		}
+
+		((Statement*)stmt)->setDataBuffer(1, pidArr, OCCIINT, sizeof(int), intLen);
+		((Statement*)stmt)->setDataBuffer(2, tidArr, OCCIINT, sizeof(int), intLen);
+		((Statement*)stmt)->setDataBuffer(3, epochArr, OCCIINT, sizeof(int), intLen);
+		((Statement*)stmt)->setDataBuffer(4, WidArr, OCCIINT, sizeof(int), intLen);
+		((Statement*)stmt)->setDataBuffer(5, W, OCCIFLOAT, sizeof(numtype), floatLen);
+
+		((Statement*)stmt)->executeArrayUpdate(Wcnt);
+
+		free(WidArr); free(epochArr); free(tidArr); free(pidArr); free(intLen); free(floatLen);
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+}
 void sOraData::saveCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	fail("Not implemented.");
 }
@@ -278,6 +322,67 @@ void sOraData::saveCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype*
 	//fail("Not implemented.");
 }
 void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	//-- if a specific epoch is not provided, we first need to find the last epoch
+	if (epoch==-1) {
+		sprintf_s(sqlS, SQL_MAXLEN, "select max(epoch) from CoreImage_NN where processId = %d and ThreadId = %d", pid, tid);
+		try {
+			stmt = ((Connection*)conn)->createStatement(sqlS);
+			rset = ((Statement*)stmt)->executeQuery();
+			if (((ResultSet*)rset)->next()&&!((ResultSet*)rset)->isNull(1)) {
+				epoch=((ResultSet*)rset)->getInt(1);
+			} else {
+				fail("Could not find max epoch for processId=%d, ThreadId=%d", pid, tid);
+			}
+		}
+		catch (SQLException ex) {
+			fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		}
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+	}
+
+	//-- once we have the epoch, we load Ws for that pid, tid, epoch
+	try {
+		sprintf_s(sqlS, SQL_MAXLEN, "select WId, W from CoreImage_NN where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1,2", pid, tid, epoch);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+
+		//-- this version uses arrayUpdate()
+		ub2* intLen = (ub2*)malloc(Wcnt*sizeof(int));
+		ub2* floatLen = (ub2*)malloc(Wcnt*sizeof(numtype));
+		for (int i=0; i<Wcnt; i++) {
+			intLen[i]=sizeof(int);
+			floatLen[i]=sizeof(numtype);
+		}
+
+		//-- first, need to malloc and init arrays for constant pid and tid. Cannot use Vinit, as I don't have an Alg, here
+		int* WidArr=(int*)malloc(Wcnt*sizeof(int));
+		
+		for (int i=0; i<Wcnt; i++) {
+			WidArr[i]=i;
+		}
+
+		rset = ((Statement*)stmt)->executeQuery();
+		((ResultSet*)rset)->setDataBuffer(1, WidArr, OCCIINT, sizeof(int), intLen);
+		((ResultSet*)rset)->setDataBuffer(2, W, OCCIFLOAT, sizeof(numtype), floatLen);
+
+		((ResultSet*)rset)->next(Wcnt);
+
+		free(WidArr); free(intLen); free(floatLen);
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
+	//-- close result set and terminate statement before exiting
+	((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+	((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+}
+/*void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -321,6 +426,7 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 	((Connection*)conn)->terminateStatement((Statement*)stmt);
 
 }
+*/
 void sOraData::loadCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	fail("Not implemented.");
 }
