@@ -94,13 +94,13 @@ void sTimeSerie::scale(int valSource, int valStatus, float scaleMin_, float scal
 	if (doDump) dump(valSource, valStatus);
 
 }
-void sTimeSerie::unscale(int valSource, float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int skipFirstN_) {
+void sTimeSerie::unscale(int valSource, float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int skipFirstNsteps_) {
 
 		for (int s=0; s<stepsCnt; s++) {
 			for (int tf=0; tf<sourceData->featuresCnt; tf++) {
 				for(int df=0; df<selectedFeaturesCnt_; df++) {
 					if (selectedFeature_[df]==tf) {
-						if (s<skipFirstN_) {
+						if (s<skipFirstNsteps_) {
 							val[valSource][TR][s*sourceData->featuresCnt+tf]=EMPTY_VALUE;
 						} else {
 							val[valSource][TR][s*sourceData->featuresCnt+tf]=(val[valSource][TRS][s*sourceData->featuresCnt+tf]-scaleP[tf])/scaleM[tf];
@@ -248,43 +248,65 @@ void sTimeSerie::setDataSource() {
 	//safecall(sourceData, open);
 }
 
-void sTimeSerie::untransform(int fromValSource, int toValSource, int selectedFeaturesCnt_, int* selectedFeature_){
-
-	int i=0;
+void sTimeSerie::untransform(int fromValSource, int toValSource, int sampleLen_, int selectedFeaturesCnt_, int* selectedFeature_){
 	
-	numtype* prevval = (numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
+	int fromStep=sampleLen_;
+	int toStep=stepsCnt;
 
-	for (int s=0; s<(stepsCnt); s++) {
-		for (int tf=0; tf<sourceData->featuresCnt; tf++) {
-			for (int df=0; df<selectedFeaturesCnt_; df++) {
-				if (selectedFeature_[df]==tf) {
-					if (val[fromValSource][TR][i]==EMPTY_VALUE) {
-						val[fromValSource][BASE][i]=EMPTY_VALUE;
+	dataUnTransform(dt, stepsCnt, sourceData->featuresCnt, fromStep, toStep, val[fromValSource][TR], base, val[TARGET][BASE], val[toValSource][BASE]);
+
+}
+
+void dataUnTransform(int dt_, int stepsCnt, int featuresCnt_, int fromStep_, int toStep_, numtype* idata, numtype* baseVal, numtype* iActual, numtype* odata) {
+	numtype* prev=(numtype*)malloc(featuresCnt_*sizeof(numtype));
+	int s;
+
+	for (int f=0; f<featuresCnt_; f++) {
+		switch (dt_) {
+		case DT_DELTA:
+			for (s=fromStep_; s<toStep_; s++) {
+				if (s>fromStep_) {
+					prev[f] = (iActual[(s-1)*featuresCnt_+f]!=EMPTY_VALUE) ? iActual[(s-1)*featuresCnt_+f] : odata[(s-1)*featuresCnt_+f];
+				} else {
+					if (fromStep_>0) {
+						prev[f] = iActual[(s-1)*featuresCnt_+f];
 					} else {
-						switch (dt) {
-						case DT_NONE:
-							val[toValSource][BASE][i] = val[fromValSource][TR][i];
-							break;
-						case DT_DELTA:
-							if (s==0) {
-								val[toValSource][BASE][i] = val[fromValSource][TR][i]+base[tf];
-							} else {
-								val[toValSource][BASE][i] = val[fromValSource][TR][i]+prevval[tf];
-							}
-							prevval[tf] = val[toValSource][BASE][i];
-							break;
-						case DT_LOG:
-							break;
-						case DT_DELTALOG:
-							break;
-						default:
-							break;
-						}
+						prev[f] = baseVal[f];
 					}
 				}
+				odata[s*featuresCnt_+f] = idata[s*featuresCnt_+f]+prev[f];
 			}
-			i++;
+			break;
+		case DT_LOG:
+			for (s = fromStep_; s<toStep_; s++) odata[s*featuresCnt_+f] = exp(idata[s*featuresCnt_+f])+1e4-1; 
+			break;
+		case DT_DELTALOG:
+			for (s= fromStep_; s<toStep_; s++) {
+				//-- 1. unLOG
+				odata[s*featuresCnt_+f] = exp(idata[s*featuresCnt_+f])+1e4-1;
+				//-- 2. unDELTA
+				if (s>fromStep_) {
+					prev[f] = iActual[(s-1)*featuresCnt_+f];
+				} else {
+					if (fromStep_>0) {
+						prev[f] = iActual[(s-1)*featuresCnt_+f];
+					} else {
+						prev[f] = baseVal[f];
+					}
+				}
+				odata[s*featuresCnt_+f] = odata[s*featuresCnt_+f]+prev[f];
+			}
+			break;
+		default:
+			for (s=fromStep_; s<toStep_; s++) odata[s*featuresCnt_+f] = idata[s*featuresCnt_+f];
+			break;
 		}
+
+		for (s=0; s<fromStep_; s++) odata[s*featuresCnt_+f] = EMPTY_VALUE;
+		for (s=toStep_; s<stepsCnt; s++) odata[s*featuresCnt_+f] = EMPTY_VALUE;
 	}
-	free(prevval);
+
+	free(prev);
+}
+void dataUnScale(numtype* scaleM_, numtype* scaleP_, int stepsCnt, int featuresCnt_, int fromStep_, int toStep_, numtype* idata, numtype* odata ){
 }

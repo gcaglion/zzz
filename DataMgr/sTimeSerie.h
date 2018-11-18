@@ -56,9 +56,9 @@ struct sTimeSerie : sCfgObj {
 
 	EXPORT void load(int valSource, int valStatus, char* date0_=nullptr);
 	EXPORT void transform(int valSource, int dt_);
-	EXPORT void untransform(int fromValSource, int toValSource, int selectedFeaturesCnt_, int* selectedFeature_);
+	EXPORT void untransform(int fromValSource, int toValSource, int sampleLen_, int selectedFeaturesCnt_, int* selectedFeature_);
 	EXPORT void scale(int valSource, int valStatus, float scaleMin_, float scaleMax_);
-	EXPORT void unscale(int valSource, float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int skipFirstN_);
+	EXPORT void unscale(int valSource, float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int skipFirstNsteps_);
 	EXPORT void dump(int valSource, int valStatus);
 
 private:
@@ -68,3 +68,5 @@ private:
 	void setDataSource();
 };
 
+void dataUnTransform(int dt_, int stepsCnt, int featuresCnt_, int fromStep_, int toStep_, numtype* idata, numtype* baseVal, numtype* iActual, numtype* odata);
+void dataUnScale(numtype* scaleM_, numtype* scaleP_, int stepsCnt, int featuresCnt_, int fromStep_, int toStep_, numtype* idata, numtype* odata);

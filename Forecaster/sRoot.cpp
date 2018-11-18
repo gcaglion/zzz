@@ -276,13 +276,44 @@ void sRoot::getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates){
 
 //-- temp stuff
 void sRoot::kaz() {
-	sCfg* ds1Cfg=new sCfg(this, newsname("ds1Cfg"), defaultdbg, "InferOnTrain.xml");
-	sDataSet* ds1=new sDataSet(this, newsname("ds1"), defaultdbg, ds1Cfg, "/infer/DataSet", 100, 3);
-	ds1->sourceTS->load(TARGET, BASE, "2016-07-01-00:00");
-	ds1->sourceTS->untransform(TARGET, PREDICTED, ds1->selectedFeaturesCnt, ds1->selectedFeature);
-	ds1->build(TARGET, BASE);
-	for (int i=0; i<1010; i++) ds1->sourceTS->val[1][0][i]=0;
-	ds1->unbuild(TARGET, PREDICTED, BASE);
+
+
+	//sCfg* ds1Cfg=new sCfg(this, newsname("ds1Cfg"), defaultdbg, "Config.New/Light/Infer.xml");
+	//sDataSet* ds1=new sDataSet(this, newsname("ds1"), defaultdbg, ds1Cfg, "DataSet", 100, 3);
+
+	sOraData* oradb1=new sOraData(this, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo");
+	sFXDataSource* fxsrc1=new sFXDataSource(this, newsname("FXDataSource1"), defaultdbg, oradb1, "EURUSD", "H1", false);
+	sTimeSerie* ts1 = new sTimeSerie(this, newsname("TimeSerie1"), defaultdbg, fxsrc1, "201710010000", 202, DT_DELTA, 0, nullptr, "c:/temp/DataDump");
+	const int selFcnt=4; int selF[selFcnt]={ 0,1,2,3 };
+
+	int sampleLen=10; int predictionLen=3;
+	sDataSet* ds1= new sDataSet(this, newsname("DataSet1"), defaultdbg, ts1, sampleLen, predictionLen, 10, selFcnt, selF, false, "C:/Temp/DataDump");
+
+	ts1->load(TARGET, BASE, "201710010000");
+	ts1->dump(TARGET, BASE);
+
+	ts1->transform(TARGET, DT_DELTA);
+	ts1->dump(TARGET, TR);
+
+	ts1->scale(TARGET, TR, -1, 1);
+	ts1->dump(TARGET, TRS);
+
+	//-- Engine work... copy TARGET_TRS->PREDICTED_TRS, AND SKIP FIRST SAMPLE!
+	int idx;
+	for (int s=0; s<ts1->stepsCnt; s++) {
+		for (int f=0; f<ts1->sourceData->featuresCnt; f++) {
+			idx=s*ts1->sourceData->featuresCnt+f;
+			ts1->val[PREDICTED][TRS][idx]=ts1->val[TARGET][TRS][idx];
+		}
+	}
+	ts1->dump(TARGET, TRS);
+	ts1->dump(PREDICTED, TRS);
+
+	ts1->unscale(PREDICTED, -1, 1, selFcnt, selF, sampleLen );
+	ts1->dump(PREDICTED, TR);
+
+	ts1->untransform(PREDICTED, PREDICTED, sampleLen, selFcnt, selF);
+	ts1->dump(PREDICTED, BASE);
 }
 
 void sRoot::trainAndRun(const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_) {

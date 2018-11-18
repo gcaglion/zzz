@@ -6,7 +6,7 @@
 	<TimeSerie>
 		Date0				= 2017-07-01-00:00
 		HistoryLen			= 1002
-		DataTransformation	= DT_DELTA
+		DataTransformation	= DT_NONE
 		StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 		Dump				= false
 		DumpPath			= c:\temp\DataDump

@@ -9,7 +9,7 @@
 				ParentsConnType	= 
 			</Layout>
 			<Parameters>
-				FixedTRSError	= 0
+				FixedTRSError	= 0.2
 				<Training>
 					MaxEpochs			= 500
 					TargetMSE			= 0.001
