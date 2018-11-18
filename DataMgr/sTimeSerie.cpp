@@ -267,14 +267,15 @@ void dataUnTransform(int dt_, int stepsCnt, int featuresCnt_, int fromStep_, int
 			for (s=fromStep_; s<toStep_; s++) {
 				if (s>fromStep_) {
 					prev[f] = (iActual[(s-1)*featuresCnt_+f]!=EMPTY_VALUE) ? iActual[(s-1)*featuresCnt_+f] : odata[(s-1)*featuresCnt_+f];
+					odata[s*featuresCnt_+f] = idata[s*featuresCnt_+f]+prev[f];
 				} else {
 					if (fromStep_>0) {
 						prev[f] = iActual[(s-1)*featuresCnt_+f];
 					} else {
 						prev[f] = baseVal[f];
 					}
+					odata[s*featuresCnt_+f] = EMPTY_VALUE;
 				}
-				odata[s*featuresCnt_+f] = idata[s*featuresCnt_+f]+prev[f];
 			}
 			break;
 		case DT_LOG:

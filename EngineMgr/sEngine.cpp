@@ -333,20 +333,15 @@ void sEngine::saveRun() {
 
 		//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
 		_ds->unbuild(PREDICTED, PREDICTED, TRS);
-		_ts->dump(PREDICTED, TRS);
+		if(_ts->doDump) _ts->dump(PREDICTED, TRS);
 
 		//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
 		_ts->unscale(PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedFeaturesCnt, _ds->selectedFeature, _ds->sampleLen);
-		_ts->dump(PREDICTED, TR);
-
-		/*//-- 4. copy trvalA into trvalP for the first <sampleLen> bars, so we have a baseval
-		size_t leftsz=core[c]->procArgs->ds->sampleLen*core[c]->procArgs->ds->sourceTS->sourceData->featuresCnt*sizeof(numtype);
-		memcpy_s(_ds->sourceTS->val[PREDICTED][TR], leftsz, _ds->sourceTS->val[TARGET][TR], leftsz);
-		*/
+		if (_ts->doDump) _ts->dump(PREDICTED, TR);
 
 		//-- 5. sourceTS->untransform into valP
-		_ds->sourceTS->untransform(PREDICTED, PREDICTED, core[c]->procArgs->ds->selectedFeaturesCnt, core[c]->procArgs->ds->samplesCnt, core[c]->procArgs->ds->selectedFeature);
-		_ts->dump(PREDICTED, BASE);
+		_ds->sourceTS->untransform(PREDICTED, PREDICTED, core[c]->procArgs->ds->sampleLen, core[c]->procArgs->ds->selectedFeaturesCnt, core[c]->procArgs->ds->selectedFeature);
+		if (_ts->doDump) _ts->dump(PREDICTED, BASE);
 
 		//-- persist into runLog
 		int runStepsCnt=core[c]->procArgs->ds->samplesCnt +core[c]->procArgs->ds->sampleLen;
