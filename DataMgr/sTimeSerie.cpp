@@ -1,12 +1,11 @@
 #include "sTimeSerie.h"
 
-sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, int tsfCnt_, int* tsf_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	mallocs1();
 
 	strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, date0_);
 	stepsCnt=stepsCnt_;
 	dt=dt_; 
-	tsfCnt=tsfCnt_; for (int i=0; i<tsfCnt; i++) tsf[i]=tsf_[i];
 	sourceData=sourceData_;
 
 	doDump=false;
@@ -24,7 +23,6 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &date0, "Date0");
 	safecall(cfgKey, getParm, &stepsCnt, "HistoryLen");
 	safecall(cfgKey, getParm, &dt, "DataTransformation");
-	safecall(cfgKey, getParm, &tsf, "StatisticalFeatures", false, &tsfCnt);
 	safecall(cfgKey, getParm, &doDump, "Dump");
 	//-- 0. default dump path is dbg outfilepath
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
@@ -43,7 +41,10 @@ void sTimeSerie::load(int valSource, int valStatus, char* date0_) {
 	if (date0_!=nullptr) strcpy_s(date0, DATE_FORMAT_LEN, date0_);
 	safecall(sourceData, load, date0, stepsCnt, dtime, val[valSource][valStatus], bdtime, base);
 	if (doDump) dump(valSource, valStatus);
-	transform(valSource, dt);
+	//-- 1. calc TSFs
+	safecall(this, calcTSFs);
+	//-- 2. transform
+	safecall(this, transform, valSource, dt);
 }
 void sTimeSerie::transform(int valSource, int dt_) {
 	dt=(dt_==-1) ? dt : dt_;
@@ -171,7 +172,6 @@ void sTimeSerie::dump(int valSource, int valStatus) {
 void sTimeSerie::mallocs1(){
 	date0=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
 	dumpPath=(char*)malloc(MAX_PATH);
-	tsf=(int*)malloc(MAX_TSF_CNT*sizeof(int));
 }
 void sTimeSerie::mallocs2() {
 	len=stepsCnt*sourceData->featuresCnt;
@@ -211,7 +211,6 @@ void sTimeSerie::frees() {
 	free(base);
 	free(dmin);	free(dmax);
 	free(scaleM); free(scaleP);
-	free(tsf);
 	free(dumpPath);
 }
 void sTimeSerie::setDataSource() {
@@ -279,12 +278,12 @@ void dataUnTransform(int dt_, int stepsCnt, int featuresCnt_, int fromStep_, int
 			}
 			break;
 		case DT_LOG:
-			for (s = fromStep_; s<toStep_; s++) odata[s*featuresCnt_+f] = exp(idata[s*featuresCnt_+f])+1e4-1; 
+			for (s = fromStep_; s<toStep_; s++) odata[s*featuresCnt_+f] = exp(idata[s*featuresCnt_+f])+(numtype)1e4-1; 
 			break;
 		case DT_DELTALOG:
 			for (s= fromStep_; s<toStep_; s++) {
 				//-- 1. unLOG
-				odata[s*featuresCnt_+f] = exp(idata[s*featuresCnt_+f])+1e4-1;
+				odata[s*featuresCnt_+f] = exp(idata[s*featuresCnt_+f])+(numtype)1e4-1;
 				//-- 2. unDELTA
 				if (s>fromStep_) {
 					prev[f] = iActual[(s-1)*featuresCnt_+f];
@@ -311,3 +310,20 @@ void dataUnTransform(int dt_, int stepsCnt, int featuresCnt_, int fromStep_, int
 }
 void dataUnScale(numtype* scaleM_, numtype* scaleP_, int stepsCnt, int featuresCnt_, int fromStep_, int toStep_, numtype* idata, numtype* odata ){
 }
+
+//-- Timeseries Statistical Features
+void sTimeSerie::calcTSFs() {
+
+	//-- all of them are calculated on TARGET-BASE value
+
+	tsf[TSF_MEAN]=TSMean(len, val[TARGET][BASE]);
+	tsf[TSF_MAD]=TSMeanAbsoluteDeviation(len, val[TARGET][BASE]);
+	tsf[TSF_VARIANCE]=TSVariance(len, val[TARGET][BASE]);
+	tsf[TSF_SKEWNESS]=TSSkewness(len, val[TARGET][BASE]);
+	tsf[TSF_KURTOSIS]=TSKurtosis(len, val[TARGET][BASE]);
+	tsf[TSF_TURNINGPOINTS]=TSTurningPoints(len, val[TARGET][BASE]);
+	tsf[TSF_SHE]=TSShannonEntropy(len, val[TARGET][BASE]);
+	tsf[TSF_HISTVOL]=TSHistoricalVolatility(len, val[TARGET][BASE]);
+
+}
+

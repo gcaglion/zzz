@@ -5,10 +5,10 @@
 #include "sFXDataSource.h"
 #include "sGenericDataSource.h"
 #include "sMT4dataSource.h"
+#include "TSF.h"
 #include "TimeSerie_enums.h"
 
 #define MAX_DATA_FEATURES 128
-#define MAX_TSF_CNT	32
 
 //-- val Source
 #define TARGET		0
@@ -27,14 +27,15 @@ struct sTimeSerie : sCfgObj {
 	int stepsCnt;
 	int len;
 
-	//-- transformation and statistical features
+	//-- transformation 
 	int dt;
-	int tsfCnt;
-	int* tsf;
 
 	//-- these are of size [len]
 	char** dtime;
 	numtype*** val;	//-- [Source][Status][len]
+
+	//-- statistical features (all those defined in enums file will be calc-ed and saved here
+	numtype tsf[TSFCNT];
 
 
 	//-- these are of size [featuresCnt]
@@ -50,7 +51,7 @@ struct sTimeSerie : sCfgObj {
 	char* dumpPath;
 
 	//--
-	EXPORT sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, int tsfCnt_, int* tsf_, const char* dumpPath_=nullptr);
+	EXPORT sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, const char* dumpPath_=nullptr);
 	EXPORT sTimeSerie(sCfgObjParmsDef);
 	EXPORT ~sTimeSerie();
 
@@ -66,6 +67,7 @@ private:
 	void mallocs2();
 	void frees();
 	void setDataSource();
+	void calcTSFs();
 };
 
 void dataUnTransform(int dt_, int stepsCnt, int featuresCnt_, int fromStep_, int toStep_, numtype* idata, numtype* baseVal, numtype* iActual, numtype* odata);

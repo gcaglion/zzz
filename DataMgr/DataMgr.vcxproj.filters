@@ -36,6 +36,9 @@
     <ClCompile Include="sGenericDataSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="TSF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataSource_enums.h">
@@ -69,6 +72,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sGenericDataSource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TSF.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

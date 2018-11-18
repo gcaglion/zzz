@@ -7,7 +7,6 @@
 		Date0				= 2016-07-01-00:00
 		HistoryLen			= 202
 		DataTransformation	= DT_NONE
-		StatisticalFeatures	= TSF_HISTVOL, TSF_KURTOSIS, TSF_MEAN
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
 		<FXDB_DataSource>

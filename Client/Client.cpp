@@ -19,6 +19,7 @@ int main(int argc, char* argv[]) {
 	try {
 		root=new sRoot(argc, argv);	//-- always takes default debugger settings
 		//root->kaz();
+		//return -1;
 		if (_stricmp(argv[1], "Train")==0) {
 			root->trainClient(argv[2], argv[3], argv[4], argv[5]);
 		} else if (_stricmp(argv[1], "Both")==0) {
