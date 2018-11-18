@@ -4,7 +4,7 @@
 
 <Client>
 	SimulationLength 	= 1
-	TrainStartDate	 	= 2017-10-31-00:00
+	TrainStartDate	 	= 2016-10-31-00:00
 	InferStartDate	 	= 2016-10-31-00:00
 	ValidationStartDate	= 2015-10-31-00:00
 	
