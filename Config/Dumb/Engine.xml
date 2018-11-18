@@ -1,0 +1,75 @@
+<Engine>
+	Type 		= ENGINE_CUSTOM
+	<Custom>
+		CoresCount	= 1
+		<Core0>
+			<Layout>
+				Type	= CORE_DUMB
+				Parents			= 
+				ParentsConnType	= 
+			</Layout>
+			<Parameters>
+				FixedTRSError	= 0.2
+				<Training>
+					MaxEpochs			= 500
+					TargetMSE			= 0.001
+					NetSaveFrequency	= 10
+					StopOnDivergence	= false
+					BP_Algo				= BP_STD
+					<BP_Std>
+						LearningRate		= 0.001
+						LearningMomentum	= 0.4
+					</BP_Std>
+					<BP_Qing>
+					</BP_Qing>
+					<BP_Qprop>
+					</BP_Qprop>
+					<BP_RProp>
+					</BP_RProp>
+				</Training>
+			</Parameters>
+			<Persistor>
+				saveMSE			= false
+				saveRun			= true
+				saveInternals	= false
+				saveImage		= true
+				readFrom		= OraData
+				saveToDB		= true
+				saveToFile		= false
+				<OraData>
+					UserName	= LogUser
+					Password	= LogPwd
+					ConnString	= Algo
+				</OraData>
+				<FileData>
+					Client		= c:\temp\logs\Persistor\Client.log
+					MSE			= c:\temp\logs\Persistor\MSE.log
+					Run			= c:\temp\logs\Persistor\Run.log
+					Internals	= c:\temp\logs\Persistor\Internals.log
+					Image		= c:\temp\logs\Persistor\Image.log
+				</FileData>
+			</Persistor>
+		</Core0>
+	</Custom>
+	<XIE>
+	</XIE>
+	<WNN>
+	</WNN>
+	<Persistor>
+		readFrom		= OraData
+		saveToDB		= true
+		saveToFile		= false
+		<OraData>
+			UserName	= LogUser
+			Password	= LogPwd
+			ConnString	= Algo
+		</OraData>
+		<FileData>
+			Client		= c:\temp\logs\Persistor\Client.log
+			MSE			= c:\temp\logs\Persistor\MSE.log
+			Run			= c:\temp\logs\Persistor\Run.log
+			Internals	= c:\temp\logs\Persistor\Internals.log
+			Image		= c:\temp\logs\Persistor\Image.log
+		</FileData>
+	</Persistor>
+</Engine>
