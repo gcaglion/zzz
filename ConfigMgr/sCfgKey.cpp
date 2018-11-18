@@ -8,7 +8,6 @@ sCfgKey::sCfgKey(sObjParmsDef, int linesCnt_, sCfgLine** cfgLine_, int startLine
 
 	//bool dbg_verbose_=-1; bool dbg_dbgtoscreen_=-1; bool dbg_dbgtofile_=-1; char* dbg_outfilepath_ = nullptr;
 	//sCfgParm* tmpParm;
-	sDbg* overrideDbg;
 
 	//-- scan key entries
 	for (int l=startLine+1; l<endLine; l++) {
@@ -23,18 +22,15 @@ sCfgKey::sCfgKey(sObjParmsDef, int linesCnt_, sCfgLine** cfgLine_, int startLine
 
 			//-- if what we just spawned is a Debugger key, update overrideDbg
 			if (_stricmp(key[keysCnt]->name->base, "Debugger")==0) {
-				//-- clone current dbg into overrideDbg
-				overrideDbg=clonedbg(dbg);
+
+				//-- create overrideDbg with default settings
+				overrideDbg=defaultdbg;
 				//-- update overrideDBG parms from xml
 				safecall(this, getParm, &overrideDbg->verbose, "Debugger/Verbose", true);
 				safecall(this, getParm, &overrideDbg->dbgtoscreen, "Debugger/ScreenOutput", true);
 				safecall(this, getParm, &overrideDbg->dbgtofile, "Debugger/FileOutput", true);
 				safecall(this, getParm, &overrideDbg->outfilepath, "Debugger/OutFilePath", true);
-				//-- delete current dbg, unless it's inherited by parent
-				if (dbg!=parent->dbg) delete dbg;
-				//-- overrideDbg becomes the actual dbg
-				dbg=overrideDbg;
-				dbg->createOutFile(name->base, this, depth);
+				safecall(this, getParm, &overrideDbg->timing, "Debugger/Timing", true);
 			}
 
 			//-- get out of subKey
@@ -55,7 +51,7 @@ sCfgKey::~sCfgKey(){}
 void sCfgKey::setDbg() {
 
 	//-- key-specific debugger parameters are initialized to defaults
-	bool dbg_verbose_=DEFAULT_DBG_VERBOSITY; bool dbg_dbgtoscreen_=DEFAULT_DBG_TO_SCREEN; bool dbg_dbgtofile_=DEFAULT_DBG_TO_FILE;
+	bool dbg_verbose_=DEFAULT_DBG_VERBOSITY; bool dbg_timing_=DEFAULT_DBG_TIMING; bool dbg_dbgtoscreen_=DEFAULT_DBG_TO_SCREEN; bool dbg_dbgtofile_=DEFAULT_DBG_TO_FILE;
 	char* dbg_outfilepath_ = new char[MAX_PATH]; dbg_outfilepath_[0]='\0';
 
 	sObj* dbgKey=nullptr;
@@ -68,11 +64,12 @@ void sCfgKey::setDbg() {
 		safecall(this, getParm, &dbg_dbgtoscreen_, "Debugger/ScreenOutput", true);
 		safecall(this, getParm, &dbg_dbgtofile_, "Debugger/FileOutput", true);
 		safecall(this, getParm, &dbg_outfilepath_, "Debugger/OutFilePath", true);
+		safecall(this, getParm, &dbg_timing_, "Debugger/Timing", true);
 	}
 
 	//-- sObj always sets dbg (to default, parent's, or the one passed)
 	if (dbg!=parent->dbg) delete dbg;	//-- delete current dbg, unless it's inherited by parent
-	dbg = new sDbg(dbg_verbose_, dbg_dbgtoscreen_, dbg_dbgtofile_, dbg_outfilepath_);
+	dbg = new sDbg(dbg_verbose_, dbg_timing_, dbg_dbgtoscreen_, dbg_dbgtofile_, dbg_outfilepath_);
 	dbg->createOutFile(name->base, this, depth);
 	//-- 
 

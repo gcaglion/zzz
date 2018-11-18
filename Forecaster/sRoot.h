@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Timer.h"
 #include "Forecaster.h"
 
 #include "../DataMgr/sFXDataSource.h"

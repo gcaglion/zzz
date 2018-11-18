@@ -35,6 +35,9 @@
 				</Training>
 			</Parameters>
 			<Persistor>
+				<Debugger>
+					timing = true
+				</Debugger>
 				saveMSE			= true
 				saveRun			= true
 				saveInternals	= false

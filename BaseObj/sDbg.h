@@ -38,7 +38,7 @@ struct sDbg {
 	char msg[DBG_MSG_MAXLEN];
 	char stack[DBG_STACK_MAXLEN];
 
-	EXPORT sDbg(bool verbose_, bool dbgtoscreen_, bool dbgtofile_, char* outfilepath_);
+	EXPORT sDbg(bool verbose_, bool timing_, bool dbgtoscreen_, bool dbgtofile_, char* outfilepath_);
 	EXPORT ~sDbg();	
 	EXPORT void createOutFile(char* objName, void* objAddr, int objDepth);
 	//-- local copy of stripChar(), to avoid linkng Utils.lib to all modules that use sDbg
@@ -79,6 +79,6 @@ private:
 
 };
 
-#define defaultdbg new sDbg(DEFAULT_DBG_VERBOSITY, DEFAULT_DBG_TO_SCREEN, DEFAULT_DBG_TO_FILE, DEFAULT_DBG_FPATH)
-#define erronlydbg new sDbg(false, DEFAULT_DBG_TO_SCREEN, DEFAULT_DBG_TO_FILE, DEFAULT_DBG_FPATH)
-#define clonedbg(fromDbg) new sDbg(fromDbg->verbose, fromDbg->dbgtoscreen, fromDbg->dbgtofile, fromDbg->outfilepath)
+#define defaultdbg new sDbg(DEFAULT_DBG_VERBOSITY, DEFAULT_DBG_TIMING, DEFAULT_DBG_TO_SCREEN, DEFAULT_DBG_TO_FILE, DEFAULT_DBG_FPATH)
+#define erronlydbg new sDbg(false, DEFAULT_DBG_TIMING, DEFAULT_DBG_TO_SCREEN, DEFAULT_DBG_TO_FILE, DEFAULT_DBG_FPATH)
+#define clonedbg(fromDbg) new sDbg(fromDbg->verbose, fromDbg->timing, fromDbg->dbgtoscreen, fromDbg->dbgtofile, fromDbg->outfilepath)
