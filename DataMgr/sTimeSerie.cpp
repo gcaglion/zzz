@@ -39,7 +39,7 @@ sTimeSerie::~sTimeSerie() {
 
 void sTimeSerie::load(int valSource, int valStatus, char* date0_) {
 	if (date0_!=nullptr) strcpy_s(date0, DATE_FORMAT_LEN, date0_);
-	safecall(sourceData, load, date0, stepsCnt, dtime, val[valSource][valStatus], bdtime, base);
+	safecall(sourceData, load, date0, stepsCnt, dtime, val[valSource][valStatus], bdtime, base, barWidth);
 	if (doDump) dump(valSource, valStatus);
 	//-- 1. calc TSFs
 	safecall(this, calcTSFs);
@@ -192,6 +192,7 @@ void sTimeSerie::mallocs2() {
 	scaleP=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
 	for (int f=0; f<sourceData->featuresCnt; f++) { dmin[f]=1e9; dmax[f]=-1e9; }
 	//--
+	barWidth=(numtype*)malloc(stepsCnt*sizeof(numtype));
 
 }
 void sTimeSerie::frees() {
@@ -207,6 +208,7 @@ void sTimeSerie::frees() {
 		//free(val[source]);
 	}
 	free(val);
+	free(barWidth);
 
 	free(base);
 	free(dmin);	free(dmax);

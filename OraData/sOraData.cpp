@@ -49,7 +49,7 @@ void sOraData::commit() {
 	if(conn!=nullptr) ((Connection*)conn)->commit();
 }
 //-- Read
-void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCnt, char** oBarTime, float* oBarData, char* oBarTime0, float* oBaseBar) {
+void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar, numtype* oBarWidth) {
 	int i;
 
 	//-- always check this, first!
@@ -69,6 +69,9 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCn
 			oBarData[5*i+2] = ((ResultSet*)rset)->getFloat(4);
 			oBarData[5*i+3] = ((ResultSet*)rset)->getFloat(5);
 			oBarData[5*i+4] = ((ResultSet*)rset)->getFloat(6);
+			//--
+			oBarWidth[i]	= oBarData[5*i+1]-oBarData[5*i+2];
+
 			i--;
 		}
 		//-- 3. History: one more fetch to get baseBar
@@ -133,7 +136,7 @@ void sOraData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mse
 	}
 	
 }
-void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted) {
+void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted, numtype* barWidth) {
 
 	int runCnt=runStepsCnt*selectedFeaturesCnt;
 	int tsidx=0, runidx=0;
@@ -142,7 +145,7 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 	if (!isOpen) safecall(this, open);
 
 	try {
-		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, Pos, PosLabel, Feature, StepAhead, PredictedTRS, ActualTRS, ErrorTRS, PredictedTR, ActualTR, ErrorTR, Predicted, Actual, Error) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15, :P16, :P17)");
+		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, Pos, PosLabel, Feature, StepAhead, PredictedTRS, ActualTRS, ErrorTRS, PredictedTR, ActualTR, ErrorTR, Predicted, Actual, Error, BarWidth, ErrorP) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15, :P16, :P17, :P18, :P19)");
 		((Statement*)stmt)->setMaxIterations(runCnt);
 
 		for (int s=0; s<runStepsCnt; s++) {
@@ -179,13 +182,17 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 							((Statement*)stmt)->setFloat(14, fabs(actualTR[tsidx]-predictedTR[tsidx]));
 						}
 						//--
+						((Statement*)stmt)->setFloat(18, barWidth[s]);
+						//--
 						((Statement*)stmt)->setFloat(16, actual[tsidx]); //-- this can never be EMPTY_VALUE
 						if (predicted[tsidx]==EMPTY_VALUE) {
 							((Statement*)stmt)->setNull(15, OCCIFLOAT);
 							((Statement*)stmt)->setNull(17, OCCIFLOAT);
+							((Statement*)stmt)->setNull(19, OCCIFLOAT);
 						} else {
 							((Statement*)stmt)->setFloat(15, predicted[tsidx]);
 							((Statement*)stmt)->setFloat(17, fabs(actual[tsidx]-predicted[tsidx]));
+							((Statement*)stmt)->setFloat(19, fabs(actual[tsidx]-predicted[tsidx])/barWidth[s]);
 						}
 
 					if (runidx<(runCnt-1)) ((Statement*)stmt)->addIteration();

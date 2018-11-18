@@ -37,6 +37,8 @@ struct sTimeSerie : sCfgObj {
 	//-- statistical features (all those defined in enums file will be calc-ed and saved here
 	numtype tsf[TSFCNT];
 
+	//-- barwidth will be calced by load() and saved here
+	numtype* barWidth;	//-- [stepsCnt]
 
 	//-- these are of size [featuresCnt]
 	char bdtime[DATE_FORMAT_LEN];
