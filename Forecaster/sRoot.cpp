@@ -1,7 +1,7 @@
 #include "sRoot.h"
 
 //-- constructor / destructor
-sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), defaultdbg) {
+sRoot::sRoot(int argc_, char* argv_[]) : sCfgObj(nullptr, newsname("RootObj"), defaultdbg, nullptr, nullptr) {
 	dbg->verbose=false;
 
 	pid=GetCurrentProcessId();
@@ -39,8 +39,7 @@ void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 	char** simulationInferStartDate=nullptr;
 	char** simulationValidStartDate=nullptr;
 
-	char* endtimeS;
-	sTimer* timer=new sTimer();
+	char endtimeS[TIMER_ELAPSED_FORMAT_LEN];
 
 	sDataShape* shape;
 	sDataSet* trainDS; sLogger* trainLog;
@@ -72,6 +71,7 @@ void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 		//=====================================================================================================================================================================
 		//-- 5.1 create client persistor, if needed
 		bool saveClient;
+		timer->start();
 		safecall(clientCfg, setKey, "/Client");
 		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
 		safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
@@ -101,7 +101,7 @@ void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 			safecall(engine, commit);
 
 			//-- 5.5. stop timer, and save client info
-			endtimeS=timer->stop();
+			timer->stop(endtimeS);
 			safecall(clientLog, saveClientInfo, pid, s, "Root.Tester", timer->startTime, timer->elapsedTime, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], true, false, false);
 			//-- 5.4 Commit clientpersistor data
 			safecall(clientLog, commit);
@@ -130,7 +130,7 @@ void sRoot::inferClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 	char** simulationInferStartDate=nullptr;
 	char** simulationValidStartDate=nullptr;
 
-	char* endtimeS;
+	char endtimeS[TIMER_ELAPSED_FORMAT_LEN]; endtimeS[0]='\0';
 	sTimer* timer=new sTimer();
 
 	sDataShape* shape;
@@ -192,7 +192,7 @@ void sRoot::inferClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 			safecall(engine, commit);
 
 			//-- 6.6. stop timer, and save client info
-			endtimeS=timer->stop();
+			timer->stop(endtimeS);
 			safecall(clientLog, saveClientInfo, pid, s, "Root.Tester", timer->startTime, timer->elapsedTime, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], false, true, false);
 			//-- 5.4 Commit clientpersistor data
 			safecall(clientLog, commit);

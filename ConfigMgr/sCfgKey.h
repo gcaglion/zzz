@@ -12,6 +12,8 @@ struct sCfgKey : sObj {
 	int keysCnt;
 	sCfgKey* key[XMLKEY_MAXCNT];
 
+	sDbg* overrideDbg=nullptr;
+
 	sCfgKey(sObjParmsDef, int linesCnt_, sCfgLine** cfgLine_, int startLine_);
 	~sCfgKey();
 

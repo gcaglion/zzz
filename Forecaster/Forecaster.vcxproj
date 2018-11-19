@@ -165,12 +165,10 @@
     <ClInclude Include="Forecaster.h" />
     <ClInclude Include="MTwrapper.h" />
     <ClInclude Include="sRoot.h" />
-    <ClInclude Include="Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Forecaster.cpp" />
     <ClCompile Include="sRoot.cpp" />
-    <ClCompile Include="Timer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
