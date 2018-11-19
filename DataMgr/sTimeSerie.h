@@ -53,11 +53,11 @@ struct sTimeSerie : sCfgObj {
 	char* dumpPath;
 
 	//--
-	EXPORT sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, const char* dumpPath_=nullptr);
+	EXPORT sTimeSerie(sObjParmsDef, sDataSource* sourceData_, int stepsCnt_, int dt_, const char* dumpPath_=nullptr);
 	EXPORT sTimeSerie(sCfgObjParmsDef);
 	EXPORT ~sTimeSerie();
 
-	EXPORT void load(int valSource, int valStatus, char* date0_=nullptr);
+	EXPORT void load(int valSource, int valStatus, char* date0_);
 	EXPORT void transform(int valSource, int dt_);
 	EXPORT void untransform(int fromValSource, int toValSource, int sampleLen_, int selectedFeaturesCnt_, int* selectedFeature_);
 	EXPORT void scale(int valSource, int valStatus, float scaleMin_, float scaleMax_);

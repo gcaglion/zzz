@@ -1,16 +1,16 @@
 <DataSet>
-	BatchSamplesCount	= 1
+	BatchSamplesCount	= 10
 	SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	Dump 				= false
 	DumpPath			= c:\temp\DataDump
 	<TimeSerie>
-		HistoryLen			= 102
+		HistoryLen			= 1002
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
 		<FXDB_DataSource>
 			Symbol				= EURUSD
-			TimeFrame			= H1
+			TimeFrame			= D1
 			IsFilled			= false
 			<DBConnection>
 				UserName	= History

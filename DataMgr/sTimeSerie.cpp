@@ -1,9 +1,8 @@
 #include "sTimeSerie.h"
 
-sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, int stepsCnt_, int dt_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	mallocs1();
 
-	strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, date0_);
 	stepsCnt=stepsCnt_;
 	dt=dt_; 
 	sourceData=sourceData_;
@@ -20,7 +19,6 @@ sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0
 sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	mallocs1();
 	//-- 1. get Parameters
-	safecall(cfgKey, getParm, &date0, "Date0");
 	safecall(cfgKey, getParm, &stepsCnt, "HistoryLen");
 	safecall(cfgKey, getParm, &dt, "DataTransformation");
 	safecall(cfgKey, getParm, &doDump, "Dump");
@@ -38,7 +36,7 @@ sTimeSerie::~sTimeSerie() {
 }
 
 void sTimeSerie::load(int valSource, int valStatus, char* date0_) {
-	if (date0_!=nullptr) strcpy_s(date0, DATE_FORMAT_LEN, date0_);
+	strcpy_s(date0, DATE_FORMAT_LEN, date0_);
 	safecall(sourceData, load, date0, stepsCnt, dtime, val[valSource][valStatus], bdtime, base, barWidth);
 	if (doDump) dump(valSource, valStatus);
 	//-- 1. calc TSFs

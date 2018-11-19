@@ -10,7 +10,7 @@
 		DumpPath			= c:\temp\DataDump
 		<FXDB_DataSource>
 			Symbol				= EURUSD
-			TimeFrame			= H1
+			TimeFrame			= D1
 			IsFilled			= false
 			<DBConnection>
 				UserName	= History

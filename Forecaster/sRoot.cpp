@@ -283,7 +283,7 @@ void sRoot::kaz() {
 
 	sOraData* oradb1=new sOraData(this, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo");
 	sFXDataSource* fxsrc1=new sFXDataSource(this, newsname("FXDataSource1"), defaultdbg, oradb1, "EURUSD", "H1", false);
-	sTimeSerie* ts1 = new sTimeSerie(this, newsname("TimeSerie1"), defaultdbg, fxsrc1, "201710010000", 202, DT_DELTA, "c:/temp/DataDump");
+	sTimeSerie* ts1 = new sTimeSerie(this, newsname("TimeSerie1"), defaultdbg, fxsrc1, 202, DT_DELTA, "c:/temp/DataDump");
 
 	const int selFcnt=4; int selF[selFcnt]={ 0,1,2,3 };
 	int sampleLen=10; int predictionLen=3;
