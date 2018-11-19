@@ -1,16 +1,17 @@
 #include "sTimeSerie.h"
 
-sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, int stepsCnt_, int dt_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	mallocs1();
 
+	strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, date0_);
 	stepsCnt=stepsCnt_;
-	dt=dt_; 
+	dt=dt_;
 	sourceData=sourceData_;
 
 	doDump=false;
 	if (dumpPath_!=nullptr) {
 		strcpy_s(dumpPath, MAX_PATH, dumpPath_);
-	} else{
+	} else {
 		strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	}
 
@@ -19,6 +20,7 @@ sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, int stepsCnt_, in
 sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	mallocs1();
 	//-- 1. get Parameters
+	safecall(cfgKey, getParm, &date0, "Date0");
 	safecall(cfgKey, getParm, &stepsCnt, "HistoryLen");
 	safecall(cfgKey, getParm, &dt, "DataTransformation");
 	safecall(cfgKey, getParm, &doDump, "Dump");
@@ -36,7 +38,7 @@ sTimeSerie::~sTimeSerie() {
 }
 
 void sTimeSerie::load(int valSource, int valStatus, char* date0_) {
-	strcpy_s(date0, DATE_FORMAT_LEN, date0_);
+	if (date0_!=nullptr) strcpy_s(date0, DATE_FORMAT_LEN, date0_);
 	safecall(sourceData, load, date0, stepsCnt, dtime, val[valSource][valStatus], bdtime, base, barWidth);
 	if (doDump) dump(valSource, valStatus);
 	//-- 1. calc TSFs
@@ -94,18 +96,18 @@ void sTimeSerie::scale(int valSource, int valStatus, float scaleMin_, float scal
 }
 void sTimeSerie::unscale(int valSource, float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int skipFirstNsteps_) {
 
-		for (int s=0; s<stepsCnt; s++) {
-			for (int tf=0; tf<sourceData->featuresCnt; tf++) {
-				for(int df=0; df<selectedFeaturesCnt_; df++) {
-					if (selectedFeature_[df]==tf) {
-						if (s<skipFirstNsteps_) {
-							val[valSource][TR][s*sourceData->featuresCnt+tf]=EMPTY_VALUE;
-						} else {
-							val[valSource][TR][s*sourceData->featuresCnt+tf]=(val[valSource][TRS][s*sourceData->featuresCnt+tf]-scaleP[tf])/scaleM[tf];
-						}
+	for (int s=0; s<stepsCnt; s++) {
+		for (int tf=0; tf<sourceData->featuresCnt; tf++) {
+			for (int df=0; df<selectedFeaturesCnt_; df++) {
+				if (selectedFeature_[df]==tf) {
+					if (s<skipFirstNsteps_) {
+						val[valSource][TR][s*sourceData->featuresCnt+tf]=EMPTY_VALUE;
+					} else {
+						val[valSource][TR][s*sourceData->featuresCnt+tf]=(val[valSource][TRS][s*sourceData->featuresCnt+tf]-scaleP[tf])/scaleM[tf];
 					}
 				}
 			}
+		}
 	}
 	if (doDump) dump(TR, valSource);
 }
@@ -166,7 +168,7 @@ void sTimeSerie::dump(int valSource, int valStatus) {
 }
 
 //-- private stuff
-void sTimeSerie::mallocs1(){
+void sTimeSerie::mallocs1() {
 	date0=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
 	dumpPath=(char*)malloc(MAX_PATH);
 }
@@ -194,7 +196,7 @@ void sTimeSerie::mallocs2() {
 }
 void sTimeSerie::frees() {
 	for (int i=0; i<len; i++) {
-		free(dtime[i]); 
+		free(dtime[i]);
 	}
 	free(dtime);
 
@@ -246,8 +248,8 @@ void sTimeSerie::setDataSource() {
 	//safecall(sourceData, open);
 }
 
-void sTimeSerie::untransform(int fromValSource, int toValSource, int sampleLen_, int selectedFeaturesCnt_, int* selectedFeature_){
-	
+void sTimeSerie::untransform(int fromValSource, int toValSource, int sampleLen_, int selectedFeaturesCnt_, int* selectedFeature_) {
+
 	int fromStep=sampleLen_;
 	int toStep=stepsCnt;
 
@@ -277,7 +279,7 @@ void dataUnTransform(int dt_, int stepsCnt, int featuresCnt_, int fromStep_, int
 			}
 			break;
 		case DT_LOG:
-			for (s = fromStep_; s<toStep_; s++) odata[s*featuresCnt_+f] = exp(idata[s*featuresCnt_+f])+(numtype)1e4-1; 
+			for (s = fromStep_; s<toStep_; s++) odata[s*featuresCnt_+f] = exp(idata[s*featuresCnt_+f])+(numtype)1e4-1;
 			break;
 		case DT_DELTALOG:
 			for (s= fromStep_; s<toStep_; s++) {
@@ -307,7 +309,7 @@ void dataUnTransform(int dt_, int stepsCnt, int featuresCnt_, int fromStep_, int
 
 	free(prev);
 }
-void dataUnScale(numtype* scaleM_, numtype* scaleP_, int stepsCnt, int featuresCnt_, int fromStep_, int toStep_, numtype* idata, numtype* odata ){
+void dataUnScale(numtype* scaleM_, numtype* scaleP_, int stepsCnt, int featuresCnt_, int fromStep_, int toStep_, numtype* idata, numtype* odata) {
 }
 
 //-- Timeseries Statistical Features

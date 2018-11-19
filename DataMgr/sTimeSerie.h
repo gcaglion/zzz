@@ -34,13 +34,13 @@ struct sTimeSerie : sCfgObj {
 	char** dtime;
 	numtype*** val;	//-- [Source][Status][len]
 
-	//-- statistical features (all those defined in enums file will be calc-ed and saved here
+					//-- statistical features (all those defined in enums file will be calc-ed and saved here
 	numtype tsf[TSFCNT];
 
 	//-- barwidth will be calced by load() and saved here
 	numtype* barWidth;	//-- [stepsCnt]
 
-	//-- these are of size [featuresCnt]
+						//-- these are of size [featuresCnt]
 	char bdtime[DATE_FORMAT_LEN];
 	numtype* base;
 	numtype* dmin;
@@ -53,11 +53,11 @@ struct sTimeSerie : sCfgObj {
 	char* dumpPath;
 
 	//--
-	EXPORT sTimeSerie(sObjParmsDef, sDataSource* sourceData_, int stepsCnt_, int dt_, const char* dumpPath_=nullptr);
+	EXPORT sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, const char* dumpPath_=nullptr);
 	EXPORT sTimeSerie(sCfgObjParmsDef);
 	EXPORT ~sTimeSerie();
 
-	EXPORT void load(int valSource, int valStatus, char* date0_);
+	EXPORT void load(int valSource, int valStatus, char* date0_=nullptr);
 	EXPORT void transform(int valSource, int dt_);
 	EXPORT void untransform(int fromValSource, int toValSource, int sampleLen_, int selectedFeaturesCnt_, int* selectedFeature_);
 	EXPORT void scale(int valSource, int valStatus, float scaleMin_, float scaleMax_);

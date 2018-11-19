@@ -33,20 +33,13 @@ void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 	char trainffname[MAX_PATH];
 	char engineffname[MAX_PATH];
 
-	//-- client vars
-	int simulationLength;
-	char** simulationTrainStartDate=nullptr;
-	char** simulationInferStartDate=nullptr;
-	char** simulationValidStartDate=nullptr;
-
 	char endtimeS[TIMER_ELAPSED_FORMAT_LEN];
 
 	sDataShape* shape;
 	sDataSet* trainDS; sLogger* trainLog;
 	sEngine* engine;
 	sLogger* clientLog;
-
-
+	
 	try {
 		//-- 0. set full file name for each of the input files
 		getFullPath(clientXMLfile_, clientffname);
@@ -68,46 +61,31 @@ void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 		//-- 4. spawn engine the standard way
 		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", shape->sampleLen*trainDS->selectedFeaturesCnt, shape->predictionLen*trainDS->selectedFeaturesCnt);
 
-		//=====================================================================================================================================================================
-		//-- 5.1 create client persistor, if needed
+		//-- 5. create client persistor, if needed
 		bool saveClient;
-		timer->start();
 		safecall(clientCfg, setKey, "/Client");
 		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
 		safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
 
-		//-- 5.2 set simulation dates
-		safecall(this, mallocSimulationDates, clientCfg, &simulationLength, &simulationTrainStartDate, &simulationInferStartDate, &simulationValidStartDate);
-		//=====================================================================================================================================================================
-
-		//-- 5. for each simulation date,
-		for (int s=0; s<simulationLength; s++) {
-			//-- 5.1. start timer
-			timer->start();
-			//-- 5.2. get simulation date for s
-			safecall(clientCfg->currentKey, getParm, simulationTrainStartDate, "TrainStartDate");
-			getStartDates(trainDS, simulationTrainStartDate[0], simulationLength, &simulationTrainStartDate);
-			//-- set date0 in trainDS->TimeSerie, and load it
-			safecall(trainDS->sourceTS, load, TARGET, BASE, simulationTrainStartDate[s]);
-			//-- do training (also populates datasets)
-			safecall(engine, train, s, trainDS);
-			//-- persist MSE logs
-			safecall(engine, saveMSE);
-			//-- persist Core logs
-			safecall(engine, saveImage);
-			//-- persist Engine Info
-			safecall(engine, saveInfo);
-			//-- 5.4 Commit engine persistor data
-			safecall(engine, commit);
-
-			//-- 5.5. stop timer, and save client info
-			timer->stop(endtimeS);
-			safecall(clientLog, saveClientInfo, pid, s, "Root.Tester", timer->startTime, timer->elapsedTime, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], true, false, false);
-			//-- 5.4 Commit clientpersistor data
-			safecall(clientLog, commit);
-
-			//-- 
-		}
+		//-- training cycle core
+		timer->start();
+		//-- just load trainDS->TimeSerie; it should have its own date0 set already
+		safecall(trainDS->sourceTS, load, TARGET, BASE);
+		//-- do training (also populates datasets)
+		safecall(engine, train, 0, trainDS);
+		//-- persist MSE logs
+		safecall(engine, saveMSE);
+		//-- persist Core logs
+		safecall(engine, saveImage);
+		//-- persist Engine Info
+		safecall(engine, saveInfo);
+		//-- Commit engine persistor data
+		safecall(engine, commit);
+		//-- stop timer, and save client info
+		timer->stop(endtimeS);
+		safecall(clientLog, saveClientInfo, pid, 0, "Root.Tester", timer->startTime, timer->elapsedTime, trainDS->sourceTS->date0, "", "", true, false, false);
+		//-- Commit clientpersistor data
+		safecall(clientLog, commit);
 
 	}
 	catch (std::exception exc) {
@@ -123,12 +101,6 @@ void sRoot::inferClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 	char shapeffname[MAX_PATH];
 	char inferffname[MAX_PATH];
 	char engineffname[MAX_PATH];
-
-	//-- client vars
-	int simulationLength;
-	char** simulationTrainStartDate=nullptr;
-	char** simulationInferStartDate=nullptr;
-	char** simulationValidStartDate=nullptr;
 
 	char endtimeS[TIMER_ELAPSED_FORMAT_LEN]; endtimeS[0]='\0';
 	sTimer* timer=new sTimer();
@@ -162,42 +134,27 @@ void sRoot::inferClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 		//-- spawn engine from savedEnginePid_ with pid
 		safespawn(engine, newsname("Engine"), defaultdbg, engCfg, "/Engine", shape->sampleLen*inferDS->selectedFeaturesCnt, shape->predictionLen*inferDS->selectedFeaturesCnt, engLog, savedEnginePid_);
 
-		//=====================================================================================================================================================================
 		//-- 5.1 create client persistor, if needed
 		bool saveClient;
 		safecall(clientCfg, setKey, "/Client");
 		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
 		safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
 
-		//-- 5.2 set simulation dates
-		mallocSimulationDates(clientCfg, &simulationLength, &simulationTrainStartDate, &simulationInferStartDate, &simulationValidStartDate);
-		safecall(this, mallocSimulationDates, clientCfg, &simulationLength, &simulationTrainStartDate, &simulationInferStartDate, &simulationValidStartDate);
-		//=====================================================================================================================================================================
-
-		//-- 6. get simulation date for s
-		safecall(clientCfg->currentKey, getParm, simulationInferStartDate, "inferStartDate");
-		getStartDates(inferDS, simulationInferStartDate[0], simulationLength, &simulationInferStartDate);
-		//-- 6.0 for each simulation date,
-		for (int s=0; s<simulationLength; s++) {
-
-			//-- 6.1. start timer
-			timer->start();
-			//-- 6.2. set date0 in testDS->TimeSerie, and load it
-			safecall(inferDS->sourceTS, load, TARGET, BASE, simulationInferStartDate[s]);
-			//-- 6.3. do inference (also populates datasets)
-			safecall(engine, infer, s, inferDS, savedEnginePid_);
-			//-- 6.4. persist Run logs
-			safecall(engine, saveRun);
-			//-- 6.5 Commit engine persistor data
-			safecall(engine, commit);
-
-			//-- 6.6. stop timer, and save client info
-			timer->stop(endtimeS);
-			safecall(clientLog, saveClientInfo, pid, s, "Root.Tester", timer->startTime, timer->elapsedTime, simulationTrainStartDate[s], simulationInferStartDate[s], simulationValidStartDate[s], false, true, false);
-			//-- 5.4 Commit clientpersistor data
-			safecall(clientLog, commit);
-
-		}
+		//-- core infer cycle
+		timer->start();
+		//-- set date0 in testDS->TimeSerie, and load it
+		safecall(inferDS->sourceTS, load, TARGET, BASE);
+		//-- do inference (also populates datasets)
+		safecall(engine, infer, 0, inferDS, savedEnginePid_);
+		//-- persist Run logs
+		safecall(engine, saveRun);
+		//-- ommit engine persistor data
+		safecall(engine, commit);
+		//-- stop timer, and save client info
+		timer->stop(endtimeS);
+		safecall(clientLog, saveClientInfo, pid, 0, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferDS->sourceTS->date0, "", false, true, false);
+		//-- Commit clientpersistor data
+		safecall(clientLog, commit);
 
 	}
 	catch (std::exception exc) {
@@ -298,7 +255,7 @@ void sRoot::kaz() {
 
 	sOraData* oradb1=new sOraData(this, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo");
 	sFXDataSource* fxsrc1=new sFXDataSource(this, newsname("FXDataSource1"), defaultdbg, oradb1, "EURUSD", "H1", false);
-	sTimeSerie* ts1 = new sTimeSerie(this, newsname("TimeSerie1"), defaultdbg, fxsrc1, 202, DT_DELTA, "c:/temp/DataDump");
+	sTimeSerie* ts1 = new sTimeSerie(this, newsname("TimeSerie1"), defaultdbg, fxsrc1, "2017-10-20-00:00", 202, DT_DELTA, "c:/temp/DataDump");
 
 	const int selFcnt=4; int selF[selFcnt]={ 0,1,2,3 };
 	int sampleLen=10; int predictionLen=3;

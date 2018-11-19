@@ -4,6 +4,7 @@
 	Dump 				= false
 	DumpPath			= c:\temp\DataDump
 	<TimeSerie>
+		Date0				= 2017-10-31-00:00
 		HistoryLen			= 1002
 		DataTransformation	= DT_DELTA
 		Dump				= false
