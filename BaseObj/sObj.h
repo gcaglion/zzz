@@ -3,7 +3,7 @@
 #include "../common.h"
 #include "sName.h"
 #include "svard.h"
-#include "Timer.h"
+#include "timer.h"
 #include "sDbg.h"
 #include <typeinfo>
 #include <vector>
@@ -21,7 +21,7 @@ struct sObj {
 	sObj* parent;
 	vector<sObj*> child;
 	svard* cmdSvard;
-	sTimer timer;
+	sTimer* timer=new sTimer();
 	char cmd[CmdMaxLen];
 	char cmdElapsed[TIMER_ELAPSED_FORMAT_LEN];
 
@@ -38,22 +38,22 @@ struct sObj {
 
 		try {
 			if (dbg->timing) {
-				timer.start();
-				info("[%s] %s TRYING  : %s", timer.startTimeS, name->base, cmd);
+				timer->start();
+				info("[%s] %s TRYING  : %s", timer->startTimeS, name->base, cmd);
 			} else {
 				info("%s TRYING  : %s", name->base, cmd);
 			}
 			(*childVar_) = new objT(this, childSname_, childDbg_, childCargs...);
 			if (dbg->timing) {
-				timer.stop(cmdElapsed);
-				info("[%s] %s SUCCESS : %s . Elapsed time: %s", timer.stopTimeS, name->base, cmd, cmdElapsed);
+				timer->stop(cmdElapsed);
+				info("[%s] %s SUCCESS : %s . Elapsed time: %s", timer->stopTimeS, name->base, cmd, cmdElapsed);
 			} else {
 				info("%s SUCCESS : %s", name->base, cmd);
 			}
 		}
 		catch (std::exception exc) {
 			if (dbg->timing) {
-				fail("[%s] %s FAILURE : %s . Exception: %s", timer.startTimeS, name->base, cmd, exc.what());
+				fail("[%s] %s FAILURE : %s . Exception: %s", timer->startTimeS, name->base, cmd, exc.what());
 			} else {
 				fail("%s FAILURE : %s . Exception: %s", name->base, cmd, exc.what());
 			}
@@ -66,6 +66,33 @@ struct sObj {
 	cmdSvard=new svard(__VA_ARGS__); \
 	sprintf_s(cmd, CmdMaxLen, "%s->%s(%s)", obj_->name->base, Quote(met_), cmdSvard->fullval); \
 	try{ \
+		if (dbg->timing) { \
+			timer->start(); \
+			info("[%s] %s TRYING  : %s", timer->startTimeS, name->base, cmd); \
+		} else { \
+			info("%s TRYING  : %s", name->base, cmd); \
+		} \
+		obj_->met_(__VA_ARGS__); \
+			if (dbg->timing) { \
+				timer->stop(cmdElapsed); \
+				info("[%s] %s SUCCESS : %s . Elapsed time: %s", timer->stopTimeS, name->base, cmd, cmdElapsed); \
+			} else { \
+				info("%s SUCCESS : %s", name->base, cmd); \
+			} \
+	} catch (std::exception exc) { \
+		if (dbg->timing) { \
+			fail("[%s] %s FAILURE : %s . Exception: %s", timer->startTimeS, name->base, cmd, exc.what()); \
+		} else { \
+			fail("%s FAILURE : %s . Exception: %s", name->base, cmd, exc.what()); \
+		} \
+	}\
+}
+
+/*
+#define safecall(obj_, met_, ...){ \
+	cmdSvard=new svard(__VA_ARGS__); \
+	sprintf_s(cmd, CmdMaxLen, "%s->%s(%s)", obj_->name->base, Quote(met_), cmdSvard->fullval); \
+	try{ \
 		info("%s TRYING  : %s", name->base, cmd); \
 		obj_->met_(__VA_ARGS__); \
 		info("%s SUCCESS : %s", name->base, cmd); \
@@ -73,7 +100,7 @@ struct sObj {
 		fail("%s FAILURE : %s . Exception: %s", name->base, cmd, exc.what()); \
 	}\
 }
-
+*/
 #define safecallSilent(obj_, met_, ...){ \
 	try{ \
 		obj_->met_(__VA_ARGS__); \

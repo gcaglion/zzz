@@ -1,7 +1,7 @@
 #include "sRoot.h"
 
 //-- constructor / destructor
-sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), defaultdbg) {
+sRoot::sRoot(int argc_, char* argv_[]) : sCfgObj(nullptr, newsname("RootObj"), defaultdbg, nullptr, nullptr) {
 	dbg->verbose=false;
 
 	pid=GetCurrentProcessId();
@@ -25,7 +25,6 @@ void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 	char** simulationValidStartDate=nullptr;
 
 	char endtimeS[TIMER_ELAPSED_FORMAT_LEN];
-	sTimer* timer=new sTimer();
 
 	sDataShape* shape;
 	sDataSet* trainDS; sLogger* trainLog;
@@ -57,7 +56,10 @@ void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 		//=====================================================================================================================================================================
 		//-- 5.1 create client persistor, if needed
 		bool saveClient;
+		timer->start();
+
 		safecall(clientCfg, setKey, "/Client");
+
 		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
 		safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
 
