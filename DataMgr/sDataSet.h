@@ -41,7 +41,12 @@ struct sDataSet : sCfgObj {
 
 	EXPORT void build(int fromValSource, int fromValStatus);
 	EXPORT void unbuild(int fromValSource, int toValSource, int toValStatus);	//-- takes step 0 from predictionSBF, copy it into sourceTS->trsvalP
-	EXPORT void reorder(int section, int FROMorderId, int TOorderId);
+
+	EXPORT void setBFS();
+	EXPORT void setSBF();
+	EXPORT void SBF2BFS(int batchId, int barCnt, numtype* fromSBF, numtype* toBFS);
+	EXPORT void BFS2SBF(int batchId, int barCnt, numtype* fromBFS, numtype* toSBF);
+
 
 private:
 	void mallocs1();

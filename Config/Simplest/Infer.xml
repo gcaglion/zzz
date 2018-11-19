@@ -4,9 +4,9 @@
 	Dump 				= false
 	DumpPath			= c:\temp\DataDump
 	<TimeSerie>
-		Date0				= 2017-07-01-00:00
-		HistoryLen			= 100
-		DataTransformation	= DT_DELTA
+		Date0				= 2016-07-01-00:00
+		HistoryLen			= 202
+		DataTransformation	= DT_NONE
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
 		<FXDB_DataSource>

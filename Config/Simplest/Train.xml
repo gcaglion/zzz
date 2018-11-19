@@ -1,13 +1,13 @@
 <DataSet>
-	BatchSamplesCount	= 1
-	SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-	Dump 				= false
+	BatchSamplesCount	= 3
+	SelectedFeatures	= FXHIGH, FXLOW
+	Dump 				= true
 	DumpPath			= c:\temp\DataDump
 	<TimeSerie>
 		Date0				= 2017-07-01-00:00
-		HistoryLen			= 100
+		HistoryLen			= 13
 		DataTransformation	= DT_DELTA
-		Dump				= false
+		Dump				= true
 		DumpPath			= c:\temp\DataDump
 		<FXDB_DataSource>
 			Symbol				= EURUSD

@@ -92,8 +92,7 @@ void sTimeSerie::scale(int valSource, int valStatus, float scaleMin_, float scal
 		}
 	}
 
-	if (doDump) dump(valSource, valStatus);
-
+	if (doDump) dump(valSource, TRS);
 }
 void sTimeSerie::unscale(int valSource, float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int skipFirstNsteps_) {
 

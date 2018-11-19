@@ -98,30 +98,6 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 	if (doDump)	fclose(dumpFile);
 }
 
-void sDataSet::reorder(int section, int FROMorderId, int TOorderId) {
-
-	int Bcnt=(section==SAMPLE)?sampleLen:predictionLen;
-	int Fcnt=selectedFeaturesCnt;
-	int Scnt=samplesCnt;
-
-	int idx[3];
-	int i, o;
-
-	for (int b=0; b<Bcnt; b++) {
-		for (int f=0; f<Fcnt; f++) {
-			for (int s=0; s<Scnt; s++) {
-
-				idx[SBF]=s*Bcnt*Fcnt+b*Fcnt+f;
-				idx[BFS]=b*Fcnt*Scnt+f*Scnt+s;
-				//idx[SFBorder]=s*Bcnt*Fcnt+f*Bcnt+b;
-
-				i=idx[FROMorderId]; o=idx[TOorderId];
-				_data[section][TOorderId][o] = _data[section][FROMorderId][i];
-
-			}
-		}
-	}
-}
 void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 
 	int tsfcnt=sourceTS->sourceData->featuresCnt;
@@ -158,6 +134,56 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 	}
 
 }
+
+void sDataSet::setBFS() {
+	for (int b=0; b<batchCnt; b++) {
+		//-- populate BFS sample/target for every batch
+		SBF2BFS(b, sampleLen, sampleSBF, sampleBFS);
+		SBF2BFS(b, predictionLen, targetSBF, targetBFS);
+	}
+}
+void sDataSet::setSBF() {
+	for (int b=0; b<batchCnt; b++) {
+		//-- populate SBF predictionfor every batch
+		BFS2SBF(b, predictionLen, predictionBFS, predictionSBF);
+	}
+}
+void sDataSet::SBF2BFS(int batchId, int barCnt, numtype* fromSBF, numtype* toBFS) {
+	int S=batchSamplesCnt;
+	int F=selectedFeaturesCnt;
+	int B=barCnt;
+	int idx;
+	int idx0=batchId*B*F*S;
+	int i=idx0;
+	for (int bar=0; bar<B; bar++) {												// i1=bar	l1=B
+		for (int f=0; f<F; f++) {										// i2=f		l2=F
+			for (int s=0; s<S; s++) {										// i3=s		l3=S
+				idx=idx0+s*F*B+bar*F+f;
+				toBFS[i]=fromSBF[idx];
+				i++;
+			}
+		}
+	}
+}
+void sDataSet::BFS2SBF(int batchId, int barCnt, numtype* fromBFS, numtype* toSBF) {
+	int S=batchSamplesCnt;
+	int F=selectedFeaturesCnt;
+	int B=barCnt;
+	int idx;
+	int idx0=batchId*B*F*S;
+	int i=idx0;
+	for (int s=0; s<S; s++) {												// i1=s		l1=S
+		for (int bar=0; bar<B; bar++) {											// i2=bar	l1=B
+			for (int f=0; f<F; f++) {									// i3=f		l3=F
+				idx=idx0+bar*F*S+f*S+s;
+				toSBF[i]=fromBFS[idx];
+				i++;
+			}
+		}
+	}
+
+}
+
 
 //-- private stuff
 void sDataSet::mallocs1() {

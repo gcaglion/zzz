@@ -80,7 +80,7 @@ private:
 	void FF();
 	void Activate(int level);
 	void calcErr();
-	void ForwardPass(sDataSet* ds, int batchId, bool haveTargets);
+	void ForwardPass(sDataSet* ds, int batchId);
 	bool epochSummary(int epoch, DWORD starttime, bool displayProgress=true);
 	void BP_std();
 	void WU_std();

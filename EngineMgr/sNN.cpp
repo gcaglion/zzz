@@ -221,7 +221,7 @@ void sNN::WU_std(){
 	Alg->Vadd(weightsCntTotal, W, 1, dW, 1, W);
 
 }
-void sNN::ForwardPass(sDataSet* ds, int batchId, bool haveTargets) {
+void sNN::ForwardPass(sDataSet* ds, int batchId) {
 
 	//-- 1. load samples (and targets, if passed) from single batch in dataset onto input layer
 	LDstart=timeGetTime(); LDcnt++;
@@ -234,7 +234,7 @@ void sNN::ForwardPass(sDataSet* ds, int batchId, bool haveTargets) {
 	//-- load batch samples on L0
 	Alg->h2d(&F[(parms->useBias)?1:0], &ds->sampleBFS[batchId*L0SampleNodesCnt], L0SampleNodesCnt*sizeof(numtype));
 	//-- load batch target on output level
-	if (haveTargets) Alg->h2d(&u[0], &ds->targetBFS[batchId*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+	Alg->h2d(&u[0], &ds->targetBFS[batchId*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 	LDtimeTot+=((DWORD)(timeGetTime()-LDstart));
 
 	//-- 2. Feed Forward
@@ -245,9 +245,7 @@ void sNN::ForwardPass(sDataSet* ds, int batchId, bool haveTargets) {
 
 	//-- 3. If we have targets, Calc Error (sets e[], te, updates tse) for the whole batch
 	CEstart=timeGetTime(); CEcnt++;
-	if (haveTargets) {
-		calcErr();
-	}
+	calcErr();
 	CEtimeTot+=((DWORD)(timeGetTime()-CEstart));
 
 }
@@ -372,9 +370,9 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	Alg->Vinit(weightsCntTotal, dJdW, 0, 0);
 
 	//-- 3. convert samples and targets from SBF to BFS  in training dataset
-	trainArgs->ds->reorder(SAMPLE, SBF, BFS);
-	trainArgs->ds->reorder(TARGET, SBF, BFS);
-
+	//trainArgs->ds->reorder(SAMPLE, SBF, BFS);
+	//trainArgs->ds->reorder(TARGET, SBF, BFS);
+	trainArgs->ds->setBFS();
 	//-- 1. for every epoch, train all batch with one Forward pass ( loadSamples(b)+FF()+calcErr() ), and one Backward pass (BP + calcdW + W update)
 	for (epoch=0; epoch<parms->MaxEpochs; epoch++) {
 
@@ -388,7 +386,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 		for (b=0; b<trainSet->batchCnt; b++) {
 
 			//-- forward pass, with targets
-			safecallSilent(this, ForwardPass, trainSet, b, true);
+			safecallSilent(this, ForwardPass, trainSet, b);
 
 			//-- backward pass, with weights update
 			safecallSilent(this, BackwardPass, trainSet, b, true);
@@ -404,7 +402,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	//-- 2. test run. need this to make sure all batches pass through the net with the latest weights, and training targets
 	TRstart=timeGetTime(); TRcnt++;
 	Alg->Vinit(1, tse, 0, 0);
-	for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b, true);
+	for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b);
 	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
 
 	//-- calc and display final epoch MSE
