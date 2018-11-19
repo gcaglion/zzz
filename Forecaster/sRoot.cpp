@@ -10,6 +10,21 @@ sRoot::sRoot(int argc_, char* argv_[]) : sObj(nullptr, newsname("RootObj"), defa
 sRoot::~sRoot() {}
 
 //-- core stuff
+void sRoot::trainClient(const char* cfgPath_){
+	char clientXMLfile[MAX_PATH]; sprintf_s(clientXMLfile, MAX_PATH, "%s/Client.xml", cfgPath_);
+	char shapeXMLfile[MAX_PATH]; sprintf_s(shapeXMLfile, MAX_PATH, "%s/DataShape.xml", cfgPath_);
+	char trainXMLfile[MAX_PATH]; sprintf_s(trainXMLfile, MAX_PATH, "%s/Train.xml", cfgPath_);
+	char engineXMLfile[MAX_PATH]; sprintf_s(engineXMLfile, MAX_PATH, "%s/Engine.xml", cfgPath_);
+	trainClient(clientXMLfile, shapeXMLfile, trainXMLfile, engineXMLfile);
+}
+void sRoot::inferClient(const char* cfgPath_, int savedEnginePid_) {
+	char clientXMLfile[MAX_PATH]; sprintf_s(clientXMLfile, MAX_PATH, "%s/Client.xml", cfgPath_);
+	char shapeXMLfile[MAX_PATH]; sprintf_s(shapeXMLfile, MAX_PATH, "%s/DataShape.xml", cfgPath_);
+	char inferXMLfile[MAX_PATH]; sprintf_s(inferXMLfile, MAX_PATH, "%s/Infer.xml", cfgPath_);
+	char engineXMLfile[MAX_PATH]; sprintf_s(engineXMLfile, MAX_PATH, "%s/Engine.xml", cfgPath_);
+	inferClient(clientXMLfile, shapeXMLfile, inferXMLfile, engineXMLfile, savedEnginePid_);
+}
+//--
 void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_) {
 
 	//-- full filenames
