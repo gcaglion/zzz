@@ -6,7 +6,7 @@
 #include "../DataMgr/sGenericDataSource.h"
 #include "../DataMgr/sMT4DataSource.h"
 
-struct sRoot : sObj {
+struct sRoot : sCfgObj {
 
 	int pid;
 
@@ -23,8 +23,6 @@ struct sRoot : sObj {
 	EXPORT void kaz();
 
 private:
-
-	sTimer timer;
 
 	//-- variables
 	char clientCfgFileFullName[MAX_PATH];

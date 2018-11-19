@@ -1,4 +1,7 @@
 <Engine>
+	<Debugger>
+		timing = true
+	</Debugger>
 	Type 		= ENGINE_CUSTOM
 	<Custom>
 		CoresCount	= 1
@@ -35,9 +38,6 @@
 				</Training>
 			</Parameters>
 			<Persistor>
-				<Debugger>
-					timing = true
-				</Debugger>
 				saveMSE			= true
 				saveRun			= true
 				saveInternals	= false

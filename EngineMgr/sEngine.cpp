@@ -332,20 +332,22 @@ void sEngine::saveRun() {
 		int layer=core[c]->layout->layer;
 
 		//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
-		_ds->unbuild(PREDICTED, PREDICTED, TRS);
-		if(_ts->doDump) _ts->dump(PREDICTED, TRS);
+		safecall(_ds, unbuild, PREDICTED, PREDICTED, TRS);
+		if (_ts->doDump) _ts->dump(PREDICTED, TRS);
 
 		//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
-		_ts->unscale(PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedFeaturesCnt, _ds->selectedFeature, _ds->sampleLen);
+		safecall(_ts, unscale, PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedFeaturesCnt, _ds->selectedFeature, _ds->sampleLen);
 		if (_ts->doDump) _ts->dump(PREDICTED, TR);
 
 		//-- 5. sourceTS->untransform into valP
-		_ds->sourceTS->untransform(PREDICTED, PREDICTED, core[c]->procArgs->ds->sampleLen, core[c]->procArgs->ds->selectedFeaturesCnt, core[c]->procArgs->ds->selectedFeature);
+		safecall(_ds->sourceTS, untransform, PREDICTED, PREDICTED, core[c]->procArgs->ds->sampleLen, core[c]->procArgs->ds->selectedFeaturesCnt, core[c]->procArgs->ds->selectedFeature);
 		if (_ts->doDump) _ts->dump(PREDICTED, BASE);
 
 		//-- persist into runLog
-		int runStepsCnt=core[c]->procArgs->ds->samplesCnt +core[c]->procArgs->ds->sampleLen;
-		if (core[c]->persistor->saveRunFlag) core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, runStepsCnt, core[c]->procArgs->tsFeaturesCnt, core[c]->procArgs->selectedFeaturesCnt, core[c]->procArgs->selectedFeature, core[c]->procArgs->predictionLen, _ts->dtime, _ts->val[TARGET][TRS], _ts->val[PREDICTED][TRS], _ts->val[TARGET][TR], _ts->val[PREDICTED][TR], _ts->val[TARGET][BASE], _ts->val[PREDICTED][BASE], _ts->barWidth );
+		int runStepsCnt=core[c]->procArgs->ds->samplesCnt+core[c]->procArgs->ds->sampleLen;
+		if (core[c]->persistor->saveRunFlag) {
+			safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, runStepsCnt, core[c]->procArgs->tsFeaturesCnt, core[c]->procArgs->selectedFeaturesCnt, core[c]->procArgs->selectedFeature, core[c]->procArgs->predictionLen, _ts->dtime, _ts->val[TARGET][TRS], _ts->val[PREDICTED][TRS], _ts->val[TARGET][TR], _ts->val[PREDICTED][TR], _ts->val[TARGET][BASE], _ts->val[PREDICTED][BASE], _ts->barWidth);
+		}
 	}
 }
 void sEngine::commit() {
