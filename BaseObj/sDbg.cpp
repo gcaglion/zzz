@@ -1,10 +1,10 @@
 #include "sDbg.h"
 
-sDbg::sDbg(bool verbose_, bool dbgtoscreen_, bool dbgtofile_, char* outfilepath_) {
+sDbg::sDbg(bool verbose_, bool timing_, bool dbgtoscreen_, bool dbgtofile_, char* outfilepath_) {
 	outfilepath=(char*)malloc(MAX_PATH);
 	outfilename=(char*)malloc(MAX_PATH);
 	outfilefullname=(char*)malloc(MAX_PATH);
-	verbose=verbose_; dbgtoscreen=dbgtoscreen_, dbgtofile=dbgtofile_;
+	timing=timing_; verbose=verbose_; dbgtoscreen=dbgtoscreen_, dbgtofile=dbgtofile_;
 	getFullPath(outfilepath_, outfilepath);
 	stack[0]='\0';
 	outfile=nullptr;

@@ -1,4 +1,7 @@
 <DataSet>
+	<Debugger>
+		timing = true
+	</Debugger>
 	BatchSamplesCount	= 1
 	SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	Dump 				= false

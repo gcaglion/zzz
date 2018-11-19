@@ -11,6 +11,19 @@ sCfgObj::sCfgObj(sCfgObjParmsDef) : sObj(sObjParmsVal) {
 		safecall(cfg, setKey, keyDesc_);
 		//-- 2. set Object cfgKey
 		cfgKey=cfg->currentKey;
+
+		//-- override dbg stuff
+		if (cfgKey->overrideDbg!=nullptr) {
+			//-- delete current dbg, unless it's inherited by parent
+			if (dbg!=parent->dbg) delete dbg;
+			//-- overrideDbg becomes the actual dbg
+			dbg=cfgKey->overrideDbg;
+		}
+		//-- create dbg outfile only after possible override of outilfpath
+		dbg->createOutFile(name->base, this, depth);
+
+
+
 		//-- 3. restore cfg currentKey
 		//cfg->currentKey=bkpKey;
 	}
