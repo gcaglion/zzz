@@ -33,7 +33,7 @@ void sCfg::setKey(const char* keyDesc_, bool ignoreError, bool* oKeyFound_) {
 	setActualKeyDesc(keyDesc_);
 
 	//-- call sObj findChild on actual relative path
-	safecall(this, findChild, keyDesc, &keyObj);
+	//safecall(this, findChild, keyDesc, &keyObj);
 	findChild(keyDesc, &keyObj);
 	if (keyObj==nullptr) {
 		if (!ignoreError) fail("XML key not found. keyDesc=%s", keyDesc);
