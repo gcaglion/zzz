@@ -249,30 +249,6 @@ void sOraData::saveClientInfo(int pid, int simulationId, const char* clientName,
 }
 
 //-- Save/Load core images
-/*void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
-
-	//-- always check this, first!
-	if (!isOpen) safecall(this, open);
-
-	try {
-		stmt = ((Connection*)conn)->createStatement("insert into CoreImage_NN (ProcessId, ThreadId, Epoch, WId, W) values(:P01, :P02, :P03, :P04, :P05)");
-		((Statement*)stmt)->setMaxIterations(Wcnt);
-		for (int i=0; i<Wcnt; i++) {
-			((Statement*)stmt)->setInt(1, pid);
-			((Statement*)stmt)->setInt(2, tid);
-			((Statement*)stmt)->setInt(3, epoch);
-			((Statement*)stmt)->setInt(4, i);
-			((Statement*)stmt)->setFloat(5, W[i]);
-			if (i<(Wcnt-1)) ((Statement*)stmt)->addIteration();
-		}
-		((Statement*)stmt)->executeUpdate();
-		((Connection*)conn)->terminateStatement((Statement*)stmt);
-	}
-	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
-	}
-}
-*/
 void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 
 	//-- always check this, first!
@@ -389,51 +365,6 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 	((Connection*)conn)->terminateStatement((Statement*)stmt);
 
 }
-/*void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
-
-	//-- always check this, first!
-	if (!isOpen) safecall(this, open);
-
-	//-- if a specific epoch is not provided, we first need to find the last epoch
-	if (epoch==-1) {
-		sprintf_s(sqlS, SQL_MAXLEN, "select max(epoch) from CoreImage_NN where processId = %d and ThreadId = %d", pid, tid);
-		try {
-			stmt = ((Connection*)conn)->createStatement(sqlS);
-			rset = ((Statement*)stmt)->executeQuery();
-			if (((ResultSet*)rset)->next()&&!((ResultSet*)rset)->isNull(1)) {
-				epoch=((ResultSet*)rset)->getInt(1);
-			} else {
-				fail("Could not find max epoch for processId=%d, ThreadId=%d", pid, tid);
-			}
-		}
-		catch (SQLException ex) {
-			fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
-		}
-		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
-		((Connection*)conn)->terminateStatement((Statement*)stmt);
-	}
-
-	//-- once we have the epoch, we load Ws for that pid, tid, epoch
-	int i=0;
-	sprintf_s(sqlS, SQL_MAXLEN, "select WId, W from CoreImage_NN where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1,2", pid, tid, epoch);
-	try {
-		stmt = ((Connection*)conn)->createStatement(sqlS);
-		rset = ((Statement*)stmt)->executeQuery();
-		while (((ResultSet*)rset)->next()&&i<Wcnt) {
-			W[i] = ((ResultSet*)rset)->getFloat(2);
-			i++;
-		}
-	}
-	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
-	}
-
-	//-- close result set and terminate statement before exiting
-	((Statement*)stmt)->closeResultSet((ResultSet*)rset);
-	((Connection*)conn)->terminateStatement((Statement*)stmt);
-
-}
-*/
 void sOraData::loadCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	fail("Not implemented.");
 }

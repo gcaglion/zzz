@@ -34,7 +34,7 @@ struct sEngine : sCfgObj {
 	EXPORT sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersistor_, int loadingPid);
 
 	EXPORT void train(int testid_, sDataSet* trainDS_);
-	EXPORT void infer(int testid_, sDataSet* inferDS_);
+	EXPORT void infer(int testid_, sDataSet* inferDS_, int savedEnginePid_);
 	//--
 	EXPORT void saveMSE();
 	EXPORT void saveRun();
@@ -54,5 +54,5 @@ private:
 	void setLayerProps();
 	const int trainProc = 0;
 	const int inferProc = 1;
-	void process(int procid_, int testid_, sDataSet* ds_);
+	void process(int procid_, int testid_, sDataSet* ds_, int savedEnginePid_);
 };

@@ -59,30 +59,3 @@ void sForecaster::setEngine(){
 
 
 }
-void sForecaster::trainBlock(int simulId, char* startDate) {
-	if (doTraining) {
-		//-- 6.1.1. set date0 in trainDS->TimeSerie, and load it
-		safecall(trainDS->sourceTS, load, TARGET, BASE, startDate);
-		//-- 6.1.2. spawn engine from config file
-
-		//-- 6.1.3. do training (also populates datasets)
-		safecall(engine, train, simulId, trainDS);
-		//-- 6.1.4. persist MSE logs
-		safecall(engine, saveMSE);
-		//-- 6.1.5 persist Core logs
-		safecall(engine, saveImage);
-		//-- 6.1.6 persist Engine Info
-		safecall(engine, saveInfo);
-	}
-}
-void sForecaster::inferBlock(int simulId, char* startDate) {
-	if (doInference) {
-		//-- 6.2.1. set date0 in testDS->TimeSerie, and load it
-		safecall(inferDS->sourceTS, load, TARGET, BASE, startDate);
-
-		//-- 6.2.2. do inference (also populates datasets)
-		safecall(engine, infer, simulId, inferDS);
-		//-- 6.2.3. persist Run logs
-		safecall(engine, saveRun);
-	}
-}

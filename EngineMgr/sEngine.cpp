@@ -229,7 +229,7 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 	return 1;
 }
 
-void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
+void sEngine::process(int procid_, int testid_, sDataSet* ds_, int savedEnginePid_) {
 
 	int t;
 	int ret = 0;
@@ -271,6 +271,7 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 				procArgs[t]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
 				procArgs[t]->core=core[c];
 				procArgs[t]->coreProcArgs->ds = (sDataSet*)ds_;
+				procArgs[t]->coreProcArgs->npid=savedEnginePid_;
 				procArgs[t]->coreProcArgs->tsFeaturesCnt=procArgs[t]->coreProcArgs->ds->sourceTS->sourceData->featuresCnt;
 				procArgs[t]->coreProcArgs->selectedFeaturesCnt=procArgs[t]->coreProcArgs->ds->selectedFeaturesCnt;
 				procArgs[t]->coreProcArgs->selectedFeature=procArgs[t]->coreProcArgs->ds->selectedFeature;
@@ -306,10 +307,10 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_) {
 	}
 }
 void sEngine::train(int testid_, sDataSet* trainDS_) {
-	safecall(this, process, trainProc, testid_, trainDS_);
+	safecall(this, process, trainProc, testid_, trainDS_, 0);
 }
-void sEngine::infer(int testid_, sDataSet* inferDS_) {
-	safecall(this, process, inferProc, testid_, inferDS_);
+void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_) {
+	safecall(this, process, inferProc, testid_, inferDS_, savedEnginePid_);
 }
 
 void sEngine::saveMSE() {

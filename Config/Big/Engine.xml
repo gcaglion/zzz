@@ -9,7 +9,6 @@
 				ParentsConnType	= 
 			</Layout>
 			<Parameters>
-				FixedTRSError	= 0.2
 				<Topology>
 					LevelRatio			= 1, 1 , 0.5
 					LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
@@ -17,7 +16,7 @@
 					UseBias				= false
 				</Topology>
 				<Training>
-					MaxEpochs			= 1000
+					MaxEpochs			= 800
 					TargetMSE			= 0.0001
 					NetSaveFrequency	= 10
 					StopOnDivergence	= false
