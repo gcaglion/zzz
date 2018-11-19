@@ -192,7 +192,11 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 						} else {
 							((Statement*)stmt)->setFloat(15, predicted[tsidx]);
 							((Statement*)stmt)->setFloat(17, fabs(actual[tsidx]-predicted[tsidx]));
-							((Statement*)stmt)->setFloat(19, fabs(actual[tsidx]-predicted[tsidx])/barWidth[s]);
+							if (barWidth[s]==0) {
+								((Statement*)stmt)->setNull(19, OCCIFLOAT);
+							} else {
+								((Statement*)stmt)->setFloat(19, fabs(actual[tsidx]-predicted[tsidx])/barWidth[s]);
+							}
 						}
 
 					if (runidx<(runCnt-1)) ((Statement*)stmt)->addIteration();
