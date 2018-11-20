@@ -12,9 +12,4 @@
 
 	<!Persistor-Default.xml>
 
-		<FileData>
-			Client		= c:\temp\logs\Persistor\Client.log
-		</FileData>
-	</Persistor>
-
 </Client>

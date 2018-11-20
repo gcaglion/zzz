@@ -2,6 +2,9 @@
 		readFrom		= OraData
 		saveToDB		= true
 		saveToFile		= false
-		<! OraData-LogUser.xml>
-		<! FileData-Default.xml >
+		<OraData>
+			UserName	= LogUser
+			Password	= LogPwd
+			ConnString	= Algo
+		</OraData>
 	</Persistor>
