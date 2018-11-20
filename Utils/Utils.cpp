@@ -112,7 +112,7 @@ EXPORT int cslToArray(const char* csl, char Separator, char** StrList) {
 
 	return (ListLen+1);
 }
-EXPORT void splitFullFileName(char* iFullName, char* oPath, char* oName) {
+EXPORT void splitFullFileName(const char* iFullName, char* oPath, char* oName) {
 	int i;
 	int ls=instr('\\', iFullName, true);
 	if (ls<0) ls=instr('/', iFullName, true);

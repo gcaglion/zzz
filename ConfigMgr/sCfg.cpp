@@ -1,10 +1,12 @@
 #include "sCfg.h"
 
-sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName, int currDepth_, int overridesCnt, char** overrideName, char** overrideValS) : sObj(sObjParmsVal) {
+sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName_, int currDepth_, int overridesCnt, char** overrideName, char** overrideValS) : sObj(sObjParmsVal) {
 	currDepth=currDepth_;
 	currParent[currDepth]=-1;
 	prevParent[currDepth]=-1;
 	subCfgCnt=0;
+	strcpy_s(cfgFileFullName, MAX_PATH, cfgFileFullName_);
+	splitFullFileName(cfgFileFullName_, cfgFilePath, cfgFileName);
 
 	//-- open file
 	if( fopen_s(&cfgFile, cfgFileFullName, "r") !=0) fail("Could not open configuration file %s . Error %d", cfgFileFullName, errno);
@@ -17,10 +19,14 @@ sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName, int currDepth_, int overri
 
 		//-- include another xml as subCfg[subCfgCnt]	
 		if (cfgLine[linesCnt-1]->type==cfgLine_Include) {
-			getFullPath(cfgLine[linesCnt-1]->naked, subFileFullName);
-			safespawn(subCfg[subCfgCnt], newsname("subCfg[%d]", subCfgCnt), defaultdbg, subFileFullName);
+			//-- first, need to set include filename relative to current path
+			getFullPath(cfgLine[linesCnt-1]->naked, subCfgFileFullName, cfgFilePath);
+			//-- then, open it with fullname
+			safespawn(subCfg[subCfgCnt], newsname("subCfg[%d]", subCfgCnt), defaultdbg, subCfgFileFullName);
 			subCfgCnt++;
-			linesCnt+=subCfg[subCfgCnt]->linesCnt;
+			//-- lines in subCfg become lines in cfg
+			for (int i=0; i<subCfg[subCfgCnt-1]->linesCnt; i++) cfgLine[linesCnt+i]=subCfg[subCfgCnt-1]->cfgLine[i];
+			linesCnt+=subCfg[subCfgCnt-1]->linesCnt;
 		}
 	}
 
@@ -45,7 +51,6 @@ void sCfg::setKey(const char* keyDesc_, bool ignoreError, bool* oKeyFound_) {
 	setActualKeyDesc(keyDesc_);
 
 	//-- call sObj findChild on actual relative path
-	//safecall(this, findChild, keyDesc, &keyObj);
 	findChild(keyDesc, &keyObj);
 	if (keyObj==nullptr) {
 		if (!ignoreError) fail("XML key not found. keyDesc=%s", keyDesc);

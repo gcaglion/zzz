@@ -9,7 +9,7 @@ EXPORT int getCharCnt(const char* str, char c);
 EXPORT void getCharPos(const char* str, char c, int charCnt, int** oCharPos);
 EXPORT int cslToArray(const char* csl, char Separator, char** StrList);
 EXPORT int countChar(const char* instr_, char c, int skipFirstN, int skipLastN);
-EXPORT void splitFullFileName(char* iFullName, char* oPath, char* oName);
+EXPORT void splitFullFileName(const char* iFullName, char* oPath, char* oName);
 EXPORT char* substr(char* str, int start, int len);
 EXPORT char* right(char* str, int len);
 EXPORT char* left(char* str, int len);
