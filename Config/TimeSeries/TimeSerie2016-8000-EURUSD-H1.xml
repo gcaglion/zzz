@@ -1,0 +1,17 @@
+	<TimeSerie>
+		Date0				= 2016-10-31-00:00
+		HistoryLen			= 8002
+		DataTransformation	= DT_DELTA
+		Dump				= false
+		DumpPath			= c:\temp\DataDump
+		<FXDB_DataSource>
+			Symbol				= EURUSD
+			TimeFrame			= H1
+			IsFilled			= false
+			<DBConnection>
+				UserName	= History
+				Password	= HistoryPwd
+				ConnString	= Algo
+			</DBConnection>
+		</FXDB_DataSource>
+	</TimeSerie>

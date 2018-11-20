@@ -37,9 +37,10 @@ sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName_, int currDepth_, int overr
 	safespawn(rootKey, newsname("rootKey"), dbg, linesCnt, cfgLine, -1);
 	currentKey=rootKey;
 
+	fclose(cfgFile);
+
 }
 sCfg::~sCfg() {
-	fclose(cfgFile);
 }
 
 void sCfg::setKey(const char* keyDesc_, bool ignoreError, bool* oKeyFound_) {

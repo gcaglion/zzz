@@ -18,9 +18,11 @@ int main(int argc, char* argv[]) {
 	//-- 1. create root object. root constructor does everything else
 	sRoot* root=nullptr;
 	try {
-		//root=new sRoot(argc, argv);	//-- always takes default debugger settings
-		//root->kaz();
-		return -1;
+		root=new sRoot(argc, argv);	//-- always takes default debugger settings
+		//-----------
+//		root->kaz();
+//		return -1;
+		//-----------
 		if (_stricmp(argv[1], "Train")==0) {
 			if (argc==3) {
 				root->trainClient(argv[2]);
