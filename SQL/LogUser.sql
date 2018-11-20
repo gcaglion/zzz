@@ -108,3 +108,5 @@ create table CoreNNparms(
 	BPStd_LearningMomentum number
 );
 alter table CoreNNparms add constraint CoreNNparms_PK primary key(ProcessId, ThreadId) using index tablespace LogIdx;
+
+
