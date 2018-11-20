@@ -1,6 +1,10 @@
 #include "sCfg.h"
 
-sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName, int overridesCnt, char** overrideName, char** overrideValS) : sObj(sObjParmsVal) {
+sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName, int currDepth_, int overridesCnt, char** overrideName, char** overrideValS) : sObj(sObjParmsVal) {
+	currDepth=currDepth_;
+	currParent[currDepth]=-1;
+	prevParent[currDepth]=-1;
+	subCfgCnt=0;
 
 	//-- open file
 	if( fopen_s(&cfgFile, cfgFileFullName, "r") !=0) fail("Could not open configuration file %s . Error %d", cfgFileFullName, errno);
@@ -10,6 +14,14 @@ sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName, int overridesCnt, char** o
 	while (fgets(_line, XMLLINE_MAXLEN, cfgFile)!=NULL) {
 		safespawn(cfgLine[linesCnt], newsname("line_%d", linesCnt), dbg, _line, overridesCnt, overrideName, overrideValS);
 		linesCnt++;
+
+		//-- include another xml as subCfg[subCfgCnt]	
+		if (cfgLine[linesCnt-1]->type==cfgLine_Include) {
+			getFullPath(cfgLine[linesCnt-1]->naked, subFileFullName);
+			safespawn(subCfg[subCfgCnt], newsname("subCfg[%d]", subCfgCnt), defaultdbg, subFileFullName);
+			subCfgCnt++;
+			linesCnt+=subCfg[subCfgCnt]->linesCnt;
+		}
 	}
 
 	//-- check line pairing (start/end keys)
@@ -52,13 +64,7 @@ void sCfg::parse() {
 
 	//-- 1. set depth for each line, and find maxDepth
 	
-	int currDepth=0;
-	int currParent[XMLKEY_MAXDEPTH]; currParent[currDepth]=-1;
-	int prevParent[XMLKEY_MAXDEPTH]; prevParent[currDepth]=-1;
-	
-
 	for (l=0; l<linesCnt; l++) {
-
 
 		if (cfgLine[l]->type==cfgLine_KeyStart) {
 			cfgLine[l]->parent=currParent[currDepth];

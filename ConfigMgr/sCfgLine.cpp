@@ -12,10 +12,14 @@ sCfgLine::sCfgLine(sObjParmsDef, char* rawLine_, int overridesCnt, char** overri
 	//-- 2. set type
 	if (isComment()) {
 		type=cfgLine_Comment;
-	} else if (clean[0]=='<' && clean[1]!='/' && clean[strlen(clean)-1]=='>') {
+	} else if (clean[0]=='<' && clean[1]!='/' && clean[1]!='!' && clean[strlen(clean)-1]=='>') {
 		type=cfgLine_KeyStart;
 	} else if (clean[0]=='<' && clean[1]=='/' && clean[strlen(clean)-1]=='>') {
 		type=cfgLine_KeyEnd;
+	} else if (clean[0]=='<' && clean[1]=='!' && clean[strlen(clean)-1]=='>') {
+		stripChar(naked, '!');
+		type=cfgLine_Include;
+
 	} else {
 		type=cfgLine_Parm;
 		//-- separate parameter name from value

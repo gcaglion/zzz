@@ -9,15 +9,22 @@ struct sCfg : sObj {
 	FILE* cfgFile;
 	int linesCnt;
 	sCfgLine* cfgLine[XMLLINE_MAXCNT];
+	int subCfgCnt;
+	sCfg* subCfg[XMLLINE_MAXCNT];
 	sCfgKey* rootKey;
 	sCfgKey* currentKey;
 
-	EXPORT sCfg(sObjParmsDef, const char* cfgFileFullName, int overridesCnt=0, char** overrideName=nullptr, char** overrideValS=nullptr);
+	EXPORT sCfg(sObjParmsDef, const char* cfgFileFullName, int currDepth_=0, int overridesCnt=0, char** overrideName=nullptr, char** overrideValS=nullptr);
 	EXPORT ~sCfg();
 
 	EXPORT void setKey(const char* keyDesc_, bool ignoreError=false, bool* oKeyFound_=nullptr);
 
 private:
+	int currDepth;
+	int currParent[XMLKEY_MAXDEPTH]; 
+	int prevParent[XMLKEY_MAXDEPTH]; 
+	char subFileFullName[MAX_PATH];
+
 	char _line[XMLLINE_MAXLEN];
 	void parse();
 

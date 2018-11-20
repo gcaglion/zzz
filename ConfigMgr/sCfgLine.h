@@ -6,6 +6,7 @@
 #define cfgLine_KeyStart	0
 #define cfgLine_KeyEnd		1
 #define cfgLine_Parm		2
+#define cfgLine_Include		3
 
 struct sCfgLine : sObj {
 	int type;
