@@ -11,14 +11,14 @@
 				Parents			= 
 				ParentsConnType	= 
 			</Layout>
-			<! Core-Medium.xml>
 			
-			<! CorePersistor-Default.xml >
+			<! Core-Light.xml >
+			
+			<! CorePresistor-Default.xml >
+	
 		</Core0>
 	</Custom>
-	<XIE>
-	</XIE>
-	<WNN>
-	</WNN>
-	<! Persistor-Default.xml >
+
+	<! Presistor-Default.xml >
+
 </Engine>
