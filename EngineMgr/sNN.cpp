@@ -271,8 +271,10 @@ bool sNN::epochSummary(int epoch, DWORD starttime, bool displayProgress) {
 	procArgs->mseT[epoch]=tse_h/nodesCnt[outputLevel]/_batchCnt;
 	procArgs->mseV[epoch]=0;	// TO DO !
 	if (displayProgress) {
+		DWORD epochms=timeGetTime()-starttime;
+
 		gotoxy(0, procArgs->screenLine); 
-		printf("\rTestId %3d, Process %6d, Thread %6d, Epoch %6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms", testid, pid, tid, epoch, procArgs->mseT[epoch], procArgs->mseV[epoch], (timeGetTime()-starttime));
+		printf("\rTestId %3d, Process %6d, Thread %6d, Epoch %6d/%6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms", testid, pid, tid, epoch, parms->MaxEpochs, procArgs->mseT[epoch], procArgs->mseV[epoch], epochms);
 	}
 	if (procArgs->mseT[epoch]<parms->TargetMSE) return true;
 	if ((parms->StopOnDivergence && epoch>1&&procArgs->mseT[epoch]>procArgs->mseT[epoch-1])) return true;
