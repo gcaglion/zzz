@@ -34,7 +34,7 @@ sNNparms::sNNparms(sCfgObjParmsDef) : sCoreParms(sCfgObjParmsVal) {
 	arr2csl(levelsCnt-2, levelRatio, XMLKEY_PARM_VAL_MAXLEN, &levelRatioS);
 	arr2csl(levelsCnt, ActivationFunction, XMLKEY_PARM_VAL_MAXLEN, &levelActivationS);
 	//--
-	if (levelActsCnt!=levelsCnt) fail("Too few Level Activations specified (%d vs. %d required)", levelActsCnt, levelsCnt);
+	if (levelActsCnt!=levelsCnt) fail("Level Activations count mismatch (%d provided vs. %d required)", levelActsCnt, levelsCnt);
 	safecall(cfgKey, getParm, &useContext, "Topology/UseContext");
 	safecall(cfgKey, getParm, &useBias, "Topology/UseBias");
 

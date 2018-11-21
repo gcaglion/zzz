@@ -4,6 +4,8 @@
 	Dump 				= false
 	DumpPath			= c:\temp\DataDump
 
-	<! ..\TimeSeries\TimeSerie2014-8000-EURUSD-H1.xml >
+	<! TimeSerie2015-8000-EURUSD-H1.xml >
+
+	<! DataSetPersistor-Default.xml >
 
 </DataSet>

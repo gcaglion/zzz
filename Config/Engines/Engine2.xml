@@ -12,13 +12,13 @@
 				ParentsConnType	= 
 			</Layout>
 			
-			<! Core-Medium.xml >
+			<! Core2.xml >
 			
-			<! CorePresistor-Default.xml >
+			<! CorePersistor-Default.xml >
 	
 		</Core0>
 	</Custom>
 
-	<! Presistor-Default.xml >
+	<! ..\Persistor-Default.xml >
 
 </Engine>
