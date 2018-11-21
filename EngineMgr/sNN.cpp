@@ -267,14 +267,23 @@ void sNN::BackwardPass(sDataSet* ds, int batchId, bool updateWeights) {
 bool sNN::epochSummary(int epoch, DWORD starttime, bool displayProgress) {
 	numtype tse_h;	// total squared error copid on host at the end of each eopch
 
+	char remainingTimeS[TIMER_ELAPSED_FORMAT_LEN];
+	DWORD epochms;
+	DWORD remainingms;
+
 	Alg->d2h(&tse_h, tse, sizeof(numtype));
 	procArgs->mseT[epoch]=tse_h/nodesCnt[outputLevel]/_batchCnt;
 	procArgs->mseV[epoch]=0;	// TO DO !
 	if (displayProgress) {
-		DWORD epochms=timeGetTime()-starttime;
+
+		//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
+		epochms=timeGetTime()-starttime;
+		remainingms=(parms->MaxEpochs-epoch)*epochms;
+		SgetElapsed(remainingms, remainingTimeS);
+		//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
 
 		gotoxy(0, procArgs->screenLine); 
-		printf("\rTestId %3d, Process %6d, Thread %6d, Epoch %6d/%6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms", testid, pid, tid, epoch, parms->MaxEpochs, procArgs->mseT[epoch], procArgs->mseV[epoch], epochms);
+		printf("\rTestId %3d, Process %6d, Thread %6d, Epoch %6d/%6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms , remaining: %s", testid, pid, tid, epoch, parms->MaxEpochs, procArgs->mseT[epoch], procArgs->mseV[epoch], epochms, remainingTimeS);
 	}
 	if (procArgs->mseT[epoch]<parms->TargetMSE) return true;
 	if ((parms->StopOnDivergence && epoch>1&&procArgs->mseT[epoch]>procArgs->mseT[epoch-1])) return true;
