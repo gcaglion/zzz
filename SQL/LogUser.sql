@@ -45,9 +45,9 @@ create table ClientInfo(
 	ClientName varchar2(128),
 	ClientStart date,
 	Duration number,
-	SimulationStartTrain date,
-	SimulationStartInfer date,
-	SimulationStartValid date,
+	SimulationStartTrain varchar2(64),
+	SimulationStartInfer varchar2(64),
+	SimulationStartValid varchar2(64),
 	DoTraining number,
 	DoTrainRun number,
 	DoTestRun number
