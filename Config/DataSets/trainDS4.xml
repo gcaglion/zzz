@@ -1,0 +1,11 @@
+<DataSet>
+	BatchSamplesCount	= 10
+	SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+	Dump 				= false
+	DumpPath			= c:\temp\DataDump
+
+	<! TimeSerie2014-2000-EURUSD-H1.xml >
+
+	<! DataSetPersistor-Default.xml >
+
+</DataSet>
