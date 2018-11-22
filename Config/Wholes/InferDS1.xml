@@ -1,0 +1,20 @@
+<DataSet>
+	BatchSamplesCount	= 1
+	SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+	Dump 				= false
+	DumpPath			= c:\temp\DataDump
+
+	<TimeSerie>
+		Date0				= 2017-10-31-00:00
+		HistoryLen			= 402
+		DataTransformation	= DT_DELTA
+		Dump				= false
+		DumpPath			= c:\temp\DataDump
+		
+		<! Common\EurUsd_H1.xml >
+	
+	</TimeSerie>
+
+	<! Common\DataSetPersistor-Default.xml >
+
+</DataSet>

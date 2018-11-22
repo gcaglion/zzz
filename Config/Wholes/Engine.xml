@@ -1,3 +1,17 @@
+<Engine>
+	<Debugger>
+		timing = true
+	</Debugger>
+	Type 		= ENGINE_CUSTOM
+	<Custom>
+		CoresCount	= 1
+		<Core0>
+			<Layout>
+				Type	= CORE_NN
+				Parents			= 
+				ParentsConnType	= 
+			</Layout>
+			
 			<Parameters>
 				<Topology>
 					LevelRatio			= 2
@@ -6,14 +20,14 @@
 					UseBias				= false
 				</Topology>
 				<Training>
-					MaxEpochs			= 1000
+					MaxEpochs			= 200
 					TargetMSE			= 0.0001
 					NetSaveFrequency	= 10
 					StopOnDivergence	= false
 					BP_Algo				= BP_STD
 					<BP_Std>
-						LearningRate		= 0.002
-						LearningMomentum	= 0.8
+						LearningRate		= 0.001
+						LearningMomentum	= 0.4
 					</BP_Std>
 					<BP_Qing>
 					</BP_Qing>
@@ -23,3 +37,12 @@
 					</BP_RProp>
 				</Training>
 			</Parameters>
+			
+			<! Common\CorePersistor-Default.xml >
+	
+		</Core0>
+	</Custom>
+
+	<! Common\Persistor-Default.xml >
+
+</Engine>

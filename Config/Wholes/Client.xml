@@ -1,0 +1,15 @@
+#These are ignored
+
+#Empty lines are ignored, too
+
+<Client>
+
+	<ParmsCombinations>
+		# TO DO (v. TesterMulti)
+	</ParmsCombinations>
+
+	saveClient	= true
+
+	<!Common\Persistor-Default.xml>
+
+</Client>
