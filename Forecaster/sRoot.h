@@ -51,9 +51,9 @@ private:
 		ret = 0; \
 	} else { \
 		printf("Client failed: %s\n", __VA_ARGS__); \
+		printf("Press any key..."); getchar(); \
 		ret = -1; \
 	} \
-	printf("Press any key..."); getchar(); \
 	return ret; \
 }
 
