@@ -1,0 +1,13 @@
+<FXDB_DataSource>
+
+	Symbol				= EURUSD
+	TimeFrame			= H1
+	IsFilled			= false
+
+	<DBConnection>
+		UserName	= History
+		Password	= HistoryPwd
+		ConnString	= Algo
+	</DBConnection>
+
+</FXDB_DataSource>
