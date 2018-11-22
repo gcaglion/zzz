@@ -25,3 +25,7 @@ private:
 	LARGE_INTEGER timer_stop;
 
 };
+
+//-- static versions
+EXPORT void SgetTimestamp(double time_, char* oTimeS_);
+EXPORT void SgetElapsed(double time_, char* oTimeS_);

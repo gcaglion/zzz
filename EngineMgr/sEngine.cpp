@@ -345,7 +345,11 @@ void sEngine::saveRun() {
 		if (_ts->doDump) _ts->dump(PREDICTED, BASE);
 
 		//-- persist into runLog
-		int runStepsCnt=core[c]->procArgs->ds->samplesCnt+core[c]->procArgs->ds->sampleLen;
+		int runStepsCnt= core[c]->procArgs->ds->samplesCnt \
+						+core[c]->procArgs->ds->sampleLen \
+						+core[c]->procArgs->ds->predictionLen \
+						-1;
+
 		if (core[c]->persistor->saveRunFlag) {
 			safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, runStepsCnt, core[c]->procArgs->tsFeaturesCnt, core[c]->procArgs->selectedFeaturesCnt, core[c]->procArgs->selectedFeature, core[c]->procArgs->predictionLen, _ts->dtime, _ts->val[TARGET][TRS], _ts->val[PREDICTED][TRS], _ts->val[TARGET][TR], _ts->val[PREDICTED][TR], _ts->val[TARGET][BASE], _ts->val[PREDICTED][BASE], _ts->barWidth);
 		}

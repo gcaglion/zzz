@@ -247,7 +247,7 @@ void sOraData::saveClientInfo(int pid, int simulationId, const char* clientName,
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
-	sprintf_s(sqlS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, SimulationId, ClientName, ClientStart, Duration, SimulationStartTrain, SimulationStartInfer, SimulationStartValid, DoTraining, DoTrainRun) values(%d, %d, '%s', sysdate, %f, to_date('%s','%s'), to_date('%s','%s'), to_date('%s','%s'), %d, %d)",	pid, simulationId, clientName, elapsedSecs, simulStartTrain, DATE_FORMAT, simulStartInfer, DATE_FORMAT, simulStartValid, DATE_FORMAT, (doTrain?1:0), (doTestRun?1:0) );
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, SimulationId, ClientName, ClientStart, Duration, SimulationStartTrain, SimulationStartInfer, SimulationStartValid, DoTraining, DoTrainRun) values(%d, %d, '%s', sysdate, %f, '%s','%s', to_date('%s','%s'), %d, %d)",	pid, simulationId, clientName, elapsedSecs, simulStartTrain, simulStartInfer, simulStartValid, DATE_FORMAT, (doTrain?1:0), (doTestRun?1:0) );
 	safecall(this, sqlExec, sqlS);
 
 }

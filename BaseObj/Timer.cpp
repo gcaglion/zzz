@@ -53,3 +53,28 @@ void sTimer::stop(char* oElapsedS) {
 	//-- copy elapsedS to output buffer
 	strcpy_s(oElapsedS, TIMER_ELAPSED_FORMAT_LEN, elapsedTimeS);
 }
+
+
+//-- static versions
+EXPORT void SgetTimestamp(double time_, char* oTimeS_) {
+	char* ftime;
+	time_t ltime; // calendar time 
+	HANDLE TimeMutex;
+
+	TimeMutex = CreateMutex(NULL, TRUE, NULL);
+	WaitForSingleObject(TimeMutex, INFINITE);
+	ltime = time(NULL); // get current cal time 
+	ftime = asctime(localtime(&ltime));
+	ftime[strlen(ftime)-1] = '\0';
+	ReleaseMutex(TimeMutex);
+
+	strcpy_s(oTimeS_, TIMER_TIME_FORMAT_LEN, ftime);
+
+}
+EXPORT void SgetElapsed(double time_, char* oTimeS_) {	//-- milliseconds to timestring (HH:MI:SS.ms)
+	int ms = (int)time_%1000;
+	int ss = (int)(floor(time_/1000))%60;
+	int mi = (int)(floor(time_/1000/60))%60;
+	int hh = (int)(floor(time_/1000/60/60))%60;
+	sprintf_s(oTimeS_, 30, "%02d:%02d:%02d.%d", hh, mi, ss, ms);
+}
