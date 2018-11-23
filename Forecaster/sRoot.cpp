@@ -24,7 +24,20 @@ void sRoot::inferClient(int simulationId_, const char* cfgPath_, int savedEngine
 	char engineXMLfile[MAX_PATH]; sprintf_s(engineXMLfile, MAX_PATH, "%s/Engine.xml", cfgPath_);
 	inferClient(simulationId_, clientXMLfile, shapeXMLfile, inferXMLfile, engineXMLfile, savedEnginePid_);
 }
+void sRoot::bothClient(int simulationId_, const char* cfgPath_) {
+	char clientXMLfile[MAX_PATH]; sprintf_s(clientXMLfile, MAX_PATH, "%s/Client.xml", cfgPath_);
+	char shapeXMLfile[MAX_PATH]; sprintf_s(shapeXMLfile, MAX_PATH, "%s/DataShape.xml", cfgPath_);
+	char trainXMLfile[MAX_PATH]; sprintf_s(trainXMLfile, MAX_PATH, "%s/Train.xml", cfgPath_);
+	char engineXMLfile[MAX_PATH]; sprintf_s(engineXMLfile, MAX_PATH, "%s/Engine.xml", cfgPath_);
+	trainClient(simulationId_, clientXMLfile, shapeXMLfile, trainXMLfile, engineXMLfile);
+	inferClient(simulationId_, clientXMLfile, shapeXMLfile, trainXMLfile, engineXMLfile, GetCurrentProcessId());
+}
 //--
+void sRoot::bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_) {
+	safecall(this, trainClient, simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_);
+	int trainingPid=GetCurrentProcessId();
+	safecall(this, inferClient, simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, trainingPid);
+}
 void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_) {
 
 	//-- full filenames
