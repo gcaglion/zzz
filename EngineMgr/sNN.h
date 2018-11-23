@@ -18,7 +18,7 @@ struct sNN : sCore {
 	void setLayout(int batchSamplesCnt_);
 	void mallocLayout();
 	void train(sCoreProcArgs* trainArgs);
-	void singleInfer(int sampleLen_, int sampleFeaturesCnt_, int batchSamplesCnt_, numtype* singleSampleBF, numtype* singleTargetBF, numtype** singlePredictionBF);
+	void infer(sCoreProcArgs* inferArgs);
 	void saveImage(int pid, int tid, int epoch);
 	void loadImage(int pid, int tid, int epoch);
 
@@ -80,7 +80,7 @@ private:
 	void FF();
 	void Activate(int level);
 	void calcErr();
-	void ForwardPass(sDataSet* ds, int batchId);
+	void ForwardPass(sDataSet* ds, int batchId, bool inferring);
 	//bool epochSummary(int epoch, DWORD starttime, bool displayProgress=true);
 	void showEpochStats(int e, DWORD eStart_);
 	void BP_std();

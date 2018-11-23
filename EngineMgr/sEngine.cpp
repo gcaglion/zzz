@@ -224,8 +224,7 @@ DWORD coreThreadTrain(LPVOID vargs_) {
 }
 DWORD coreThreadInfer(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
-	sDataSet* ds = args->coreProcArgs->ds;
-	args->core->infer(ds->samplesCnt, ds->sampleLen, ds->predictionLen, ds->selectedFeaturesCnt, ds->sampleSBF, ds->targetSBF, ds->predictionSBF);
+	args->core->infer(args->coreProcArgs);
 	return 1;
 }
 

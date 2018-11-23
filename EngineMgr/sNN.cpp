@@ -221,7 +221,7 @@ void sNN::WU_std(){
 	Alg->Vadd(weightsCntTotal, W, 1, dW, 1, W);
 
 }
-void sNN::ForwardPass(sDataSet* ds, int batchId) {
+void sNN::ForwardPass(sDataSet* ds, int batchId, bool inferring) {
 
 	//-- 1. load samples (and targets, if passed) from single batch in dataset onto input layer
 	LDstart=timeGetTime(); LDcnt++;
@@ -243,11 +243,15 @@ void sNN::ForwardPass(sDataSet* ds, int batchId) {
 	//safecall(FF());
 	FFtimeTot+=((DWORD)(timeGetTime()-FFstart));
 
-	//-- 3. If we have targets, Calc Error (sets e[], te, updates tse) for the whole batch
+	//-- 3. Calc Error (sets e[], te, updates tse) for the whole batch
 	CEstart=timeGetTime(); CEcnt++;
 	calcErr();
 	CEtimeTot+=((DWORD)(timeGetTime()-CEstart));
 
+	//-- 4. if Inferring, save results for current batch in batchPrediction
+	if (inferring) {
+		Alg->d2h(&ds->predictionBFS[batchId*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+	}
 }
 void sNN::BackwardPass(sDataSet* ds, int batchId, bool updateWeights) {
 
@@ -364,11 +368,10 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	Alg->Vinit(weightsCntTotal, dW, 0, 0);
 	Alg->Vinit(weightsCntTotal, dJdW, 0, 0);
 
-	//-- 3. convert samples and targets from SBF to BFS  in training dataset
-	//trainArgs->ds->reorder(SAMPLE, SBF, BFS);
-	//trainArgs->ds->reorder(TARGET, SBF, BFS);
+	//-- 0.4. convert samples and targets from SBF to BFS  in training dataset
 	trainArgs->ds->setBFS();
-	//-- 1. for every epoch, train all batch with one Forward pass ( loadSamples(b)+FF()+calcErr() ), and one Backward pass (BP + calcdW + W update)
+
+	//-- 1. for every epoch, train all batches with one Forward pass ( loadSamples(b)+FF()+calcErr() ), and one Backward pass (BP + calcdW + W update)
 	for (epoch=0; epoch<parms->MaxEpochs; epoch++) {
 
 		//-- timing
@@ -381,7 +384,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 		for (b=0; b<trainSet->batchCnt; b++) {
 
 			//-- forward pass, with targets
-			safecallSilent(this, ForwardPass, trainSet, b);
+			safecallSilent(this, ForwardPass, trainSet, b, false);
 
 			//-- backward pass, with weights update
 			safecallSilent(this, BackwardPass, trainSet, b, true);
@@ -408,13 +411,13 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	TRstart=timeGetTime(); TRcnt++;
 
 	Alg->Vinit(1, tse, 0, 0);	
-	for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b);
+	for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b, false);
 	Alg->d2h(&tse_h, tse, sizeof(numtype));
 	procArgs->mseT[trainArgs->mseCnt-1]=tse_h/nodesCnt[outputLevel]/_batchCnt;
 	showEpochStats(trainArgs->mseCnt-1, epoch_starttime);
 	
 	Alg->Vinit(1, tse, 0, 0);
-	for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b);
+	for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b, false);
 	Alg->d2h(&tse_h, tse, sizeof(numtype));
 	procArgs->mseT[trainArgs->mseCnt-1]=tse_h/nodesCnt[outputLevel]/_batchCnt;
 	showEpochStats(trainArgs->mseCnt-1, epoch_starttime);
@@ -443,90 +446,54 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	destroyNeurons();
 
 }
-void sNN::singleInfer(int sampleLen_, int sampleFeaturesCnt_, int batchSamplesCnt_, numtype* singleSampleBF, numtype* singleTargetBF, numtype** singlePredictionBF) {
+void sNN::infer(sCoreProcArgs* inferArgs) {
 
-	//-- 1. load samples (and targets, if passed) from single batch in dataset onto input layer
-	LDstart=timeGetTime(); LDcnt++;
+	numtype tse_h;	// total squared error copied on host at the end of infer
+	DWORD inferStartTime=timeGetTime();
 
-	int L0SampleNodesCnt=sampleLen_*sampleFeaturesCnt_*batchSamplesCnt_;
-	//-- load batch samples on L0
-	Alg->h2d(&F[(parms->useBias) ? 1 : 0], singleSampleBF, L0SampleNodesCnt*sizeof(numtype));
-	//-- load batch target on output level
-	Alg->h2d(&u[0], singleTargetBF, nodesCnt[outputLevel]*sizeof(numtype));
-	
-	LDtimeTot+=((DWORD)(timeGetTime()-LDstart));
+	//-- extract infering arguments from inferArgs into local variables
+	sDataSet* inferSet = inferArgs->ds;
+	pid=inferArgs->pid;
+	tid=inferArgs->tid;
+	testid=inferArgs->testid;
 
-	//-- 2. Feed Forward
-	FFstart=timeGetTime(); FFcnt++;
-	FF();
-	//safecall(FF());
-	FFtimeTot+=((DWORD)(timeGetTime()-FFstart));
+	//-- set private _batchCnt and _batchSize for the network from dataset
+	_batchCnt=inferSet->batchCnt;
+	_batchSize=inferSet->batchSamplesCnt;
+	//-- set Layout. This should not change weightsCnt[] at all, just nodesCnt[]
+	setLayout(_batchSize);
 
-	//-- 3. If we have targets, Calc Error (sets e[], te, updates tse) for the whole batch
-	CEstart=timeGetTime(); CEcnt++;
-	calcErr();
-	CEtimeTot+=((DWORD)(timeGetTime()-CEstart));
+	//-- 0. malloc + init neurons
+	mallocNeurons();
+	initNeurons();
 
-	//-- 4. copy last layer neurons (on dev) to prediction (on host)
-	safecallSilent(Alg, d2h, (*singlePredictionBF), &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+	//-- 0.3. W[] should have already been loaded
 
-}
-/*void sNN::inferOLD(sCoreProcArgs* inferArgs) {
+	//-- 0.4. convert samples and targets from SBF to BFS  in inference dataset
+	inferArgs->ds->setBFS();
 
-	sDataSet* runSet=inferArgs->ds;	//-- just a local pointer
+	//-- 1. infer all batches with one Forward pass ( loadSamples(b)+FF()+calcErr() ). No backward pass, obviously.
 
-	//-- set Neurons Layout based on batchSampleCount of run set
-	setLayout(runSet->batchSamplesCnt);
+	//-- timing
+	inferStartTime=timeGetTime();
 
-	//-- malloc + init neurons
-	safecall(this, mallocNeurons);
-	safecall(this, initNeurons);
-
-	//-- reset tse=0
-	safecall(Alg, Vinit, 1, tse, 0, 0);
-
-	//-- 3. convert SBF to BFS samples and targets in inference dataset
-	inferArgs->ds->reorder(SAMPLE, SBF, BFS);
-	inferArgs->ds->reorder(TARGET, SBF, BFS);
-
-	//-- 3.1. use simple pointers to the above arrays
-	sample=inferArgs->ds->sampleBFS;
-	target=inferArgs->ds->targetBFS;
-	prediction=inferArgs->ds->predictionBFS;
-
-	//-- batch run
-	for (int b=0; b<runSet->batchCnt; b++) {
-
-		//-- 1.1.1.  load samples/targets onto GPU
-		safecallSilent(Alg, h2d, &F[(parms->useBias) ? 1 : 0], &sample[b*nodesCnt[0]], nodesCnt[0]*sizeof(numtype), true);
-		safecallSilent(Alg, h2d, &u[0], &target[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
-
-		//-- 1.1.2. Feed Forward
-		safecallSilent(this, FF);
-
-		//-- 1.1.3. copy last layer neurons (on dev) to prediction (on host)
-		safecallSilent(Alg, d2h, &prediction[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
-
-		calcErr();
-	}
-
-	//-- calc and display final epoch MSE
-	numtype tse_h;	// total squared error copid on host at the end of the run
+	Alg->Vinit(1, tse, 0, 0);
+	for (int b=0; b<inferSet->batchCnt; b++) ForwardPass(inferSet, b, true);
 	Alg->d2h(&tse_h, tse, sizeof(numtype));
-	numtype mseR=tse_h/nodesCnt[outputLevel]/runSet->batchCnt;
-	printf("\npid=%d, tid=%d, Run final MSE=%1.10f\n", pid, tid, mseR);
+	procArgs->mseR=tse_h/nodesCnt[outputLevel]/_batchCnt;
 
-	//-- convert prediction in runSet from BFS to SBF order
-	runSet->reorder(PREDICTED, BFS, SBF);
+	Alg->Vinit(1, tse, 0, 0);
+	for (int b=0; b<inferSet->batchCnt; b++) ForwardPass(inferSet, b, true);
+	Alg->d2h(&tse_h, tse, sizeof(numtype));
+	procArgs->mseR=tse_h/nodesCnt[outputLevel]/_batchCnt;
+
+	//-- 0.4. convert samples and targets back from BFS to SBF in inference dataset
+	inferArgs->ds->setSBF();
 
 	//-- feee neurons()
 	destroyNeurons();
-}
 
-void sNN::infer(sCoreProcArgs* inferArgs){
-	inferNEW(inferArgs->ds->samplesCnt, inferArgs->ds->sampleLen, inferArgs->ds->predictionLen, inferArgs->ds->selectedFeaturesCnt, inferArgs->ds->sampleSBF, inferArgs->ds->targetSBF, inferArgs->ds->predictionSBF);
 }
-*/
 
 //-- local implementations of sCore virtual methods
 void sNN::saveImage(int pid, int tid, int epoch) {

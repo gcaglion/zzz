@@ -16,6 +16,10 @@ void sDUMB::train(sCoreProcArgs* trainArgs) {
 	trainArgs->mseCnt=10;
 	info("DUMB training complete.");
 }
+void sDUMB::infer(sCoreProcArgs* inferArgs) {
+	fail("Not implemented.");
+}
+
 void sDUMB::singleInfer(int sampleLen_, int sampleFeaturesCnt_, int batchSamplesCnt_, numtype* singleSampleBF, numtype* singleTargetBF, numtype** singlePredictionBF) {
 
 	//-- 1. load input neurons. Need to MAKE SURE incoming array len is the same as inputcount!!!

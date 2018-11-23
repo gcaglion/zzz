@@ -5,7 +5,7 @@
 #include "svard.h"
 #include "../Utils/Utils.h"
 
-#define DEFAULT_DBG_TO_SCREEN	true
+#define DEFAULT_DBG_TO_SCREEN	false
 #define DEFAULT_DBG_TO_FILE		false
 #define DEFAULT_DBG_FPATH		"logs"
 #define DEFAULT_DBG_FNAME		"Debugger"

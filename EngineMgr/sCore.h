@@ -19,6 +19,7 @@ struct sCoreProcArgs {
 	int mseCnt;
 	numtype* mseT;
 	numtype* mseV;
+	numtype mseR;
 	//-- infer-specific
 	int npid;
 	int ntid;
@@ -54,9 +55,10 @@ struct sCore : sCfgObj {
 	//-- Internal layout
 	virtual void setLayout(int batchSize_)=0;
 	virtual void mallocLayout()=0;
-	virtual void train(sCoreProcArgs* procArgs_)=0;	
-	virtual void infer(int samplesCnt_, int sampleLen_, int predictionLen_, int featuresCnt_, numtype* INsampleSBF, numtype* INtargetSBF, numtype* OUTpredictionSBF);	// NOT abstract
-	virtual void singleInfer(int sampleLen_, int sampleFeaturesCnt_, int batchSamplesCnt_, numtype* singleSampleBF, numtype* singleTargetBF, numtype** singlePredictionBF)=0;
+	virtual void train(sCoreProcArgs* procArgs_)=0;
+	virtual void infer(sCoreProcArgs* procArgs_)=0;
+	//virtual void infer(int samplesCnt_, int sampleLen_, int predictionLen_, int featuresCnt_, numtype* INsampleSBF, numtype* INtargetSBF, numtype* OUTpredictionSBF);	// NOT abstract
+	//virtual void singleInfer(int sampleLen_, int sampleFeaturesCnt_, int batchSamplesCnt_, numtype* singleSampleBF, numtype* singleTargetBF, numtype** singlePredictionBF)=0;
 	//-- I/O	
 	virtual void saveImage(int pid, int tid, int epoch)=0;
 	virtual void loadImage(int pid, int tid, int epoch)=0;
