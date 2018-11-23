@@ -50,7 +50,11 @@ create table ClientInfo(
 	SimulationStartValid varchar2(64),
 	DoTraining number,
 	DoTrainRun number,
-	DoTestRun number
+	DoTestRun number,
+	clientXMLFile varchar2(256),
+	shapeXMLFile varchar2(256),
+	actionXMLFile varchar2(256),
+	engineXMLFile varchar2(256)
 ) storage (initial 2M minextents 4 pctincrease 0);
 alter table ClientInfo add constraint ClientInfo_PK primary key (ProcessId, DoTraining);
 
