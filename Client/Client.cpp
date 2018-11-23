@@ -5,10 +5,10 @@
 
 void usage() {
 	printf("Usage:\n------\n");
-	printf("zzz Train <Config path> \n");
-	printf("zzz Infer <Config path>  <Saved Engine pid> \n");
-	printf("zzz Train <Client XML file> <DataShape XML file> <trainDataSet XML file> <Engine XML file> \n");
-	printf("zzz Infer <Client XML file> <DataShape XML file> <inferDataSet XML file> <Engine XML file> <Saved Engine pid> \n");
+	printf("zzz Train <Simulation Id> <Config path> \n");
+	printf("zzz Infer <Simulation Id> <Config path>  <Saved Engine pid> \n");
+	printf("zzz Train <Simulation Id> <Client XML file> <DataShape XML file> <trainDataSet XML file> <Engine XML file> \n");
+	printf("zzz Infer <Simulation Id> <Client XML file> <DataShape XML file> <inferDataSet XML file> <Engine XML file> <Saved Engine pid> \n");
 	system("pause");
 }
 int main(int argc, char* argv[]) {
@@ -24,19 +24,19 @@ int main(int argc, char* argv[]) {
 //		return -1;
 		//-----------
 		if (_stricmp(argv[1], "Train")==0) {
-			if (argc==3) {
-				root->trainClient(argv[2]);
+			if (argc==4) {
+				root->trainClient(atoi(argv[2]), argv[3]);
 			} else {
-				root->trainClient(argv[2], argv[3], argv[4], argv[5]);
+				root->trainClient(atoi(argv[2]), argv[3], argv[4], argv[5], argv[6]);
 			}
 		} else if (_stricmp(argv[1], "Infer")==0) {
-			if (argc==4) {
-				root->inferClient(argv[2], atoi(argv[3]));
+			if (argc==5) {
+				root->inferClient(atoi(argv[2]), argv[3], atoi(argv[4]));
 			} else {
-				if (argc<7) {
+				if (argc<8) {
 					clifail;
 				} else {
-					root->inferClient(argv[2], argv[3], argv[4], argv[5], atoi(argv[6]));
+					root->inferClient(atoi(argv[2]), argv[3], argv[4], argv[5], argv[6], atoi(argv[7]));
 				}
 			}
 		} else { clifail; }

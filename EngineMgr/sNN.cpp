@@ -264,34 +264,17 @@ void sNN::BackwardPass(sDataSet* ds, int batchId, bool updateWeights) {
 	WUtimeTot+=((DWORD)(timeGetTime()-WUstart));
 
 }
-bool sNN::epochSummary(int epoch, DWORD starttime, bool displayProgress) {
-	numtype tse_h;	// total squared error copid on host at the end of each eopch
-
+void sNN::showEpochStats(int e, DWORD eStart_) {
+	//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
 	char remainingTimeS[TIMER_ELAPSED_FORMAT_LEN];
-	DWORD epochms;
-	DWORD remainingms;
+	
+	DWORD epochms=timeGetTime()-eStart_;
+	DWORD remainingms=(parms->MaxEpochs-e)*epochms;
+	SgetElapsed(remainingms, remainingTimeS);
+	//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
 
-	Alg->d2h(&tse_h, tse, sizeof(numtype));
-	procArgs->mseT[epoch]=tse_h/nodesCnt[outputLevel]/_batchCnt;
-	procArgs->mseV[epoch]=0;	// TO DO !
-	if (displayProgress) {
-
-		//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
-		epochms=timeGetTime()-starttime;
-		remainingms=(parms->MaxEpochs-epoch)*epochms;
-		SgetElapsed(remainingms, remainingTimeS);
-		//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
-
-		gotoxy(0, procArgs->screenLine); 
-		printf("\rTestId %3d, Process %6d, Thread %6d, Epoch %6d/%6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms , remaining: %s", testid, pid, tid, epoch, parms->MaxEpochs, procArgs->mseT[epoch], procArgs->mseV[epoch], epochms, remainingTimeS);
-	}
-	if (procArgs->mseT[epoch]<parms->TargetMSE) return true;
-	if ((parms->StopOnDivergence && epoch>1&&procArgs->mseT[epoch]>procArgs->mseT[epoch-1])) return true;
-	if ((epoch%parms->NetSaveFreq)==0) {
-		//-- TO DO ! (callback?)
-	}
-
-	return false;
+	gotoxy(0, procArgs->screenLine);
+	printf("\rTestId %3d, Process %6d, Thread %6d, Epoch %6d/%6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms , remaining: %s", testid, pid, tid, e, parms->MaxEpochs, procArgs->mseT[e], procArgs->mseV[e], epochms, remainingTimeS);
 }
 
 //-- local implementations of sCore virtual methods
@@ -350,6 +333,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	DWORD epoch_starttime;
 	DWORD training_starttime=timeGetTime();
 	int epoch, b;
+	numtype tse_h;	// total squared error copied on host at the end of each eopch
 
 	//-- extract training arguments from trainArgs into local variables
 	sDataSet* trainSet = trainArgs->ds;
@@ -404,20 +388,38 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 
 		}
 
-		//-- 1.2. calc and display epoch MSE (for ALL batches), and check criteria for terminating training (targetMSE, Divergence)
-		if (epochSummary(epoch, epoch_starttime)) break;
+		//-- 1.2. calc epoch MSE (for ALL batches), and check criteria for terminating training (targetMSE, Divergence)
+		Alg->d2h(&tse_h, tse, sizeof(numtype));
+		procArgs->mseT[epoch]=tse_h/nodesCnt[outputLevel]/_batchCnt;
+		procArgs->mseV[epoch]=0;	// TO DO !
+		//-- 1.3. show epoch info
+		showEpochStats(epoch, epoch_starttime);
+		//-- break if TargetMSE is reached
+		if (procArgs->mseT[epoch]<parms->TargetMSE) break;
+		//-- break on divergence
+		if ((parms->StopOnDivergence && epoch>0 && procArgs->mseT[epoch] > procArgs->mseT[epoch-1])) break;
+		//-- save weights every <NetSaveFreq> epochs - TO DO!!
+		if ((epoch%parms->NetSaveFreq)==0) {}
 
 	}
 	trainArgs->mseCnt=epoch-((epoch>parms->MaxEpochs)?1:0);
 
 	//-- 2. test run. need this to make sure all batches pass through the net with the latest weights, and training targets
 	TRstart=timeGetTime(); TRcnt++;
+
+	Alg->Vinit(1, tse, 0, 0);	
+	for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b);
+	Alg->d2h(&tse_h, tse, sizeof(numtype));
+	procArgs->mseT[trainArgs->mseCnt-1]=tse_h/nodesCnt[outputLevel]/_batchCnt;
+	showEpochStats(trainArgs->mseCnt-1, epoch_starttime);
+	
 	Alg->Vinit(1, tse, 0, 0);
 	for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b);
-	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
+	Alg->d2h(&tse_h, tse, sizeof(numtype));
+	procArgs->mseT[trainArgs->mseCnt-1]=tse_h/nodesCnt[outputLevel]/_batchCnt;
+	showEpochStats(trainArgs->mseCnt-1, epoch_starttime);
 
-	//-- calc and display final epoch MSE
-	printf("\n"); epochSummary(trainArgs->mseCnt-1, epoch_starttime); printf("\n");
+	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
 
 
 /*	float elapsed_tot=(float)timeGetTime()-(float)training_starttime;

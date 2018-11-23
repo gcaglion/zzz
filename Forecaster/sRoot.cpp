@@ -10,22 +10,22 @@ sRoot::sRoot(int argc_, char* argv_[]) : sCfgObj(nullptr, newsname("RootObj"), d
 sRoot::~sRoot() {}
 
 //-- core stuff
-void sRoot::trainClient(const char* cfgPath_){
+void sRoot::trainClient(int simulationId_, const char* cfgPath_){
 	char clientXMLfile[MAX_PATH]; sprintf_s(clientXMLfile, MAX_PATH, "%s/Client.xml", cfgPath_);
 	char shapeXMLfile[MAX_PATH]; sprintf_s(shapeXMLfile, MAX_PATH, "%s/DataShape.xml", cfgPath_);
 	char trainXMLfile[MAX_PATH]; sprintf_s(trainXMLfile, MAX_PATH, "%s/Train.xml", cfgPath_);
 	char engineXMLfile[MAX_PATH]; sprintf_s(engineXMLfile, MAX_PATH, "%s/Engine.xml", cfgPath_);
-	trainClient(clientXMLfile, shapeXMLfile, trainXMLfile, engineXMLfile);
+	trainClient(simulationId_, clientXMLfile, shapeXMLfile, trainXMLfile, engineXMLfile);
 }
-void sRoot::inferClient(const char* cfgPath_, int savedEnginePid_) {
+void sRoot::inferClient(int simulationId_, const char* cfgPath_, int savedEnginePid_) {
 	char clientXMLfile[MAX_PATH]; sprintf_s(clientXMLfile, MAX_PATH, "%s/Client.xml", cfgPath_);
 	char shapeXMLfile[MAX_PATH]; sprintf_s(shapeXMLfile, MAX_PATH, "%s/DataShape.xml", cfgPath_);
 	char inferXMLfile[MAX_PATH]; sprintf_s(inferXMLfile, MAX_PATH, "%s/Infer.xml", cfgPath_);
 	char engineXMLfile[MAX_PATH]; sprintf_s(engineXMLfile, MAX_PATH, "%s/Engine.xml", cfgPath_);
-	inferClient(clientXMLfile, shapeXMLfile, inferXMLfile, engineXMLfile, savedEnginePid_);
+	inferClient(simulationId_, clientXMLfile, shapeXMLfile, inferXMLfile, engineXMLfile, savedEnginePid_);
 }
 //--
-void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_) {
+void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_) {
 
 	//-- full filenames
 	char clientffname[MAX_PATH];
@@ -72,7 +72,7 @@ void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 		//-- just load trainDS->TimeSerie; it should have its own date0 set already
 		safecall(trainDS->sourceTS, load, TARGET, BASE);
 		//-- do training (also populates datasets)
-		safecall(engine, train, 0, trainDS);
+		safecall(engine, train, simulationId_, trainDS);
 		//-- persist MSE logs
 		safecall(engine, saveMSE);
 		//-- persist Core logs
@@ -83,7 +83,7 @@ void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, 0, "Root.Tester", timer->startTime, timer->elapsedTime, trainDS->sourceTS->date0, "", "", true, false, false);
+		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainDS->sourceTS->date0, "", "", true, false);
 		//-- Commit clientpersistor data
 		safecall(clientLog, commit);
 
@@ -94,7 +94,7 @@ void sRoot::trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 
 
 }
-void sRoot::inferClient(const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_) {
+void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_) {
 
 	//-- full filenames
 	char clientffname[MAX_PATH];
@@ -145,14 +145,14 @@ void sRoot::inferClient(const char* clientXMLfile_, const char* shapeXMLfile_, c
 		//-- set date0 in testDS->TimeSerie, and load it
 		safecall(inferDS->sourceTS, load, TARGET, BASE);
 		//-- do inference (also populates datasets)
-		safecall(engine, infer, 0, inferDS, savedEnginePid_);
+		safecall(engine, infer, simulationId_, inferDS, savedEnginePid_);
 		//-- persist Run logs
 		safecall(engine, saveRun);
 		//-- ommit engine persistor data
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, 0, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferDS->sourceTS->date0, "", false, true, false);
+		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferDS->sourceTS->date0, "", false, true);
 		//-- Commit clientpersistor data
 		safecall(clientLog, commit);
 

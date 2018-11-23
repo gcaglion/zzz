@@ -15,12 +15,12 @@ struct sRoot : sCfgObj {
 	EXPORT sRoot(int argc_=0, char* argv_[]=nullptr);
 	EXPORT ~sRoot();
 
-	EXPORT void trainClient(const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_);
-	EXPORT void inferClient(const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_);
+	EXPORT void trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_);
+	EXPORT void inferClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_);
 	
 	//-- temp stuff
-	EXPORT void trainClient(const char* cfgPath_);
-	EXPORT void inferClient(const char* cfgPath_, int savedEnginePid_);
+	EXPORT void trainClient(int simulationId_, const char* cfgPath_);
+	EXPORT void inferClient(int simulationId_, const char* cfgPath_, int savedEnginePid_);
 	EXPORT void kaz();
 
 private:
