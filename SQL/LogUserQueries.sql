@@ -6,7 +6,7 @@ from trainLog t,
 ) v 
 where t.processid=v.processid and t.threadid=v.threadid and t.epoch=v.LastEpoch order by 1,2;
 
-create or replace view vRunStats   as select processId, threadId, netProcessId, netThreadId, max(posLabel) LastDate, max(pos) LastPos , avg(BarWidth) avgBarWidth, avg(Error) avgError from runlog group by processId, threadId, netProcessId, netThreadId;
+create or replace view vRunStats   as select processId, threadId, netProcessId, netThreadId, max(posLabel) LastDate, max(pos) LastPos , avg(BarWidth) avgBarWidth, avg(Error) avgError, avg(ErrorTRS*ErrorTRS) MSE from runlog group by processId, threadId, netProcessId, netThreadId;
 
 //====== QUERIES =====
 
