@@ -249,9 +249,8 @@ void sNN::ForwardPass(sDataSet* ds, int batchId, bool inferring) {
 	CEtimeTot+=((DWORD)(timeGetTime()-CEstart));
 
 	//-- 4. if Inferring, save results for current batch in batchPrediction
-	if (inferring) {
-		Alg->d2h(&ds->predictionBFS[batchId*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
-	}
+	if (inferring) Alg->d2h(&ds->predictionBFS[batchId*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+	
 }
 void sNN::BackwardPass(sDataSet* ds, int batchId, bool updateWeights) {
 
@@ -422,8 +421,12 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	procArgs->mseT[trainArgs->mseCnt-1]=tse_h/nodesCnt[outputLevel]/_batchCnt;
 	showEpochStats(trainArgs->mseCnt-1, epoch_starttime);
 
-	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
+	//for (int b=0; b<procArgs->ds->batchCnt; b++) procArgs->ds->BFS2SBF(b, procArgs->ds->predictionLen, procArgs->ds->predictionBFS, procArgs->ds->predictionSBF);
+	//dumpArrayH((procArgs->ds->samplesCnt*procArgs->ds->predictionLen*procArgs->ds->selectedFeaturesCnt), procArgs->ds->predictionSBF, "C:/temp/TRAINpredictionSBF.csv");
+	//dumpArrayH((procArgs->ds->samplesCnt*procArgs->ds->predictionLen*procArgs->ds->selectedFeaturesCnt), procArgs->ds->targetSBF, "C:/temp/TRAINtargetSBF.csv");
 
+
+	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
 
 /*	float elapsed_tot=(float)timeGetTime()-(float)training_starttime;
 	float elapsed_avg=elapsed_tot/trainArgs->mseCnt;
@@ -489,6 +492,20 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 
 	//-- 0.4. convert samples and targets back from BFS to SBF in inference dataset
 	inferArgs->ds->setSBF();
+
+	//=======================================
+	//numtype _se;
+	//numtype _tse=0;
+	//numtype _mse;
+	//for (int i=0; i<(procArgs->ds->samplesCnt*procArgs->ds->predictionLen*procArgs->ds->selectedFeaturesCnt); i++) {
+	//	_se=pow((procArgs->ds->predictionSBF[i]-procArgs->ds->targetSBF[i]), 2);
+	//	_tse+=_se;
+	//}
+	//dumpArrayH((procArgs->ds->samplesCnt*procArgs->ds->predictionLen*procArgs->ds->selectedFeaturesCnt), procArgs->ds->predictionSBF, "C:/temp/INFERpredictionSBF.csv");
+	//dumpArrayH((procArgs->ds->samplesCnt*procArgs->ds->predictionLen*procArgs->ds->selectedFeaturesCnt), procArgs->ds->targetSBF, "C:/temp/INFERtargetSBF.csv");
+
+	//_mse=_tse/(procArgs->ds->samplesCnt*procArgs->ds->predictionLen*procArgs->ds->selectedFeaturesCnt);
+	//=======================================
 
 	//-- feee neurons()
 	destroyNeurons();

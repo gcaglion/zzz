@@ -2,6 +2,7 @@
 		readFrom		= OraData
 		saveToDB		= true
 		saveToFile		= false
+
 		<OraData>
 			UserName	= LogUser
 			Password	= LogPwd

@@ -10,6 +10,6 @@
 
 	saveClient	= true
 
-	<!Common\Persistor-Default.xml>
+	<!Persistor-Default.xml>
 
 </Client>
