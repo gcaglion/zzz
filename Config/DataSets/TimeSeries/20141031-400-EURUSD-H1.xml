@@ -1,6 +1,6 @@
 	<TimeSerie>
 		Date0				= 2014-10-31-00:00
-		HistoryLen			= 402
+		HistoryLen			= 400
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump

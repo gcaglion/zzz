@@ -340,18 +340,16 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 		//-- this version uses arrayUpdate()
 		ub2* intLen = (ub2*)malloc(Wcnt*sizeof(int));
 		ub2* floatLen = (ub2*)malloc(Wcnt*sizeof(numtype));
+		int* WidArr=(int*)malloc(Wcnt*sizeof(int));
+
+		//-- first, need to malloc and init arrays for constant pid and tid. Cannot use Vinit, as I don't have an Alg, here
 		for (int i=0; i<Wcnt; i++) {
 			intLen[i]=sizeof(int);
 			floatLen[i]=sizeof(numtype);
-		}
-
-		//-- first, need to malloc and init arrays for constant pid and tid. Cannot use Vinit, as I don't have an Alg, here
-		int* WidArr=(int*)malloc(Wcnt*sizeof(int));
-		
-		for (int i=0; i<Wcnt; i++) {
 			WidArr[i]=i;
 		}
 
+	
 		rset = ((Statement*)stmt)->executeQuery();
 		((ResultSet*)rset)->setDataBuffer(1, WidArr, OCCIINT, sizeof(int), intLen);
 		((ResultSet*)rset)->setDataBuffer(2, W, OCCIFLOAT, sizeof(numtype), floatLen);

@@ -1,4 +1,8 @@
 			<Persistor>
+				<Debugger>
+					FileOutput=true;
+				</Debugger>
+				
 				saveMSE			= true
 				saveRun			= true
 				saveInternals	= false
