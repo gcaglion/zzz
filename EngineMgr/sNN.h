@@ -7,6 +7,7 @@
 #include "sCore.h"
 #include "sNNparms.h"
 #include "sNNenums.h"
+#include "sSCGD.h"
 
 struct sNN : sCore {
 
@@ -58,6 +59,8 @@ private:
 	numtype* dJdW;
 	numtype* e;
 	numtype* u;
+	//-- SCGD-specific
+	sSCGD* scgd;
 
 
 	//-- performance counters

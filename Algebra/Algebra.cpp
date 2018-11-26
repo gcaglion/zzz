@@ -163,6 +163,24 @@ bool sAlgebra::Vcopy(int vlen, numtype* v1, numtype* v2) {
 	return true;
 #endif
 }
+bool sAlgebra::Vscale(int vlen, numtype* v1, numtype scale, numtype* ov) {
+#ifdef USE_GPU
+	if (!Vcopy_cu(vlen, v1, ov)) return false;
+	return(Vscale_cu(vlen, ov, scale));
+#else
+	for (int i=0; i<vlen; i++) v[i]=v[i]*scale;
+	return true;
+#endif
+}
+bool sAlgebra::VdotV(int vlen, numtype* v1, numtype* v2, numtype* ovdotv) {
+#ifdef USE_GPU
+	return(VdotV_cu(vlen, v1, v2, ovdotv));
+#else
+	//== TO DO !!!!!! ==========
+	return false;
+#endif
+}
+
 
 //-- Activation Functions
 bool sAlgebra::Tanh(int Vlen, numtype* in, numtype* out) {
@@ -238,6 +256,17 @@ bool sAlgebra::Vssum(int vlen, numtype* v, numtype* ovssum) {
 #else
 	(*ovssum)=0;
 	for (int i=0; i<vlen; i++) (*ovssum)+=v[i]*v[i];
+	return true;
+#endif
+}
+bool sAlgebra::Vnorm(int vlen, numtype* v, numtype* ovnorm) {
+	//-- if using GPU, the sum scalar also resides in GPU
+#ifdef USE_GPU
+	return(Vnorm_cu(cublasH, vlen, v, ovnorm, ss));
+#else
+	numtype vssum=0;
+	for (int i=0; i<vlen; i++) vssum+=v[i]*v[i];
+	(*ovnorm)=vssum/vlen;
 	return true;
 #endif
 }
