@@ -86,8 +86,16 @@ private:
 	void ForwardPass(sDataSet* ds, int batchId, bool inferring);
 	//bool epochSummary(int epoch, DWORD starttime, bool displayProgress=true);
 	void showEpochStats(int e, DWORD eStart_);
+
+	void dEcalc(numtype* dest_);
+
 	void BP_std();
 	void WU_std();
+
+	void dEcalc(bool global = false, bool recalcErr = false, bool calcJacobian=false, double* atW = nullptr, double* odE = nullptr);
+	void BP_scgd();
+	void WU_scgd();
+	
 	void BackwardPass(sDataSet* ds, int batchId, bool updateWeights);
 	//-- malloc + init
 	void mallocNeurons();

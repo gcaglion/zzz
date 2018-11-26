@@ -22,6 +22,8 @@ struct sNNparms : sCoreParms {
 	//-- training-BP_Std specific
 	float LearningRate;
 	float LearningMomentum;
+	//-- training-BP_scgd specific
+	int scgdMaxK;
 
 	EXPORT sNNparms(sCfgObjParmsDef);
 	EXPORT sNNparms(sObjParmsDef, sLogger* persistor_, int loadingPid_, int loadingTid_);

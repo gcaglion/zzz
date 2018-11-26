@@ -10,6 +10,7 @@ struct sSCGD {
 	numtype* TotdW;
 	numtype* newW;
 	numtype* oldW;
+	numtype* GdJdW;
 	numtype* prev_r;
 	numtype* alphap;
 	numtype* bp;
