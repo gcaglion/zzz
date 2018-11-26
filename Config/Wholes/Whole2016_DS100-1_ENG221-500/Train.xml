@@ -1,0 +1,31 @@
+<DataSet>
+	BatchSamplesCount	= 4
+	SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+	Dump 				= false
+	DumpPath			= c:\temp\DataDump
+
+	<TimeSerie>
+			Date0				= 2016-12-31-00:00
+			HistoryLen			= 6200
+			DataTransformation	= DT_DELTA
+			Dump				= false
+			DumpPath			= c:\temp\DataDump
+			
+			<FXDB_DataSource>
+
+				Symbol				= EURUSD
+				TimeFrame			= H1
+				IsFilled			= false
+
+				<DBConnection>
+					UserName	= History
+					Password	= HistoryPwd
+					ConnString	= Algo
+				</DBConnection>
+
+			</FXDB_DataSource>
+
+	</TimeSerie>
+
+	<! DataSetPersistor-Default.xml >
+</DataSet>
