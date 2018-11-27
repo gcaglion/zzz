@@ -3,7 +3,7 @@
 #include "../common.h"
 
 #define CUDA_BLOCK_SIZE 64
-const int MAX_STREAMS = 0;
+const int MAX_STREAMS = 4;
 
 //-- CUDA Exceptions
 #define FAIL_INITCUDA "CUDA Initialization Failed. \n"
@@ -41,6 +41,7 @@ EXPORT bool Vnorm_cu(void* cublasH, int Vlen, numtype* V, numtype* oVnorm, numty
 EXPORT bool Vinit_cu(int vlen, numtype* v, numtype start, numtype inc);
 EXPORT bool VbyV2V_cu(int vlen, numtype* v1, numtype* v2, numtype* ov);
 EXPORT bool VinitRnd_cu(int vlen, numtype* v, numtype rndmin, numtype rndmax, void* cuRandH);
+EXPORT bool VdotV_cu(int vlen, numtype* v1, numtype* v2, numtype* ovdotv);
 
 //-- kernel functions wrappers
 EXPORT void initGPUData(float *data, int numElements, float value);

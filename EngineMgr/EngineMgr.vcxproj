@@ -176,6 +176,7 @@
     <ClInclude Include="sCore.h" />
     <ClInclude Include="sCoreLayout.h" />
     <ClInclude Include="sCoreParms.h" />
+    <ClInclude Include="sSCGD.h" />
     <ClInclude Include="sSOM.h" />
     <ClInclude Include="sSOMenums.h" />
     <ClInclude Include="sSOMparms.h" />
@@ -195,6 +196,7 @@
     <ClCompile Include="sCoreLayout.cpp" />
     <ClCompile Include="sCoreParms.cpp" />
     <ClCompile Include="sNNparms.cpp" />
+    <ClCompile Include="sSCGD.cpp" />
     <ClCompile Include="sSOM.cpp" />
     <ClCompile Include="sSOMparms.cpp" />
     <ClCompile Include="sSVM.cpp" />
