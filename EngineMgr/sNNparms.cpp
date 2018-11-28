@@ -58,8 +58,9 @@ sNNparms::sNNparms(sCfgObjParmsDef) : sCoreParms(sCfgObjParmsVal) {
 	case BP_QING:
 		//--... TO DO ...
 		break;
-	case BP_SCGD: break;
-		//--... TO DO ...
+	case BP_SCGD: 
+		safecall(cfgKey, getParm, &SCGDmaxK, "Training/BP_Scgd/maxK");
+		break;
 	case BP_LM: break;
 		//--... TO DO ...
 	default:
@@ -117,7 +118,7 @@ void sNNparms::setScaleMinMax() {
 	}
 }
 void sNNparms::save(sLogger* persistor_, int pid_, int tid_) {
-	safecall(persistor_, saveCoreNNparms, pid_, tid_, levelRatioS, levelActivationS, useContext, useBias, MaxEpochs, TargetMSE, NetSaveFreq, StopOnDivergence, BP_Algo, LearningRate, LearningMomentum);
+	safecall(persistor_, saveCoreNNparms, pid_, tid_, levelRatioS, levelActivationS, useContext, useBias, MaxEpochs, TargetMSE, NetSaveFreq, StopOnDivergence, BP_Algo, LearningRate, LearningMomentum, SCGDmaxK);
 }
 
 //-- private stuff

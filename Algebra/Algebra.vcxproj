@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Algebra.cpp" />
+    <ClCompile Include="Algebra.standalone.cpp" />
     <ClCompile Include="sMatrix.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

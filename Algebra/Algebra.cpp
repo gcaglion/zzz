@@ -151,7 +151,9 @@ bool sAlgebra::Vadd(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype 
 #ifdef USE_GPU
 	return (Vadd_cu(vlen, v1, scale1, v2, scale2, ov));
 #else
-	for (int i=0; i<vlen; i++) ov[i]=v2[i]*scale2+v1[i]*scale1;
+	for (int i=0; i<vlen; i++) {
+		ov[i]=v2[i]*scale2+v1[i]*scale1;
+	}
 	return true;
 #endif
 }
@@ -168,7 +170,7 @@ bool sAlgebra::Vscale(int vlen, numtype* v1, numtype scale, numtype* ov) {
 	if (!Vcopy_cu(vlen, v1, ov)) return false;
 	return(Vscale_cu(vlen, ov, scale));
 #else
-	for (int i=0; i<vlen; i++) v[i]=v[i]*scale;
+	for (int i=0; i<vlen; i++) ov[i]=v1[i]*scale;
 	return true;
 #endif
 }

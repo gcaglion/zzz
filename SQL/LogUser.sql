@@ -100,7 +100,7 @@ create table CoreNNparms(
 	CoreId number,
 	LevelRatioS varchar2(64),
 	LevelActivationS varchar2(1024),
-	UseContext	number,
+	UseContext number,
 	UseBias number,
 	--
 	MaxEpochs number,
@@ -109,7 +109,8 @@ create table CoreNNparms(
 	StopOnDivergence number,
 	BPAlgo number,
 	BPStd_LearningRate number,
-	BPStd_LearningMomentum number
+	BPStd_LearningMomentum number,
+	BPscgd_maxK number
 );
 alter table CoreNNparms add constraint CoreNNparms_PK primary key(ProcessId, ThreadId) using index tablespace LogIdx;
 

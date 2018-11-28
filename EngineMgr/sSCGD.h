@@ -1,8 +1,12 @@
 #pragma once
 #include "../common.h"
 #include "../Algebra/Algebra.h"
+#include "../BaseObj/sObj.h"
 
-struct sSCGD {
+struct sSCGD : sObj {
+	sAlgebra* Alg;
+
+	int progK;
 	numtype* p;
 	numtype* r;
 	numtype* s;
@@ -16,6 +20,7 @@ struct sSCGD {
 	numtype* bp;
 	numtype* lp;
 	numtype* ap;
+	//numtype* gse;
 	numtype* dE0;
 	numtype* dE1;
 	numtype* dE;
@@ -27,7 +32,7 @@ struct sSCGD {
 	numtype rnorm;
 	numtype dWnorm;
 
-	sSCGD(int Wcnt);
+	sSCGD(sObjParmsDef, sAlgebra* Alg_, int Wcnt, int outNcnt);
 	~sSCGD();
 
 	//void BP(int pid, int tid, sAlgebra* Alg, int levelsCnt_, int* nodesCnt_, int netWcnt, numtype* netW, numtype targetMSE_);

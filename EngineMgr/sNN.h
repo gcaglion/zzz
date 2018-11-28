@@ -82,13 +82,11 @@ private:
 	void setCommonLayout();
 	void FF();
 	void Activate(int level);
-	void calcErr();
+	void calcErrG(sDataSet* ds, numtype* atW=nullptr);
+	void calcErr(numtype* tse_);
 	void ForwardPass(sDataSet* ds, int batchId, bool inferring);
 	//bool epochSummary(int epoch, DWORD starttime, bool displayProgress=true);
 	void showEpochStats(int e, DWORD eStart_);
-	void BP_std();
-	void WU_std();
-	void BackwardPass(sDataSet* ds, int batchId, bool updateWeights);
 	//-- malloc + init
 	void mallocNeurons();
 	void initNeurons();
@@ -97,9 +95,13 @@ private:
 	void destroyNeurons();
 	void destroyWeights();
 
-	void dEdWcalc(numtype* dJdW_);
+	void dEdWcalc(numtype* W_, numtype* dJdW_);
 	void dWcalc(numtype* dEdW_, numtype* dW_);
 	void Wupdate(numtype* W_, numtype* dW_);
+	//--
+	void loadSamplesAndTargets(sDataSet* ds, int batchId, bool inferring);
+	//-- 
+	void BP_scgd(sDataSet* trainSet_);
 
 };
 

@@ -20,6 +20,7 @@ struct sCoreProcArgs {
 	numtype* mseT;
 	numtype* mseV;
 	numtype mseR;
+	int internalsCnt;
 	//-- infer-specific
 	int npid;
 	int ntid;
