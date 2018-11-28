@@ -112,9 +112,9 @@ void sLogger::loadCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* 
 	if (source==FileData) safecall(filedb, loadCoreDUMBImage, pid, tid, epoch, Wcnt, W);
 }
 //-- Save/Load Core<XXX>Paameters
-void sLogger::saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* levelActivationS_, bool useContext_, bool useBias_, int maxEpochs_, numtype targetMSE_, int netSaveFrequency_, bool stopOnDivergence_, int BPalgo_, float learningRate_, float learningMomentum_) {
-	if (saveToDB) safecall(oradb, saveCoreNNparms, pid, tid, levelRatioS_, levelActivationS_, useContext_, useBias_, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_);
-	if (saveToFile) safecall(filedb, saveCoreNNparms, pid, tid, levelRatioS_, levelActivationS_, useContext_, useBias_, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_);
+void sLogger::saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* levelActivationS_, bool useContext_, bool useBias_, int maxEpochs_, numtype targetMSE_, int netSaveFrequency_, bool stopOnDivergence_, int BPalgo_, float learningRate_, float learningMomentum_, int SCGDmaxK_) {
+	if (saveToDB) safecall(oradb, saveCoreNNparms, pid, tid, levelRatioS_, levelActivationS_, useContext_, useBias_, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_, SCGDmaxK_);
+	if (saveToFile) safecall(filedb, saveCoreNNparms, pid, tid, levelRatioS_, levelActivationS_, useContext_, useBias_, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_, SCGDmaxK_);
 }
 void sLogger::saveCoreGAparms(int pid, int tid, int p1, int p2) {
 	fail("Not implemented.");
