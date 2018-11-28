@@ -78,7 +78,7 @@ EXPORT void Free_cu(numtype* var) {
 }
 
 //-- CPU<->GPU transfer functions
-EXPORT void h2d_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]) {
+/*EXPORT void h2d_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]) {
 	if(MAX_STREAMS==0) {
 		if (cudaMemcpy(destAddr, srcAddr, size, cudaMemcpyHostToDevice)!=cudaSuccess) CUWfail("F41LUR3!-333")
 	} else {
@@ -95,6 +95,35 @@ EXPORT void h2d_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream
 EXPORT void d2h_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]) {
 	if(MAX_STREAMS==0) {
 		if(cudaMemcpy(destAddr, srcAddr, size, cudaMemcpyDeviceToHost)!=cudaSuccess) CUWfail("F41LUR3!-444")
+	} else {
+		int streamSize=size/sizeof(numtype)/MAX_STREAMS;
+		size_t streamBytes=streamSize*sizeof(numtype);
+		for (int s=0; s<MAX_STREAMS; s++) {
+			int offset=s*streamSize;
+			if (cudaMemcpyAsync(&destAddr[offset], &srcAddr[offset], streamBytes, cudaMemcpyDeviceToHost, (*(cudaStream_t*)cuStream[s]))!=cudaSuccess) {
+				CUWfail("s=%d ; CUDA error %d\n", s, cudaGetLastError());
+			}
+		}
+	}
+}
+*/
+EXPORT void h2d_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]) {
+	if (cuStream==nullptr) {
+		if (!(cudaMemcpy(destAddr, srcAddr, size, cudaMemcpyHostToDevice)==cudaSuccess)) CUWfail("CUDA error %d", cudaGetLastError());
+	} else {
+		int streamSize=size/sizeof(numtype)/MAX_STREAMS;
+		size_t streamBytes=streamSize*sizeof(numtype);
+		for (int s=0; s<MAX_STREAMS; s++) {
+			int offset=s*streamSize;
+			if (cudaMemcpyAsync(&destAddr[offset], &srcAddr[offset], streamBytes, cudaMemcpyHostToDevice, (*(cudaStream_t*)cuStream[s]))!=cudaSuccess) {
+				CUWfail("s=%d ; CUDA error %d\n", s, cudaGetLastError());
+			}
+		}
+	}
+}
+EXPORT void d2h_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]) {
+	if (cuStream==nullptr) {
+		if (!(cudaMemcpy(destAddr, srcAddr, size, cudaMemcpyDeviceToHost)==cudaSuccess))  CUWfail("CUDA error %d", cudaGetLastError());
 	} else {
 		int streamSize=size/sizeof(numtype)/MAX_STREAMS;
 		size_t streamBytes=streamSize*sizeof(numtype);

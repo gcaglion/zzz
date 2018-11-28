@@ -387,7 +387,7 @@ void sOraData::saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* level
 	if (!isOpen) safecall(this, open);
 
 	sprintf_s(sqlS, SQL_MAXLEN, "insert into CoreNNparms(ProcessId, ThreadId, LevelRatioS, LevelActivationS, UseContext, UseBias, MaxEpochs, TargetMSE, NetSaveFrequency, StopOnDivergence, BPAlgo, BPStd_LearningRate, BPStd_LearningMomentum, BPscgd_maxK) \
-														 values(%d, %d, '%s', '%s', %d, %d, %d, %f, %d, %d, %d, %f, %f)", \
+														 values(%d, %d, '%s', '%s', %d, %d, %d, %f, %d, %d, %d, %f, %f, %d)", \
 		pid, tid, levelRatioS_, levelActivationS_, (useContext_) ? 1 : 0, (useBias_) ? 1 : 0, maxEpochs_, targetMSE_, netSaveFrequency_, stopOnDivergence_, BPalgo_, learningRate_, learningMomentum_, SCGDmaxK_ \
 	);
 	safecall(this, sqlExec, sqlS);
