@@ -10,6 +10,7 @@ struct sSCGD {
 	numtype* TotdW;
 	numtype* newW;
 	numtype* oldW;
+	numtype* GdJdW;
 	numtype* prev_r;
 	numtype* alphap;
 	numtype* bp;
@@ -29,5 +30,5 @@ struct sSCGD {
 	sSCGD(int Wcnt);
 	~sSCGD();
 
-	void BP(int pid, int tid, sAlgebra* Alg, int levelsCnt_, int* nodesCnt_, int netWcnt, numtype* netW, numtype targetMSE_);
+	//void BP(int pid, int tid, sAlgebra* Alg, int levelsCnt_, int* nodesCnt_, int netWcnt, numtype* netW, numtype targetMSE_);
 };

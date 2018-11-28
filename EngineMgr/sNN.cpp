@@ -165,7 +165,7 @@ void sNN::destroyWeights() {
 	Alg->myFree(dJdW);
 }
 
-void sNN::BP_std(){
+void sNN::dEdWcalc(numtype* dEdW_) {
 	int Ay, Ax, Astart, By, Bx, Bstart, Cy, Cx, Cstart;
 	numtype* A; numtype* B; numtype* C;
 
@@ -204,23 +204,31 @@ void sNN::BP_std(){
 		Cy=Ay;
 		Cx=By;// because B gets transposed
 		Cstart=levelFirstWeight[l-1];
-		C=&dJdW[Cstart];
+		C=&dEdW_[Cstart];
 
 		// dJdW(l-1) = edF(l) * F(l-1)
 		Alg->MbyM(Ay, Ax, 1, false, A, By, Bx, 1, true, B, C);
 
 	}
+}
+void sNN::dWcalc(numtype* dEdW_, numtype* dW_) {
+	switch (parms->BP_Algo) {
+	case BP_STD:
+		//-- 1. calc dW = LM*dW - LR*dJdW
+		Alg->Vdiff(weightsCntTotal, dW_, parms->LearningMomentum, dEdW_, parms->LearningRate, dW_);
+		break;
+	case BP_SCGD:break;
+	case BP_LM: fail("Not implemented."); break;
+	case BP_QING: fail("Not implemented."); break;
+	case BP_QUICKPROP: fail("Not implemented."); break;
+	case BP_RPROP: fail("Not implemented."); break;
+	}
 
 }
-void sNN::WU_std(){
-
-	//-- 1. calc dW = LM*dW - LR*dJdW
-	Alg->Vdiff(weightsCntTotal, dW, parms->LearningMomentum, dJdW, parms->LearningRate, dW);
-
-	//-- 2. update W = W + dW for current batch
-	Alg->Vadd(weightsCntTotal, W, 1, dW, 1, W);
-
+void sNN::Wupdate(numtype* W_, numtype* dW_){
+	Alg->Vadd(weightsCntTotal, W_, 1, dW_, 1, W_);
 }
+
 void sNN::ForwardPass(sDataSet* ds, int batchId, bool inferring) {
 
 	//-- 1. load samples (and targets, if passed) from single batch in dataset onto input layer
@@ -229,18 +237,16 @@ void sNN::ForwardPass(sDataSet* ds, int batchId, bool inferring) {
 	int L0SampleNodesCnt=ds->sampleLen*ds->selectedFeaturesCnt*ds->batchSamplesCnt;
 	//int L0CtxNodesCnt=nodesCnt[0]-L0SampleNodesCnt;
 	
-	//-- zero context neurons on level 0
-	//Alg->Vinit(L0CtxNodesCnt, &F[L0SampleNodesCnt], 0, 0);
 	//-- load batch samples on L0
 	Alg->h2d(&F[(parms->useBias)?1:0], &ds->sampleBFS[batchId*L0SampleNodesCnt], L0SampleNodesCnt*sizeof(numtype));
 	//-- load batch target on output level
 	Alg->h2d(&u[0], &ds->targetBFS[batchId*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+
 	LDtimeTot+=((DWORD)(timeGetTime()-LDstart));
 
 	//-- 2. Feed Forward
 	FFstart=timeGetTime(); FFcnt++;	
 	FF();
-	//safecall(FF());
 	FFtimeTot+=((DWORD)(timeGetTime()-FFstart));
 
 	//-- 3. Calc Error (sets e[], te, updates tse) for the whole batch
@@ -252,7 +258,8 @@ void sNN::ForwardPass(sDataSet* ds, int batchId, bool inferring) {
 	if (inferring) Alg->d2h(&ds->predictionBFS[batchId*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 	
 }
-void sNN::BackwardPass(sDataSet* ds, int batchId, bool updateWeights) {
+
+/*void sNN::BackwardPass(sDataSet* ds, int batchId, bool updateWeights) {
 
 	//-- 1. BackPropagate, calc dJdW for for current batch
 	BPstart=timeGetTime(); BPcnt++;
@@ -267,6 +274,7 @@ void sNN::BackwardPass(sDataSet* ds, int batchId, bool updateWeights) {
 	WUtimeTot+=((DWORD)(timeGetTime()-WUstart));
 
 }
+*/
 void sNN::showEpochStats(int e, DWORD eStart_) {
 	//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
 	char remainingTimeS[TIMER_ELAPSED_FORMAT_LEN];
@@ -360,8 +368,6 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 
 	//---- 0.2. Init W
 	for (l=0; l<(outputLevel); l++) Alg->VinitRnd(weightsCnt[l], &W[levelFirstWeight[l]], -1/sqrtf((numtype)nodesCnt[l]), 1/sqrtf((numtype)nodesCnt[l]), Alg->cuRandH);
-	//dumpArray(weightsCntTotal, &W[0], "C:/temp/referenceW/initW.txt");
-	//loadArray(weightsCntTotal, &W[0], "C:/temp/referenceW/initW.txt");
 
 	//---- 0.3. Init dW, dJdW
 	Alg->Vinit(weightsCntTotal, dW, 0, 0);
@@ -385,8 +391,12 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 			//-- forward pass, with targets
 			safecallSilent(this, ForwardPass, trainSet, b, false);
 
-			//-- backward pass, with weights update
-			safecallSilent(this, BackwardPass, trainSet, b, true);
+			//-- backpropagation 1/3 : calc dE/dW, and save it into dJdW
+			safecallSilent(this, dEdWcalc, dJdW);
+			//-- backpropagation 2/3 : calc dW = LM*dW - LR*dJdW
+			safecallSilent(this, dWcalc, dJdW, dW);
+			//-- backpropagation 2/3 : update W = W + dW for current batch
+			safecallSilent(this, Wupdate, W, dW);
 
 		}
 

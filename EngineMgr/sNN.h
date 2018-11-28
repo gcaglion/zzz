@@ -97,5 +97,9 @@ private:
 	void destroyNeurons();
 	void destroyWeights();
 
+	void dEdWcalc(numtype* dJdW_);
+	void dWcalc(numtype* dEdW_, numtype* dW_);
+	void Wupdate(numtype* W_, numtype* dW_);
+
 };
 
