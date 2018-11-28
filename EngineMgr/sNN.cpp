@@ -624,13 +624,18 @@ void sNN::BP_scgd(sDataSet* trainSet_) {
 
 			//-- non-Hessian approximation
 			sigma = sigma/scgd->pnorm;
+
+
 			//-- get dE0 (dJdW at current W)
 			Alg->Vcopy(weightsCntTotal, dJdW, scgd->dE0);
+
 			//-- get dE1 (dJdW at W+sigma*p)
-			Alg->Vadd(weightsCntTotal, W, 1, scgd->p, sigma, scgd->newW);
+			Alg->Vadd(weightsCntTotal, W, 1, scgd->p, sigma, scgd->newW);	//-- newW = W+sigma*p
 			dEdWcalc(scgd->newW, scgd->dE1);
-			//-- calc s
+			
+			//-- calc s = (dE1-dE0)/sigma
 			Alg->Vadd(weightsCntTotal, scgd->dE1, 1, scgd->dE0, -1, scgd->dE);
+			
 			Alg->Vscale(weightsCntTotal, scgd->dE, sigma, scgd->s);
 			//-- calc delta
 			Alg->VdotV(weightsCntTotal, scgd->p, scgd->s, &delta);
