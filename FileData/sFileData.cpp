@@ -91,7 +91,7 @@ void sFileData::loadCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype
 	fail("Not implemented.");
 }
 //-- Save/Load core parms
-void sFileData::saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* levelActivationS_, bool useContext_, bool useBias_, int maxEpochs_, numtype targetMSE_, int netSaveFrequency_, bool stopOnDivergence_, int BPalgo_, float learningRate_, float learningMomentum_) {
+void sFileData::saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* levelActivationS_, bool useContext_, bool useBias_, int maxEpochs_, numtype targetMSE_, int netSaveFrequency_, bool stopOnDivergence_, int BPalgo_, float learningRate_, float learningMomentum_, int SCGDmaxK_) {
 	fail("Not implemented.");
 }
 void sFileData::saveCoreGAparms(int pid, int tid, int p1, numtype p2) {
