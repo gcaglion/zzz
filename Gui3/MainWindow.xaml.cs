@@ -75,7 +75,8 @@ namespace Gui3
         private void btn_EnginePid_Click(object sender, RoutedEventArgs e) {}
 
         //----------- Utilities ----------------
-        [DllImport("C:\\Users\\gcaglion\\dev\\zzz\\x64\\Debug\\Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
+        //[DllImport("C:\\Users\\gcaglion\\dev\\zzz\\x64\\Debug\\Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
+        [DllImport("Utils.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int subtract(int a, int b);
 
 
