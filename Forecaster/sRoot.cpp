@@ -300,3 +300,10 @@ void sRoot::kaz() {
 	ts1->untransform(PREDICTED, PREDICTED, sampleLen, selFcnt, selF);
 	ts1->dump(PREDICTED, BASE);
 }
+
+extern "C" __declspec(dllexport) int add(int a, int b) {
+	return a+b;
+}
+extern "C" __declspec(dllexport) int subtract(int a, int b) {
+	return a-b;
+}

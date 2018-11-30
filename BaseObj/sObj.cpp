@@ -70,7 +70,7 @@ void sObj::findChild(const char* relName, sObj** retObj) {
 	//-- compare cname with short name of every child in this object
 	(*retObj)=nullptr;
 	int c;
-	for (c=0; c<child.size(); c++) {
+	for (c=0; c<(int)child.size(); c++) {
 		if (_stricmp(cname, child[c]->name->base)==0) {
 			(*retObj)=child[c];
 			break;

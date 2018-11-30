@@ -15,6 +15,7 @@ using System.Windows.Shapes;
 using System.IO;
 using System.Diagnostics;
 using System.Windows.Threading;
+using System.Runtime.InteropServices;
 
 namespace Gui3
 {
@@ -74,6 +75,10 @@ namespace Gui3
         private void btn_EnginePid_Click(object sender, RoutedEventArgs e) {}
 
         //----------- Utilities ----------------
+        [DllImport("C:\\Users\\gcaglion\\dev\\zzz\\x64\\Debug\\Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int subtract(int a, int b);
+
+
         string getDlgFileName()
         {
             // Create OpenFileDialog 
@@ -125,6 +130,11 @@ namespace Gui3
         //-- external call to zzz.bat
         private void btn_Go_Click(object sender, RoutedEventArgs e)
         {
+            int x = Convert.ToInt32(txt_SimulationId.Text);
+            int y = Convert.ToInt32(txt_SaveEnginePid.Text);
+            int z = subtract(x, y);
+
+
             string exepath = System.AppDomain.CurrentDomain.BaseDirectory + "../../zzz.bat";
             string exeargs = ((bool)(rb_ActionTrain.IsChecked) ? "Train": (bool)(rb_ActionInfer.IsChecked) ? "Infer" : "Both");
             exeargs = exeargs + " " + txt_SimulationId.Text.Replace("\r\n", string.Empty) + " " + txt_ClientXML.Text.Replace("\r\n", string.Empty) + " " + txt_DataShapeXML.Text.Replace("\r\n", string.Empty) + " " + txt_DataSetXML.Text.Replace("\r\n", string.Empty) + " " + txt_EngineXML.Text.Replace("\r\n", string.Empty);// + " "+ txt_SaveEnginePid.Text.Replace("\r\n", string.Empty);

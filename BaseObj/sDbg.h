@@ -44,7 +44,7 @@ struct sDbg {
 	//-- local copy of stripChar(), to avoid linkng Utils.lib to all modules that use sDbg
 	EXPORT int _argcnt(const char* mask) {
 		int cnt=0;
-		for (int i=0; i<strlen(mask); i++) {
+		for (int i=0; i<(int)strlen(mask); i++) {
 			if (mask[i]==37) cnt++;
 		}
 		return cnt;
