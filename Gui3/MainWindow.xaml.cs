@@ -29,6 +29,10 @@ namespace Gui3
             InitializeComponent();
         }
 
+        private void txt_SimulationId_TextChanged(object sender, RoutedEventArgs e)
+        {
+            saveLastFileName(txt_SimulationId);
+        }
         private void txt_ClientXML_TextChanged(object sender, RoutedEventArgs e)
         {
             saveLastFileName(txt_ClientXML);
@@ -49,7 +53,8 @@ namespace Gui3
         {
             saveLastFileName(txt_SaveEnginePid);
         }
-
+        //--
+        private void btn_SimulationId_Click(object sender, RoutedEventArgs e) {}
         private void btn_ClientXML_Click(object sender, RoutedEventArgs e)
         {
             txt_ClientXML.Text = getDlgFileName();
@@ -66,9 +71,7 @@ namespace Gui3
         {
             txt_EngineXML.Text = getDlgFileName();
         }
-        private void btn_EnginePid_Click(object sender, RoutedEventArgs e)
-        {
-        }
+        private void btn_EnginePid_Click(object sender, RoutedEventArgs e) {}
 
         //----------- Utilities ----------------
         string getDlgFileName()
@@ -111,12 +114,15 @@ namespace Gui3
         }
         private void MainWindow_Activated(object sender, System.EventArgs e)
         {
+            loadLastFileName(txt_SimulationId);
             loadLastFileName(txt_ClientXML);
             loadLastFileName(txt_DataShapeXML);
             loadLastFileName(txt_DataSetXML);
             loadLastFileName(txt_EngineXML);
         }
+        //--------------------------------------
 
+        //-- external call to zzz.bat
         private void btn_Go_Click(object sender, RoutedEventArgs e)
         {
             string exepath = System.AppDomain.CurrentDomain.BaseDirectory + "../../zzz.bat";
@@ -125,8 +131,6 @@ namespace Gui3
             string fullexepath = exepath;// + " " + exeargs;
             Process.Start(exepath, exeargs);
         }
-        //--------------------------------------
-
 
     }
 }
