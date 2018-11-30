@@ -8,20 +8,22 @@
         Title="MainWindow" Height="350" Width="556.557"
         Activated="MainWindow_Activated">
     <Grid>
-        <TextBox x:Name="txt_ClientXML" HorizontalAlignment="Left" Height="20" Margin="16,46,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" FontSize="10"/>
-        <Button x:Name="btn_ClientXML" Content="Client XML" HorizontalAlignment="Left" Height="20" Margin="462,46,0,0" VerticalAlignment="Top" Width="78" FontSize="10" Click="btn_ClientXML_Click"/>
-        <TextBox x:Name="txt_DataShapeXML" HorizontalAlignment="Left" Height="20" Margin="16,76,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" FontSize="10"/>
-        <Button x:Name="btn_DataShapeXML" Content="DataShape XML" HorizontalAlignment="Left" Height="20" Margin="462,76,0,0" VerticalAlignment="Top" Width="78" FontSize="10" Click="btn_DataShapeXML_Click"/>
-        <TextBox x:Name="txt_DataSetXML" HorizontalAlignment="Left" Height="20" Margin="16,106,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" FontSize="10"/>
-        <Button x:Name="btn_DataSetXML" Content="DataSet XML" HorizontalAlignment="Left" Height="20" Margin="462,106,0,0" VerticalAlignment="Top" Width="78" FontSize="10" Click="btn_DataSetXML_Click"/>
-        <TextBox x:Name="txt_EngineXML" HorizontalAlignment="Left" Height="20" Margin="16,136,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" FontSize="10"/>
-        <Button x:Name="btn_EngineXML" Content="Engine XML" HorizontalAlignment="Left" Height="20" Margin="462,136,0,0" VerticalAlignment="Top" Width="78" FontSize="10" Click="btn_EngineXML_Click"/>
-        <TextBox x:Name="txt_SaveEnginePid" HorizontalAlignment="Left" Height="20" Margin="16,166,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="67" FontSize="10"/>
-        <Button x:Name="btn_SaveEnginePid" Content="Saved Engine PID" HorizontalAlignment="Left" Height="20" Margin="88,166,0,0" VerticalAlignment="Top" Width="85" FontSize="10" Click="btn_EnginePid_Click"/>
-        <RadioButton x:Name="rb_ActionTrain" Content="Train" HorizontalAlignment="Left" Height="17" Margin="26,24,0,0" VerticalAlignment="Top" Width="80" FontSize="10"/>
-        <RadioButton x:Name="rb_ActionInfer" Content="Infer" HorizontalAlignment="Left" Height="17" Margin="111,24,0,0" VerticalAlignment="Top" Width="80" FontSize="10"/>
-        <RadioButton x:Name="rb_ActionBoth" Content="Both" HorizontalAlignment="Left" Height="17" Margin="196,24,0,0" VerticalAlignment="Top" Width="80" FontSize="10" IsChecked="True"/>
-        <Button x:Name="btn_Go" Content="Go!" HorizontalAlignment="Left" Height="27" Margin="244,198,0,0" VerticalAlignment="Top" Width="38" Click="btn_Go_Click"/>
+        <TextBox x:Name="txt_ClientXML" HorizontalAlignment="Left" Height="20" Margin="16,62,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" FontSize="10" TextChanged="txt_ClientXML_TextChanged"/>
+        <Button x:Name="btn_ClientXML" Content="Client XML" HorizontalAlignment="Left" Height="20" Margin="462,62,0,0" VerticalAlignment="Top" Width="78" FontSize="10" Click="btn_ClientXML_Click"/>
+        <TextBox x:Name="txt_DataShapeXML" HorizontalAlignment="Left" Height="20" Margin="16,92,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" FontSize="10" TextChanged="txt_DataShapeXML_TextChanged"/>
+        <Button x:Name="btn_DataShapeXML" Content="DataShape XML" HorizontalAlignment="Left" Height="20" Margin="462,92,0,0" VerticalAlignment="Top" Width="78" FontSize="10" Click="btn_DataShapeXML_Click"/>
+        <TextBox x:Name="txt_DataSetXML" HorizontalAlignment="Left" Height="20" Margin="16,122,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" FontSize="10" TextChanged="txt_DataSetXML_TextChanged"/>
+        <Button x:Name="btn_DataSetXML" Content="DataSet XML" HorizontalAlignment="Left" Height="20" Margin="462,122,0,0" VerticalAlignment="Top" Width="78" FontSize="10" Click="btn_DataSetXML_Click"/>
+        <TextBox x:Name="txt_EngineXML" HorizontalAlignment="Left" Height="20" Margin="16,152,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" FontSize="10" TextChanged="txt_EngineXML_TextChanged"/>
+        <Button x:Name="btn_EngineXML" Content="Engine XML" HorizontalAlignment="Left" Height="20" Margin="462,152,0,0" VerticalAlignment="Top" Width="78" FontSize="10" Click="btn_EngineXML_Click"/>
+        <TextBox x:Name="txt_SaveEnginePid" HorizontalAlignment="Left" Height="20" Margin="16,182,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="67" FontSize="10" TextChanged="txt_SaveEnginePid_TextChanged"/>
+        <Button x:Name="btn_SaveEnginePid" Content="Saved Engine PID" HorizontalAlignment="Left" Height="20" Margin="88,182,0,0" VerticalAlignment="Top" Width="85" FontSize="10" Click="btn_EnginePid_Click"/>
+        <RadioButton x:Name="rb_ActionTrain" Content="Train" HorizontalAlignment="Left" Height="17" Margin="16,10,0,0" VerticalAlignment="Top" Width="80" FontSize="10"/>
+        <RadioButton x:Name="rb_ActionInfer" Content="Infer" HorizontalAlignment="Left" Height="17" Margin="101,10,0,0" VerticalAlignment="Top" Width="80" FontSize="10"/>
+        <RadioButton x:Name="rb_ActionBoth" Content="Both" HorizontalAlignment="Left" Height="17" Margin="186,10,0,0" VerticalAlignment="Top" Width="80" FontSize="10" IsChecked="True"/>
+        <Button x:Name="btn_Go" Content="Go!" HorizontalAlignment="Left" Height="27" Margin="244,214,0,0" VerticalAlignment="Top" Width="38" Click="btn_Go_Click"/>
+        <TextBox x:Name="txt_SimulationId" HorizontalAlignment="Left" Height="20" Margin="16,32,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="67" FontSize="10"/>
+        <Button x:Name="btn_SimulationId" Content="Simulation Id" HorizontalAlignment="Left" Height="20" Margin="88,32,0,0" VerticalAlignment="Top" Width="85" FontSize="10" Click="btn_EnginePid_Click"/>
 
     </Grid>
 </Window>

@@ -29,25 +29,42 @@ namespace Gui3
             InitializeComponent();
         }
 
+        private void txt_ClientXML_TextChanged(object sender, RoutedEventArgs e)
+        {
+            saveLastFileName(txt_ClientXML);
+        }
+        private void txt_DataShapeXML_TextChanged(object sender, RoutedEventArgs e)
+        {
+            saveLastFileName(txt_DataShapeXML);
+        }
+        private void txt_DataSetXML_TextChanged(object sender, RoutedEventArgs e)
+        {
+            saveLastFileName(txt_DataSetXML);
+        }
+        private void txt_EngineXML_TextChanged(object sender, RoutedEventArgs e)
+        {
+            saveLastFileName(txt_EngineXML);
+        }
+        private void txt_SaveEnginePid_TextChanged(object sender, RoutedEventArgs e)
+        {
+            saveLastFileName(txt_SaveEnginePid);
+        }
+
         private void btn_ClientXML_Click(object sender, RoutedEventArgs e)
         {
             txt_ClientXML.Text = getDlgFileName();
-            saveLastFileName(txt_ClientXML);
         }
         private void btn_DataShapeXML_Click(object sender, RoutedEventArgs e)
         {
             txt_DataShapeXML.Text = getDlgFileName();
-            saveLastFileName(txt_DataShapeXML);
         }
         private void btn_DataSetXML_Click(object sender, RoutedEventArgs e)
         {
             txt_DataSetXML.Text = getDlgFileName();
-            saveLastFileName(txt_DataSetXML);
         }
         private void btn_EngineXML_Click(object sender, RoutedEventArgs e)
         {
             txt_EngineXML.Text = getDlgFileName();
-            saveLastFileName(txt_EngineXML);
         }
         private void btn_EnginePid_Click(object sender, RoutedEventArgs e)
         {
@@ -102,9 +119,9 @@ namespace Gui3
 
         private void btn_Go_Click(object sender, RoutedEventArgs e)
         {
-            string exepath = System.AppDomain.CurrentDomain.BaseDirectory + "zzz.bat";
+            string exepath = System.AppDomain.CurrentDomain.BaseDirectory + "../../zzz.bat";
             string exeargs = ((bool)(rb_ActionTrain.IsChecked) ? "Train": (bool)(rb_ActionInfer.IsChecked) ? "Infer" : "Both");
-            exeargs = exeargs + " " + txt_ClientXML.Text.Replace("\r\n", string.Empty) + " " + txt_DataShapeXML.Text.Replace("\r\n", string.Empty) + " " + txt_DataSetXML.Text.Replace("\r\n", string.Empty) + " " + txt_EngineXML.Text.Replace("\r\n", string.Empty);// + " "+ txt_SaveEnginePid.Text.Replace("\r\n", string.Empty);
+            exeargs = exeargs + " " + txt_SimulationId.Text.Replace("\r\n", string.Empty) + " " + txt_ClientXML.Text.Replace("\r\n", string.Empty) + " " + txt_DataShapeXML.Text.Replace("\r\n", string.Empty) + " " + txt_DataSetXML.Text.Replace("\r\n", string.Empty) + " " + txt_EngineXML.Text.Replace("\r\n", string.Empty);// + " "+ txt_SaveEnginePid.Text.Replace("\r\n", string.Empty);
             string fullexepath = exepath;// + " " + exeargs;
             Process.Start(exepath, exeargs);
         }

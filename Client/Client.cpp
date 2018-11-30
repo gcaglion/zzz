@@ -15,10 +15,6 @@ void usage() {
 }
 int main(int argc, char* argv[]) {
 
-
-	for (int a=0; a<argc; a++) printf("%d: %s", a, argv[a]);
-	system("pause");
-
 	if (argc<3) clifail;
 
 	//-- 1. create root object. root constructor does everything else
