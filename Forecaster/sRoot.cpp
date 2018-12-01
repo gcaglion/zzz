@@ -285,7 +285,10 @@ void sRoot::kaz() {
 	ts1->dump(PREDICTED, BASE);
 }
 
-extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_) {
+
+typedef void(*NativeReportProgress) (int, void*);
+
+extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
 	return -1;
 	sRoot* root=nullptr;
 	try {
@@ -295,7 +298,7 @@ extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char*
 	}
 	terminate(true, "");
 }
-extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_) {
+extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_, NativeReportProgress progressPtr) {
 	sRoot* root=nullptr;
 	try {
 		root=new sRoot();
@@ -306,7 +309,7 @@ extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char*
 	}
 	terminate(true, "");
 }
-extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_) {
+extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
 
 	sRoot* root=nullptr;
 	try {

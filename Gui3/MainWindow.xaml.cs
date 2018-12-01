@@ -143,6 +143,13 @@ namespace Gui3
             StringBuilder sbEngineXML = new StringBuilder(txt_EngineXML.Text).Replace("\r\n", string.Empty);
             int iSavedEnginePid = Convert.ToInt32(txt_SaveEnginePid.Text.Replace("\r\n", string.Empty));
 
+            BackgroundWorker worker = new BackgroundWorker();
+            worker.WorkerReportsProgress = true;
+            worker.DoWork += worker_DoWork;
+            worker.ProgressChanged += worker_ProgressChanged;
+            worker.RunWorkerCompleted += worker_RunWorkerCompleted;
+            worker.RunWorkerAsync(10000);
+
             if ((bool)(rb_ActionTrain.IsChecked)) _trainClient(iSimulationId, sbClientXML, sbDataShapeXML, sbDataSetXML, sbEngineXML);
             if ((bool)(rb_ActionInfer.IsChecked)) _inferClient(iSimulationId, sbClientXML, sbDataShapeXML, sbDataSetXML, sbEngineXML, iSavedEnginePid);
             if ((bool)(rb_ActionBoth.IsChecked))  _bothClient(iSimulationId, sbClientXML, sbDataShapeXML, sbDataSetXML, sbEngineXML);
@@ -150,7 +157,38 @@ namespace Gui3
         }
 
         private void btn_Cancel_Click(object sender, RoutedEventArgs e) { }
+        
+        //================================ WORKER STUFF =====================================
+        void worker_DoWork(object sender, DoWorkEventArgs e)
+        {
+            int max = (int)e.Argument;
+            int result = 0;
+            for (int i = 0; i < max; i++)
+            {
+                int progressPercentage = Convert.ToInt32(((double)i / max) * 100);
+                if (i % 42 == 0)
+                {
+                    result++;
+                    (sender as BackgroundWorker).ReportProgress(progressPercentage, i);
+                }
+                else
+                    (sender as BackgroundWorker).ReportProgress(progressPercentage);
+                System.Threading.Thread.Sleep(1);
 
+            }
+            e.Result = result;
+        }
+        void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            pbCalculationProgress.Value = e.ProgressPercentage;
+            //if (e.UserState != null)
+               // lbResults.Items.Add(e.UserState);
+        }
+        void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            MessageBox.Show("Numbers between 0 and 10000 divisible by 7: " + e.Result);
+        }
+        //===================================================================================
     }
 }
 
