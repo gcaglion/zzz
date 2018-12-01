@@ -1,3 +1,4 @@
+
 #include "sRoot.h"
 
 //-- constructor / destructor
@@ -193,23 +194,6 @@ void sRoot::mallocSimulationDates(sCfg* clientCfg_, int* simLen, char*** simTrai
 	}
 
 }
-void sRoot::getSimulationDates(sCfg* clientCfg_, int* simLen, char** simTrainStart, char** simInferStart, char** simValidStart) {
-
-	//-- if the dataset is used, read startdate from client xml for each dataset
-	if (forecaster->doTraining) {
-		safecall(clientCfg_->currentKey, getParm, &simTrainStart[0], "TrainStartDate");
-		getStartDates(forecaster->trainDS, simTrainStart[0], (*simLen), &simTrainStart);
-	}
-	if (forecaster->doInference) {
-		safecall(clientCfg_->currentKey, getParm, &simInferStart[0], "InferStartDate");
-		getStartDates(forecaster->inferDS, simInferStart[0], (*simLen), &simInferStart);
-	}
-	if (forecaster->doValidation) {
-		safecall(clientCfg_->currentKey, getParm, &simValidStart[0], "ValidationStartDate");
-		getStartDates(forecaster->validDS, simValidStart[0], (*simLen), &simValidStart);
-	}
-
-}
 
 //-- utils stuff
 void sRoot::CLoverride(int argc, char* argv[]) {
@@ -301,9 +285,36 @@ void sRoot::kaz() {
 	ts1->dump(PREDICTED, BASE);
 }
 
-extern "C" __declspec(dllexport) int add(int a, int b) {
-	return a+b;
+extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_) {
+	return -1;
+	sRoot* root=nullptr;
+	try {
+		root->trainClient(simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_);
+	} catch (std::exception exc) {
+		terminate(false, "Exception thrown by root. See stack.");
+	}
+	terminate(true, "");
 }
-extern "C" __declspec(dllexport) int subtract(int a, int b) {
-	return a-b;
+extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_) {
+	sRoot* root=nullptr;
+	try {
+		root=new sRoot();
+		root->inferClient(simulationId_, clientXMLfile_, shapeXMLfile_, inferXMLfile_, engineXMLfile_, savedEnginePid_);
+	}
+	catch (std::exception exc) {
+		terminate(false, "Exception thrown by root. See stack.");
+	}
+	terminate(true, "");
+}
+extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_) {
+
+	sRoot* root=nullptr;
+	try {
+		root=new sRoot();
+		root->bothClient(simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_);
+	}
+	catch (std::exception exc) {
+		terminate(false, "Exception thrown by root. See stack.");
+	}
+	terminate(true, "");
 }

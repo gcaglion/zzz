@@ -16,6 +16,7 @@ using System.IO;
 using System.Diagnostics;
 using System.Windows.Threading;
 using System.Runtime.InteropServices;
+using System.ComponentModel;
 
 namespace Gui3
 {
@@ -75,10 +76,12 @@ namespace Gui3
         private void btn_EnginePid_Click(object sender, RoutedEventArgs e) {}
 
         //----------- Utilities ----------------
-        //[DllImport("C:\\Users\\gcaglion\\dev\\zzz\\x64\\Debug\\Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
-        [DllImport("Utils.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int subtract(int a, int b);
 
+        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)] public static extern int _trainClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder trainXMLfile_, StringBuilder engineXMLfile_);
+        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)] public static extern int _inferClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder inferXMLfile_, StringBuilder engineXMLfile_, int savedEnginePid_);
+        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)] public static extern int _bothClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder bothXMLfile_, StringBuilder engineXMLfile_);
+        //--
+        [DllImport("Kernel32.dll", SetLastError = true)] public static extern int SetStdHandle(int device, IntPtr handle);
 
         string getDlgFileName()
         {
@@ -131,17 +134,22 @@ namespace Gui3
         //-- external call to zzz.bat
         private void btn_Go_Click(object sender, RoutedEventArgs e)
         {
-            int x = Convert.ToInt32(txt_SimulationId.Text);
-            int y = Convert.ToInt32(txt_SaveEnginePid.Text);
-            int z = subtract(x, y);
+           Environment.SetEnvironmentVariable("PATH", "D:/app/oracle/product/12.1.0/dbhome_1/oci/lib/msvc/vc14;D:/app/oracle/product/12.1.0/dbhome_1/bin;C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/bin");
 
+            int iSimulationId = Convert.ToInt32(txt_SimulationId.Text.Replace("\r\n", string.Empty));
+            StringBuilder sbClientXML = new StringBuilder(txt_ClientXML.Text).Replace("\r\n", string.Empty);
+            StringBuilder sbDataShapeXML = new StringBuilder(txt_DataShapeXML.Text).Replace("\r\n", string.Empty);
+            StringBuilder sbDataSetXML = new StringBuilder(txt_DataSetXML.Text).Replace("\r\n", string.Empty);
+            StringBuilder sbEngineXML = new StringBuilder(txt_EngineXML.Text).Replace("\r\n", string.Empty);
+            int iSavedEnginePid = Convert.ToInt32(txt_SaveEnginePid.Text.Replace("\r\n", string.Empty));
 
-            string exepath = System.AppDomain.CurrentDomain.BaseDirectory + "../../zzz.bat";
-            string exeargs = ((bool)(rb_ActionTrain.IsChecked) ? "Train": (bool)(rb_ActionInfer.IsChecked) ? "Infer" : "Both");
-            exeargs = exeargs + " " + txt_SimulationId.Text.Replace("\r\n", string.Empty) + " " + txt_ClientXML.Text.Replace("\r\n", string.Empty) + " " + txt_DataShapeXML.Text.Replace("\r\n", string.Empty) + " " + txt_DataSetXML.Text.Replace("\r\n", string.Empty) + " " + txt_EngineXML.Text.Replace("\r\n", string.Empty);// + " "+ txt_SaveEnginePid.Text.Replace("\r\n", string.Empty);
-            string fullexepath = exepath;// + " " + exeargs;
-            Process.Start(exepath, exeargs);
+            if ((bool)(rb_ActionTrain.IsChecked)) _trainClient(iSimulationId, sbClientXML, sbDataShapeXML, sbDataSetXML, sbEngineXML);
+            if ((bool)(rb_ActionInfer.IsChecked)) _inferClient(iSimulationId, sbClientXML, sbDataShapeXML, sbDataSetXML, sbEngineXML, iSavedEnginePid);
+            if ((bool)(rb_ActionBoth.IsChecked))  _bothClient(iSimulationId, sbClientXML, sbDataShapeXML, sbDataSetXML, sbEngineXML);
+            
         }
+
+        private void btn_Cancel_Click(object sender, RoutedEventArgs e) { }
 
     }
 }

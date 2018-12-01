@@ -1,17 +1,22 @@
 #pragma once
 
-#include "Forecaster.h"
+/*#include <msclr\marshal.h>
+using namespace msclr::interop;
+using namespace System;
+*/
 
+#include "../DataMgr/sDataSet.h"
+#include "../DataMgr/sDataShape.h"
 #include "../DataMgr/sFXDataSource.h"
 #include "../DataMgr/sGenericDataSource.h"
 #include "../DataMgr/sMT4DataSource.h"
+#include "../Logger/sLogger.h"
+#include "../EngineMgr/sEngine.h"
 
 struct sRoot : sCfgObj {
 
 	int pid;
 
-	sForecaster* forecaster;
-	
 	EXPORT sRoot(int argc_=0, char* argv_[]=nullptr);
 	EXPORT ~sRoot();
 
@@ -59,3 +64,4 @@ private:
 	return ret; \
 }
 
+extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_);

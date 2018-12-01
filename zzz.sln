@@ -84,6 +84,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MT4Data", "MT4Data\MT4Data.
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gui3", "Gui3\Gui3.csproj", "{300BBDEE-6248-4440-9A39-AFCA185CFE02}"
+	ProjectSection(ProjectDependencies) = postProject
+		{72AFD829-9419-401D-9B8D-CEACC96B7C70} = {72AFD829-9419-401D-9B8D-CEACC96B7C70}
+		{48D3AE88-9883-42C2-BF97-679F8F8D7477} = {48D3AE88-9883-42C2-BF97-679F8F8D7477}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

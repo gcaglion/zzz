@@ -223,10 +223,3 @@ EXPORT void gotoxy(int x, int y) {
 	coord.Y = y;
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
 }
-
-extern "C" __declspec(dllexport) int add(int a, int b) {
-	return a+b;
-}
-extern "C" __declspec(dllexport) int subtract(int a, int b) {
-	return a-b;
-}
