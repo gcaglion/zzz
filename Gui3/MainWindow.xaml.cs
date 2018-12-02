@@ -21,11 +21,24 @@ using System.ComponentModel;
 namespace Gui3
 {
 
+    public partial class sWorkerParms
+    {
+        public int what;
+        public int simulationId;
+        public StringBuilder clientXML;
+        public StringBuilder dataShapeXML;
+        public StringBuilder dataSetXML;
+        public StringBuilder engineXML;
+        public int savedEnginePid;
+    };
+
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
+
+
         public MainWindow()
         {
             InitializeComponent();
@@ -77,12 +90,13 @@ namespace Gui3
 
         //----------- Utilities ----------------
 
-        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)] public static extern int _trainClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder trainXMLfile_, StringBuilder engineXMLfile_);
-        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)] public static extern int _inferClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder inferXMLfile_, StringBuilder engineXMLfile_, int savedEnginePid_);
-        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)] public static extern int _bothClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder bothXMLfile_, StringBuilder engineXMLfile_);
-        //--
-        [DllImport("Kernel32.dll", SetLastError = true)] public static extern int SetStdHandle(int device, IntPtr handle);
+        public delegate void ReportProgressDelegate(int progress, object state);
 
+        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)] public static extern int _trainClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder trainXMLfile_, StringBuilder engineXMLfile_, ReportProgressDelegate progressDel);
+        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)] public static extern int _inferClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder inferXMLfile_, StringBuilder engineXMLfile_, int savedEnginePid_, ReportProgressDelegate progressDel);
+        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)] public static extern int _bothClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder bothXMLfile_, StringBuilder engineXMLfile_, ReportProgressDelegate progressDel);
+        //--
+   
         string getDlgFileName()
         {
             // Create OpenFileDialog 
@@ -136,23 +150,26 @@ namespace Gui3
         {
            Environment.SetEnvironmentVariable("PATH", "D:/app/oracle/product/12.1.0/dbhome_1/oci/lib/msvc/vc14;D:/app/oracle/product/12.1.0/dbhome_1/bin;C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/bin");
 
-            int iSimulationId = Convert.ToInt32(txt_SimulationId.Text.Replace("\r\n", string.Empty));
-            StringBuilder sbClientXML = new StringBuilder(txt_ClientXML.Text).Replace("\r\n", string.Empty);
-            StringBuilder sbDataShapeXML = new StringBuilder(txt_DataShapeXML.Text).Replace("\r\n", string.Empty);
-            StringBuilder sbDataSetXML = new StringBuilder(txt_DataSetXML.Text).Replace("\r\n", string.Empty);
-            StringBuilder sbEngineXML = new StringBuilder(txt_EngineXML.Text).Replace("\r\n", string.Empty);
-            int iSavedEnginePid = Convert.ToInt32(txt_SaveEnginePid.Text.Replace("\r\n", string.Empty));
+            sWorkerParms wp= new sWorkerParms();
+
+            if ((bool)(rb_ActionTrain.IsChecked)) wp.what = 1;  // Train
+            if ((bool)(rb_ActionInfer.IsChecked)) wp.what = 2;  // Infer
+            if ((bool)(rb_ActionBoth.IsChecked))  wp.what = 3;  // Both
+
+            wp.simulationId = Convert.ToInt32(txt_SimulationId.Text.Replace("\r\n", string.Empty)); 
+            wp.clientXML = new StringBuilder(txt_ClientXML.Text).Replace("\r\n", string.Empty);
+            wp.dataShapeXML = new StringBuilder(txt_DataShapeXML.Text).Replace("\r\n", string.Empty);
+            wp.dataSetXML = new StringBuilder(txt_DataSetXML.Text).Replace("\r\n", string.Empty);
+            wp.engineXML = new StringBuilder(txt_EngineXML.Text).Replace("\r\n", string.Empty);
+            wp.savedEnginePid = Convert.ToInt32(txt_SaveEnginePid.Text.Replace("\r\n", string.Empty));
 
             BackgroundWorker worker = new BackgroundWorker();
             worker.WorkerReportsProgress = true;
             worker.DoWork += worker_DoWork;
             worker.ProgressChanged += worker_ProgressChanged;
             worker.RunWorkerCompleted += worker_RunWorkerCompleted;
-            worker.RunWorkerAsync(10000);
+            worker.RunWorkerAsync(wp);
 
-            if ((bool)(rb_ActionTrain.IsChecked)) _trainClient(iSimulationId, sbClientXML, sbDataShapeXML, sbDataSetXML, sbEngineXML);
-            if ((bool)(rb_ActionInfer.IsChecked)) _inferClient(iSimulationId, sbClientXML, sbDataShapeXML, sbDataSetXML, sbEngineXML, iSavedEnginePid);
-            if ((bool)(rb_ActionBoth.IsChecked))  _bothClient(iSimulationId, sbClientXML, sbDataShapeXML, sbDataSetXML, sbEngineXML);
             
         }
 
@@ -161,28 +178,21 @@ namespace Gui3
         //================================ WORKER STUFF =====================================
         void worker_DoWork(object sender, DoWorkEventArgs e)
         {
-            int max = (int)e.Argument;
-            int result = 0;
-            for (int i = 0; i < max; i++)
-            {
-                int progressPercentage = Convert.ToInt32(((double)i / max) * 100);
-                if (i % 42 == 0)
-                {
-                    result++;
-                    (sender as BackgroundWorker).ReportProgress(progressPercentage, i);
-                }
-                else
-                    (sender as BackgroundWorker).ReportProgress(progressPercentage);
-                System.Threading.Thread.Sleep(1);
+            var worker = (BackgroundWorker)sender;
 
-            }
-            e.Result = result;
+            if (((sWorkerParms)e.Argument).what == 1) _trainClient(((sWorkerParms)e.Argument).simulationId, ((sWorkerParms)e.Argument).clientXML, ((sWorkerParms)e.Argument).dataShapeXML, ((sWorkerParms)e.Argument).dataSetXML, ((sWorkerParms)e.Argument).engineXML, worker.ReportProgress);
+            if (((sWorkerParms)e.Argument).what == 2) _inferClient(((sWorkerParms)e.Argument).simulationId, ((sWorkerParms)e.Argument).clientXML, ((sWorkerParms)e.Argument).dataShapeXML, ((sWorkerParms)e.Argument).dataSetXML, ((sWorkerParms)e.Argument).engineXML, ((sWorkerParms)e.Argument).savedEnginePid, worker.ReportProgress);
+            if (((sWorkerParms)e.Argument).what == 3) _bothClient(((sWorkerParms)e.Argument).simulationId, ((sWorkerParms)e.Argument).clientXML, ((sWorkerParms)e.Argument).dataShapeXML, ((sWorkerParms)e.Argument).dataSetXML, ((sWorkerParms)e.Argument).engineXML, worker.ReportProgress);
+
         }
         void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            pbCalculationProgress.Value = e.ProgressPercentage;
+            //pbCalculationProgress.Value = e.ProgressPercentage;
+            pbCalculationProgress.Value =e.ProgressPercentage;
+            tbProgress.Text = tbProgress.Text + e.UserState;
+
             //if (e.UserState != null)
-               // lbResults.Items.Add(e.UserState);
+            // lbResults.Items.Add(e.UserState);
         }
         void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
