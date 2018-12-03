@@ -90,12 +90,6 @@ namespace Gui3
 
         //----------- Utilities ----------------
 
-        public delegate void ReportProgressDelegate(int progress, object state);
-
-        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)] public static extern int _trainClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder trainXMLfile_, StringBuilder engineXMLfile_, ReportProgressDelegate progressDel);
-        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)] public static extern int _inferClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder inferXMLfile_, StringBuilder engineXMLfile_, int savedEnginePid_, ReportProgressDelegate progressDel);
-        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)] public static extern int _bothClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder bothXMLfile_, StringBuilder engineXMLfile_, ReportProgressDelegate progressDel);
-        //--
    
         string getDlgFileName()
         {
@@ -146,6 +140,15 @@ namespace Gui3
         //--------------------------------------
 
         //-- external call to zzz.bat
+        public delegate void ReportProgressDelegate(int progress, object state);
+        //--
+        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int _trainClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder trainXMLfile_, StringBuilder engineXMLfile_, ReportProgressDelegate progressDel);
+        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int _inferClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder inferXMLfile_, StringBuilder engineXMLfile_, int savedEnginePid_, ReportProgressDelegate progressDel);
+        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int _bothClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder bothXMLfile_, StringBuilder engineXMLfile_, [MarshalAs(UnmanagedType.FunctionPtr)] ReportProgressDelegate progressDel);
+        //--
         private void btn_Go_Click(object sender, RoutedEventArgs e)
         {
            Environment.SetEnvironmentVariable("PATH", "D:/app/oracle/product/12.1.0/dbhome_1/oci/lib/msvc/vc14;D:/app/oracle/product/12.1.0/dbhome_1/bin;C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/bin");
@@ -172,10 +175,8 @@ namespace Gui3
 
             
         }
-
         private void btn_Cancel_Click(object sender, RoutedEventArgs e) { }
-        
-        //================================ WORKER STUFF =====================================
+        //-- WORKER STUFF
         void worker_DoWork(object sender, DoWorkEventArgs e)
         {
             var worker = (BackgroundWorker)sender;

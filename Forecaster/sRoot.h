@@ -8,13 +8,14 @@
 #include "../Logger/sLogger.h"
 #include "../EngineMgr/sEngine.h"
 
-/*class sdp {
+class sdp {
 public:
 	int p1;
+	float p2;
 	string msg;
 };
-*/
-typedef void(*NativeReportProgress) (int, void*);
+
+typedef void(__stdcall *NativeReportProgress) (int, void*);
 
 struct sRoot : sCfgObj {
 

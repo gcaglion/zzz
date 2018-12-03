@@ -32,7 +32,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		getFullPath(trainXMLfile_, trainffname);
 		getFullPath(engineXMLfile_, engineffname);
 
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 		//float f0=0.5;
 		//progressPtr(1, &f0);
 
@@ -42,56 +42,54 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), defaultdbg, trainffname);
 		sCfg* engCfg; safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineffname);
 
-		; (*progressPtr)(0, &str);
-
 		//-- 2. spawn DataShape
 		safespawn(shape, newsname("TrainDataShape"), defaultdbg, shapeCfg, "/DataShape");
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 		//-- 3. spawn Train DataSet and its persistor
 		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/DataSet", shape->sampleLen, shape->predictionLen);
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 		safespawn(trainLog, newsname("TrainLogger"), defaultdbg, trainCfg, "/DataSet/Persistor");
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 		//-- 4. spawn engine the standard way
 		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", shape->sampleLen*trainDS->selectedFeaturesCnt, shape->predictionLen*trainDS->selectedFeaturesCnt);
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 
 		//-- 5. create client persistor, if needed
 		bool saveClient;
 		safecall(clientCfg, setKey, "/Client");
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 		safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 
 		//-- training cycle core
 		timer->start();
 		//-- just load trainDS->TimeSerie; it should have its own date0 set already
 		safecall(trainDS->sourceTS, load, TARGET, BASE);
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 		//-- do training (also populates datasets)
 		safecall(engine, train, simulationId_, trainDS);
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 		//-- persist MSE logs
 		safecall(engine, saveMSE);
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 		//-- persist Core logs
 		safecall(engine, saveImage);
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 		//-- persist Engine Info
 		safecall(engine, saveInfo);
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 		//-- Commit engine persistor data
 		safecall(engine, commit);
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
 		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainDS->sourceTS->date0, "", "", true, false, clientffname, shapeffname, trainffname, engineffname);
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 		//-- Commit clientpersistor data
 		safecall(clientLog, commit);
-		string str=(*new string(dbg->msg)); (*progressPtr)(0, &str);
+		Sdbgmsg=dbg->msg; (*progressPtr)(1, &Sdbgmsg);
 
 	}
 	catch (std::exception exc) {
@@ -309,7 +307,10 @@ extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* 
 	sRoot* root=nullptr;
 	try {
 		root=new sRoot();
-		root->bothClient(simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr);
+		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; progressVar.msg="PorcoDio!";
+		progressPtr(10, &progressVar);
+
+//		root->bothClient(simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr);
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");
