@@ -16,6 +16,8 @@ using namespace std;
 struct sObj {
 	sName* name;
 	sDbg* dbg;
+	//--
+	NativeReportProgress* GUIreporter;	//-- this is set in Root constructor, and is simply copied by every sObj to its children on spawn
 
 	int depth;
 	sObj* parent;
@@ -44,6 +46,7 @@ struct sObj {
 				info("%s TRYING  : %s", name->base, cmd);
 			}
 			(*childVar_) = new objT(this, childSname_, childDbg_, childCargs...);
+			(*childVar_)->GUIreporter=GUIreporter;
 			if (dbg->timing) {
 				timer->stop(cmdElapsed);
 				info("[%s] %s SUCCESS : %s . Elapsed time: %s", timer->stopTimeS, name->base, cmd, cmdElapsed);
@@ -61,7 +64,7 @@ struct sObj {
 	}
 };
 
-#define safespawn(childVar_, childSname_, childDbg_, ...) _spawn(__func__, &childVar_, childSname_, childDbg_, __VA_ARGS__)
+#define safespawn(childVar_, childSname_, childDbg_, ...) _spawn(__func__, &childVar_, childSname_, childDbg_, __VA_ARGS__);
 #define safecall(obj_, met_, ...){ \
 	cmdSvard=new svard(__VA_ARGS__); \
 	sprintf_s(cmd, CmdMaxLen, "%s->%s(%s)", obj_->name->base, Quote(met_), cmdSvard->fullval); \

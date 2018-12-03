@@ -2,8 +2,9 @@
 #include "sRoot.h"
 
 //-- constructor / destructor
-sRoot::sRoot(int argc_, char* argv_[]) : sCfgObj(nullptr, newsname("RootObj"), defaultdbg, nullptr, nullptr) {
+sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname("RootObj"), defaultdbg, nullptr, nullptr) {
 	pid=GetCurrentProcessId();
+	GUIreporter=progressReporter;
 }
 sRoot::~sRoot() {}
 
@@ -264,7 +265,7 @@ void sRoot::kaz() {
 extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
 	sRoot* root=nullptr;
 	try {
-		root=new sRoot();
+		root=new sRoot(&progressPtr);
 		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Train ...\n");
 		progressPtr(10, progressVar.msg);
 		root->trainClient(simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr);
@@ -276,7 +277,7 @@ extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char*
 extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_, NativeReportProgress progressPtr) {
 	sRoot* root=nullptr;
 	try {
-		root=new sRoot();
+		root=new sRoot(&progressPtr);
 		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Infer ...\n");
 		progressPtr(10, progressVar.msg);
 		root->inferClient(simulationId_, clientXMLfile_, shapeXMLfile_, inferXMLfile_, engineXMLfile_, savedEnginePid_, &progressPtr);
@@ -290,7 +291,7 @@ extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* 
 
 	sRoot* root=nullptr;
 	try {
-		root=new sRoot();
+		root=new sRoot(&progressPtr);
 		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Train + Infer ...\n");
 		progressPtr(10, progressVar.msg);
 		root->bothClient(simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr);

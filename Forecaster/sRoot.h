@@ -15,13 +15,11 @@ public:
 	char msg[DBG_MSG_MAXLEN];
 };
 
-typedef void(__stdcall *NativeReportProgress) (int, void*);
-
 struct sRoot : sCfgObj {
 
 	int pid;
 
-	EXPORT sRoot(int argc_=0, char* argv_[]=nullptr);
+	EXPORT sRoot(NativeReportProgress* progressReporter);
 	EXPORT ~sRoot();
 
 	EXPORT void trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr=nullptr);

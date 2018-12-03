@@ -23,3 +23,6 @@ typedef double altnumtype;
 
 #define Quote(var_) #var_
 #define EMPTY_VALUE	-9999.0f
+
+//-- GUI callback
+typedef void(__stdcall *NativeReportProgress) (int, void*);
