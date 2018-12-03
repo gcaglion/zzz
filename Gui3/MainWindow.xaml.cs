@@ -143,15 +143,17 @@ namespace Gui3
         public delegate void ReportProgressDelegate(int progress, string message);
         //--
         [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int _trainClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder trainXMLfile_, StringBuilder engineXMLfile_, ReportProgressDelegate progressDel);
+        public static extern int _trainClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder trainXMLfile_, StringBuilder engineXMLfile_, [MarshalAs(UnmanagedType.FunctionPtr)] ReportProgressDelegate progressDel);
         [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int _inferClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder inferXMLfile_, StringBuilder engineXMLfile_, int savedEnginePid_, ReportProgressDelegate progressDel);
+        public static extern int _inferClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder inferXMLfile_, StringBuilder engineXMLfile_, int savedEnginePid_, [MarshalAs(UnmanagedType.FunctionPtr)] ReportProgressDelegate progressDel);
         [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int _bothClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder bothXMLfile_, StringBuilder engineXMLfile_, [MarshalAs(UnmanagedType.FunctionPtr)] ReportProgressDelegate progressDel);
         //--
         private void btn_Go_Click(object sender, RoutedEventArgs e)
         {
-           Environment.SetEnvironmentVariable("PATH", "D:/app/oracle/product/12.1.0/dbhome_1/oci/lib/msvc/vc14;D:/app/oracle/product/12.1.0/dbhome_1/bin;C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/bin");
+            btn_Go.IsEnabled = false;
+
+            Environment.SetEnvironmentVariable("PATH", "D:/app/oracle/product/12.1.0/dbhome_1/oci/lib/msvc/vc14;D:/app/oracle/product/12.1.0/dbhome_1/bin;C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/bin");
 
             sWorkerParms wp= new sWorkerParms();
 
@@ -183,21 +185,22 @@ namespace Gui3
 
             if (((sWorkerParms)e.Argument).what == 1) _trainClient(((sWorkerParms)e.Argument).simulationId, ((sWorkerParms)e.Argument).clientXML, ((sWorkerParms)e.Argument).dataShapeXML, ((sWorkerParms)e.Argument).dataSetXML, ((sWorkerParms)e.Argument).engineXML, worker.ReportProgress);
             if (((sWorkerParms)e.Argument).what == 2) _inferClient(((sWorkerParms)e.Argument).simulationId, ((sWorkerParms)e.Argument).clientXML, ((sWorkerParms)e.Argument).dataShapeXML, ((sWorkerParms)e.Argument).dataSetXML, ((sWorkerParms)e.Argument).engineXML, ((sWorkerParms)e.Argument).savedEnginePid, worker.ReportProgress);
-            if (((sWorkerParms)e.Argument).what == 3) _bothClient(((sWorkerParms)e.Argument).simulationId, ((sWorkerParms)e.Argument).clientXML, ((sWorkerParms)e.Argument).dataShapeXML, ((sWorkerParms)e.Argument).dataSetXML, ((sWorkerParms)e.Argument).engineXML, worker.ReportProgress);
+            if (((sWorkerParms)e.Argument).what == 3)  _bothClient(((sWorkerParms)e.Argument).simulationId, ((sWorkerParms)e.Argument).clientXML, ((sWorkerParms)e.Argument).dataShapeXML, ((sWorkerParms)e.Argument).dataSetXML, ((sWorkerParms)e.Argument).engineXML, worker.ReportProgress);
 
         }
         void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             pbCalculationProgress.Value =e.ProgressPercentage;
 
-            tbProgress.Text = tbProgress.Text + e.UserState + "\n";
+            tbProgress.Text = tbProgress.Text + e.UserState;
 
             //if (e.UserState != null)
             // lbResults.Items.Add(e.UserState);
         }
         void worker_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            MessageBox.Show("Numbers between 0 and 10000 divisible by 7: " + e.Result);
+            tbProgress.Text = tbProgress.Text + "Completed.\n";
+            btn_Go.IsEnabled = true;
         }
         //===================================================================================
     }
