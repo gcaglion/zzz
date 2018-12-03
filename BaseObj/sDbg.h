@@ -52,7 +52,7 @@ struct sDbg {
 
 
 	//EXPORT void out(int msgtype, const char* callerFunc_, int stackLevel_, char* msgMask_, ...);
-	template<class ...Args> EXPORT void out(int msgtype, const char* callerFunc_, int stackLevel_, char* msgMask_, Args... msgArgs) {
+	template<class ...Args> EXPORT void out(int msgtype, const char* callerFunc_, int stackLevel_, NativeReportProgress* GUIreporter_, char* msgMask_, Args... msgArgs) {
 
 		if (!verbose&&msgtype==DBG_MSG_INFO) return;
 
@@ -67,7 +67,13 @@ struct sDbg {
 		strcat_s(stack, DBG_STACK_MAXLEN, msg);
 
 		//-- finally, out to selected destinations
-		if (dbgtoscreen) printf("%s%s", indent, msg);
+		if (dbgtoscreen) {
+			if (GUIreporter_!=nullptr) {
+				(*GUIreporter_)(10, msg);
+			} else {
+				printf("%s%s", indent, msg);
+			}
+		}
 		if (dbgtofile && outfile!=nullptr) fprintf(outfile, "%s%s", indent, msg);
 	
 	}

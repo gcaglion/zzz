@@ -64,9 +64,9 @@ EXPORT bool cuMtr_naive(int my, int mx, numtype* m, numtype* omt);
 
 #define CU_MSG_MAXLEN 2048
 
-#define info(msgMask_, ...) dbg->out(DBG_MSG_INFO, __func__, depth, msgMask_, __VA_ARGS__)
-#define err(msgMask_, ...) dbg->out(DBG_MSG_ERR, __func__, depth, msgMask_, __VA_ARGS__)
-#define fail(msgMask_, ...) { dbg->out(DBG_MSG_ERR, __func__, depth, msgMask_, __VA_ARGS__); throw std::exception(dbg->msg);}
+#define info(msgMask_, ...) dbg->out(DBG_MSG_INFO, __func__, depth, GUIreporter, msgMask_, __VA_ARGS__)
+#define err(msgMask_, ...) dbg->out(DBG_MSG_ERR, __func__, depth, GUIreporter, msgMask_, __VA_ARGS__)
+#define fail(msgMask_, ...) { dbg->out(DBG_MSG_ERR, __func__, depth, GUIreporter, msgMask_, __VA_ARGS__); throw std::exception(dbg->msg);}
 
 
 #define CUWfail(msgMask_, ...) { \

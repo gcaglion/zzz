@@ -26,7 +26,7 @@ void sDbg::createOutFile(char* objName, void* objAddr, int objDepth) {
 		sprintf_s(outfilename, MAX_PATH, "%s(%p)_Dbg.%s", objName, objAddr, (verbose) ? "log" : "err");
 		getFullPath(outfilename, outfilefullname, outfilepath);
 		if (fopen_s(&outfile, outfilefullname, "w")!=0) {
-			out(DBG_MSG_FAIL, __func__, objDepth, "Error %d creating file %s", errno, outfilefullname);
+			out(DBG_MSG_FAIL, __func__, objDepth, nullptr, "Error %d creating file %s", errno, outfilefullname);
 			throw std::exception(msg);
 		}
 	}
