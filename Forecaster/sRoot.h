@@ -12,7 +12,7 @@ class sdp {
 public:
 	int p1;
 	float p2;
-	string msg;
+	char msg[DBG_MSG_MAXLEN];
 };
 
 typedef void(__stdcall *NativeReportProgress) (int, void*);

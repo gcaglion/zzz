@@ -140,7 +140,7 @@ namespace Gui3
         //--------------------------------------
 
         //-- external call to zzz.bat
-        public delegate void ReportProgressDelegate(int progress, object state);
+        public delegate void ReportProgressDelegate(int progress, string message);
         //--
         [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
         public static extern int _trainClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder trainXMLfile_, StringBuilder engineXMLfile_, ReportProgressDelegate progressDel);
@@ -188,9 +188,9 @@ namespace Gui3
         }
         void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            //pbCalculationProgress.Value = e.ProgressPercentage;
             pbCalculationProgress.Value =e.ProgressPercentage;
-            tbProgress.Text = tbProgress.Text + e.UserState;
+
+            tbProgress.Text = tbProgress.Text + e.UserState + "\n";
 
             //if (e.UserState != null)
             // lbResults.Items.Add(e.UserState);
