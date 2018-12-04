@@ -190,9 +190,15 @@ namespace Gui3
         }
         void worker_ProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            pbCalculationProgress.Value =e.ProgressPercentage;
+            //pbCalculationProgress.Value =e.ProgressPercentage;
 
-            tbProgress.Text = tbProgress.Text + e.UserState;
+            if(((String)e.UserState).Substring(0, 1)=="\r") {
+                tbTrainingProgress.Text = (String)e.UserState;
+            } else {
+                tbProgress.Text = tbProgress.Text + e.UserState;
+            }
+            
+            
 
             //if (e.UserState != null)
             // lbResults.Items.Add(e.UserState);
