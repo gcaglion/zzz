@@ -4,6 +4,7 @@ sObj::sObj(sObjParmsDef) {
 
 	name=sname_;
 	parent=parent_;
+	GUIreporter=GUIreporter_;
 
 	if (parent==nullptr) {
 		depth=0;

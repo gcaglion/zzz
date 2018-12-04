@@ -73,12 +73,12 @@ sNNparms::sNNparms(sObjParmsDef, sLogger* persistor_, int loadingPid_, int loadi
 	safecall(persistor_, loadCoreNNparms, loadingPid_, loadingTid_, &levelRatioS, &levelActivationS, &useContext, &useBias, &MaxEpochs, &TargetMSE, &NetSaveFreq, &StopOnDivergence, &BP_Algo, &LearningRate, &LearningMomentum);
 	//-- need to find levelsCnt and build levelRatio array from levelRatioS and levelActivationS
 	char* tmpS1="tmpParm1";
-	sCfgParm* tmpParm1= new sCfgParm(this, newsname("tmpParm1"), defaultdbg, tmpS1, levelRatioS);
+	sCfgParm* tmpParm1= new sCfgParm(this, newsname("tmpParm1"), defaultdbg, GUIreporter, tmpS1, levelRatioS);
 	tmpParm1->getVal(&levelRatio, &levelsCnt);
 	levelsCnt+=2;
 	delete tmpParm1;
 	char* tmpS2="tmpParm2";
-	sCfgParm* tmpParm2= new sCfgParm(this, newsname("tmpParm2"), defaultdbg, tmpS2, levelActivationS);
+	sCfgParm* tmpParm2= new sCfgParm(this, newsname("tmpParm2"), defaultdbg, GUIreporter, tmpS2, levelActivationS);
 	int tmpInt=0;
 	tmpParm2->getVal(&ActivationFunction, &tmpInt);
 

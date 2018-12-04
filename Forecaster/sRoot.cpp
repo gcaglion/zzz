@@ -2,7 +2,7 @@
 #include "sRoot.h"
 
 //-- constructor / destructor
-sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname("RootObj"), defaultdbg, nullptr, nullptr) {
+sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname("RootObj"), defaultdbg, progressReporter, nullptr, nullptr) {
 	pid=GetCurrentProcessId();
 	GUIreporter=progressReporter;
 }
@@ -222,7 +222,7 @@ void sRoot::getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates){
 //-- temp stuff
 void sRoot::kaz() {
 
-
+/*
 //	sCfg* ds2Cfg=new sCfg(this, newsname("ds2Cfg"), defaultdbg, "Config/Light/Infer.xml");
 //	sDataSet* ds2=new sDataSet(this, newsname("ds2"), defaultdbg, ds2Cfg, "DataSet", 100, 3);
 
@@ -259,6 +259,7 @@ void sRoot::kaz() {
 
 	ts1->untransform(PREDICTED, PREDICTED, sampleLen, selFcnt, selF);
 	ts1->dump(PREDICTED, BASE);
+*/
 }
 
 

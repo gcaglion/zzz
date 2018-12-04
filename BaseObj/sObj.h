@@ -10,8 +10,8 @@
 using namespace std;
 
 
-#define sObjParmsDef sObj* parent_, sName* sname_, sDbg* dbg_
-#define sObjParmsVal parent_, sname_, dbg_
+#define sObjParmsDef sObj* parent_, sName* sname_, sDbg* dbg_, NativeReportProgress* GUIreporter_
+#define sObjParmsVal parent_, sname_, dbg_, GUIreporter_
 
 struct sObj {
 	sName* name;
@@ -45,8 +45,7 @@ struct sObj {
 			} else {
 				info("%s TRYING  : %s", name->base, cmd);
 			}
-			(*childVar_) = new objT(this, childSname_, childDbg_, childCargs...);
-			(*childVar_)->GUIreporter=GUIreporter;
+			(*childVar_) = new objT(this, childSname_, childDbg_, GUIreporter, childCargs...);
 			if (dbg->timing) {
 				timer->stop(cmdElapsed);
 				info("[%s] %s SUCCESS : %s . Elapsed time: %s", timer->stopTimeS, name->base, cmd, cmdElapsed);
