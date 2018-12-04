@@ -12,7 +12,7 @@
         <Button x:Name="btn_SimulationId" Content="Simulation Id" HorizontalAlignment="Left" Height="20" Margin="88,32,0,0" VerticalAlignment="Top" Width="85" FontSize="10" Click="btn_SimulationId_Click"/>
         <TextBox x:Name="txt_ClientXML" HorizontalAlignment="Left" Height="20" Margin="9,62,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" FontSize="10" TextChanged="txt_ClientXML_TextChanged"/>
         <Button x:Name="btn_ClientXML" Content="Client XML" HorizontalAlignment="Left" Height="20" Margin="462,62,0,0" VerticalAlignment="Top" Width="77" FontSize="10" Click="btn_ClientXML_Click"/>
-        <TextBox x:Name="txt_DataShapeXML" HorizontalAlignment="Left" Height="20" Margin="9,92,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" FontSize="10" TextChanged="txt_DataShapeXML_TextChanged"/>
+        <TextBox x:Name="txt_DataShapeXML" HorizontalAlignment="Left" Height="20" Margin="9,92,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" FontSize="10" TextChanged="txt_DataShapeXML_TextChanged" AutomationProperties.HelpText="blah blah"/>
         <Button x:Name="btn_DataShapeXML" Content="DataShape XML" HorizontalAlignment="Left" Height="20" Margin="462,92,0,0" VerticalAlignment="Top" Width="77" FontSize="10" Click="btn_DataShapeXML_Click"/>
         <TextBox x:Name="txt_DataSetXML" HorizontalAlignment="Left" Height="20" Margin="9,122,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="441" FontSize="10" TextChanged="txt_DataSetXML_TextChanged"/>
         <Button x:Name="btn_DataSetXML" Content="DataSet XML" HorizontalAlignment="Left" Height="20" Margin="462,122,0,0" VerticalAlignment="Top" Width="77" FontSize="10" Click="btn_DataSetXML_Click"/>
@@ -27,7 +27,15 @@
         <TextBox x:Name="tbProgress" HorizontalAlignment="Left" Height="178" Margin="62,214,0,0" VerticalAlignment="Top" Width="712" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" ScrollViewer.CanContentScroll="True"/>
         <TextBox x:Name="tbTrainingProgress" HorizontalAlignment="Left" Height="28" Margin="62,405,0,0" VerticalAlignment="Top" Width="712" FontSize="9"/>
         <ComboBox x:Name="cboSavedEnginePid" HorizontalAlignment="Left" Height="20" Margin="383,32,0,0" VerticalAlignment="Top" Width="67"/>
-        <Button x:Name="btn_LoadEnginePIDs" Content="Engine PIDs" HorizontalAlignment="Left" Height="20" Margin="462,32,0,0" VerticalAlignment="Top" Width="77" FontSize="10" />
+        <Button x:Name="btn_LoadEnginePIDs" HorizontalAlignment="Left" Height="20" Margin="462,32,0,0" VerticalAlignment="Top" Width="77" FontSize="10" >
+            <ToolBar x:Name="toolBar"/>
+            <Button.ToolTip>
+                <ToolTip>
+                    
+                </ToolTip>
+            </Button.ToolTip>
+        </Button>
+        <ToolBar x:Name="toolBar1" HorizontalAlignment="Left" Margin="435,68,0,0" VerticalAlignment="Top"/>
 
     </Grid>
 </Window>

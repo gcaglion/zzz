@@ -166,6 +166,11 @@ namespace Gui3
             loadLastFileName(txt_DataShapeXML);
             loadLastFileName(txt_DataSetXML);
             loadLastFileName(txt_EngineXML);
+            txt_ClientXML.ToolTip = File.ReadAllText(txt_ClientXML.Text.Replace("\r\n", string.Empty));
+            txt_DataShapeXML.ToolTip = File.ReadAllText(txt_DataShapeXML.Text.Replace("\r\n", string.Empty));
+            txt_DataSetXML.ToolTip = File.ReadAllText(txt_DataSetXML.Text.Replace("\r\n", string.Empty));
+            txt_EngineXML.ToolTip = File.ReadAllText(txt_EngineXML.Text.Replace("\r\n", string.Empty));
+
             loadEnginePids();
         }
         //--------------------------------------
@@ -233,6 +238,7 @@ namespace Gui3
             tbProgress.Text = tbProgress.Text + "Completed.\n";
             btn_Go.IsEnabled = true;
         }
+
 
         //===================================================================================
     }
