@@ -109,7 +109,8 @@ create table CoreNNparms(
 	StopOnDivergence number,
 	BPAlgo number,
 	BPStd_LearningRate number,
-	BPStd_LearningMomentum number
+	BPStd_LearningMomentum number,
+	BPscgd_maxK number
 );
 alter table CoreNNparms add constraint CoreNNparms_PK primary key(ProcessId, ThreadId) using index tablespace LogIdx;
 

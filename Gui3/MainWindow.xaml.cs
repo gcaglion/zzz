@@ -152,6 +152,8 @@ namespace Gui3
         private void btn_Go_Click(object sender, RoutedEventArgs e)
         {
             btn_Go.IsEnabled = false;
+            tbProgress.Text = "";
+            tbTrainingProgress.Text = "";
 
             Environment.SetEnvironmentVariable("PATH", "D:/app/oracle/product/12.1.0/dbhome_1/oci/lib/msvc/vc14;D:/app/oracle/product/12.1.0/dbhome_1/bin;C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/bin");
 
@@ -177,7 +179,11 @@ namespace Gui3
 
             
         }
-        private void btn_Cancel_Click(object sender, RoutedEventArgs e) { }
+        private void btn_Cancel_Click(object sender, RoutedEventArgs e) {
+
+            btn_Go.IsEnabled = true;
+        }
+        
         //-- WORKER STUFF
         void worker_DoWork(object sender, DoWorkEventArgs e)
         {
