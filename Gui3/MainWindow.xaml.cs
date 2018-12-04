@@ -66,7 +66,7 @@ namespace Gui3
         }
         private void txt_SaveEnginePid_TextChanged(object sender, RoutedEventArgs e)
         {
-            saveLastFileName(txt_SaveEnginePid);
+            saveLastFileName(cboSavedEnginePid);
         }
         //--
         private void btn_SimulationId_Click(object sender, RoutedEventArgs e) {}
@@ -86,11 +86,23 @@ namespace Gui3
         {
             txt_EngineXML.Text = getDlgFileName();
         }
-        private void btn_EnginePid_Click(object sender, RoutedEventArgs e) {}
 
         //----------- Utilities ----------------
 
-   
+        //-- external calls to C++
+        public delegate void ReportProgressDelegate(int progress, string message);
+        //--
+        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int _trainClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder trainXMLfile_, StringBuilder engineXMLfile_, [MarshalAs(UnmanagedType.FunctionPtr)] ReportProgressDelegate progressDel);
+        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int _inferClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder inferXMLfile_, StringBuilder engineXMLfile_, int savedEnginePid_, [MarshalAs(UnmanagedType.FunctionPtr)] ReportProgressDelegate progressDel);
+        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int _bothClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder bothXMLfile_, StringBuilder engineXMLfile_, [MarshalAs(UnmanagedType.FunctionPtr)] ReportProgressDelegate progressDel);
+        //--
+        [DllImport("OraData.dll", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int _getSavedEnginePids(StringBuilder DBusername, StringBuilder DBpassword, StringBuilder DBconnstring, int maxPids_, int[] oPid);
+        //--
+
         string getDlgFileName()
         {
             // Create OpenFileDialog 
@@ -117,6 +129,12 @@ namespace Gui3
             string[] lines = { tb.Text };
             System.IO.File.WriteAllLines(@fname, lines);
         }
+        void saveLastFileName(ComboBox cb)
+        {
+            string fname = cb.Name + ".last";
+            string[] lines = { cb.Text };
+            System.IO.File.WriteAllLines(@fname, lines);
+        }
         void loadLastFileName(TextBox tb)
         {
             string fname = tb.Name + ".last";
@@ -129,33 +147,34 @@ namespace Gui3
 
             }
         }
+        void loadEnginePids()
+        {
+            const int MaxEnginePids = 2000;
+            int[] enginePid = new int[MaxEnginePids];
+            int loadedPidsCnt = _getSavedEnginePids(new StringBuilder("LogUser"), new StringBuilder("LogPwd"), new StringBuilder("Algo"), MaxEnginePids, enginePid);
+
+            for (int i = 0; i < loadedPidsCnt; i++) cboSavedEnginePid.Items.Add(enginePid[i]);
+            if (cboSavedEnginePid.Items.Count == 0) cboSavedEnginePid.Items.Add(0);
+            cboSavedEnginePid.SelectedIndex = 0;
+        }
         private void MainWindow_Activated(object sender, System.EventArgs e)
         {
+            Environment.SetEnvironmentVariable("PATH", "D:/app/oracle/product/12.1.0/dbhome_1/oci/lib/msvc/vc14;D:/app/oracle/product/12.1.0/dbhome_1/bin;C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/bin");
+
             loadLastFileName(txt_SimulationId);
             loadLastFileName(txt_ClientXML);
             loadLastFileName(txt_DataShapeXML);
             loadLastFileName(txt_DataSetXML);
             loadLastFileName(txt_EngineXML);
+            loadEnginePids();
         }
         //--------------------------------------
 
-        //-- external call to zzz.bat
-        public delegate void ReportProgressDelegate(int progress, string message);
-        //--
-        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int _trainClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder trainXMLfile_, StringBuilder engineXMLfile_, [MarshalAs(UnmanagedType.FunctionPtr)] ReportProgressDelegate progressDel);
-        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int _inferClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder inferXMLfile_, StringBuilder engineXMLfile_, int savedEnginePid_, [MarshalAs(UnmanagedType.FunctionPtr)] ReportProgressDelegate progressDel);
-        [DllImport("Forecaster.dll", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int _bothClient(int simulationId_, StringBuilder clientXMLfile_, StringBuilder shapeXMLfile_, StringBuilder bothXMLfile_, StringBuilder engineXMLfile_, [MarshalAs(UnmanagedType.FunctionPtr)] ReportProgressDelegate progressDel);
-        //--
         private void btn_Go_Click(object sender, RoutedEventArgs e)
         {
             btn_Go.IsEnabled = false;
             tbProgress.Text = "";
             tbTrainingProgress.Text = "";
-
-            Environment.SetEnvironmentVariable("PATH", "D:/app/oracle/product/12.1.0/dbhome_1/oci/lib/msvc/vc14;D:/app/oracle/product/12.1.0/dbhome_1/bin;C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.0/bin");
 
             sWorkerParms wp= new sWorkerParms();
 
@@ -168,7 +187,7 @@ namespace Gui3
             wp.dataShapeXML = new StringBuilder(txt_DataShapeXML.Text).Replace("\r\n", string.Empty);
             wp.dataSetXML = new StringBuilder(txt_DataSetXML.Text).Replace("\r\n", string.Empty);
             wp.engineXML = new StringBuilder(txt_EngineXML.Text).Replace("\r\n", string.Empty);
-            wp.savedEnginePid = Convert.ToInt32(txt_SaveEnginePid.Text.Replace("\r\n", string.Empty));
+            wp.savedEnginePid = Convert.ToInt32(cboSavedEnginePid.Text.Replace("\r\n", string.Empty));
 
             BackgroundWorker worker = new BackgroundWorker();
             worker.WorkerReportsProgress = true;
@@ -214,6 +233,7 @@ namespace Gui3
             tbProgress.Text = tbProgress.Text + "Completed.\n";
             btn_Go.IsEnabled = true;
         }
+
         //===================================================================================
     }
 }

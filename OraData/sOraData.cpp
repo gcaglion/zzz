@@ -525,7 +525,33 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* core
 
 	//--
 }
+int sOraData::getSavedEnginePids(int maxPids_, int* oPid) {
+	
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
 
+	//-- build statement
+	sprintf_s(sqlS, SQL_MAXLEN, "select ProcessId from Engines order by 1");
+
+	try {
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+		int i=0;
+		while (((ResultSet*)rset)->next() && i<maxPids_) {
+			oPid[i]=((ResultSet*)rset)->getInt(1);
+			i++;
+		}
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+		return i-1;
+	} catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
+
+
+}
 
 //-- private stuff
 void sOraData::sqlExec(char* sqlS) {
@@ -562,4 +588,17 @@ void sOraData::sqlGet(int len, int** valP, const char* sqlMask, ...) {
 	catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
+}
+
+
+//-- C# interface stuff
+extern "C" __declspec(dllexport) int _getSavedEnginePids(const char* DBusername, const char* DBpassword, const char* DBconnstring, int maxPids_, int* oPid) {
+	try {
+		sOraData* db=new sOraData(nullptr, newsname("GUIdb"), defaultdbg, nullptr, DBusername, DBpassword, DBconnstring);
+		return(db->getSavedEnginePids(maxPids_, oPid));
+	}
+	catch (std::exception exc) {
+		//fail("Exception=%s", exc.what());
+	}
+	return 0;
 }
