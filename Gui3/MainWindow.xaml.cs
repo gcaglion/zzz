@@ -86,6 +86,31 @@ namespace Gui3
         {
             txt_EngineXML.Text = getDlgFileName();
         }
+        //--
+        private void ClientXMLedit(object sender, RoutedEventArgs e) {
+            XMLedit(txt_ClientXML);
+        }
+        private void DataShapeXMLedit(object sender, RoutedEventArgs e)
+        {
+            XMLedit(txt_DataShapeXML);
+        }
+        private void DataSetXMLedit(object sender, RoutedEventArgs e)
+        {
+            XMLedit(txt_DataSetXML);
+        }
+        private void EngineXMLedit(object sender, RoutedEventArgs e) {
+            XMLedit(txt_EngineXML);
+        }
+        private void XMLedit(TextBox caller)
+        {
+            var window = new XMLeditor(caller);
+            window.Show();
+
+            TextRange range = new TextRange(window.rtbXMLcontent.Document.ContentStart, window.rtbXMLcontent.Document.ContentEnd);
+            FileStream fStream = new FileStream(caller.Text.Replace("\r\n", string.Empty), FileMode.Open);
+            range.Load(fStream, DataFormats.Text);
+            fStream.Close();
+        }
 
         //----------- Utilities ----------------
 
@@ -166,11 +191,15 @@ namespace Gui3
             loadLastFileName(txt_DataShapeXML);
             loadLastFileName(txt_DataSetXML);
             loadLastFileName(txt_EngineXML);
-            txt_ClientXML.ToolTip = File.ReadAllText(txt_ClientXML.Text.Replace("\r\n", string.Empty));
-            txt_DataShapeXML.ToolTip = File.ReadAllText(txt_DataShapeXML.Text.Replace("\r\n", string.Empty));
-            txt_DataSetXML.ToolTip = File.ReadAllText(txt_DataSetXML.Text.Replace("\r\n", string.Empty));
-            txt_EngineXML.ToolTip = File.ReadAllText(txt_EngineXML.Text.Replace("\r\n", string.Empty));
+            try { 
+                txt_ClientXML.ToolTip = File.ReadAllText(txt_ClientXML.Text.Replace("\r\n", string.Empty));
+                txt_DataShapeXML.ToolTip = File.ReadAllText(txt_DataShapeXML.Text.Replace("\r\n", string.Empty));
+                txt_DataSetXML.ToolTip = File.ReadAllText(txt_DataSetXML.Text.Replace("\r\n", string.Empty));
+                txt_EngineXML.ToolTip = File.ReadAllText(txt_EngineXML.Text.Replace("\r\n", string.Empty));
+            } catch (System.IO.IOException e2)
+            {
 
+            }
             loadEnginePids();
         }
         //--------------------------------------
@@ -238,6 +267,7 @@ namespace Gui3
             tbProgress.Text = tbProgress.Text + "Completed.\n";
             btn_Go.IsEnabled = true;
         }
+
 
 
         //===================================================================================
