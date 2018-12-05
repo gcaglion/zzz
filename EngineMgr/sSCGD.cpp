@@ -1,46 +1,51 @@
 #include "sSCGD.h"
 
-sSCGD::sSCGD(int Wcnt){
-	p=(numtype*)malloc(Wcnt*sizeof(numtype));
-	r=(numtype*)malloc(Wcnt*sizeof(numtype));
-	s=(numtype*)malloc(Wcnt*sizeof(numtype));
-	dW=(numtype*)malloc(Wcnt*sizeof(numtype));
-	TotdW=(numtype*)malloc(Wcnt*sizeof(numtype));
-	newW=(numtype*)malloc(Wcnt*sizeof(numtype));
-	oldW=(numtype*)malloc(Wcnt*sizeof(numtype));
-	GdJdW=(numtype*)malloc(Wcnt*sizeof(numtype));
-	prev_r=(numtype*)malloc(Wcnt*sizeof(numtype));
-	alphap=(numtype*)malloc(Wcnt*sizeof(numtype));
-	bp=(numtype*)malloc(Wcnt*sizeof(numtype));
-	lp=(numtype*)malloc(Wcnt*sizeof(numtype));
-	ap=(numtype*)malloc(Wcnt*sizeof(numtype));
-	dE0=(numtype*)malloc(Wcnt*sizeof(numtype));
-	dE1=(numtype*)malloc(Wcnt*sizeof(numtype));
-	dE=(numtype*)malloc(Wcnt*sizeof(numtype));
-	E0=(numtype*)malloc(Wcnt*sizeof(numtype));
-	E1=(numtype*)malloc(Wcnt*sizeof(numtype));
-	E=(numtype*)malloc(Wcnt*sizeof(numtype));
-	sigmap=(numtype*)malloc(Wcnt*sizeof(numtype));
+sSCGD::sSCGD(sObjParmsDef, sAlgebra* Alg_, int Wcnt, int outNcnt) : sObj(sObjParmsVal) {
+	Alg=Alg_;
+	Alg->myMalloc(&p, Wcnt);
+	Alg->myMalloc(&r, Wcnt);
+	Alg->myMalloc(&s, Wcnt);
+	Alg->myMalloc(&dW, Wcnt);
+	Alg->myMalloc(&TotdW, Wcnt);
+	Alg->myMalloc(&newW, Wcnt);
+	Alg->myMalloc(&oldW, Wcnt);
+	Alg->myMalloc(&GdJdW, Wcnt);
+	Alg->myMalloc(&prev_r, Wcnt);
+	Alg->myMalloc(&alphap, Wcnt);
+	Alg->myMalloc(&bp, Wcnt);
+	Alg->myMalloc(&lp, Wcnt);
+	Alg->myMalloc(&ap, Wcnt);
+	//Alg->myMalloc(&gse, outNcnt);
+	Alg->myMalloc(&dE, Wcnt);
+	Alg->myMalloc(&dE0, Wcnt);
+	Alg->myMalloc(&dE1, Wcnt);
+	Alg->myMalloc(&E0, Wcnt);
+	Alg->myMalloc(&E1, Wcnt);
+	Alg->myMalloc(&E, Wcnt);
+	Alg->myMalloc(&sigmap, Wcnt);
 }
 sSCGD::~sSCGD() {
-	free(p);
-	free(r);
-	free(s);
-	free(dW);
-	free(TotdW);
-	free(newW);
-	free(oldW);
-	free(GdJdW);
-	free(prev_r);
-	free(alphap);
-	free(bp);
-	free(lp);
-	free(ap);
-	free(dE0);
-	free(dE1);
-	free(dE);
-	free(E0);
-	free(E1);
-	free(E);
-	free(sigmap);
+	Alg->myFree(p);
+	Alg->myFree(r);
+	Alg->myFree(s);
+	Alg->myFree(dW);
+	Alg->myFree(TotdW);
+	Alg->myFree(newW);
+	Alg->myFree(oldW);
+	Alg->myFree(GdJdW);
+	Alg->myFree(prev_r);
+	Alg->myFree(alphap);
+	Alg->myFree(bp);
+	Alg->myFree(lp);
+	Alg->myFree(ap);
+	Alg->myFree(dE);
+	Alg->myFree(dE0);
+	//Alg->myFree(gse);
+	Alg->myFree(dE1);
+	Alg->myFree(dE);
+	Alg->myFree(E0);
+	Alg->myFree(E1);
+	Alg->myFree(E);
+	Alg->myFree(sigmap);
 }
+

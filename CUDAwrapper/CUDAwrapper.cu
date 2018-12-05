@@ -231,28 +231,15 @@ EXPORT bool MbyM_cu(void* cublasH, int Ay, int Ax, numtype Ascale, bool Atr, num
 	return true;
 }
 
-__global__ void VdotV_ker(int n, float x[], float y[], float z[]) {
-	/* Use tmp to store products of vector components in each block */
-	/* Can't use variable dimension here                            */
-	__shared__ float tmp[CUDA_BLOCK_SIZE];
-	int t = blockDim.x * blockIdx.x+threadIdx.x;
-	int loc_t = threadIdx.x;
+__global__ void VdotV_ker(int n, float x[], float y[], float* dot_p) {
+	float tmp;
+	int i = blockDim.x * blockIdx.x+threadIdx.x;
 
-	if (t < n) tmp[loc_t] = x[t]*y[t];
-	__syncthreads();
-
-	/* This uses a tree structure to do the addtions */
-	for (int stride = blockDim.x/2; stride > 0; stride /= 2) {
-		if (loc_t < stride)
-			tmp[loc_t] += tmp[loc_t+stride];
-		__syncthreads();
+	if (i < n) {
+		tmp = x[i]*y[i];
+		atomicAdd(dot_p, tmp);
 	}
-
-	/* Store the result from this cache block in z[blockIdx.x] */
-	if (threadIdx.x==0) {
-		z[blockIdx.x] = tmp[0];
-	}
-}  /* Dev_dot */
+}
 __global__ void cuSadd(const numtype* s1, const numtype* s2, numtype* ssum) {
 	ssum[0]=s1[0]+s2[0];
 }
@@ -402,7 +389,19 @@ EXPORT bool Vsum_cu(int vlen, numtype* v, numtype* ovsum, numtype* ss_d) {
 
 	return ((cudaGetLastError()==cudaSuccess));
 }
-EXPORT bool VdotV_cu(int vlen, numtype* v1, numtype* v2, numtype* ovdotv) {
+
+EXPORT void VdotV_cu(int n, float x_d[], float y_d[], float* dot_d, int blocks, int threads) {
+
+	cudaMemset(dot_d, 0, sizeof(float));
+
+	/* Invoke kernel */
+	VdotV_ker<<<blocks, threads>>>(n, x_d, y_d, dot_d);
+
+	//cudaMemcpy(oVdotVh, dot_d, sizeof(float), cudaMemcpyDeviceToHost);
+
+}
+
+/*EXPORT bool VdotV_cu(int vlen, numtype* v1, numtype* v2, numtype* ovdotv) {
 	dim3 gridDim;
 	dim3 blockDim;
 	blockDim.x = CUDA_BLOCK_SIZE;
@@ -412,6 +411,7 @@ EXPORT bool VdotV_cu(int vlen, numtype* v1, numtype* v2, numtype* ovdotv) {
 
 	return ((cudaGetLastError()==cudaSuccess));
 }
+*/
 EXPORT bool Vssum_cu(int vlen, numtype* v, numtype* ovssum) {
 	dim3 gridDim;
 	dim3 blockDim;
@@ -429,8 +429,8 @@ EXPORT bool Vssum_cu_cublas(void* cublasH, int Vlen, numtype* V, numtype* oVssum
 }
 
 EXPORT bool Vnorm_cu(void* cublasH, int Vlen, numtype* V,  numtype* oVnorm, numtype* ss_d) {
-	if (cublasSnrm2((*(cublasHandle_t*)cublasH), Vlen, V, 1, oVnorm)!=CUBLAS_STATUS_SUCCESS) return false;
-	if (cudaMemcpy(oVnorm, ss_d, sizeof(numtype), cudaMemcpyDeviceToHost)!=cudaSuccess) return false;
+	if (cublasSnrm2_v2((*(cublasHandle_t*)cublasH), Vlen, V, 1, oVnorm)!=CUBLAS_STATUS_SUCCESS) return false;
+	//if (cudaMemcpy(oVnorm, ss_d, sizeof(numtype), cudaMemcpyDeviceToHost)!=cudaSuccess) return false;
 	return true;
 }
 EXPORT bool Vinit_cu(int vlen, numtype* v, numtype start, numtype inc) {

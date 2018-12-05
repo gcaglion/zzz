@@ -275,7 +275,7 @@ void sNN::createWeights() {
 	Alg->myMalloc(&dW, weightsCntTotal);
 	Alg->myMalloc(&dJdW, weightsCntTotal);
 	//-- scgd stuff
-	if (parms->BP_Algo==BP_SCGD) scgd = new sSCGD(weightsCntTotal);
+	if (parms->BP_Algo==BP_SCGD) scgd = new sSCGD(this, newsname("%s_scgd", name->base), defaultdbg, GUIreporter, Alg, weightsCntTotal, nodesCnt[outputLevel]);
 }
 void sNN::destroyWeights() {
 	Alg->myFree(W);
@@ -301,9 +301,6 @@ void sNN::loadBatchData(sDataSet* ds, int b) {
 	//-- set number of L0 neurons to load
 	int L0SampleNodesCnt=ds->sampleLen*ds->selectedFeaturesCnt*ds->batchSamplesCnt;
 	//-- load batch samples on L0
-	//===================================================================
-	dumpArray(L0SampleNodesCnt, &F[(parms->useBias) ? 1 : 0], "C:/temp/F0.csv");
-	//===================================================================
 	Alg->h2d(&F[(parms->useBias) ? 1 : 0], &ds->sampleBFS[b*L0SampleNodesCnt], L0SampleNodesCnt*sizeof(numtype), false);
 	//-- load batch target on output level
 	Alg->h2d(&u[0], &ds->targetBFS[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), false);
@@ -493,6 +490,9 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 		Alg->Vcopy(weightsCntTotal, scgd->GdJdW, scgd->p); Alg->Vscale(weightsCntTotal, scgd->p, -1, scgd->p);
 		Alg->Vcopy(weightsCntTotal, scgd->p, scgd->r);
 
+		dumpArray(weightsCntTotal, scgd->p, "C:/temp/p.txt");
+		dumpArray(weightsCntTotal, scgd->r, "C:/temp/r.txt");
+
 		bool success = true;
 		numtype sigma = (numtype)1e-4;
 		numtype lambda = (numtype)1e-6; numtype lambdau = (numtype)0;
@@ -525,10 +525,13 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 				//-- calc s = (dE1-dE0)/sigma
 				Alg->Vadd(weightsCntTotal, scgd->dE1, 1, scgd->dE0, -1, scgd->dE);
 				Alg->Vscale(weightsCntTotal, scgd->dE, 1/sigma, scgd->s);
-				//====================================================================================
-				numtype* sh=(numtype*)malloc(weightsCntTotal*sizeof(numtype));
-				Alg->d2h(sh, scgd->s, weightsCntTotal*sizeof(numtype), false);
-				//====================================================================================
+				
+				dumpArray(weightsCntTotal, scgd->newW, "C:/temp/newW.txt");
+				dumpArray(weightsCntTotal, scgd->dE0, "C:/temp/dE0.txt");
+				dumpArray(weightsCntTotal, scgd->dE1, "C:/temp/dE1.txt");
+				dumpArray(weightsCntTotal, scgd->dE , "C:/temp/dE.txt");
+
+				
 				//-- calc delta
 				Alg->VdotV(weightsCntTotal, scgd->p, scgd->s, &delta);
 			}

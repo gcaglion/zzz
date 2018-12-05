@@ -15,7 +15,7 @@ sAlgebra::sAlgebra(sObjParmsDef) : sObj(sObjParmsVal) {
 	CUWsafecall(initCUstreams, cuStream);
 #endif
 	//-- init shared scalar
-	safecall(this, myMalloc, &ss, 1);
+	myMalloc(&ss, 1);
 }
 sAlgebra::~sAlgebra() {
 	myFree(ss);
@@ -173,25 +173,11 @@ bool sAlgebra::Vscale(int vlen, numtype* v1, numtype scale, numtype* ov) {
 #endif
 }
 
-bool sAlgebra::VdotV_BROKEN(int vlen, numtype* v1, numtype* v2, numtype* ovdotv) {
-#ifdef USE_GPU
-	return(VdotV_cu(vlen, v1, v2, ovdotv));
-#else
-	//== TO DO !!!!!! ==========
-	return false;
-#endif
-}
 void sAlgebra::VdotV(int vlen, numtype* v1, numtype* v2, numtype* ovdotv) {
 #ifdef USE_GPU
-	numtype* v1h=(numtype*)malloc(vlen*sizeof(numtype));
-	numtype* v2h=(numtype*)malloc(vlen*sizeof(numtype));
-	numtype* ovdotvh=(numtype*)malloc(1*sizeof(numtype));
-	d2h(v1h, v1, vlen*sizeof(numtype), false);
-	d2h(v2h, v2, vlen*sizeof(numtype), false);
-	(*ovdotvh)=0;
-	for (int i = 0; i<vlen; i++) (*ovdotvh) += v1h[i]*v2h[i];
-	h2d(ovdotv, ovdotvh, 1*sizeof(numtype), false);
-	free(v1h); free(v2h); free(ovdotvh);
+	int blocks_per_grid=256;
+	int threads_per_block=1024;
+	VdotV_cu(vlen, v1, v2, ovdotv, blocks_per_grid, threads_per_block);
 #else
 	(*ovdotv)=0;
 	for (int i = 0; i < vlen; i++) (*ovdotv) += v1[i]*v2[i];

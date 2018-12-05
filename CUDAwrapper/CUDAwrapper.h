@@ -41,7 +41,7 @@ EXPORT bool Vnorm_cu(void* cublasH, int Vlen, numtype* V, numtype* oVnorm, numty
 EXPORT bool Vinit_cu(int vlen, numtype* v, numtype start, numtype inc);
 EXPORT bool VbyV2V_cu(int vlen, numtype* v1, numtype* v2, numtype* ov);
 EXPORT bool VinitRnd_cu(int vlen, numtype* v, numtype rndmin, numtype rndmax, void* cuRandH);
-EXPORT bool VdotV_cu(int vlen, numtype* v1, numtype* v2, numtype* ovdotv);
+EXPORT void VdotV_cu(int n, float x_d[], float y_d[], float* dot_d, int blocks, int threads);
 
 //-- kernel functions wrappers
 EXPORT void initGPUData(float *data, int numElements, float value);

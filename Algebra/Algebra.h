@@ -56,7 +56,6 @@ struct sAlgebra : public sObj {
 	EXPORT bool Vcopy(int vlen, numtype* v1, numtype* v2);
 	EXPORT bool Vscale(int vlen, numtype* v1, numtype scale, numtype* ov);
 
-	EXPORT bool VdotV_BROKEN(int vlen, numtype* v1, numtype* v2, numtype* ovdotv);
 	EXPORT void VdotV(int vlen, numtype* v1, numtype* v2, numtype* ovdotv);
 
 	//-- Activation Functions
