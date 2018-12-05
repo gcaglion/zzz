@@ -33,24 +33,24 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		getFullPath(engineXMLfile_, engineffname);
 
 		//-- 1. load separate sCfg* for client, dataShape, trainDataset, Engine
-		sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
-		sCfg* shapeCfg; safespawn(shapeCfg, newsname("shapeCfg"), defaultdbg, shapeffname);
-		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), defaultdbg, trainffname);
-		sCfg* engCfg; safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineffname);
+		sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), erronlydbg, clientffname);
+		sCfg* shapeCfg; safespawn(shapeCfg, newsname("shapeCfg"), erronlydbg, shapeffname);
+		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), erronlydbg, trainffname);
+		sCfg* engCfg; safespawn(engCfg, newsname("engineCfg"), erronlydbg, engineffname);
 
 		//-- 2. spawn DataShape
-		safespawn(shape, newsname("TrainDataShape"), defaultdbg, shapeCfg, "/DataShape");
+		safespawn(shape, newsname("TrainDataShape"), erronlydbg, shapeCfg, "/DataShape");
 		//-- 3. spawn Train DataSet and its persistor
-		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/DataSet", shape->sampleLen, shape->predictionLen);
-		safespawn(trainLog, newsname("TrainLogger"), defaultdbg, trainCfg, "/DataSet/Persistor");
+		safespawn(trainDS, newsname("TrainDataSet"), erronlydbg, trainCfg, "/DataSet", shape->sampleLen, shape->predictionLen);
+		safespawn(trainLog, newsname("TrainLogger"), erronlydbg, trainCfg, "/DataSet/Persistor");
 		//-- 4. spawn engine the standard way
-		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", shape->sampleLen*trainDS->selectedFeaturesCnt, shape->predictionLen*trainDS->selectedFeaturesCnt);
+		safespawn(engine, newsname("TrainEngine"), erronlydbg, engCfg, "/Engine", shape->sampleLen*trainDS->selectedFeaturesCnt, shape->predictionLen*trainDS->selectedFeaturesCnt);
 
 		//-- 5. create client persistor, if needed
 		bool saveClient;
 		safecall(clientCfg, setKey, "/Client");
 		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
-		safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
+		safespawn(clientLog, newsname("ClientLogger"), erronlydbg, clientCfg, "Persistor");
 
 		//-- training cycle core
 		timer->start();
