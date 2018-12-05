@@ -301,9 +301,12 @@ void sNN::loadBatchData(sDataSet* ds, int b) {
 	//-- set number of L0 neurons to load
 	int L0SampleNodesCnt=ds->sampleLen*ds->selectedFeaturesCnt*ds->batchSamplesCnt;
 	//-- load batch samples on L0
-	Alg->h2d(&F[(parms->useBias) ? 1 : 0], &ds->sampleBFS[b*L0SampleNodesCnt], L0SampleNodesCnt*sizeof(numtype), true);
+	//===================================================================
+	dumpArray(L0SampleNodesCnt, &F[(parms->useBias) ? 1 : 0], "C:/temp/F0.csv");
+	//===================================================================
+	Alg->h2d(&F[(parms->useBias) ? 1 : 0], &ds->sampleBFS[b*L0SampleNodesCnt], L0SampleNodesCnt*sizeof(numtype), false);
 	//-- load batch target on output level
-	Alg->h2d(&u[0], &ds->targetBFS[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), true);
+	Alg->h2d(&u[0], &ds->targetBFS[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), false);
 }
 void sNN::ForwardPass(sDataSet* ds, int batchId, bool inferring) {
 
@@ -460,6 +463,23 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	//-- 0.4. convert samples and targets from SBF to BFS  in training dataset
 	trainArgs->ds->setBFS();
 
+	//====================================================================================
+	int vlen=10000;
+	numtype* v1d; Alg->myMalloc(&v1d, vlen);
+	numtype* v2d; Alg->myMalloc(&v2d, vlen);
+	numtype* v3d; Alg->myMalloc(&v3d, 1);
+	//--
+	numtype* v1h=(numtype*)malloc(vlen*sizeof(numtype));
+	numtype* v2h=(numtype*)malloc(vlen*sizeof(numtype));
+	numtype* v3h=(numtype*)malloc(1*sizeof(numtype));
+	//--
+	Alg->Vinit(vlen, v1d, (numtype)(vlen/2), (numtype)1);
+	Alg->Vinit(vlen, v2d, (numtype)(vlen/2), (numtype)-1);
+	//--
+	Alg->d2h(v1h, v1d, vlen*sizeof(numtype), false);
+	Alg->d2h(v2h, v2d, vlen*sizeof(numtype), false);
+	//====================================================================================
+
 	//-- 1. for every epoch, train all batches with one Forward pass ( loadSamples(b)+FF()+calcErr() ), and one Backward pass (BP + calcdW + W update)
 	if (parms->BP_Algo==BP_SCGD) {
 
@@ -505,8 +525,10 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 				//-- calc s = (dE1-dE0)/sigma
 				Alg->Vadd(weightsCntTotal, scgd->dE1, 1, scgd->dE0, -1, scgd->dE);
 				Alg->Vscale(weightsCntTotal, scgd->dE, 1/sigma, scgd->s);
+				//====================================================================================
 				numtype* sh=(numtype*)malloc(weightsCntTotal*sizeof(numtype));
 				Alg->d2h(sh, scgd->s, weightsCntTotal*sizeof(numtype), false);
+				//====================================================================================
 				//-- calc delta
 				Alg->VdotV(weightsCntTotal, scgd->p, scgd->s, &delta);
 			}
@@ -622,6 +644,11 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 				//-- backward pass, with weights update
 				safecallSilent(this, BackwardPass, trainSet, b, true);
 
+				//====================================================================================
+				Alg->VdotV(vlen, v1d, v2d, v3d);
+				Alg->d2h(v3h, v3d, 1*sizeof(numtype), false);
+				printf("v3h=%f\n", (*v3h));
+				//====================================================================================
 			}
 
 			//-- 1.2. calc epoch MSE (for ALL batches), and check criteria for terminating training (targetMSE, Divergence)

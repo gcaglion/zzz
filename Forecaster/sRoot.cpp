@@ -222,6 +222,36 @@ void sRoot::getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates){
 //-- temp stuff
 void sRoot::kaz() {
 
+	sAlgebra* Alg=new sAlgebra(this, newsname("Alg1"), defaultdbg, nullptr);
+
+	int vlen=10000;
+	numtype* v1d; Alg->myMalloc(&v1d, vlen);
+	numtype* v2d; Alg->myMalloc(&v2d, vlen);
+	numtype* v3d; Alg->myMalloc(&v3d, 1);
+	//--
+	numtype* v1h=(numtype*)malloc(vlen*sizeof(numtype));
+	numtype* v2h=(numtype*)malloc(vlen*sizeof(numtype));
+	numtype* v3h=(numtype*)malloc(1*sizeof(numtype));
+	//--
+	Alg->Vinit(vlen, v1d, (numtype)(vlen/2), (numtype)1);
+	Alg->Vinit(vlen, v2d, (numtype)(vlen/2), (numtype)-1);
+	//--
+	Alg->d2h(v1h, v1d, vlen*sizeof(numtype), false);
+	Alg->d2h(v2h, v2d, vlen*sizeof(numtype), false);
+	//--
+	Alg->VdotV(vlen, v1d, v2d, v3d);
+	//--
+	Alg->d2h(v3h, v3d, 1*sizeof(numtype), false);
+	
+	printf("v3h=%f\n", (*v3h));
+
+	numtype vh=0;
+	for (int i=0; i<vlen; i++) vh+=v1h[i]*v2h[i];
+	printf("vh=%f\n", vh);
+
+
+	system("pause");
+
 /*
 //	sCfg* ds2Cfg=new sCfg(this, newsname("ds2Cfg"), defaultdbg, "Config/Light/Infer.xml");
 //	sDataSet* ds2=new sDataSet(this, newsname("ds2"), defaultdbg, ds2Cfg, "DataSet", 100, 3);
