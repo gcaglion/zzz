@@ -16,6 +16,7 @@ sSCGD::sSCGD(int Wcnt){
 	ap=(numtype*)malloc(Wcnt*sizeof(numtype));
 	dE0=(numtype*)malloc(Wcnt*sizeof(numtype));
 	dE1=(numtype*)malloc(Wcnt*sizeof(numtype));
+	dE=(numtype*)malloc(Wcnt*sizeof(numtype));
 	E0=(numtype*)malloc(Wcnt*sizeof(numtype));
 	E1=(numtype*)malloc(Wcnt*sizeof(numtype));
 	E=(numtype*)malloc(Wcnt*sizeof(numtype));

@@ -168,11 +168,12 @@ bool sAlgebra::Vscale(int vlen, numtype* v1, numtype scale, numtype* ov) {
 	if (!Vcopy_cu(vlen, v1, ov)) return false;
 	return(Vscale_cu(vlen, ov, scale));
 #else
-	for (int i=0; i<vlen; i++) v[i]=v[i]*scale;
+	for (int i=0; i<vlen; i++) ov[i]=v1[i]*scale;
 	return true;
 #endif
 }
-bool sAlgebra::VdotV(int vlen, numtype* v1, numtype* v2, numtype* ovdotv) {
+
+bool sAlgebra::VdotV_BROKEN(int vlen, numtype* v1, numtype* v2, numtype* ovdotv) {
 #ifdef USE_GPU
 	return(VdotV_cu(vlen, v1, v2, ovdotv));
 #else
@@ -180,7 +181,22 @@ bool sAlgebra::VdotV(int vlen, numtype* v1, numtype* v2, numtype* ovdotv) {
 	return false;
 #endif
 }
-
+void sAlgebra::VdotV(int vlen, numtype* v1, numtype* v2, numtype* ovdotv) {
+#ifdef USE_GPU
+	numtype* v1h=(numtype*)malloc(vlen*sizeof(numtype));
+	numtype* v2h=(numtype*)malloc(vlen*sizeof(numtype));
+	numtype* ovdotvh=(numtype*)malloc(1*sizeof(numtype));
+	d2h(v1h, v1, vlen*sizeof(numtype), false);
+	d2h(v2h, v2, vlen*sizeof(numtype), false);
+	(*ovdotvh)=0;
+	for (int i = 0; i<vlen; i++) (*ovdotvh) += v1h[i]*v2h[i];
+	h2d(ovdotv, ovdotvh, 1*sizeof(numtype), false);
+	free(v1h); free(v2h); free(ovdotvh);
+#else
+	(*ovdotv)=0;
+	for (int i = 0; i < vlen; i++) (*ovdotv) += v1[i]*v2[i];
+#endif
+}
 
 //-- Activation Functions
 bool sAlgebra::Tanh(int Vlen, numtype* in, numtype* out) {
