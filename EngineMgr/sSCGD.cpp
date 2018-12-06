@@ -8,6 +8,8 @@ sSCGDlog::sSCGDlog(int maxK_) {
 	beta=(numtype*)malloc(maxK_*sizeof(numtype));
 	lambda=(numtype*)malloc(maxK_*sizeof(numtype));
 	lambdau=(numtype*)malloc(maxK_*sizeof(numtype));
+	Gtse_old=(numtype*)malloc(maxK_*sizeof(numtype));
+	Gtse_new=(numtype*)malloc(maxK_*sizeof(numtype));
 	comp=(numtype*)malloc(maxK_*sizeof(numtype));
 	pnorm=(numtype*)malloc(maxK_*sizeof(numtype));
 	rnorm=(numtype*)malloc(maxK_*sizeof(numtype));
@@ -20,6 +22,8 @@ sSCGDlog::~sSCGDlog() {
 	free(beta);
 	free(lambda);
 	free(lambdau);
+	free(Gtse_old);
+	free(Gtse_new);
 	free(comp);
 	free(pnorm);
 	free(rnorm);
@@ -32,7 +36,6 @@ sSCGD::sSCGD(sObjParmsDef, sAlgebra* Alg_, int Wcnt, int outNcnt, int maxK) : sO
 	Alg->myMalloc(&r, Wcnt);
 	Alg->myMalloc(&s, Wcnt);
 	Alg->myMalloc(&dW, Wcnt);
-	Alg->myMalloc(&TotdW, Wcnt);
 	Alg->myMalloc(&newW, Wcnt);
 	Alg->myMalloc(&oldW, Wcnt);
 	Alg->myMalloc(&GdJdW, Wcnt);
@@ -56,7 +59,6 @@ sSCGD::~sSCGD() {
 	Alg->myFree(r);
 	Alg->myFree(s);
 	Alg->myFree(dW);
-	Alg->myFree(TotdW);
 	Alg->myFree(newW);
 	Alg->myFree(oldW);
 	Alg->myFree(GdJdW);

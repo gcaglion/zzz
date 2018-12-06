@@ -461,13 +461,13 @@ void sOraData::loadCoreDUMBparms(int pid, int tid, int* p1, numtype* p2) {
 }
 
 //-- Save Core<XXX>Internals
-void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, numtype* delta_, numtype* mu_, numtype* alpha_, numtype* beta_, numtype* lambda_, numtype* lambdau_, numtype* comp_, numtype* pnorm_, numtype* rnorm_, numtype* dwnorm_) {
+void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, numtype* delta_, numtype* mu_, numtype* alpha_, numtype* beta_, numtype* lambda_, numtype* lambdau_, numtype* Gtse_old_, numtype* Gtse_new_, numtype* comp_, numtype* pnorm_, numtype* rnorm_, numtype* dwnorm_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
 	try {
-		stmt = ((Connection*)conn)->createStatement("insert into CoreNNInternalsSCGD(ProcessId, ThreadId, Iteration, delta, mu, alpha, beta, lambda, lambdau, comp, pnorm, rnorm, dW) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13)");
+		stmt = ((Connection*)conn)->createStatement("insert into CoreNNInternalsSCGD(ProcessId, ThreadId, Iteration, delta, mu, alpha, beta, lambda, lambdau, Gtse_old, Gtse_new, comp, pnorm, rnorm, dW) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15)");
 		((Statement*)stmt)->setMaxIterations(iterationsCnt_);
 		for (int i=0; i<iterationsCnt_; i++) {
 			((Statement*)stmt)->setInt(1, pid_);
@@ -479,10 +479,12 @@ void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, n
 			((Statement*)stmt)->setFloat(7, beta_[i]);
 			((Statement*)stmt)->setFloat(8, lambda_[i]);
 			((Statement*)stmt)->setFloat(9, lambdau_[i]);
-			((Statement*)stmt)->setFloat(10, comp_[i]);
-			((Statement*)stmt)->setFloat(11, pnorm_[i]);
-			((Statement*)stmt)->setFloat(12, rnorm_[i]);
-			((Statement*)stmt)->setFloat(13, dwnorm_[i]);
+			((Statement*)stmt)->setFloat(10, Gtse_old_[i]);
+			((Statement*)stmt)->setFloat(11, Gtse_new_[i]);
+			((Statement*)stmt)->setFloat(12, comp_[i]);
+			((Statement*)stmt)->setFloat(13, pnorm_[i]);
+			((Statement*)stmt)->setFloat(14, rnorm_[i]);
+			((Statement*)stmt)->setFloat(15, dwnorm_[i]);
 			if (i<(iterationsCnt_-1)) ((Statement*)stmt)->addIteration();
 		}
 		((Statement*)stmt)->executeUpdate();

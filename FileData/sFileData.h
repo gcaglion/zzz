@@ -53,7 +53,7 @@ struct sFileData : sCfgObj {
 	EXPORT void loadCoreSOMparms(int pid, int tid, int* p1, numtype* p2);
 	EXPORT void loadCoreDUMBparms(int pid, int tid, int* p1, numtype* p2);
 	//--
-	EXPORT void saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, numtype* delta_, numtype* mu_, numtype* alpha_, numtype* beta_, numtype* lambda_, numtype* lambdau_, numtype* comp_, numtype* pnorm_, numtype* rnorm_, numtype* dwnorm_);
+	EXPORT void saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, numtype* delta_, numtype* mu_, numtype* alpha_, numtype* beta_, numtype* lambda_, numtype* lambdau_, numtype* Gtse_old_, numtype* Gtse_new_, numtype* comp_, numtype* pnorm_, numtype* rnorm_, numtype* dwnorm_);
 
 
 	//--

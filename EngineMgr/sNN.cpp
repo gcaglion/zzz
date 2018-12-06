@@ -473,14 +473,13 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 		numtype comp;
 		numtype beta = 0, b1, b2;
 		numtype Gtse_old, Gtse_new;
+		numtype dEnorm;
 
 		int k = 0;
 		do {
 			Alg->Vnorm(weightsCntTotal, scgd->r, &scgd->rnorm);
 			Alg->Vnorm(weightsCntTotal, scgd->p, &scgd->pnorm);
 			pnorm2 = pow(scgd->pnorm, 2);
-
-
 
 			//-- 2. if success=true Calculate second-order  information (s and delta)
 			if (success) {
@@ -496,6 +495,11 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 				//-- calc s = (dE1-dE0)/sigma
 				Alg->Vadd(weightsCntTotal, scgd->dE1, 1, scgd->dE0, -1, scgd->dE);
 				Alg->Vscale(weightsCntTotal, scgd->dE, 1/sigma, scgd->s);
+
+				//===== REMOVE THIS ! ========
+				Alg->Vnorm(weightsCntTotal, scgd->dE, &dEnorm);
+
+				//============================
 				
 				/*dumpArray(weightsCntTotal, scgd->p, "C:/temp/p.txt");
 				dumpArray(weightsCntTotal, scgd->r, "C:/temp/r.txt");
@@ -535,10 +539,15 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 
 			//-- 6. Comparison parameter
 
+			if (success) Alg->Vcopy(weightsCntTotal, W, scgd->oldW);
+
 			//--- 6.1 calc E(w)
 			EcalcG(trainArgs->ds, W, &Gtse_old);
 			//--- 6.2 calc newW=w+alpha*p , which will also be used in (7)
 			Alg->Vadd(weightsCntTotal, W, 1, scgd->p, alpha, scgd->newW);
+
+
+
 			//--- 6.3 calc E(w+dw)
 			EcalcG(trainArgs->ds, scgd->newW, &Gtse_new);
 
@@ -553,14 +562,12 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 				Alg->Vnorm(weightsCntTotal, scgd->dW, &scgd->dWnorm);
 				//-- W = W + dW
 				Alg->Vadd(weightsCntTotal, W, 1, scgd->dW, 1, W);
-				//-- TotdW = TotdW + dW
-				Alg->Vadd(weightsCntTotal, scgd->TotdW, 1, scgd->dW, 1, scgd->TotdW);
 				//-- 7.1 recalc  GdJdW
 				dEcalcG(trainArgs->ds, W, scgd->GdJdW);
 
 				//-- save r, and calc new r
 				Alg->Vcopy(weightsCntTotal, scgd->r, scgd->prev_r);
-				Alg->Vcopy(weightsCntTotal, scgd->GdJdW, scgd->r); Alg->Vscale(weightsCntTotal, scgd->r, -1, scgd->r);
+				Alg->Vscale(weightsCntTotal, scgd->GdJdW, -1, scgd->r);
 
 				//-- reset lambdau
 				lambdau = 0; success = true;
@@ -604,6 +611,8 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 				scgd->log->beta[k]=beta;
 				scgd->log->lambda[k]=lambda;
 				scgd->log->lambdau[k]=lambdau;
+				scgd->log->Gtse_old[k]=Gtse_old;
+				scgd->log->Gtse_new[k]=Gtse_new;
 				scgd->log->comp[k]=comp;
 				scgd->log->pnorm[k]=scgd->pnorm;
 				scgd->log->rnorm[k]=scgd->rnorm;
@@ -615,7 +624,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 		} while ((scgd->rnorm>0)&&(k<parms->SCGDmaxK));
 
 		//-- persist scgd->log
-		if (persistor->saveInternalsFlag) safecall(persistor, saveCoreNNInternalsSCGD, pid, tid, k-1, scgd->log->delta, scgd->log->mu, scgd->log->alpha, scgd->log->beta, scgd->log->lambda, scgd->log->lambdau, scgd->log->comp, scgd->log->pnorm, scgd->log->rnorm, scgd->log->dwnorm);
+		if (persistor->saveInternalsFlag) safecall(persistor, saveCoreNNInternalsSCGD, pid, tid, k-1, scgd->log->delta, scgd->log->mu, scgd->log->alpha, scgd->log->beta, scgd->log->lambda, scgd->log->lambdau, scgd->log->Gtse_old, scgd->log->Gtse_new, scgd->log->comp, scgd->log->pnorm, scgd->log->rnorm, scgd->log->dwnorm);
 
 	} else {
 		for (epoch=0; epoch<parms->MaxEpochs; epoch++) {

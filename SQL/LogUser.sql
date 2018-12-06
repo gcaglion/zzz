@@ -125,6 +125,8 @@ create table CoreNNInternalsSCGD(
 	beta number,
 	lambda number,
 	lambdau number,
+	Gtse_old number,
+	Gtse_new number,
 	comp number,
 	pnorm number,
 	rnorm number,

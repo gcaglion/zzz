@@ -252,7 +252,6 @@ bool sAlgebra::Vssum(int vlen, numtype* v, numtype* ovssum) {
 #endif
 }
 bool sAlgebra::Vnorm(int vlen, numtype* v, numtype* ovnorm) {
-	//-- if using GPU, the sum scalar also resides in GPU
 #ifdef USE_GPU
 	return(Vnorm_cu(cublasH, vlen, v, ovnorm));
 #else

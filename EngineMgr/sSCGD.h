@@ -11,6 +11,8 @@ struct sSCGDlog {
 	numtype* beta;
 	numtype* lambda;
 	numtype* lambdau;
+	numtype* Gtse_old;
+	numtype* Gtse_new;
 	numtype* comp;
 	numtype* pnorm;
 	numtype* rnorm;
@@ -27,7 +29,6 @@ struct sSCGD : sObj {
 	numtype* r;
 	numtype* s;
 	numtype* dW;
-	numtype* TotdW;
 	numtype* newW;
 	numtype* oldW;
 	numtype* GdJdW;
