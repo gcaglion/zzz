@@ -114,4 +114,21 @@ create table CoreNNparms(
 );
 alter table CoreNNparms add constraint CoreNNparms_PK primary key(ProcessId, ThreadId) using index tablespace LogIdx;
 
+drop table CoreNNInternalsSCGD purge;
+create table CoreNNInternalsSCGD(
+	ProcessId number,
+	ThreadId number,
+	Iteration number, 
+	delta number,
+	mu number,
+	alpha number,
+	beta number,
+	lambda number,
+	lambdau number,
+	comp number,
+	pnorm number,
+	rnorm number,
+	dW number
+);
+alter table CoreNNInternalsSCGD add constraint CoreNNInternalsSCGD_PK primary key(ProcessId, ThreadId, Iteration) using index tablespace LogIdx;
 

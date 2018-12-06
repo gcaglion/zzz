@@ -1,6 +1,32 @@
 #include "sSCGD.h"
 
-sSCGD::sSCGD(sObjParmsDef, sAlgebra* Alg_, int Wcnt, int outNcnt) : sObj(sObjParmsVal) {
+sSCGDlog::sSCGDlog(int maxK_) {
+	iterationsCnt=0;
+	delta=(numtype*)malloc(maxK_*sizeof(numtype));
+	mu=(numtype*)malloc(maxK_*sizeof(numtype));
+	alpha=(numtype*)malloc(maxK_*sizeof(numtype));
+	beta=(numtype*)malloc(maxK_*sizeof(numtype));
+	lambda=(numtype*)malloc(maxK_*sizeof(numtype));
+	lambdau=(numtype*)malloc(maxK_*sizeof(numtype));
+	comp=(numtype*)malloc(maxK_*sizeof(numtype));
+	pnorm=(numtype*)malloc(maxK_*sizeof(numtype));
+	rnorm=(numtype*)malloc(maxK_*sizeof(numtype));
+	dwnorm=(numtype*)malloc(maxK_*sizeof(numtype));
+}
+sSCGDlog::~sSCGDlog() {
+	free(delta);
+	free(mu);
+	free(alpha);
+	free(beta);
+	free(lambda);
+	free(lambdau);
+	free(comp);
+	free(pnorm);
+	free(rnorm);
+	free(dwnorm);
+}
+
+sSCGD::sSCGD(sObjParmsDef, sAlgebra* Alg_, int Wcnt, int outNcnt, int maxK) : sObj(sObjParmsVal) {
 	Alg=Alg_;
 	Alg->myMalloc(&p, Wcnt);
 	Alg->myMalloc(&r, Wcnt);
@@ -15,7 +41,6 @@ sSCGD::sSCGD(sObjParmsDef, sAlgebra* Alg_, int Wcnt, int outNcnt) : sObj(sObjPar
 	Alg->myMalloc(&bp, Wcnt);
 	Alg->myMalloc(&lp, Wcnt);
 	Alg->myMalloc(&ap, Wcnt);
-	//Alg->myMalloc(&gse, outNcnt);
 	Alg->myMalloc(&dE, Wcnt);
 	Alg->myMalloc(&dE0, Wcnt);
 	Alg->myMalloc(&dE1, Wcnt);
@@ -23,6 +48,8 @@ sSCGD::sSCGD(sObjParmsDef, sAlgebra* Alg_, int Wcnt, int outNcnt) : sObj(sObjPar
 	Alg->myMalloc(&E1, Wcnt);
 	Alg->myMalloc(&E, Wcnt);
 	Alg->myMalloc(&sigmap, Wcnt);
+	//--
+	log = new sSCGDlog(maxK);
 }
 sSCGD::~sSCGD() {
 	Alg->myFree(p);
@@ -40,9 +67,7 @@ sSCGD::~sSCGD() {
 	Alg->myFree(ap);
 	Alg->myFree(dE);
 	Alg->myFree(dE0);
-	//Alg->myFree(gse);
 	Alg->myFree(dE1);
-	Alg->myFree(dE);
 	Alg->myFree(E0);
 	Alg->myFree(E1);
 	Alg->myFree(E);

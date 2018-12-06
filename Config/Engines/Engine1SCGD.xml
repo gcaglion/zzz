@@ -39,7 +39,22 @@
 				</Training>
 			</Parameters>
 			
-			<! CorePersistor-Default.xml >
+			<Persistor>
+				saveMSE			= true
+				saveRun			= true
+				#
+				saveInternals	= true
+				#
+				saveImage		= true
+				readFrom		= OraData
+				saveToDB		= true
+				saveToFile		= false
+				<OraData>
+					UserName	= LogUser
+					Password	= LogPwd
+					ConnString	= Algo
+				</OraData>
+			</Persistor>
 	
 		</Core0>
 	</Custom>

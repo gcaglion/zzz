@@ -275,7 +275,7 @@ void sNN::createWeights() {
 	Alg->myMalloc(&dW, weightsCntTotal);
 	Alg->myMalloc(&dJdW, weightsCntTotal);
 	//-- scgd stuff
-	if (parms->BP_Algo==BP_SCGD) scgd = new sSCGD(this, newsname("%s_scgd", name->base), defaultdbg, GUIreporter, Alg, weightsCntTotal, nodesCnt[outputLevel]);
+	if (parms->BP_Algo==BP_SCGD) scgd = new sSCGD(this, newsname("%s_scgd", name->base), defaultdbg, GUIreporter, Alg, weightsCntTotal, nodesCnt[outputLevel], parms->SCGDmaxK);
 }
 void sNN::destroyWeights() {
 	Alg->myFree(W);
@@ -450,8 +450,6 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 
 	//---- 0.2. Init W
 	for (l=0; l<(outputLevel); l++) Alg->VinitRnd(weightsCnt[l], &W[levelFirstWeight[l]], -1/sqrtf((numtype)nodesCnt[l]), 1/sqrtf((numtype)nodesCnt[l]), Alg->cuRandH);
-	//dumpArray(weightsCntTotal, &W[0], "C:/temp/referenceW/initW.txt");
-	//loadArray(weightsCntTotal, &W[0], "C:/temp/referenceW/initW.txt");
 
 	//---- 0.3. Init dW, dJdW
 	Alg->Vinit(weightsCntTotal, dW, 0, 0);
@@ -462,6 +460,8 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 
 	//-- 1. for every epoch, train all batches with one Forward pass ( loadSamples(b)+FF()+calcErr() ), and one Backward pass (BP + calcdW + W update)
 	if (parms->BP_Algo==BP_SCGD) {
+
+		trainArgs->mseCnt=1;
 
 		//-- timing
 		epoch_starttime=timeGetTime();
@@ -506,14 +506,14 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 				Alg->Vadd(weightsCntTotal, scgd->dE1, 1, scgd->dE0, -1, scgd->dE);
 				Alg->Vscale(weightsCntTotal, scgd->dE, 1/sigma, scgd->s);
 				
-				dumpArray(weightsCntTotal, scgd->p, "C:/temp/p.txt");
+				/*dumpArray(weightsCntTotal, scgd->p, "C:/temp/p.txt");
 				dumpArray(weightsCntTotal, scgd->r, "C:/temp/r.txt");
 				dumpArray(weightsCntTotal, scgd->s, "C:/temp/s.txt");
 				dumpArray(weightsCntTotal, scgd->newW, "C:/temp/newW.txt");
 				dumpArray(weightsCntTotal, scgd->dE0, "C:/temp/dE0.txt");
 				dumpArray(weightsCntTotal, scgd->dE1, "C:/temp/dE1.txt");
 				dumpArray(weightsCntTotal, scgd->dE , "C:/temp/dE.txt");
-
+				*/
 				
 				//-- calc delta
 				Alg->VdotV(weightsCntTotal, scgd->p, scgd->s, &delta);
@@ -557,13 +557,14 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 			if (comp>=0) {
 				//-- 7. Update weight vector
 
-				//-- dW = alpha * p
+				//-- dW = alpha * p ; also calc dwnorm
 				Alg->Vscale(weightsCntTotal, scgd->p, alpha, scgd->dW);
+				Alg->Vnorm(weightsCntTotal, scgd->dW, &scgd->dWnorm);
 				//-- W = W + dW
 				Alg->Vadd(weightsCntTotal, W, 1, scgd->dW, 1, W);
 				//-- TotdW = TotdW + dW
 				Alg->Vadd(weightsCntTotal, scgd->TotdW, 1, scgd->dW, 1, scgd->TotdW);
-				//-- 7.1 recalc  dJdW
+				//-- 7.1 recalc  GdJdW
 				dEcalcG(trainArgs->ds, W, scgd->GdJdW);
 
 				//-- save r, and calc new r
@@ -604,14 +605,27 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 			printf("\rProcess %6d, Thread %6d, Iteration %6d , success=%s, rnorm=%f", pid, tid, k, (success) ? "TRUE " : "FALSE", scgd->rnorm);
 			//ReleaseMutex(Mx->ScreenMutex);
 
-			//if (DebugParms->SaveInternals>0) SaveCoreData_SCGD(NNLogs, pid, tid, pEpoch, Mx->sampleid, Mx->BPCount, k, Mx->SCGD_progK, delta, mu, alpha, beta, lambda, lambdau, pnorm, scgd->rnorm, Mx->NN.norm_ge, Vnorm(weightsCntTotal, scgd->dW), comp);
+			//-- save scgd->log
+			if (persistor->saveInternalsFlag) {
+				scgd->log->delta[k]=delta;
+				scgd->log->mu[k]=mu;
+				scgd->log->alpha[k]=alpha;
+				scgd->log->beta[k]=beta;
+				scgd->log->lambda[k]=lambda;
+				scgd->log->lambdau[k]=lambdau;
+				scgd->log->comp[k]=comp;
+				scgd->log->pnorm[k]=scgd->pnorm;
+				scgd->log->rnorm[k]=scgd->rnorm;
+				scgd->log->dwnorm[k]=scgd->dWnorm;
+				scgd->log->iterationsCnt++;
+			}
 
 			k++;
 		} while ((scgd->rnorm>0)&&(k<parms->SCGDmaxK));
-		//-- 3. calc Global dE at  W+sigma*p
-		//-- 4. calc s=(dE1-dE0)/sigma
 
-		trainArgs->mseCnt=1;
+		//-- persist scgd->log
+		if (persistor->saveInternalsFlag) safecall(persistor, saveCoreNNInternalsSCGD, pid, tid, k-1, scgd->log->delta, scgd->log->mu, scgd->log->alpha, scgd->log->beta, scgd->log->lambda, scgd->log->lambdau, scgd->log->comp, scgd->log->pnorm, scgd->log->rnorm, scgd->log->dwnorm);
+
 	} else {
 		for (epoch=0; epoch<parms->MaxEpochs; epoch++) {
 
@@ -648,6 +662,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 		}
 		trainArgs->mseCnt=epoch-((epoch>parms->MaxEpochs) ? 1 : 0);
 	}
+	
 	//-- 2. test run. need this to make sure all batches pass through the net with the latest weights, and training targets
 	TRstart=timeGetTime(); TRcnt++;
 
@@ -779,4 +794,3 @@ void sNN::loadImage(int pid, int tid, int epoch) {
 	free(hW);
 
 }
-

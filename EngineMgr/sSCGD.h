@@ -3,10 +3,26 @@
 #include "../Algebra/Algebra.h"
 #include "../BaseObj/sObj.h"
 
+struct sSCGDlog {
+	int iterationsCnt;
+	numtype* delta;
+	numtype* mu;
+	numtype* alpha;
+	numtype* beta;
+	numtype* lambda;
+	numtype* lambdau;
+	numtype* comp;
+	numtype* pnorm;
+	numtype* rnorm;
+	numtype* dwnorm;
+
+	sSCGDlog(int maxK_);
+	~sSCGDlog();
+};
+
 struct sSCGD : sObj {
 	sAlgebra* Alg;
 
-	int progK;
 	numtype* p;
 	numtype* r;
 	numtype* s;
@@ -20,7 +36,6 @@ struct sSCGD : sObj {
 	numtype* bp;
 	numtype* lp;
 	numtype* ap;
-	//numtype* gse;
 	numtype* dE0;
 	numtype* dE1;
 	numtype* dE;
@@ -32,7 +47,9 @@ struct sSCGD : sObj {
 	numtype rnorm;
 	numtype dWnorm;
 
-	sSCGD(sObjParmsDef, sAlgebra* Alg_, int Wcnt, int outNcnt);
+	sSCGDlog* log;
+
+	sSCGD(sObjParmsDef, sAlgebra* Alg_, int Wcnt, int outNcnt, int maxK);
 	~sSCGD();
 
 	//void BP(int pid, int tid, sAlgebra* Alg, int levelsCnt_, int* nodesCnt_, int netWcnt, numtype* netW, numtype targetMSE_);

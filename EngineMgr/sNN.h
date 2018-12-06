@@ -93,7 +93,6 @@ private:
 	//bool epochSummary(int epoch, DWORD starttime, bool displayProgress=true);
 	void showEpochStats(int e, DWORD eStart_);
 
-
 	void BP_std();
 	void WU_std();
 
