@@ -774,3 +774,39 @@ void sNN::loadImage(int pid, int tid, int epoch) {
 	free(hW);
 
 }
+
+void sNN::trainSCGD(sCoreProcArgs* trainArgs){
+	
+	/*
+	
+	1.1 calc GdJwd
+	1.2 p=-GdJdW
+	1.3 r=p
+	1.4 success=true
+
+	if success=true,
+		sigma=sigma/p
+		newW=w+sigma*p
+		dE0=dEcalcG(W)
+		dE1=dEcalcG(newW)
+		s=(dE1-dE0)/sigma
+		delta=VdotV(p*s)
+
+	s=s+(lambda-lambdau)*p
+	delta=delta+(lambda-lambdau)*pnorm2
+
+	if delta<0
+		s=s+(lambda-2*delta/pnorm2)*p
+		lambdau=2*(lambda-delta/pnorm2)
+		delta=-delta+lambda*pnorm2
+		lambda=lambdau
+
+	mu=VdotV(p*r)
+	alpha=mu/delta
+
+	E0=EcalcG(W)
+	E1=EcalcG(W+alpha*p)
+	comp=(E0-
+	comp=
+	*/
+}

@@ -106,5 +106,6 @@ private:
 	void destroyNeurons();
 	void destroyWeights();
 
+	void trainSCGD(sCoreProcArgs* trainArgs);
 };
 
