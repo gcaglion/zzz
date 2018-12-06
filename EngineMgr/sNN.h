@@ -42,8 +42,9 @@ private:
 	int* levelFirstWeight;
 
 	//-- error measuring
-	numtype* tse;	// total squared error.	Scalar. On GPU (if used)
-	numtype* se;	// squared sum error.	Scalar. On GPU (if used)
+	//numtype* tse;	// total squared error.	Scalar. On GPU (if used)
+	//numtype* se;	// squared sum error.	Scalar. On GPU (if used)
+	numtype tse;
 
 	//-- set at each level according to ActivationFunction
 	float* scaleMin;	
@@ -82,11 +83,21 @@ private:
 	void setCommonLayout();
 	void FF();
 	void Activate(int level);
-	void calcErrG(sDataSet* ds, numtype* atW=nullptr);
-	void calcErr(numtype* tse_);
+
+	void Ecalc();
+	void dEcalc();
+	void EcalcG(sDataSet* ds, numtype* inW, numtype* outE);
+	void dEcalcG(sDataSet* ds, numtype* inW, numtype* outdE);
+
+	void loadBatchData(sDataSet* ds, int b);
 	void ForwardPass(sDataSet* ds, int batchId, bool inferring);
 	//bool epochSummary(int epoch, DWORD starttime, bool displayProgress=true);
 	void showEpochStats(int e, DWORD eStart_);
+
+	void BP_std();
+	void WU_std();
+
+	void BackwardPass(sDataSet* ds, int batchId, bool updateWeights);
 	//-- malloc + init
 	void mallocNeurons();
 	void initNeurons();
@@ -94,14 +105,6 @@ private:
 	//-- free
 	void destroyNeurons();
 	void destroyWeights();
-
-	void dEdWcalc(numtype* W_, numtype* dJdW_);
-	void dWcalc(numtype* dEdW_, numtype* dW_);
-	void Wupdate(numtype* W_, numtype* dW_);
-	//--
-	void loadSamplesAndTargets(sDataSet* ds, int batchId, bool inferring);
-	//-- 
-	void BP_scgd(sDataSet* trainSet_);
 
 };
 

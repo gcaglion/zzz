@@ -1,44 +1,16 @@
+
 #include "sRoot.h"
 
 //-- constructor / destructor
-sRoot::sRoot(int argc_, char* argv_[]) : sCfgObj(nullptr, newsname("RootObj"), defaultdbg, nullptr, nullptr) {
-	dbg->verbose=false;
-
+sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname("RootObj"), defaultdbg, progressReporter, nullptr, nullptr) {
 	pid=GetCurrentProcessId();
-//	CLoverride(argc_, argv_);
+	GUIreporter=progressReporter;
 }
 sRoot::~sRoot() {}
 
 //-- core stuff
-void sRoot::trainClient(int simulationId_, const char* cfgPath_){
-	char clientXMLfile[MAX_PATH]; sprintf_s(clientXMLfile, MAX_PATH, "%s/Client.xml", cfgPath_);
-	char shapeXMLfile[MAX_PATH]; sprintf_s(shapeXMLfile, MAX_PATH, "%s/DataShape.xml", cfgPath_);
-	char trainXMLfile[MAX_PATH]; sprintf_s(trainXMLfile, MAX_PATH, "%s/Train.xml", cfgPath_);
-	char engineXMLfile[MAX_PATH]; sprintf_s(engineXMLfile, MAX_PATH, "%s/Engine.xml", cfgPath_);
-	trainClient(simulationId_, clientXMLfile, shapeXMLfile, trainXMLfile, engineXMLfile);
-}
-void sRoot::inferClient(int simulationId_, const char* cfgPath_, int savedEnginePid_) {
-	char clientXMLfile[MAX_PATH]; sprintf_s(clientXMLfile, MAX_PATH, "%s/Client.xml", cfgPath_);
-	char shapeXMLfile[MAX_PATH]; sprintf_s(shapeXMLfile, MAX_PATH, "%s/DataShape.xml", cfgPath_);
-	char inferXMLfile[MAX_PATH]; sprintf_s(inferXMLfile, MAX_PATH, "%s/Infer.xml", cfgPath_);
-	char engineXMLfile[MAX_PATH]; sprintf_s(engineXMLfile, MAX_PATH, "%s/Engine.xml", cfgPath_);
-	inferClient(simulationId_, clientXMLfile, shapeXMLfile, inferXMLfile, engineXMLfile, savedEnginePid_);
-}
-void sRoot::bothClient(int simulationId_, const char* cfgPath_) {
-	char clientXMLfile[MAX_PATH]; sprintf_s(clientXMLfile, MAX_PATH, "%s/Client.xml", cfgPath_);
-	char shapeXMLfile[MAX_PATH]; sprintf_s(shapeXMLfile, MAX_PATH, "%s/DataShape.xml", cfgPath_);
-	char trainXMLfile[MAX_PATH]; sprintf_s(trainXMLfile, MAX_PATH, "%s/Train.xml", cfgPath_);
-	char engineXMLfile[MAX_PATH]; sprintf_s(engineXMLfile, MAX_PATH, "%s/Engine.xml", cfgPath_);
-	trainClient(simulationId_, clientXMLfile, shapeXMLfile, trainXMLfile, engineXMLfile);
-	inferClient(simulationId_, clientXMLfile, shapeXMLfile, trainXMLfile, engineXMLfile, GetCurrentProcessId());
-}
-//--
-void sRoot::bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_) {
-	safecall(this, trainClient, simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_);
-	int trainingPid=GetCurrentProcessId();
-	safecall(this, inferClient, simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, trainingPid);
-}
-void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_) {
+void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr) {
+
 
 	//-- full filenames
 	char clientffname[MAX_PATH];
@@ -61,24 +33,24 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		getFullPath(engineXMLfile_, engineffname);
 
 		//-- 1. load separate sCfg* for client, dataShape, trainDataset, Engine
-		sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
-		sCfg* shapeCfg; safespawn(shapeCfg, newsname("shapeCfg"), defaultdbg, shapeffname);
-		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), defaultdbg, trainffname);
-		sCfg* engCfg; safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineffname);
+		sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), erronlydbg, clientffname);
+		sCfg* shapeCfg; safespawn(shapeCfg, newsname("shapeCfg"), erronlydbg, shapeffname);
+		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), erronlydbg, trainffname);
+		sCfg* engCfg; safespawn(engCfg, newsname("engineCfg"), erronlydbg, engineffname);
 
 		//-- 2. spawn DataShape
-		safespawn(shape, newsname("TrainDataShape"), defaultdbg, shapeCfg, "/DataShape");
+		safespawn(shape, newsname("TrainDataShape"), erronlydbg, shapeCfg, "/DataShape");
 		//-- 3. spawn Train DataSet and its persistor
-		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/DataSet", shape->sampleLen, shape->predictionLen);
-		safespawn(trainLog, newsname("TrainLogger"), defaultdbg, trainCfg, "/DataSet/Persistor");
+		safespawn(trainDS, newsname("TrainDataSet"), erronlydbg, trainCfg, "/DataSet", shape->sampleLen, shape->predictionLen);
+		safespawn(trainLog, newsname("TrainLogger"), erronlydbg, trainCfg, "/DataSet/Persistor");
 		//-- 4. spawn engine the standard way
-		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", shape->sampleLen*trainDS->selectedFeaturesCnt, shape->predictionLen*trainDS->selectedFeaturesCnt);
+		safespawn(engine, newsname("TrainEngine"), erronlydbg, engCfg, "/Engine", shape->sampleLen*trainDS->selectedFeaturesCnt, shape->predictionLen*trainDS->selectedFeaturesCnt);
 
 		//-- 5. create client persistor, if needed
 		bool saveClient;
 		safecall(clientCfg, setKey, "/Client");
 		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
-		safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
+		safespawn(clientLog, newsname("ClientLogger"), erronlydbg, clientCfg, "Persistor");
 
 		//-- training cycle core
 		timer->start();
@@ -107,7 +79,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 
 
 }
-void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_) {
+void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr) {
 
 	//-- full filenames
 	char clientffname[MAX_PATH];
@@ -176,6 +148,11 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 
 
 }
+void sRoot::bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr) {
+	safecall(this, trainClient, simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, progressPtr);
+	int trainingPid=GetCurrentProcessId();
+	safecall(this, inferClient, simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, trainingPid, progressPtr);
+}
 
 void sRoot::mallocSimulationDates(sCfg* clientCfg_, int* simLen, char*** simTrainStart, char*** simInferStart, char*** simValidStart) {
 
@@ -190,23 +167,6 @@ void sRoot::mallocSimulationDates(sCfg* clientCfg_, int* simLen, char*** simTrai
 		(*simTrainStart)[s]=(char*)malloc(DATE_FORMAT_LEN); (*simTrainStart)[s][0]='\0';
 		(*simInferStart)[s]=(char*)malloc(DATE_FORMAT_LEN); (*simInferStart)[s][0]='\0';
 		(*simValidStart)[s]=(char*)malloc(DATE_FORMAT_LEN); (*simValidStart)[s][0]='\0';
-	}
-
-}
-void sRoot::getSimulationDates(sCfg* clientCfg_, int* simLen, char** simTrainStart, char** simInferStart, char** simValidStart) {
-
-	//-- if the dataset is used, read startdate from client xml for each dataset
-	if (forecaster->doTraining) {
-		safecall(clientCfg_->currentKey, getParm, &simTrainStart[0], "TrainStartDate");
-		getStartDates(forecaster->trainDS, simTrainStart[0], (*simLen), &simTrainStart);
-	}
-	if (forecaster->doInference) {
-		safecall(clientCfg_->currentKey, getParm, &simInferStart[0], "InferStartDate");
-		getStartDates(forecaster->inferDS, simInferStart[0], (*simLen), &simInferStart);
-	}
-	if (forecaster->doValidation) {
-		safecall(clientCfg_->currentKey, getParm, &simValidStart[0], "ValidationStartDate");
-		getStartDates(forecaster->validDS, simValidStart[0], (*simLen), &simValidStart);
 	}
 
 }
@@ -260,9 +220,101 @@ void sRoot::getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates){
 }
 
 //-- temp stuff
+
+#include "../CUDAwrapper/CUDAwrapper.h"
+
 void sRoot::kaz() {
 
 
+	sAlgebra* Alg=new sAlgebra(this, newsname("Alg1"), defaultdbg, nullptr);
+
+	int vlen=5;
+	numtype* v1d; Alg->myMalloc(&v1d, vlen);
+	numtype* v2d; Alg->myMalloc(&v2d, vlen);
+	numtype* v3d; Alg->myMalloc(&v3d, 1);
+	numtype* v4d; Alg->myMalloc(&v4d, vlen);
+	//--
+	numtype* v1h=(numtype*)malloc(vlen*sizeof(numtype));
+	numtype* v2h=(numtype*)malloc(vlen*sizeof(numtype));
+	numtype* v3h=(numtype*)malloc(1*sizeof(numtype));
+	numtype* v4h=(numtype*)malloc(vlen*sizeof(numtype));
+	//--
+	Alg->Vinit(vlen, v1d, (numtype)(vlen/2), (numtype)1);
+	Alg->Vinit(vlen, v2d, (numtype)(vlen/2), (numtype)-1);
+	Alg->Vinit(vlen, v4d, (numtype)(vlen/2), (numtype)-1);
+	//--
+	Alg->d2h(v1h, v1d, vlen*sizeof(numtype), false);
+	Alg->d2h(v2h, v2d, vlen*sizeof(numtype), false);
+	Alg->d2h(v4h, v4d, vlen*sizeof(numtype), false);
+	//--
+
+	//--------------- Vssum ---------------
+	Vssum_cu(Alg->cublasH, vlen, v1d, v3h);
+	printf("Vssum(v1)-GPU = %f\n", (*v3h));
+	(*v3h)=0;
+	for (int i=0; i<vlen; i++) (*v3h)+=v1h[i]*v1h[i];
+	printf("Vssum(v1)-CPU = %f\n", (*v3h));
+	//-------------------------------------
+
+	//--------------- Vnorm --------------
+	Vnorm_cu(Alg->cublasH, vlen, v1d, v3h);
+	printf("Vsnorm(v1)-GPU = %f\n", (*v3h));
+	(*v3h)=0;
+	for (int i=0; i<vlen; i++) (*v3h)+=v1h[i]*v1h[i];
+	(*v3h)=sqrt(*v3h);
+	printf("Vsnorm(v1)-CPU = %f\n", (*v3h));
+	//-------------------------------------
+	system("pause");
+	return;
+
+	//---------------- Vadd with scale (v1*1.2 + v2*-0.5 = v4), followed by Vnorm ----------
+	Vadd_cu(vlen, v1d, 1.2, v2d, -0.5, v4d);
+	Vnorm_cu(Alg->cublasH, vlen, v4d, v3h);
+	printf("Vadd(v1*1.2+v2*-0.5)-GPU = %f\n", (*v3h));
+
+	for (int i=0; i<vlen; i++) v4h[i]=v1h[i]*1.2-v2h[i]*0.5;
+	(*v3h)=0;
+	for (int i=0; i<vlen; i++) (*v3h)+=v4h[i]*v4h[i];
+	(*v3h)=sqrt((*v3h));
+	printf("Vadd(v1*1.2+v2*-0.5)-CPU = %f\n", (*v3h));
+	//---------------------------------------------------------------------------------------
+
+	system("pause");
+	return;
+
+	//------------------------------------------------------
+	Vscale_cu(vlen, v1d, 0.1);
+	for (int i=0; i<vlen; i++) v1h[i]=v1h[i]*0.1;
+	//------------------------------------------------------
+
+
+	//------------------------------------------------------
+	Vnorm_cu(Alg->cublasH, vlen, v1d, v3h);
+	//------------------------------------------------------
+	printf("Vnorm(v1)-GPU = %f\n", (*v3h));
+
+	(*v3h)=0;
+	//------------------------------------------------------
+	for (int i=0; i<vlen; i++) (*v3h)+=v1h[i]*v1h[i];
+	(*v3h)=sqrt((*v3h));
+	//------------------------------------------------------
+	printf("Vnorm(v1)-CPU = %f\n", (*v3h));
+
+
+	//------------------------------------------------------
+	VdotV_cu(Alg->cublasH, vlen, v1d, v2d, v3h);
+	//------------------------------------------------------
+	printf("Vdotv(v1,v2)-GPU = %f\n", (*v3h));
+
+	(*v3h)=0;
+	//------------------------------------------------------
+	for (int i = 0; i < vlen; i++) (*v3h) += v1h[i]*v2h[i];
+	printf("Vdotv(v1,v2)-CPU = %f\n", (*v3h));
+
+	system("pause");
+
+
+/*
 //	sCfg* ds2Cfg=new sCfg(this, newsname("ds2Cfg"), defaultdbg, "Config/Light/Infer.xml");
 //	sDataSet* ds2=new sDataSet(this, newsname("ds2"), defaultdbg, ds2Cfg, "DataSet", 100, 3);
 
@@ -299,4 +351,46 @@ void sRoot::kaz() {
 
 	ts1->untransform(PREDICTED, PREDICTED, sampleLen, selFcnt, selF);
 	ts1->dump(PREDICTED, BASE);
+*/
+}
+
+
+extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
+	sRoot* root=nullptr;
+	try {
+		root=new sRoot(&progressPtr);
+		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Train ...\n");
+		progressPtr(10, progressVar.msg);
+		root->trainClient(simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr);
+	} catch (std::exception exc) {
+		terminate(false, "Exception thrown by root. See stack.");
+	}
+	terminate(true, "");
+}
+extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_, NativeReportProgress progressPtr) {
+	sRoot* root=nullptr;
+	try {
+		root=new sRoot(&progressPtr);
+		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Infer ...\n");
+		progressPtr(10, progressVar.msg);
+		root->inferClient(simulationId_, clientXMLfile_, shapeXMLfile_, inferXMLfile_, engineXMLfile_, savedEnginePid_, &progressPtr);
+	}
+	catch (std::exception exc) {
+		terminate(false, "Exception thrown by root. See stack.");
+	}
+	terminate(true, "");
+}
+extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
+
+	sRoot* root=nullptr;
+	try {
+		root=new sRoot(&progressPtr);
+		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Train + Infer ...\n");
+		progressPtr(10, progressVar.msg);
+		root->bothClient(simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr);
+	}
+	catch (std::exception exc) {
+		terminate(false, "Exception thrown by root. See stack.");
+	}
+	terminate(true, "");
 }

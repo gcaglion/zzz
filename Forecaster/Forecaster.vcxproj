@@ -43,6 +43,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <CLRSupport>false</CLRSupport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -121,7 +122,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Algebra.lib;Utils.lib;EngineMgr.lib;DataMgr.lib;Logger.lib;OraData.lib;FileData.lib;ConfigMgr.lib;BaseObj.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>CUDAwrapper.lib;Algebra.lib;Utils.lib;EngineMgr.lib;DataMgr.lib;Logger.lib;OraData.lib;FileData.lib;ConfigMgr.lib;BaseObj.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(OutDir)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -162,12 +163,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Forecaster.h" />
-    <ClInclude Include="MTwrapper.h" />
     <ClInclude Include="sRoot.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Forecaster.cpp" />
     <ClCompile Include="sRoot.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

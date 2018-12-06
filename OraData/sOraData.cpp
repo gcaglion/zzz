@@ -29,11 +29,12 @@ sOraData::~sOraData() {
 
 void sOraData::open() {
 	try {
-		if(env==nullptr) env = Environment::createEnvironment();
+		if (env==nullptr) env = Environment::createEnvironment();
 		if (conn==nullptr) conn = ((Environment*)env)->createConnection(DBUserName, DBPassword, DBConnString);
 		isOpen=true;
-	} catch (SQLException exc) {
-		{ 
+	}
+	catch (SQLException exc) {
+		{
 			fail("Exception: %s while trying to connect with %s/%s@%s", exc.what(), DBUserName, DBPassword, DBConnString);
 		}
 	}
@@ -46,7 +47,7 @@ void sOraData::close() {
 	}
 }
 void sOraData::commit() {
-	if(conn!=nullptr) ((Connection*)conn)->commit();
+	if (conn!=nullptr) ((Connection*)conn)->commit();
 }
 //-- Read
 void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar, numtype* oBarWidth) {
@@ -80,12 +81,13 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCn
 		//-- 4. History: close result set and statement
 		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
-	} catch (SQLException ex) {
+	}
+	catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
 void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char*** oDate) {
-	
+
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
@@ -95,7 +97,7 @@ void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, ch
 	if (conn==nullptr) fail("DB Connection is closed. cannot continue.");
 
 	try {
-		sprintf_s(sqlS, SQL_MAXLEN, "select to_char(NewDateTime, '%s') from History.%s_%s%s where NewDateTime>=to_date('%s','%s') order by 1", DATE_FORMAT, symbol_, timeframe_, (isFilled_)?"_FILLED ":"", StartDate, DATE_FORMAT);
+		sprintf_s(sqlS, SQL_MAXLEN, "select to_char(NewDateTime, '%s') from History.%s_%s%s where NewDateTime>=to_date('%s','%s') order by 1", DATE_FORMAT, symbol_, timeframe_, (isFilled_) ? "_FILLED " : "", StartDate, DATE_FORMAT);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 
@@ -127,14 +129,15 @@ void sOraData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mse
 			((Statement*)stmt)->setInt(3, epoch);
 			((Statement*)stmt)->setFloat(4, mseT[epoch]);
 			((Statement*)stmt)->setFloat(5, mseV[epoch]);
-			if(epoch<(mseCnt-1)) ((Statement*)stmt)->addIteration();
+			if (epoch<(mseCnt-1)) ((Statement*)stmt)->addIteration();
 		}
 		((Statement*)stmt)->executeUpdate();
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
-	} catch (SQLException ex) {
+	}
+	catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
-	
+
 }
 void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted, numtype* barWidth) {
 
@@ -161,7 +164,7 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 						std::string str(posLabel[s]); ((Statement*)stmt)->setMaxParamSize(6, 64); ((Statement*)stmt)->setString(6, str);
 						((Statement*)stmt)->setInt(7, tf);
 						((Statement*)stmt)->setInt(8, 1);
-					
+
 						//-- for every Actual/Predicted/Error triplet, we need to handle NULL values
 
 						((Statement*)stmt)->setFloat(10, actualTRS[tsidx]); //-- this can never be EMPTY_VALUE
@@ -199,12 +202,12 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 							}
 						}
 
-					if (runidx<(runCnt-1)) ((Statement*)stmt)->addIteration();
-					runidx++;
+						if (runidx<(runCnt-1)) ((Statement*)stmt)->addIteration();
+						runidx++;
+					}
 				}
 			}
 		}
-	}
 		((Statement*)stmt)->executeUpdate();
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 
@@ -229,13 +232,14 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 			((Statement*)stmt)->setNull(15, OCCIFLOAT);
 			((Statement*)stmt)->setNull(16, OCCIFLOAT);
 			((Statement*)stmt)->setNull(17, OCCIFLOAT);
-			if(f<(selectedFeaturesCnt-1))((Statement*)stmt)->addIteration();
+			if (f<(selectedFeaturesCnt-1))((Statement*)stmt)->addIteration();
 		}
 		((Statement*)stmt)->executeUpdate();
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 
 
-	} catch (SQLException ex) {
+	}
+	catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 
@@ -247,7 +251,7 @@ void sOraData::saveClientInfo(int pid, int simulationId, const char* clientName,
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
-	sprintf_s(sqlS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, SimulationId, ClientName, ClientStart, Duration, SimulationStartTrain, SimulationStartInfer, SimulationStartValid, DoTraining, DoTestRun, clientXMLFile, shapeXMLFile, actionXMLFile, engineXMLFile) values(%d, %d, '%s', sysdate, %f, '%s','%s', to_date('%s','%s'), %d, %d, '%s', '%s', '%s', '%s')",	pid, simulationId, clientName, elapsedSecs, simulStartTrain, simulStartInfer, simulStartValid, DATE_FORMAT, (doTrain?1:0), (doInfer?1:0), clientXMLfile_, shapeXMLfile_, actionXMLfile_, engineXMLfile_);
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, SimulationId, ClientName, ClientStart, Duration, SimulationStartTrain, SimulationStartInfer, SimulationStartValid, DoTraining, DoTestRun, clientXMLFile, shapeXMLFile, actionXMLFile, engineXMLFile) values(%d, %d, '%s', sysdate, %f, '%s','%s', to_date('%s','%s'), %d, %d, '%s', '%s', '%s', '%s')", pid, simulationId, clientName, elapsedSecs, simulStartTrain, simulStartInfer, simulStartValid, DATE_FORMAT, (doTrain ? 1 : 0), (doInfer ? 1 : 0), clientXMLfile_, shapeXMLfile_, actionXMLfile_, engineXMLfile_);
 	safecall(this, sqlExec, sqlS);
 
 }
@@ -270,10 +274,10 @@ void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 		}
 
 		//-- first, need to malloc and init arrays for constant pid and tid. Cannot use Vinit, as I don't have an Alg, here
-		int* pidArr=(int*)malloc(Wcnt*sizeof(int)); 
-		int* tidArr=(int*)malloc(Wcnt*sizeof(int)); 
+		int* pidArr=(int*)malloc(Wcnt*sizeof(int));
+		int* tidArr=(int*)malloc(Wcnt*sizeof(int));
 		int* epochArr=(int*)malloc(Wcnt*sizeof(int));
-		int* WidArr=(int*)malloc(Wcnt*sizeof(int)); 
+		int* WidArr=(int*)malloc(Wcnt*sizeof(int));
 
 		for (int i=0; i<Wcnt; i++) {
 			pidArr[i]=pid;
@@ -349,7 +353,7 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 			WidArr[i]=i;
 		}
 
-	
+
 		rset = ((Statement*)stmt)->executeQuery();
 		((ResultSet*)rset)->setDataBuffer(1, WidArr, OCCIINT, sizeof(int), intLen);
 		((ResultSet*)rset)->setDataBuffer(2, W, OCCIFLOAT, sizeof(numtype), floatLen);
@@ -405,6 +409,7 @@ void sOraData::saveCoreSOMparms(int pid, int tid, int p1, numtype p2) {
 void sOraData::saveCoreDUMBparms(int pid, int tid, int p1, numtype p2) {
 	fail("Not implemented.");
 }
+//--
 void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, numtype* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_) {
 
 	//-- always check this, first!
@@ -437,7 +442,8 @@ void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** lev
 
 		if (i==0) fail("Core Parameters not found for ProcessId=%d, ThreadId=%d", pid, tid);
 
-	} catch (SQLException ex) {
+	}
+	catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
@@ -452,6 +458,40 @@ void sOraData::loadCoreSOMparms(int pid, int tid, int* p1, numtype* p2) {
 }
 void sOraData::loadCoreDUMBparms(int pid, int tid, int* p1, numtype* p2) {
 	fail("Not implemented.");
+}
+
+//-- Save Core<XXX>Internals
+void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, numtype* delta_, numtype* mu_, numtype* alpha_, numtype* beta_, numtype* lambda_, numtype* lambdau_, numtype* comp_, numtype* pnorm_, numtype* rnorm_, numtype* dwnorm_) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	try {
+		stmt = ((Connection*)conn)->createStatement("insert into CoreNNInternalsSCGD(ProcessId, ThreadId, Iteration, delta, mu, alpha, beta, lambda, lambdau, comp, pnorm, rnorm, dW) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13)");
+		((Statement*)stmt)->setMaxIterations(iterationsCnt_);
+		for (int i=0; i<iterationsCnt_; i++) {
+			((Statement*)stmt)->setInt(1, pid_);
+			((Statement*)stmt)->setInt(2, tid_);
+			((Statement*)stmt)->setInt(3, i);
+			((Statement*)stmt)->setFloat(4, delta_[i]);
+			((Statement*)stmt)->setFloat(5, mu_[i]);
+			((Statement*)stmt)->setFloat(6, alpha_[i]);
+			((Statement*)stmt)->setFloat(7, beta_[i]);
+			((Statement*)stmt)->setFloat(8, lambda_[i]);
+			((Statement*)stmt)->setFloat(9, lambdau_[i]);
+			((Statement*)stmt)->setFloat(10, comp_[i]);
+			((Statement*)stmt)->setFloat(11, pnorm_[i]);
+			((Statement*)stmt)->setFloat(12, rnorm_[i]);
+			((Statement*)stmt)->setFloat(13, dwnorm_[i]);
+			if (i<(iterationsCnt_-1)) ((Statement*)stmt)->addIteration();
+		}
+		((Statement*)stmt)->executeUpdate();
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
 }
 
 //-- Save/Load engine info
@@ -486,7 +526,7 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* core
 
 	//-- 1. coresCnt, coreId, coreType
 	sprintf_s(sqlS, SQL_MAXLEN, "select CoreId, CoreType, CoreThreadId from EngineCores where EnginePid= %d", pid);
-	try{
+	try {
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 		int i=0;
@@ -513,13 +553,40 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* core
 
 		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
-	} catch (SQLException ex) {
+	}
+	catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 
 	//--
 }
+int sOraData::getSavedEnginePids(int maxPids_, int* oPid) {
+	
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
 
+	//-- build statement
+	sprintf_s(sqlS, SQL_MAXLEN, "select ProcessId from Engines order by 1");
+
+	try {
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+		int i=0;
+		while (((ResultSet*)rset)->next() && i<maxPids_) {
+			oPid[i]=((ResultSet*)rset)->getInt(1);
+			i++;
+		}
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+		return i-1;
+	} catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
+
+
+}
 
 //-- private stuff
 void sOraData::sqlExec(char* sqlS) {
@@ -552,7 +619,21 @@ void sOraData::sqlGet(int len, int** valP, const char* sqlMask, ...) {
 		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 
-	} catch (SQLException ex) {
+	}
+	catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
+}
+
+
+//-- C# interface stuff
+extern "C" __declspec(dllexport) int _getSavedEnginePids(const char* DBusername, const char* DBpassword, const char* DBconnstring, int maxPids_, int* oPid) {
+	try {
+		sOraData* db=new sOraData(nullptr, newsname("GUIdb"), defaultdbg, nullptr, DBusername, DBpassword, DBconnstring);
+		return(db->getSavedEnginePids(maxPids_, oPid));
+	}
+	catch (std::exception exc) {
+		//fail("Exception=%s", exc.what());
+	}
+	return 0;
 }

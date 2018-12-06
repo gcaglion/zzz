@@ -1,28 +1,32 @@
 #pragma once
 
-#include "Forecaster.h"
-
+#include "../DataMgr/sDataSet.h"
+#include "../DataMgr/sDataShape.h"
 #include "../DataMgr/sFXDataSource.h"
 #include "../DataMgr/sGenericDataSource.h"
 #include "../DataMgr/sMT4DataSource.h"
+#include "../Logger/sLogger.h"
+#include "../EngineMgr/sEngine.h"
+
+class sdp {
+public:
+	int p1;
+	float p2;
+	char msg[DBG_MSG_MAXLEN];
+};
 
 struct sRoot : sCfgObj {
 
 	int pid;
 
-	sForecaster* forecaster;
-	
-	EXPORT sRoot(int argc_=0, char* argv_[]=nullptr);
+	EXPORT sRoot(NativeReportProgress* progressReporter);
 	EXPORT ~sRoot();
 
-	EXPORT void trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_);
-	EXPORT void  bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_);
-	EXPORT void inferClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_);
+	EXPORT void trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr=nullptr);
+	EXPORT void  bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr=nullptr);
+	EXPORT void inferClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr=nullptr);
 	
 	//-- temp stuff
-	EXPORT void trainClient(int simulationId_, const char* cfgPath_);
-	EXPORT void inferClient(int simulationId_, const char* cfgPath_, int savedEnginePid_);
-	EXPORT void bothClient(int simulationId_, const char* cfgPath_);
 	EXPORT void kaz();
 
 private:
@@ -40,7 +44,6 @@ private:
 	//-- functions
 	void mallocSimulationDates(sCfg* clientCfg, int* simLen, char*** simTrainStart, char*** simInferStart, char*** simValidStart);
 	void getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates);
-	void getSimulationDates(sCfg* clientCfg_, int* simLen, char** simTrainStart, char** simInferStart, char** simValidStart);
 
 };
 

@@ -1,6 +1,6 @@
 <Engine>
 	<Debugger>
-		timing = true
+		timing = false
 	</Debugger>
 	Type 		= ENGINE_CUSTOM
 	<Custom>

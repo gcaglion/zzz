@@ -32,6 +32,7 @@ struct sOraData : sCfgObj {
 	//--
 	EXPORT void saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType);
 	EXPORT void loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType);
+	EXPORT int getSavedEnginePids(int maxPids_, int* oPid);
 	//--
 	EXPORT void saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void saveCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
@@ -54,7 +55,8 @@ struct sOraData : sCfgObj {
 	EXPORT void loadCoreSVMparms(int pid, int tid, int* p1, numtype* p2);
 	EXPORT void loadCoreSOMparms(int pid, int tid, int* p1, numtype* p2);
 	EXPORT void loadCoreDUMBparms(int pid, int tid, int* p1, numtype* p2);
-
+	//--
+	EXPORT void saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, numtype* delta_, numtype* mu_, numtype* alpha_, numtype* beta_, numtype* lambda_, numtype* lambdau_, numtype* comp_, numtype* pnorm_, numtype* rnorm_, numtype* dwnorm_);
 
 private:
 	void* env = nullptr;
