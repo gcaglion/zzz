@@ -390,14 +390,14 @@ EXPORT bool Vsum_cu(int vlen, numtype* v, numtype* ovsum, numtype* ss_d) {
 	return ((cudaGetLastError()==cudaSuccess));
 }
 
-EXPORT void VdotV_cu(int n, float x_d[], float y_d[], float* dot_d, int blocks, int threads) {
+EXPORT void VdotV_cu(int n, float x_d[], float y_d[], float* dot_d, float* oVdotVh, int blocks, int threads) {
 
 	cudaMemset(dot_d, 0, sizeof(float));
 
 	/* Invoke kernel */
 	VdotV_ker<<<blocks, threads>>>(n, x_d, y_d, dot_d);
 
-	//cudaMemcpy(oVdotVh, dot_d, sizeof(float), cudaMemcpyDeviceToHost);
+	cudaMemcpy(oVdotVh, dot_d, sizeof(float), cudaMemcpyDeviceToHost);
 
 }
 
@@ -430,7 +430,6 @@ EXPORT bool Vssum_cu_cublas(void* cublasH, int Vlen, numtype* V, numtype* oVssum
 
 EXPORT bool Vnorm_cu(void* cublasH, int Vlen, numtype* V,  numtype* oVnorm, numtype* ss_d) {
 	if (cublasSnrm2_v2((*(cublasHandle_t*)cublasH), Vlen, V, 1, oVnorm)!=CUBLAS_STATUS_SUCCESS) return false;
-	//if (cudaMemcpy(oVnorm, ss_d, sizeof(numtype), cudaMemcpyDeviceToHost)!=cudaSuccess) return false;
 	return true;
 }
 EXPORT bool Vinit_cu(int vlen, numtype* v, numtype start, numtype inc) {

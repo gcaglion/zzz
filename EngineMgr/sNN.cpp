@@ -460,23 +460,6 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	//-- 0.4. convert samples and targets from SBF to BFS  in training dataset
 	trainArgs->ds->setBFS();
 
-	//====================================================================================
-	int vlen=10000;
-	numtype* v1d; Alg->myMalloc(&v1d, vlen);
-	numtype* v2d; Alg->myMalloc(&v2d, vlen);
-	numtype* v3d; Alg->myMalloc(&v3d, 1);
-	//--
-	numtype* v1h=(numtype*)malloc(vlen*sizeof(numtype));
-	numtype* v2h=(numtype*)malloc(vlen*sizeof(numtype));
-	numtype* v3h=(numtype*)malloc(1*sizeof(numtype));
-	//--
-	Alg->Vinit(vlen, v1d, (numtype)(vlen/2), (numtype)1);
-	Alg->Vinit(vlen, v2d, (numtype)(vlen/2), (numtype)-1);
-	//--
-	Alg->d2h(v1h, v1d, vlen*sizeof(numtype), false);
-	Alg->d2h(v2h, v2d, vlen*sizeof(numtype), false);
-	//====================================================================================
-
 	//-- 1. for every epoch, train all batches with one Forward pass ( loadSamples(b)+FF()+calcErr() ), and one Backward pass (BP + calcdW + W update)
 	if (parms->BP_Algo==BP_SCGD) {
 
@@ -485,19 +468,16 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 
 		//-- 1. calc Global dE at W
 		dEcalcG(trainArgs->ds, W, scgd->GdJdW);
-		//-- 2. set sigma, p,r
-		//-- 1. Choose initial vector w ; p=r=-E'(w)
+		//-- 2. set sigma, p,r ; Choose initial vector w ; p=r=-E'(w)
 		Alg->Vcopy(weightsCntTotal, scgd->GdJdW, scgd->p); Alg->Vscale(weightsCntTotal, scgd->p, -1, scgd->p);
 		Alg->Vcopy(weightsCntTotal, scgd->p, scgd->r);
 
-		dumpArray(weightsCntTotal, scgd->p, "C:/temp/p.txt");
-		dumpArray(weightsCntTotal, scgd->r, "C:/temp/r.txt");
 
 		bool success = true;
 		numtype sigma = (numtype)1e-4;
 		numtype lambda = (numtype)1e-6; numtype lambdau = (numtype)0;
 		numtype pnorm2;
-		numtype delta;
+		numtype delta=0;
 		numtype alpha, mu;
 		numtype comp;
 		numtype beta = 0, b1, b2;
@@ -526,6 +506,9 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 				Alg->Vadd(weightsCntTotal, scgd->dE1, 1, scgd->dE0, -1, scgd->dE);
 				Alg->Vscale(weightsCntTotal, scgd->dE, 1/sigma, scgd->s);
 				
+				dumpArray(weightsCntTotal, scgd->p, "C:/temp/p.txt");
+				dumpArray(weightsCntTotal, scgd->r, "C:/temp/r.txt");
+				dumpArray(weightsCntTotal, scgd->s, "C:/temp/s.txt");
 				dumpArray(weightsCntTotal, scgd->newW, "C:/temp/newW.txt");
 				dumpArray(weightsCntTotal, scgd->dE0, "C:/temp/dE0.txt");
 				dumpArray(weightsCntTotal, scgd->dE1, "C:/temp/dE1.txt");
@@ -647,11 +630,6 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 				//-- backward pass, with weights update
 				safecallSilent(this, BackwardPass, trainSet, b, true);
 
-				//====================================================================================
-				Alg->VdotV(vlen, v1d, v2d, v3d);
-				Alg->d2h(v3h, v3d, 1*sizeof(numtype), false);
-				printf("v3h=%f\n", (*v3h));
-				//====================================================================================
 			}
 
 			//-- 1.2. calc epoch MSE (for ALL batches), and check criteria for terminating training (targetMSE, Divergence)

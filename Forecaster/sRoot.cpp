@@ -224,7 +224,7 @@ void sRoot::kaz() {
 
 	sAlgebra* Alg=new sAlgebra(this, newsname("Alg1"), defaultdbg, nullptr);
 
-	int vlen=5000;
+	int vlen=50000;
 	numtype* v1d; Alg->myMalloc(&v1d, vlen);
 	numtype* v2d; Alg->myMalloc(&v2d, vlen);
 	numtype* v3d; Alg->myMalloc(&v3d, 1);
@@ -245,9 +245,9 @@ void sRoot::kaz() {
 
 
 
-	Alg->VdotV(vlen, v1d, v2d, v3d);
+	Alg->VdotV(vlen, v1d, v2d, v3h);
 	//--
-	Alg->d2h(v3h, v3d, 1*sizeof(numtype), false);
+	//Alg->d2h(v3h, v3d, 1*sizeof(numtype), false);
 	
 	printf("v3h=%f\n", (*v3h));
 

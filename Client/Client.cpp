@@ -19,8 +19,7 @@ int main(int argc, char* argv[]) {
 	try {
 		root=new sRoot(nullptr);	//-- nullptr says there's no GUI to call back with dbg messages
 		//-----------
-		//root->kaz();
-		//return -1;
+		//root->kaz(); return -1;
 		//-----------
 
 		if (_stricmp(argv[1], "Train")==0) {

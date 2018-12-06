@@ -173,14 +173,20 @@ bool sAlgebra::Vscale(int vlen, numtype* v1, numtype scale, numtype* ov) {
 #endif
 }
 
-void sAlgebra::VdotV(int vlen, numtype* v1, numtype* v2, numtype* ovdotv) {
+void sAlgebra::VdotV(int vlen, numtype* v1, numtype* v2, numtype* ohvdotv) {
+	(*ohvdotv)=0;
 #ifdef USE_GPU
-	int blocks_per_grid=256;
-	int threads_per_block=1024;
-	VdotV_cu(vlen, v1, v2, ovdotv, blocks_per_grid, threads_per_block);
+//	int blocks_per_grid=256;
+//	int threads_per_block=1024;
+//	VdotV_cu(vlen, v1, v2, ss, ohvdotv, blocks_per_grid, threads_per_block);
+	numtype* v1h=(numtype*)malloc(vlen*sizeof(numtype));
+	numtype* v2h=(numtype*)malloc(vlen*sizeof(numtype));
+	d2h(v1h, v1, vlen*sizeof(numtype));
+	d2h(v2h, v2, vlen*sizeof(numtype));
+	for (int i = 0; i < vlen; i++) (*ohvdotv) += v1h[i]*v2h[i];
+
 #else
-	(*ovdotv)=0;
-	for (int i = 0; i < vlen; i++) (*ovdotv) += v1[i]*v2[i];
+	for (int i = 0; i < vlen; i++) (*ohvdotv) += v1[i]*v2[i];
 #endif
 }
 
