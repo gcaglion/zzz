@@ -17,15 +17,8 @@ sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfg
 	//-- weights can be set now, as they are not affected by batchSampleCnt
 	createWeights();
 
-	//-- 3. malloc device-based scalar value, to be used by reduction functions (sum, ssum, ...)
-	Alg->myMalloc(&se, 1);
-	Alg->myMalloc(&tse, 1);
-
 }
 sNN::~sNN() {
-	Alg->myFree(se);
-	Alg->myFree(tse);
-
 	//free(procArgs->mseT); free(procArgs->mseV);
 
 	free(nodesCnt);
@@ -112,10 +105,11 @@ void sNN::Activate(int level) {
 }
 
 void sNN::Ecalc() {
+	numtype se;
 	//-- sets e, bte; adds squared sum(e) to tse
-	Alg->Vdiff(nodesCnt[outputLevel], &F[levelFirstNode[outputLevel]], 1, u, 1, e);	// e=F[2]-u
-	Alg->Vssum(nodesCnt[outputLevel], e, se);										// se=ssum(e) 
-	Alg->Vadd(1, tse, 1, se, 1, tse);												// tse+=se;
+	Alg->Vadd(nodesCnt[outputLevel], &F[levelFirstNode[outputLevel]], 1, u, -1, e);	// e=F[2]-u
+	Alg->Vssum(nodesCnt[outputLevel], e, &se);										// se=ssum(e) 
+	tse+=se;														// tse+=se;
 }
 void sNN::dEcalc() {
 	int Ay, Ax, Astart, By, Bx, Bstart, Cy, Cx, Cstart;
@@ -168,14 +162,12 @@ void sNN::EcalcG(sDataSet* ds, numtype* inW, numtype* outE) {
 
 	//-- sets outE
 
-	numtype htse=0;
-
 	//-- backup current W to oldW, then set it to inW
 	Alg->Vcopy(weightsCntTotal, W, scgd->oldW);
 	Alg->Vcopy(weightsCntTotal, inW, W);
 
 	//-- zero tse, outE
-	Alg->Vinit(1, tse, 0, 0);
+	tse=0;
 	(*outE)=0;
 	//-- sum tse for every batch into outE
 	for (int b=0; b<_batchCnt; b++) {
@@ -188,8 +180,7 @@ void sNN::EcalcG(sDataSet* ds, numtype* inW, numtype* outE) {
 		safecallSilent(this, Ecalc);
 
 		//-- increment global outE = outE + tse
-		Alg->d2h(&htse, tse, sizeof(numtype), false);
-		(*outE)+=htse;
+		(*outE)+=tse;
 
 	}
 
@@ -208,7 +199,7 @@ void sNN::dEcalcG(sDataSet* ds, numtype* inW, numtype* outdE) {
 	Alg->Vcopy(weightsCntTotal, inW, W);
 
 	//-- zero tse
-	Alg->Vinit(1, tse, 0, 0);
+	tse=0;
 	//-- zero GdJdW
 	Alg->Vinit(weightsCntTotal, outdE, 0, 0);
 
@@ -290,7 +281,7 @@ void sNN::BP_std(){
 void sNN::WU_std(){
 
 	//-- 1. calc dW = LM*dW - LR*dJdW
-	Alg->Vdiff(weightsCntTotal, dW, parms->LearningMomentum, dJdW, parms->LearningRate, dW);
+	Alg->Vadd(weightsCntTotal, dW, parms->LearningMomentum, dJdW, -parms->LearningRate, dW);
 
 	//-- 2. update W = W + dW for current batch
 	Alg->Vadd(weightsCntTotal, W, 1, dW, 1, W);
@@ -426,7 +417,6 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	DWORD epoch_starttime;
 	DWORD training_starttime=timeGetTime();
 	int epoch, b;
-	numtype tse_h;	// total squared error copied on host at the end of each eopch
 
 	//-- extract training arguments from trainArgs into local variables
 	sDataSet* trainSet = trainArgs->ds;
@@ -632,7 +622,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 			epoch_starttime=timeGetTime();
 
 			//-- 1.0. reset epoch tse
-			Alg->Vinit(1, tse, 0, 0);
+			tse=0;
 
 			//-- 1.1. train one batch at a time
 			for (b=0; b<trainSet->batchCnt; b++) {
@@ -646,8 +636,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 			}
 
 			//-- 1.2. calc epoch MSE (for ALL batches), and check criteria for terminating training (targetMSE, Divergence)
-			Alg->d2h(&tse_h, tse, sizeof(numtype));
-			procArgs->mseT[epoch]=tse_h/nodesCnt[outputLevel]/_batchCnt;
+			procArgs->mseT[epoch]=tse/nodesCnt[outputLevel]/_batchCnt;
 			procArgs->mseV[epoch]=0;	// TO DO !
 										//-- 1.3. show epoch info
 			showEpochStats(epoch, epoch_starttime);
@@ -665,16 +654,14 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	//-- 2. test run. need this to make sure all batches pass through the net with the latest weights, and training targets
 	TRstart=timeGetTime(); TRcnt++;
 
-	Alg->Vinit(1, tse, 0, 0);	
+	tse=0;
 	for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b, false);
-	Alg->d2h(&tse_h, tse, sizeof(numtype));
-	procArgs->mseT[trainArgs->mseCnt-1]=tse_h/nodesCnt[outputLevel]/_batchCnt;
+	procArgs->mseT[trainArgs->mseCnt-1]=tse/nodesCnt[outputLevel]/_batchCnt;
 	showEpochStats(trainArgs->mseCnt-1, epoch_starttime);
 	
-	Alg->Vinit(1, tse, 0, 0);
+	tse=0;
 	for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b, false);
-	Alg->d2h(&tse_h, tse, sizeof(numtype));
-	procArgs->mseT[trainArgs->mseCnt-1]=tse_h/nodesCnt[outputLevel]/_batchCnt;
+	procArgs->mseT[trainArgs->mseCnt-1]=tse/nodesCnt[outputLevel]/_batchCnt;
 	showEpochStats(trainArgs->mseCnt-1, epoch_starttime);
 
 	//for (int b=0; b<procArgs->ds->batchCnt; b++) procArgs->ds->BFS2SBF(b, procArgs->ds->predictionLen, procArgs->ds->predictionBFS, procArgs->ds->predictionSBF);
@@ -707,7 +694,6 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 }
 void sNN::infer(sCoreProcArgs* inferArgs) {
 
-	numtype tse_h;	// total squared error copied on host at the end of infer
 	DWORD inferStartTime=timeGetTime();
 
 	//-- extract infering arguments from inferArgs into local variables
@@ -736,32 +722,16 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	//-- timing
 	inferStartTime=timeGetTime();
 
-	Alg->Vinit(1, tse, 0, 0);
+	tse=0;
 	for (int b=0; b<inferSet->batchCnt; b++) ForwardPass(inferSet, b, true);
-	Alg->d2h(&tse_h, tse, sizeof(numtype));
-	procArgs->mseR=tse_h/nodesCnt[outputLevel]/_batchCnt;
+	procArgs->mseR=tse/nodesCnt[outputLevel]/_batchCnt;
 
-	Alg->Vinit(1, tse, 0, 0);
+	tse=0;
 	for (int b=0; b<inferSet->batchCnt; b++) ForwardPass(inferSet, b, true);
-	Alg->d2h(&tse_h, tse, sizeof(numtype));
-	procArgs->mseR=tse_h/nodesCnt[outputLevel]/_batchCnt;
+	procArgs->mseR=tse/nodesCnt[outputLevel]/_batchCnt;
 
 	//-- 0.4. convert samples and targets back from BFS to SBF in inference dataset
 	inferArgs->ds->setSBF();
-
-	//=======================================
-	//numtype _se;
-	//numtype _tse=0;
-	//numtype _mse;
-	//for (int i=0; i<(procArgs->ds->samplesCnt*procArgs->ds->predictionLen*procArgs->ds->selectedFeaturesCnt); i++) {
-	//	_se=pow((procArgs->ds->predictionSBF[i]-procArgs->ds->targetSBF[i]), 2);
-	//	_tse+=_se;
-	//}
-	//dumpArrayH((procArgs->ds->samplesCnt*procArgs->ds->predictionLen*procArgs->ds->selectedFeaturesCnt), procArgs->ds->predictionSBF, "C:/temp/INFERpredictionSBF.csv");
-	//dumpArrayH((procArgs->ds->samplesCnt*procArgs->ds->predictionLen*procArgs->ds->selectedFeaturesCnt), procArgs->ds->targetSBF, "C:/temp/INFERtargetSBF.csv");
-
-	//_mse=_tse/(procArgs->ds->samplesCnt*procArgs->ds->predictionLen*procArgs->ds->selectedFeaturesCnt);
-	//=======================================
 
 	//-- feee neurons()
 	destroyNeurons();

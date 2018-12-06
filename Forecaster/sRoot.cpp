@@ -220,43 +220,99 @@ void sRoot::getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates){
 }
 
 //-- temp stuff
+
+#include "../CUDAwrapper/CUDAwrapper.h"
+
 void sRoot::kaz() {
+
 
 	sAlgebra* Alg=new sAlgebra(this, newsname("Alg1"), defaultdbg, nullptr);
 
-	int vlen=50000;
+	int vlen=5;
 	numtype* v1d; Alg->myMalloc(&v1d, vlen);
 	numtype* v2d; Alg->myMalloc(&v2d, vlen);
 	numtype* v3d; Alg->myMalloc(&v3d, 1);
+	numtype* v4d; Alg->myMalloc(&v4d, vlen);
 	//--
 	numtype* v1h=(numtype*)malloc(vlen*sizeof(numtype));
 	numtype* v2h=(numtype*)malloc(vlen*sizeof(numtype));
 	numtype* v3h=(numtype*)malloc(1*sizeof(numtype));
+	numtype* v4h=(numtype*)malloc(vlen*sizeof(numtype));
 	//--
 	Alg->Vinit(vlen, v1d, (numtype)(vlen/2), (numtype)1);
 	Alg->Vinit(vlen, v2d, (numtype)(vlen/2), (numtype)-1);
+	Alg->Vinit(vlen, v4d, (numtype)(vlen/2), (numtype)-1);
 	//--
 	Alg->d2h(v1h, v1d, vlen*sizeof(numtype), false);
 	Alg->d2h(v2h, v2d, vlen*sizeof(numtype), false);
+	Alg->d2h(v4h, v4d, vlen*sizeof(numtype), false);
 	//--
 
-	Alg->Vnorm(vlen, v1d, v3h);
+	//--------------- Vssum ---------------
+	Vssum_cu(Alg->cublasH, vlen, v1d, v3h);
+	printf("Vssum(v1)-GPU = %f\n", (*v3h));
+	(*v3h)=0;
+	for (int i=0; i<vlen; i++) (*v3h)+=v1h[i]*v1h[i];
+	printf("Vssum(v1)-CPU = %f\n", (*v3h));
+	//-------------------------------------
 
+	//--------------- Vnorm --------------
+	Vnorm_cu(Alg->cublasH, vlen, v1d, v3h);
+	printf("Vsnorm(v1)-GPU = %f\n", (*v3h));
+	(*v3h)=0;
+	for (int i=0; i<vlen; i++) (*v3h)+=v1h[i]*v1h[i];
+	(*v3h)=sqrt(*v3h);
+	printf("Vsnorm(v1)-CPU = %f\n", (*v3h));
+	//-------------------------------------
+	system("pause");
+	return;
 
+	//---------------- Vadd with scale (v1*1.2 + v2*-0.5 = v4), followed by Vnorm ----------
+	Vadd_cu(vlen, v1d, 1.2, v2d, -0.5, v4d);
+	Vnorm_cu(Alg->cublasH, vlen, v4d, v3h);
+	printf("Vadd(v1*1.2+v2*-0.5)-GPU = %f\n", (*v3h));
 
-
-	Alg->VdotV(vlen, v1d, v2d, v3h);
-	//--
-	//Alg->d2h(v3h, v3d, 1*sizeof(numtype), false);
-	
-	printf("v3h=%f\n", (*v3h));
-
-	numtype vh=0;
-	for (int i=0; i<vlen; i++) vh+=v1h[i]*v2h[i];
-	printf("vh=%f\n", vh);
-
+	for (int i=0; i<vlen; i++) v4h[i]=v1h[i]*1.2-v2h[i]*0.5;
+	(*v3h)=0;
+	for (int i=0; i<vlen; i++) (*v3h)+=v4h[i]*v4h[i];
+	(*v3h)=sqrt((*v3h));
+	printf("Vadd(v1*1.2+v2*-0.5)-CPU = %f\n", (*v3h));
+	//---------------------------------------------------------------------------------------
 
 	system("pause");
+	return;
+
+	//------------------------------------------------------
+	Vscale_cu(vlen, v1d, 0.1);
+	for (int i=0; i<vlen; i++) v1h[i]=v1h[i]*0.1;
+	//------------------------------------------------------
+
+
+	//------------------------------------------------------
+	Vnorm_cu(Alg->cublasH, vlen, v1d, v3h);
+	//------------------------------------------------------
+	printf("Vnorm(v1)-GPU = %f\n", (*v3h));
+
+	(*v3h)=0;
+	//------------------------------------------------------
+	for (int i=0; i<vlen; i++) (*v3h)+=v1h[i]*v1h[i];
+	(*v3h)=sqrt((*v3h));
+	//------------------------------------------------------
+	printf("Vnorm(v1)-CPU = %f\n", (*v3h));
+
+
+	//------------------------------------------------------
+	VdotV_cu(Alg->cublasH, vlen, v1d, v2d, v3h);
+	//------------------------------------------------------
+	printf("Vdotv(v1,v2)-GPU = %f\n", (*v3h));
+
+	(*v3h)=0;
+	//------------------------------------------------------
+	for (int i = 0; i < vlen; i++) (*v3h) += v1h[i]*v2h[i];
+	printf("Vdotv(v1,v2)-CPU = %f\n", (*v3h));
+
+	system("pause");
+
 
 /*
 //	sCfg* ds2Cfg=new sCfg(this, newsname("ds2Cfg"), defaultdbg, "Config/Light/Infer.xml");

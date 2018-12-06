@@ -139,14 +139,6 @@ bool sAlgebra::VbyV2V(int Vlen, numtype* V1, numtype* V2, numtype* oV) {
 	return true;
 #endif
 }
-bool sAlgebra::Vdiff(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov) {
-#ifdef USE_GPU
-	return (Vdiff_cu(vlen, v1, scale1, v2, scale2, ov));
-#else
-	for (int i=0; i<vlen; i++) ov[i]=v1[i]*scale1-v2[i]*scale2;
-	return true;
-#endif
-}
 bool sAlgebra::Vadd(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov) {
 #ifdef USE_GPU
 	return (Vadd_cu(vlen, v1, scale1, v2, scale2, ov));
@@ -176,15 +168,7 @@ bool sAlgebra::Vscale(int vlen, numtype* v1, numtype scale, numtype* ov) {
 void sAlgebra::VdotV(int vlen, numtype* v1, numtype* v2, numtype* ohvdotv) {
 	(*ohvdotv)=0;
 #ifdef USE_GPU
-//	int blocks_per_grid=256;
-//	int threads_per_block=1024;
-//	VdotV_cu(vlen, v1, v2, ss, ohvdotv, blocks_per_grid, threads_per_block);
-	numtype* v1h=(numtype*)malloc(vlen*sizeof(numtype));
-	numtype* v2h=(numtype*)malloc(vlen*sizeof(numtype));
-	d2h(v1h, v1, vlen*sizeof(numtype));
-	d2h(v2h, v2, vlen*sizeof(numtype));
-	for (int i = 0; i < vlen; i++) (*ohvdotv) += v1h[i]*v2h[i];
-
+	if (!VdotV_cu(cublasH, vlen, v1, v2, ohvdotv)) fail("salkaz!");
 #else
 	for (int i = 0; i < vlen; i++) (*ohvdotv) += v1[i]*v2[i];
 #endif
@@ -260,7 +244,7 @@ bool sAlgebra::dSoftPlus(int Vlen, numtype* in, numtype* out) {
 bool sAlgebra::Vssum(int vlen, numtype* v, numtype* ovssum) {
 	//-- if using GPU, the sum scalar also resides in GPU
 #ifdef USE_GPU
-	return(Vssum_cu(vlen, v, ovssum));
+	return(Vssum_cu(cublasH, vlen, v, ovssum));
 #else
 	(*ovssum)=0;
 	for (int i=0; i<vlen; i++) (*ovssum)+=v[i]*v[i];
@@ -270,11 +254,11 @@ bool sAlgebra::Vssum(int vlen, numtype* v, numtype* ovssum) {
 bool sAlgebra::Vnorm(int vlen, numtype* v, numtype* ovnorm) {
 	//-- if using GPU, the sum scalar also resides in GPU
 #ifdef USE_GPU
-	return(Vnorm_cu(cublasH, vlen, v, ovnorm, ss));
+	return(Vnorm_cu(cublasH, vlen, v, ovnorm));
 #else
 	numtype vssum=0;
 	for (int i=0; i<vlen; i++) vssum+=v[i]*v[i];
-	(*ovnorm)=vssum/vlen;
+	(*ovnorm)=sqrt(vssum);
 	return true;
 #endif
 }

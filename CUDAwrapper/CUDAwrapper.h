@@ -3,7 +3,7 @@
 #include "../common.h"
 
 #define CUDA_BLOCK_SIZE 64
-const int MAX_STREAMS = 4;
+#define MAX_STREAMS 4
 
 //-- CUDA Exceptions
 #define FAIL_INITCUDA "CUDA Initialization Failed. \n"
@@ -34,14 +34,13 @@ EXPORT bool getMcol_cu(void* cublasH, int Ay, int Ax, numtype* A, int col, numty
 EXPORT bool Vscale_cu(int vlen, numtype* v, numtype s);
 EXPORT bool Vcopy_cu(int vlen, numtype* v1, numtype* v2);
 EXPORT bool Vadd_cu(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov);
-EXPORT bool Vdiff_cu(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov);
 EXPORT bool Vsum_cu(int Vlen, numtype* V, numtype* oSum, numtype* ss_d);
-EXPORT bool Vssum_cu(int Vlen, numtype* V, numtype* oVssum);
-EXPORT bool Vnorm_cu(void* cublasH, int Vlen, numtype* V, numtype* oVnorm, numtype* ss_d);
+EXPORT bool Vssum_cu(void* cublasH, int Vlen, numtype* V, numtype* oVssum);
+EXPORT bool Vnorm_cu(void* cublasH, int Vlen, numtype* V, numtype* oVnorm);
+EXPORT bool VdotV_cu(void* cublasH, int vlen, numtype* v1, numtype* v2, numtype* oVdotV);
 EXPORT bool Vinit_cu(int vlen, numtype* v, numtype start, numtype inc);
 EXPORT bool VbyV2V_cu(int vlen, numtype* v1, numtype* v2, numtype* ov);
 EXPORT bool VinitRnd_cu(int vlen, numtype* v, numtype rndmin, numtype rndmax, void* cuRandH);
-EXPORT void VdotV_cu(int n, float x_d[], float y_d[], float* dot_d, float* oVdotVh, int blocks, int threads);
 
 //-- kernel functions wrappers
 EXPORT void initGPUData(float *data, int numElements, float value);

@@ -51,7 +51,6 @@ struct sAlgebra : public sObj {
 	EXPORT bool MbyM_std(int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, numtype* C);
 	EXPORT bool Vinit(int Vlen, numtype* v, numtype start, numtype inc);
 	EXPORT bool VbyV2V(int Vlen, numtype* V1, numtype* V2, numtype* oV);
-	EXPORT bool Vdiff(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov);
 	EXPORT bool Vadd(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov);
 	EXPORT bool Vcopy(int vlen, numtype* v1, numtype* v2);
 	EXPORT bool Vscale(int vlen, numtype* v1, numtype scale, numtype* ov);

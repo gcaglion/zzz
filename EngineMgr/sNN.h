@@ -42,8 +42,9 @@ private:
 	int* levelFirstWeight;
 
 	//-- error measuring
-	numtype* tse;	// total squared error.	Scalar. On GPU (if used)
-	numtype* se;	// squared sum error.	Scalar. On GPU (if used)
+	//numtype* tse;	// total squared error.	Scalar. On GPU (if used)
+	//numtype* se;	// squared sum error.	Scalar. On GPU (if used)
+	numtype tse;
 
 	//-- set at each level according to ActivationFunction
 	float* scaleMin;	
