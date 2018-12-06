@@ -469,9 +469,8 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 		//-- 1. calc Global dE at W
 		dEcalcG(trainArgs->ds, W, scgd->GdJdW);
 		//-- 2. set sigma, p,r ; Choose initial vector w ; p=r=-E'(w)
-		Alg->Vcopy(weightsCntTotal, scgd->GdJdW, scgd->p); Alg->Vscale(weightsCntTotal, scgd->p, -1, scgd->p);
+		Alg->Vscale(weightsCntTotal, scgd->GdJdW, -1, scgd->p);
 		Alg->Vcopy(weightsCntTotal, scgd->p, scgd->r);
-
 
 		bool success = true;
 		numtype sigma = (numtype)1e-4;
