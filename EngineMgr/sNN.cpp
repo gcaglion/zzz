@@ -435,11 +435,13 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	initNeurons();
 
 	//-- malloc mse[maxepochs], always host-side. We need to free them, first (see issue when running without training...)
-	free(trainArgs->mseT); trainArgs->mseT=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
-	free(trainArgs->mseV); trainArgs->mseV=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
+	trainArgs->mseT=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
+	trainArgs->mseV=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
 
 	//---- 0.2. Init W
 	for (l=0; l<(outputLevel); l++) Alg->VinitRnd(weightsCnt[l], &W[levelFirstWeight[l]], -1/sqrtf((numtype)nodesCnt[l]), 1/sqrtf((numtype)nodesCnt[l]), Alg->cuRandH);
+	//dumpArray(weightsCntTotal, W, "C:/temp/initW.txt");
+	loadArray(weightsCntTotal, W, "initW.txt");
 
 	//---- 0.3. Init dW, dJdW
 	Alg->Vinit(weightsCntTotal, dW, 0, 0);

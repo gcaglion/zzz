@@ -336,3 +336,14 @@ EXPORT bool dumpArray(int vlen, numtype* v, const char* fname) {
 	return true;
 #endif
 }
+EXPORT bool loadArray(int vlen, numtype* v, const char* fname) {
+#ifdef USE_GPU
+	return(loadArray_cu(vlen, v, fname));
+#else
+	FILE* f=fopen(fname, "r");
+	if (f==nullptr) return false;
+	for (int i=0; i<vlen; i++) fscanf_s(f, "%f", &v[i]);
+	fclose(f);
+	return true;
+#endif
+}

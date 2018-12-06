@@ -15,7 +15,7 @@ typedef double altnumtype;
 #define DATE_FORMAT "YYYY-MM-DD-HH24:MI"
 
 #define USE_ORCL
-#define USE_GPU
+//#define USE_GPU
 
 #ifndef EXPORT
 #define EXPORT __declspec(dllexport)
