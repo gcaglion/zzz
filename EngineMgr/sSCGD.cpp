@@ -37,7 +37,7 @@ sSCGD::sSCGD(sObjParmsDef, sAlgebra* Alg_, int Wcnt, int outNcnt, int maxK) : sO
 	Alg->myMalloc(&s, Wcnt);
 	Alg->myMalloc(&dW, Wcnt);
 	Alg->myMalloc(&newW, Wcnt);
-	Alg->myMalloc(&oldW, Wcnt);
+	Alg->myMalloc(&bkpW, Wcnt);
 	Alg->myMalloc(&GdJdW, Wcnt);
 	Alg->myMalloc(&prev_r, Wcnt);
 	Alg->myMalloc(&alphap, Wcnt);
@@ -60,7 +60,7 @@ sSCGD::~sSCGD() {
 	Alg->myFree(s);
 	Alg->myFree(dW);
 	Alg->myFree(newW);
-	Alg->myFree(oldW);
+	Alg->myFree(bkpW);
 	Alg->myFree(GdJdW);
 	Alg->myFree(prev_r);
 	Alg->myFree(alphap);

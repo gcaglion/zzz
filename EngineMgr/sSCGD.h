@@ -30,7 +30,7 @@ struct sSCGD : sObj {
 	numtype* s;
 	numtype* dW;
 	numtype* newW;
-	numtype* oldW;
+	numtype* bkpW;
 	numtype* GdJdW;
 	numtype* prev_r;
 	numtype* alphap;
@@ -44,9 +44,6 @@ struct sSCGD : sObj {
 	numtype* E1;
 	numtype* E;
 	numtype* sigmap;
-	numtype pnorm;
-	numtype rnorm;
-	numtype dWnorm;
 
 	sSCGDlog* log;
 

@@ -162,8 +162,8 @@ void sNN::EcalcG(sDataSet* ds, numtype* inW, numtype* outE) {
 
 	//-- sets outE
 
-	//-- backup current W to oldW, then set it to inW
-	Alg->Vcopy(weightsCntTotal, W, scgd->oldW);
+	//-- backup current W to bkpW, then set it to inW
+	Alg->Vcopy(weightsCntTotal, W, scgd->bkpW);
 	Alg->Vcopy(weightsCntTotal, inW, W);
 
 	//-- zero tse, outE
@@ -185,7 +185,7 @@ void sNN::EcalcG(sDataSet* ds, numtype* inW, numtype* outE) {
 	}
 
 	//-- restore W
-	Alg->Vcopy(weightsCntTotal, W, scgd->oldW);
+	Alg->Vcopy(weightsCntTotal, scgd->bkpW, W);
 
 
 }
@@ -194,16 +194,16 @@ void sNN::dEcalcG(sDataSet* ds, numtype* inW, numtype* outdE) {
 	//-- sets outdE
 
 
-	//-- backup current W to oldW, then set it to inW
-	Alg->Vcopy(weightsCntTotal, W, scgd->oldW);
+	//-- backup current W to bkpW, then set it to inW
+	Alg->Vcopy(weightsCntTotal, W, scgd->bkpW);
 	Alg->Vcopy(weightsCntTotal, inW, W);
 
 	//-- zero tse
 	tse=0;
-	//-- zero GdJdW
+	//-- zero outdE
 	Alg->Vinit(weightsCntTotal, outdE, 0, 0);
 
-	//-- sum dJdW for every batch into GdJdW
+	//-- sum dJdW for every batch into outdE
 	for (int b=0; b<_batchCnt; b++) {
 
 		//-- load batch input and output
@@ -215,13 +215,13 @@ void sNN::dEcalcG(sDataSet* ds, numtype* inW, numtype* outdE) {
 
 		//-- set dJdW for current batch
 		dEcalc();
-		//-- increment global GdJdW = GdJdW + dJdW
+		//-- increment outdE = outdE + dJdW
 		Alg->Vadd(weightsCntTotal, outdE, 1, dJdW, 1, outdE);
 
 	}
 
 	//-- restore W
-	Alg->Vcopy(weightsCntTotal, scgd->oldW, W);
+	Alg->Vcopy(weightsCntTotal, scgd->bkpW, W);
 
 }
 
@@ -441,7 +441,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	//---- 0.2. Init W
 	for (l=0; l<(outputLevel); l++) Alg->VinitRnd(weightsCnt[l], &W[levelFirstWeight[l]], -1/sqrtf((numtype)nodesCnt[l]), 1/sqrtf((numtype)nodesCnt[l]), Alg->cuRandH);
 	//dumpArray(weightsCntTotal, W, "C:/temp/initW.txt");
-	loadArray(weightsCntTotal, W, "initW.txt");
+	//loadArray(weightsCntTotal, W, "initW.txt");
 
 	//---- 0.3. Init dW, dJdW
 	Alg->Vinit(weightsCntTotal, dW, 0, 0);
@@ -458,173 +458,8 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 		//-- timing
 		epoch_starttime=timeGetTime();
 
-		//-- 1. calc Global dE at W
-		dEcalcG(trainArgs->ds, W, scgd->GdJdW);
-		//-- 2. set sigma, p,r ; Choose initial vector w ; p=r=-E'(w)
-		Alg->Vscale(weightsCntTotal, scgd->GdJdW, -1, scgd->p);
-		Alg->Vcopy(weightsCntTotal, scgd->p, scgd->r);
-
-		bool success = true;
-		numtype sigma = (numtype)1e-4;
-		numtype lambda = (numtype)1e-6; numtype lambdau = (numtype)0;
-		numtype pnorm2;
-		numtype delta=0;
-		numtype alpha, mu;
-		numtype comp;
-		numtype beta = 0, b1, b2;
-		numtype Gtse_old, Gtse_new;
-		numtype dEnorm;
-
-		int k = 0;
-		do {
-			Alg->Vnorm(weightsCntTotal, scgd->r, &scgd->rnorm);
-			Alg->Vnorm(weightsCntTotal, scgd->p, &scgd->pnorm);
-			pnorm2 = pow(scgd->pnorm, 2);
-
-			//-- 2. if success=true Calculate second-order  information (s and delta)
-			if (success) {
-
-				//-- non-Hessian approximation
-				sigma = sigma/scgd->pnorm;
-				//-- get dE0 (dJdW at current W)
-				dEcalcG(trainArgs->ds, W, scgd->dE0);
-				//-- get dE1 (dJdW at W+sigma*p)
-				Alg->Vadd(weightsCntTotal, W, 1, scgd->p, sigma, scgd->newW);
-				dEcalcG(trainArgs->ds, scgd->newW, scgd->dE1);
-
-				//-- calc s = (dE1-dE0)/sigma
-				Alg->Vadd(weightsCntTotal, scgd->dE1, 1, scgd->dE0, -1, scgd->dE);
-				Alg->Vscale(weightsCntTotal, scgd->dE, 1/sigma, scgd->s);
-
-				//===== REMOVE THIS ! ========
-				Alg->Vnorm(weightsCntTotal, scgd->dE, &dEnorm);
-
-				//============================
-				
-				/*dumpArray(weightsCntTotal, scgd->p, "C:/temp/p.txt");
-				dumpArray(weightsCntTotal, scgd->r, "C:/temp/r.txt");
-				dumpArray(weightsCntTotal, scgd->s, "C:/temp/s.txt");
-				dumpArray(weightsCntTotal, scgd->newW, "C:/temp/newW.txt");
-				dumpArray(weightsCntTotal, scgd->dE0, "C:/temp/dE0.txt");
-				dumpArray(weightsCntTotal, scgd->dE1, "C:/temp/dE1.txt");
-				dumpArray(weightsCntTotal, scgd->dE , "C:/temp/dE.txt");
-				*/
-				
-				//-- calc delta
-				Alg->VdotV(weightsCntTotal, scgd->p, scgd->s, &delta);
-			}
-
-			//-- 3. scale s and delta
-
-			//--- 3.1 s=s+(lambda-lambdau)*p
-			Alg->Vadd(weightsCntTotal, scgd->s, 1, scgd->p, (lambda-lambdau), scgd->s);
-			//--- 3.2 delta=delta+(lambda-lambdau)*|p|^2
-			delta += (lambda-lambdau)*pnorm2;
-
-			//-- 4. if delta<=0 (i.e. Hessian is not positive definite) , then make it positive
-			if (delta<=0) {
-				//-- adjust s
-				Alg->Vadd(weightsCntTotal, scgd->s, 1, scgd->p, (lambda-2*delta/pnorm2), scgd->s);
-				//-- adjust lambdau
-				lambdau = 2*(lambda-delta/pnorm2);
-				//-- adjust delta
-				delta = -delta+lambda*pnorm2;
-				//-- adjust lambda
-				lambda = lambdau;
-			}
-
-			//-- 5. Calculate step size
-			Alg->VdotV(weightsCntTotal, scgd->p, scgd->r, &mu);
-			alpha = mu/delta;
-
-			//-- 6. Comparison parameter
-
-			if (success) Alg->Vcopy(weightsCntTotal, W, scgd->oldW);
-
-			//--- 6.1 calc E(w)
-			EcalcG(trainArgs->ds, W, &Gtse_old);
-			//--- 6.2 calc newW=w+alpha*p , which will also be used in (7)
-			Alg->Vadd(weightsCntTotal, W, 1, scgd->p, alpha, scgd->newW);
-
-
-
-			//--- 6.3 calc E(w+dw)
-			EcalcG(trainArgs->ds, scgd->newW, &Gtse_new);
-
-			//--- 6.4 comp=2*delta*(e_old-e_new)/mu^2
-			comp = 2*delta*(Gtse_old-Gtse_new)/pow(mu, 2);
-
-			if (comp>=0) {
-				//-- 7. Update weight vector
-
-				//-- dW = alpha * p ; also calc dwnorm
-				Alg->Vscale(weightsCntTotal, scgd->p, alpha, scgd->dW);
-				Alg->Vnorm(weightsCntTotal, scgd->dW, &scgd->dWnorm);
-				//-- W = W + dW
-				Alg->Vadd(weightsCntTotal, W, 1, scgd->dW, 1, W);
-				//-- 7.1 recalc  GdJdW
-				dEcalcG(trainArgs->ds, W, scgd->GdJdW);
-
-				//-- save r, and calc new r
-				Alg->Vcopy(weightsCntTotal, scgd->r, scgd->prev_r);
-				Alg->Vscale(weightsCntTotal, scgd->GdJdW, -1, scgd->r);
-
-				//-- reset lambdau
-				lambdau = 0; success = true;
-
-				//-- 7a. if k mod N = 0 then restart algorithm, else create new conjugate direction
-				if (((k+1)%nodesCntTotal)==0) {
-					Alg->Vcopy(weightsCntTotal, scgd->r, scgd->p);
-				} else {
-					Alg->Vnorm(weightsCntTotal, scgd->r, &b1);
-					b1=b1*b1;
-					Alg->VdotV(weightsCntTotal, scgd->r, scgd->prev_r, &b2);
-					beta = (b1-b2)/mu;
-					//-- p = r + beta*p
-					Alg->Vadd(weightsCntTotal, scgd->r, 1, scgd->p, beta, scgd->p);
-				}
-				//-- 7b. if comp>=0.75 reduce scale parameter
-				if (comp>=0.75) lambda = lambda/2;
-
-			} else {
-				//-- a reduction in error is not possible.
-				lambdau = lambda;
-				success = false;
-			}
-
-			//-- 8. if comp<0.25 then increase scale parameter
-			if (comp<0.25) lambda = lambda*4;
-
-			//-- 9. if the steepest descent direction r>epsilon and success=true, then set k=k+1 and go to 2, else terminate and return w as the desired minimum
-			Alg->Vnorm(weightsCntTotal, scgd->r, &scgd->rnorm);
-			//-- display progress
-			//WaitForSingleObject(Mx->ScreenMutex, 10);
-			//gotoxy(0, Mx->ScreenPos); 
-			printf("\rProcess %6d, Thread %6d, Iteration %6d , success=%s, rnorm=%f", pid, tid, k, (success) ? "TRUE " : "FALSE", scgd->rnorm);
-			//ReleaseMutex(Mx->ScreenMutex);
-
-			//-- save scgd->log
-			if (persistor->saveInternalsFlag) {
-				scgd->log->delta[k]=delta;
-				scgd->log->mu[k]=mu;
-				scgd->log->alpha[k]=alpha;
-				scgd->log->beta[k]=beta;
-				scgd->log->lambda[k]=lambda;
-				scgd->log->lambdau[k]=lambdau;
-				scgd->log->Gtse_old[k]=Gtse_old;
-				scgd->log->Gtse_new[k]=Gtse_new;
-				scgd->log->comp[k]=comp;
-				scgd->log->pnorm[k]=scgd->pnorm;
-				scgd->log->rnorm[k]=scgd->rnorm;
-				scgd->log->dwnorm[k]=scgd->dWnorm;
-				scgd->log->iterationsCnt++;
-			}
-
-			k++;
-		} while ((scgd->rnorm>0)&&(k<parms->SCGDmaxK));
-
-		//-- persist scgd->log
-		if (persistor->saveInternalsFlag) safecall(persistor, saveCoreNNInternalsSCGD, pid, tid, k-1, scgd->log->delta, scgd->log->mu, scgd->log->alpha, scgd->log->beta, scgd->log->lambda, scgd->log->lambdau, scgd->log->Gtse_old, scgd->log->Gtse_new, scgd->log->comp, scgd->log->pnorm, scgd->log->rnorm, scgd->log->dwnorm);
+		//-- main algorithm
+		trainSCGD(trainArgs);
 
 	} else {
 		for (epoch=0; epoch<parms->MaxEpochs; epoch++) {
@@ -775,38 +610,158 @@ void sNN::loadImage(int pid, int tid, int epoch) {
 
 }
 
-void sNN::trainSCGD(sCoreProcArgs* trainArgs){
+void sNN::trainSCGD(sCoreProcArgs* trainArgs) {
+
+	bool success;
+	numtype pnorm, rnorm;
+	numtype sigma = (numtype)1e-4;
+	numtype lambda = (numtype)1e-6; numtype lambdau = (numtype)0;
+	numtype delta;
+	numtype mu;
+	numtype alpha, beta=0;
+	numtype Gtse_old, Gtse_new, comp;
+	numtype rdotprevr;
+	numtype newWnorm;	// ====REMOVE===
+	numtype Wnorm;		// ====REMOVE===
+	numtype dEnorm;		// ====REMOVE===
+	numtype snorm;		// ====REMOVE===
+	numtype dE0norm;		// ====REMOVE===
+	numtype dE1norm;		// ====REMOVE===
+
+	Alg->Vnorm(weightsCntTotal, W, &Wnorm);
+	//-- 1.1 calc GdJwd
+	dEcalcG(trainArgs->ds, W, scgd->GdJdW);
+	//-- 1.2 p=-GdJdW
+	Alg->Vscale(weightsCntTotal, scgd->GdJdW, -1, scgd->p);
+	//-- 1.3 r=p
+	Alg->Vcopy(weightsCntTotal, scgd->p, scgd->r);
+	//-- 1.4 success=true
+	success=true;
+
+	int k=0;
+
+	do {
+		//-- calc pnorm
+		Alg->Vnorm(weightsCntTotal, scgd->p, &pnorm);
+
+		//-- 2.	if success=true,
+		if (success) {
+
+			//-- sigma=sigma/pnorm
+			sigma/=pnorm;
+			//-- newW=w+sigma*p
+			Alg->Vadd(weightsCntTotal, scgd->p, sigma, W, 1, scgd->newW); Alg->Vnorm(weightsCntTotal, scgd->newW, &newWnorm);
+			//-- dE0=dEcalcG(W)
+			dEcalcG(trainArgs->ds, W, scgd->dE0); Alg->Vnorm(weightsCntTotal, scgd->dE0, &dE0norm);
+			//-- dE1=dEcalcG(newW)
+			dEcalcG(trainArgs->ds, scgd->newW, scgd->dE1); Alg->Vnorm(weightsCntTotal, scgd->dE1, &dE1norm);
+			//-- dE=dE1-dE0
+			Alg->Vadd(weightsCntTotal, scgd->dE1, 1, scgd->dE0, -1, scgd->dE); Alg->Vnorm(weightsCntTotal, scgd->dE, &dEnorm);
+			//-- s=(dE)/sigma
+			Alg->Vscale(weightsCntTotal, scgd->dE, sigma, scgd->s); Alg->Vnorm(weightsCntTotal, scgd->s, &snorm);
+			//-- delta=VdotV(p*s)
+			Alg->VdotV(weightsCntTotal, scgd->p, scgd->s, &delta);
+		}
+
+		//-- 3.	
+
+		//-- s=s+(lambda-lambdau)*p
+		Alg->Vadd(weightsCntTotal, scgd->s, 1, scgd->p, (lambda-lambdau), scgd->s); Alg->Vnorm(weightsCntTotal, scgd->s, &snorm);
+		//-- delta=delta+(lambda-lambdau)*pnorm2
+		delta+=((lambda-lambdau)*pnorm*pnorm);
+
+		//-- 4.	
+		if (delta<=0) {
+			//-- s=s+(lambda-2*delta/pnorm2)*p
+			Alg->Vadd(weightsCntTotal, scgd->s, 1, scgd->p, (lambda-2*delta/(pnorm*pnorm)), scgd->s); Alg->Vnorm(weightsCntTotal, scgd->s, &snorm);
+			//-- lambdau=2*(lambda-delta/pnorm2)
+			lambdau=2*(lambda-delta/(pnorm*pnorm));
+			//-- delta=-delta+lambda*pnorm2
+			delta=-delta+lambda*pnorm*pnorm;
+			//-- lambda=lambdau
+			lambda=lambdau;
+		}
+
+		//-- 5.	Calclulate step size
+		//-- mu=VdotV(p*r)
+		Alg->VdotV(weightsCntTotal, scgd->p, scgd->r, &mu);
+		//-- alpha=mu/delta
+		alpha=mu/delta;
+
+		//-- 6. Calculate comparison parameter
+		//-- Gtse_old=EcalcG(W)
+		EcalcG(trainArgs->ds, W, &Gtse_old);
+		//-- newW=W+alpha*p
+		Alg->Vadd(weightsCntTotal, scgd->p, alpha, W, 1, scgd->newW); Alg->Vnorm(weightsCntTotal, scgd->newW, &newWnorm);
+		//-- Gtse_new=EcalcG(newW)
+		EcalcG(trainArgs->ds, scgd->newW, &Gtse_new);
+		//-- comp=2*delta/mu^2*(Gtse_old-Gtse_new)
+		comp=2*delta/(mu*mu)*(Gtse_old-Gtse_new);
+
+		//--7.	
+		if (comp>=0) {
+			//-- w=w+alpha*p
+			Alg->Vadd(weightsCntTotal, W, 1, scgd->p, alpha, W);
+			//-- prevR=r
+			Alg->Vcopy(weightsCntTotal, scgd->r, scgd->prev_r);
+			//-- r=-dEcalcG(w)
+			dEcalcG(trainArgs->ds, W, scgd->r); Alg->Vscale(weightsCntTotal, scgd->r, -1, scgd->r);
+			lambdau=0;
+			success=true;
+
+			//-- 7a
+			if (k%weightsCntTotal) {
+				//-- p=r
+				Alg->Vcopy(weightsCntTotal, scgd->r, scgd->p);
+			} else {
+				//-- calc rnorm
+				Alg->Vnorm(weightsCntTotal, scgd->r, &rnorm);
+				//-- calc VdotV(r, prev_r)
+				Alg->VdotV(weightsCntTotal, scgd->r, scgd->prev_r, &rdotprevr);
+				//-- beta=(rnorm^2-r*prevR)/mu
+				beta=((rnorm*rnorm)-rdotprevr)/mu;
+				//-- p=r+beta*p
+				Alg->Vadd(weightsCntTotal, scgd->r, 1, scgd->p, beta, scgd->p);
+			}
+
+			//-- 7b
+			if (comp>=0.75) lambda/=2;
+
+		} else {
+			lambdau=lambda;
+			success=false;
+		}
+
+		//-- 8.
+		if (comp<0.25) lambda*=4;
+
+		//-- 9. 
+
+		//-- recalc rnorm
+		Alg->Vnorm(weightsCntTotal, scgd->r, &rnorm);
+		//-- display progress
+		printf("\rProcess %6d, Thread %6d, Iteration %6d , success=%s, rnorm=%f", pid, tid, k, (success) ? "TRUE " : "FALSE", rnorm);
+		//-- save scgd->log
+		if (persistor->saveInternalsFlag) {
+			scgd->log->delta[k]=delta;
+			scgd->log->mu[k]=mu;
+			scgd->log->alpha[k]=alpha;
+			scgd->log->beta[k]=beta;
+			scgd->log->lambda[k]=lambda;
+			scgd->log->lambdau[k]=lambdau;
+			scgd->log->Gtse_old[k]=Gtse_old;
+			scgd->log->Gtse_new[k]=Gtse_new;
+			scgd->log->comp[k]=comp;
+			scgd->log->pnorm[k]=pnorm;
+			scgd->log->rnorm[k]=rnorm;
+			scgd->log->dwnorm[k]=0;
+			scgd->log->iterationsCnt++;
+		}
+
+		k++;
+	} while ((rnorm>0)&&(k<parms->SCGDmaxK));
 	
-	/*
-	
-	1.1 calc GdJwd
-	1.2 p=-GdJdW
-	1.3 r=p
-	1.4 success=true
+	//-- persist scgd->log
+	if (persistor->saveInternalsFlag) safecall(persistor, saveCoreNNInternalsSCGD, pid, tid, k-1, scgd->log->delta, scgd->log->mu, scgd->log->alpha, scgd->log->beta, scgd->log->lambda, scgd->log->lambdau, scgd->log->Gtse_old, scgd->log->Gtse_new, scgd->log->comp, scgd->log->pnorm, scgd->log->rnorm, scgd->log->dwnorm);
 
-	if success=true,
-		sigma=sigma/p
-		newW=w+sigma*p
-		dE0=dEcalcG(W)
-		dE1=dEcalcG(newW)
-		s=(dE1-dE0)/sigma
-		delta=VdotV(p*s)
-
-	s=s+(lambda-lambdau)*p
-	delta=delta+(lambda-lambdau)*pnorm2
-
-	if delta<0
-		s=s+(lambda-2*delta/pnorm2)*p
-		lambdau=2*(lambda-delta/pnorm2)
-		delta=-delta+lambda*pnorm2
-		lambda=lambdau
-
-	mu=VdotV(p*r)
-	alpha=mu/delta
-
-	E0=EcalcG(W)
-	E1=EcalcG(W+alpha*p)
-	comp=(E0-
-	comp=
-	*/
 }
