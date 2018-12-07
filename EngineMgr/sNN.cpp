@@ -475,6 +475,10 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 		trainArgs->mseCnt=1;
 
 
+		//-- timing
+		epoch_starttime=timeGetTime();
+
+
 		//-- main algorithm
 		trainSCGD(trainArgs);
 
