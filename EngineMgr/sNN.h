@@ -93,6 +93,7 @@ private:
 	void ForwardPass(sDataSet* ds, int batchId, bool inferring);
 	//bool epochSummary(int epoch, DWORD starttime, bool displayProgress=true);
 	void showEpochStats(int e, DWORD eStart_);
+	void showEpochStatsG(int e, DWORD eStart_, bool success_, numtype rnorm_);
 
 	void BP_std();
 	void WU_std();

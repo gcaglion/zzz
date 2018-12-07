@@ -40,7 +40,6 @@ void sNN::setCommonLayout() {
 	levelFirstWeight=(int*)malloc((outputLevel)*sizeof(int));
 }
 
-
 void sNN::FF() {
 	for (int l=0; l<outputLevel; l++) {
 		int Ay=nodesCnt[l+1]/_batchSize;
@@ -343,12 +342,32 @@ void sNN::BackwardPass(sDataSet* ds, int batchId, bool updateWeights) {
 void sNN::showEpochStats(int e, DWORD eStart_) {
 	//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
 	char remainingTimeS[TIMER_ELAPSED_FORMAT_LEN];
-	
+
 	DWORD epochms=timeGetTime()-eStart_;
 	DWORD remainingms=(parms->MaxEpochs-e)*epochms;
 	SgetElapsed(remainingms, remainingTimeS);
 	//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
 	sprintf_s(dbg->msg, DBG_MSG_MAXLEN, "\rTestId %3d, Process %6d, Thread %6d, Epoch %6d/%6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms , remaining: %s", testid, pid, tid, e, parms->MaxEpochs, procArgs->mseT[e], procArgs->mseV[e], epochms, remainingTimeS);
+
+	if (dbg->dbgtoscreen) {
+		if (GUIreporter!=nullptr) {
+			(*GUIreporter)(20, dbg->msg);
+		} else {
+			gotoxy(0, procArgs->screenLine);
+			printf(dbg->msg);
+		}
+	}
+
+}
+void sNN::showEpochStatsG(int e, DWORD eStart_, bool success_, numtype rnorm_) {
+	//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
+	char remainingTimeS[TIMER_ELAPSED_FORMAT_LEN];
+
+	DWORD epochms=timeGetTime()-eStart_;
+	DWORD remainingms=(parms->SCGDmaxK-e)*epochms;
+	SgetElapsed(remainingms, remainingTimeS);
+	//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
+	sprintf_s(dbg->msg, DBG_MSG_MAXLEN, "\rTestId %3d, Process %6d, Thread %6d, Iteration %6d/%6d , rnorm=%6.10f, success=%s , duration=%d ms , remaining: %s", testid, pid, tid, e, parms->SCGDmaxK, rnorm_, (success_)?"TRUE":"FALSE", epochms, remainingTimeS);
 
 	if (dbg->dbgtoscreen) {
 		if (GUIreporter!=nullptr) {
@@ -455,8 +474,6 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 
 		trainArgs->mseCnt=1;
 
-		//-- timing
-		epoch_starttime=timeGetTime();
 
 		//-- main algorithm
 		trainSCGD(trainArgs);
@@ -627,6 +644,8 @@ void sNN::trainSCGD(sCoreProcArgs* trainArgs) {
 	numtype snorm;		// ====REMOVE===
 	numtype dE0norm;		// ====REMOVE===
 	numtype dE1norm;		// ====REMOVE===
+							//-- timing
+	DWORD kstart;
 
 	Alg->Vnorm(weightsCntTotal, W, &Wnorm);
 	//-- 1.1 calc GdJwd
@@ -641,6 +660,7 @@ void sNN::trainSCGD(sCoreProcArgs* trainArgs) {
 	int k=0;
 
 	do {
+		kstart=timeGetTime();
 		//-- calc pnorm
 		Alg->Vnorm(weightsCntTotal, scgd->p, &pnorm);
 
@@ -740,7 +760,8 @@ void sNN::trainSCGD(sCoreProcArgs* trainArgs) {
 		//-- recalc rnorm
 		Alg->Vnorm(weightsCntTotal, scgd->r, &rnorm);
 		//-- display progress
-		printf("\rProcess %6d, Thread %6d, Iteration %6d , success=%s, rnorm=%f", pid, tid, k, (success) ? "TRUE " : "FALSE", rnorm);
+		//printf("\rProcess %6d, Thread %6d, Iteration %6d , success=%s, rnorm=%f", pid, tid, k, (success) ? "TRUE " : "FALSE", rnorm);
+		showEpochStatsG(k, kstart, success, rnorm);
 		//-- save scgd->log
 		if (persistor->saveInternalsFlag) {
 			scgd->log->delta[k]=delta;
