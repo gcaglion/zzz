@@ -10,6 +10,17 @@
 
 	saveClient	= true
 
-	<!Persistor-Default.xml>
+		<Persistor>
+		readFrom		= OraData
+		saveToDB		= true
+		saveToFile		= false
+
+		<OraData>
+			UserName	= LogUser
+			Password	= LogPwd
+			ConnString	= Algo
+		</OraData>
+	</Persistor>
+
 
 </Client>
