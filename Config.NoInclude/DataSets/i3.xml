@@ -1,0 +1,44 @@
+<DataSet>
+	BatchSamplesCount	= 10
+	SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+	Dump 				= false
+	DumpPath			= c:\temp\DataDump
+	<TimeSerie>
+		Date0				= 2017-02-01-00:00
+		HistoryLen			= 400
+		DataTransformation	= DT_DELTA
+		Dump				= false
+		DumpPath			= c:\temp\DataDump
+		<FXDB_DataSource>
+			Symbol				= EURUSD
+			TimeFrame			= H1
+			IsFilled			= false
+			<DBConnection>
+				UserName	= History
+				Password	= HistoryPwd
+				ConnString	= Algo
+			</DBConnection>
+		</FXDB_DataSource>
+	</TimeSerie>
+	<Persistor>
+		saveMSE			= true
+		saveRun			= true
+		saveInternals	= false
+		saveImage		= true
+		readFrom		= OraData
+		saveToDB		= true
+		saveToFile		= false
+		<OraData>
+			UserName	= LogUser
+			Password	= LogPwd
+			ConnString	= Algo
+		</OraData>
+		<FileData>
+			Client		= c:\temp\logs\Persistor\Client.log
+			MSE			= c:\temp\logs\Persistor\MSE.log
+			Run			= c:\temp\logs\Persistor\Run.log
+			Internals	= c:\temp\logs\Persistor\Internals.log
+			Image		= c:\temp\logs\Persistor\Image.log
+		</FileData>
+	</Persistor>
+</DataSet>
