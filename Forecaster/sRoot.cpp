@@ -33,24 +33,24 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		getFullPath(engineXMLfile_, engineffname);
 
 		//-- 1. load separate sCfg* for client, dataShape, trainDataset, Engine
-		sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
-		sCfg* shapeCfg; safespawn(shapeCfg, newsname("shapeCfg"), defaultdbg, shapeffname);
-		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), defaultdbg, trainffname);
-		sCfg* engCfg; safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineffname);
+		sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), erronlydbg, clientffname);
+		sCfg* shapeCfg; safespawn(shapeCfg, newsname("shapeCfg"), erronlydbg, shapeffname);
+		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), erronlydbg, trainffname);
+		sCfg* engCfg; safespawn(engCfg, newsname("engineCfg"), erronlydbg, engineffname);
 
 		//-- 2. spawn DataShape
-		safespawn(shape, newsname("TrainDataShape"), defaultdbg, shapeCfg, "/DataShape");
+		safespawn(shape, newsname("TrainDataShape"), erronlydbg, shapeCfg, "/DataShape");
 		//-- 3. spawn Train DataSet and its persistor
-		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/DataSet", shape->sampleLen, shape->predictionLen);
-		safespawn(trainLog, newsname("TrainLogger"), defaultdbg, trainCfg, "/DataSet/Persistor");
+		safespawn(trainDS, newsname("TrainDataSet"), erronlydbg, trainCfg, "/DataSet", shape->sampleLen, shape->predictionLen);
+		safespawn(trainLog, newsname("TrainLogger"), erronlydbg, trainCfg, "/DataSet/Persistor");
 		//-- 4. spawn engine the standard way
-		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", shape->sampleLen*trainDS->selectedFeaturesCnt, shape->predictionLen*trainDS->selectedFeaturesCnt);
+		safespawn(engine, newsname("TrainEngine"), erronlydbg, engCfg, "/Engine", shape->sampleLen*trainDS->selectedFeaturesCnt, shape->predictionLen*trainDS->selectedFeaturesCnt);
 
 		//-- 5. create client persistor, if needed
 		bool saveClient;
 		safecall(clientCfg, setKey, "/Client");
 		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
-		safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
+		safespawn(clientLog, newsname("ClientLogger"), erronlydbg, clientCfg, "Persistor");
 
 		//-- training cycle core
 		timer->start();
@@ -220,7 +220,99 @@ void sRoot::getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates){
 }
 
 //-- temp stuff
+
+#include "../CUDAwrapper/CUDAwrapper.h"
+
 void sRoot::kaz() {
+
+
+	sAlgebra* Alg=new sAlgebra(this, newsname("Alg1"), defaultdbg, nullptr);
+
+	int vlen=5;
+	numtype* v1d; Alg->myMalloc(&v1d, vlen);
+	numtype* v2d; Alg->myMalloc(&v2d, vlen);
+	numtype* v3d; Alg->myMalloc(&v3d, 1);
+	numtype* v4d; Alg->myMalloc(&v4d, vlen);
+	//--
+	numtype* v1h=(numtype*)malloc(vlen*sizeof(numtype));
+	numtype* v2h=(numtype*)malloc(vlen*sizeof(numtype));
+	numtype* v3h=(numtype*)malloc(1*sizeof(numtype));
+	numtype* v4h=(numtype*)malloc(vlen*sizeof(numtype));
+	//--
+	Alg->Vinit(vlen, v1d, (numtype)(vlen/2), (numtype)1);
+	Alg->Vinit(vlen, v2d, (numtype)(vlen/2), (numtype)-1);
+	Alg->Vinit(vlen, v4d, (numtype)(vlen/2), (numtype)-1);
+	//--
+	Alg->d2h(v1h, v1d, vlen*sizeof(numtype), false);
+	Alg->d2h(v2h, v2d, vlen*sizeof(numtype), false);
+	Alg->d2h(v4h, v4d, vlen*sizeof(numtype), false);
+	//--
+
+	//--------------- Vssum ---------------
+	Vssum_cu(Alg->cublasH, vlen, v1d, v3h);
+	printf("Vssum(v1)-GPU = %f\n", (*v3h));
+	(*v3h)=0;
+	for (int i=0; i<vlen; i++) (*v3h)+=v1h[i]*v1h[i];
+	printf("Vssum(v1)-CPU = %f\n", (*v3h));
+	//-------------------------------------
+
+	//--------------- Vnorm --------------
+	Vnorm_cu(Alg->cublasH, vlen, v1d, v3h);
+	printf("Vsnorm(v1)-GPU = %f\n", (*v3h));
+	(*v3h)=0;
+	for (int i=0; i<vlen; i++) (*v3h)+=v1h[i]*v1h[i];
+	(*v3h)=sqrt(*v3h);
+	printf("Vsnorm(v1)-CPU = %f\n", (*v3h));
+	//-------------------------------------
+	system("pause");
+	return;
+
+	//---------------- Vadd with scale (v1*1.2 + v2*-0.5 = v4), followed by Vnorm ----------
+	Vadd_cu(vlen, v1d, 1.2, v2d, -0.5, v4d);
+	Vnorm_cu(Alg->cublasH, vlen, v4d, v3h);
+	printf("Vadd(v1*1.2+v2*-0.5)-GPU = %f\n", (*v3h));
+
+	for (int i=0; i<vlen; i++) v4h[i]=v1h[i]*1.2-v2h[i]*0.5;
+	(*v3h)=0;
+	for (int i=0; i<vlen; i++) (*v3h)+=v4h[i]*v4h[i];
+	(*v3h)=sqrt((*v3h));
+	printf("Vadd(v1*1.2+v2*-0.5)-CPU = %f\n", (*v3h));
+	//---------------------------------------------------------------------------------------
+
+	system("pause");
+	return;
+
+	//------------------------------------------------------
+	Vscale_cu(vlen, v1d, 0.1);
+	for (int i=0; i<vlen; i++) v1h[i]=v1h[i]*0.1;
+	//------------------------------------------------------
+
+
+	//------------------------------------------------------
+	Vnorm_cu(Alg->cublasH, vlen, v1d, v3h);
+	//------------------------------------------------------
+	printf("Vnorm(v1)-GPU = %f\n", (*v3h));
+
+	(*v3h)=0;
+	//------------------------------------------------------
+	for (int i=0; i<vlen; i++) (*v3h)+=v1h[i]*v1h[i];
+	(*v3h)=sqrt((*v3h));
+	//------------------------------------------------------
+	printf("Vnorm(v1)-CPU = %f\n", (*v3h));
+
+
+	//------------------------------------------------------
+	VdotV_cu(Alg->cublasH, vlen, v1d, v2d, v3h);
+	//------------------------------------------------------
+	printf("Vdotv(v1,v2)-GPU = %f\n", (*v3h));
+
+	(*v3h)=0;
+	//------------------------------------------------------
+	for (int i = 0; i < vlen; i++) (*v3h) += v1h[i]*v2h[i];
+	printf("Vdotv(v1,v2)-CPU = %f\n", (*v3h));
+
+	system("pause");
+
 
 /*
 //	sCfg* ds2Cfg=new sCfg(this, newsname("ds2Cfg"), defaultdbg, "Config/Light/Infer.xml");

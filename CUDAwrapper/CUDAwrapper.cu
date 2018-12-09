@@ -231,28 +231,6 @@ EXPORT bool MbyM_cu(void* cublasH, int Ay, int Ax, numtype Ascale, bool Atr, num
 	return true;
 }
 
-__global__ void VdotV_ker(int n, float x[], float y[], float z[]) {
-	/* Use tmp to store products of vector components in each block */
-	/* Can't use variable dimension here                            */
-	__shared__ float tmp[CUDA_BLOCK_SIZE];
-	int t = blockDim.x * blockIdx.x+threadIdx.x;
-	int loc_t = threadIdx.x;
-
-	if (t < n) tmp[loc_t] = x[t]*y[t];
-	__syncthreads();
-
-	/* This uses a tree structure to do the addtions */
-	for (int stride = blockDim.x/2; stride > 0; stride /= 2) {
-		if (loc_t < stride)
-			tmp[loc_t] += tmp[loc_t+stride];
-		__syncthreads();
-	}
-
-	/* Store the result from this cache block in z[blockIdx.x] */
-	if (threadIdx.x==0) {
-		z[blockIdx.x] = tmp[0];
-	}
-}  /* Dev_dot */
 __global__ void cuSadd(const numtype* s1, const numtype* s2, numtype* ssum) {
 	ssum[0]=s1[0]+s2[0];
 }
@@ -380,16 +358,6 @@ EXPORT bool Vadd_cu(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype 
 
 	return((cudaGetLastError()==cudaSuccess));
 }
-EXPORT bool Vdiff_cu(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov) {
-	dim3 gridDim;
-	dim3 blockDim;
-	blockDim.x = CUDA_BLOCK_SIZE;
-	gridDim.x = (vlen+blockDim.x-1)/blockDim.x;
-
-	cuVminusV_ker<<< gridDim, blockDim>>> (vlen, v1, scale1, v2, scale2, ov);
-
-	return((cudaGetLastError()==cudaSuccess));
-}
 EXPORT bool Vsum_cu(int vlen, numtype* v, numtype* ovsum, numtype* ss_d) {
 	dim3 gridDim;
 	dim3 blockDim;
@@ -402,37 +370,26 @@ EXPORT bool Vsum_cu(int vlen, numtype* v, numtype* ovsum, numtype* ss_d) {
 
 	return ((cudaGetLastError()==cudaSuccess));
 }
-EXPORT bool VdotV_cu(int vlen, numtype* v1, numtype* v2, numtype* ovdotv) {
-	dim3 gridDim;
-	dim3 blockDim;
-	blockDim.x = CUDA_BLOCK_SIZE;
-	gridDim.x = (vlen+blockDim.x-1)/blockDim.x;
 
-	VdotV_ker<<< gridDim, blockDim>>> (vlen, v1, v2, ovdotv);
-
-	return ((cudaGetLastError()==cudaSuccess));
+EXPORT bool Vssum_cu(void* cublasH, int vlen, numtype* v, numtype* oVnorm) {
+	if (Vnorm_cu(cublasH, vlen, v, oVnorm)) {
+		(*oVnorm)=((*oVnorm)*(*oVnorm));
+		return true;
+	} else {
+		return false;
+	}
 }
-EXPORT bool Vssum_cu(int vlen, numtype* v, numtype* ovssum) {
-	dim3 gridDim;
-	dim3 blockDim;
-	blockDim.x = CUDA_BLOCK_SIZE;
-	gridDim.x = (vlen+blockDim.x-1)/blockDim.x;
-
-	cuVssum_ker<<< gridDim, blockDim>>> (vlen, v, ovssum);
-
-	return ((cudaGetLastError()==cudaSuccess));
+EXPORT bool Vnorm_cu(void* cublasH, int Vlen, numtype* V,  numtype* oVssum) {
+	cublasStatus_t cur=cublasSnrm2((*(cublasHandle_t*)cublasH), Vlen, V, 1, oVssum);
+	if (cur!=CUBLAS_STATUS_SUCCESS) { printf("error code %d, line(%d)\n", cur, __LINE__); return false; }
+	return true;
 }
-EXPORT bool Vssum_cu_cublas(void* cublasH, int Vlen, numtype* V, numtype* oVssum, numtype* ss_d) {
-	if (cublasSnrm2((*(cublasHandle_t*)cublasH), Vlen, V, 1, oVssum)!=CUBLAS_STATUS_SUCCESS) return false;
-	(*oVssum)=(*oVssum)*(*oVssum);
+EXPORT bool VdotV_cu(void* cublasH, int vlen, numtype* v1, numtype* v2, numtype* oVdotV){
+	cublasStatus_t cur=cublasSdot((*(cublasHandle_t*)cublasH), vlen, v1, 1, v2, 1, oVdotV);
+	if (cur!=CUBLAS_STATUS_SUCCESS) { printf("error code %d, line(%d)\n", cur, __LINE__); return false; }
 	return true;
 }
 
-EXPORT bool Vnorm_cu(void* cublasH, int Vlen, numtype* V,  numtype* oVnorm, numtype* ss_d) {
-	if (cublasSnrm2((*(cublasHandle_t*)cublasH), Vlen, V, 1, oVnorm)!=CUBLAS_STATUS_SUCCESS) return false;
-	if (cudaMemcpy(oVnorm, ss_d, sizeof(numtype), cudaMemcpyDeviceToHost)!=cudaSuccess) return false;
-	return true;
-}
 EXPORT bool Vinit_cu(int vlen, numtype* v, numtype start, numtype inc) {
 	dim3 gridDim;
 	dim3 blockDim;

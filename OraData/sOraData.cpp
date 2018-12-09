@@ -409,6 +409,7 @@ void sOraData::saveCoreSOMparms(int pid, int tid, int p1, numtype p2) {
 void sOraData::saveCoreDUMBparms(int pid, int tid, int p1, numtype p2) {
 	fail("Not implemented.");
 }
+//--
 void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, numtype* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_) {
 
 	//-- always check this, first!
@@ -457,6 +458,42 @@ void sOraData::loadCoreSOMparms(int pid, int tid, int* p1, numtype* p2) {
 }
 void sOraData::loadCoreDUMBparms(int pid, int tid, int* p1, numtype* p2) {
 	fail("Not implemented.");
+}
+
+//-- Save Core<XXX>Internals
+void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, numtype* delta_, numtype* mu_, numtype* alpha_, numtype* beta_, numtype* lambda_, numtype* lambdau_, numtype* Gtse_old_, numtype* Gtse_new_, numtype* comp_, numtype* pnorm_, numtype* rnorm_, numtype* dwnorm_) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	try {
+		stmt = ((Connection*)conn)->createStatement("insert into CoreNNInternalsSCGD(ProcessId, ThreadId, Iteration, delta, mu, alpha, beta, lambda, lambdau, Gtse_old, Gtse_new, comp, pnorm, rnorm, dW) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15)");
+		((Statement*)stmt)->setMaxIterations(iterationsCnt_);
+		for (int i=0; i<iterationsCnt_; i++) {
+			((Statement*)stmt)->setInt(1, pid_);
+			((Statement*)stmt)->setInt(2, tid_);
+			((Statement*)stmt)->setInt(3, i);
+			((Statement*)stmt)->setFloat(4, delta_[i]);
+			((Statement*)stmt)->setFloat(5, mu_[i]);
+			((Statement*)stmt)->setFloat(6, alpha_[i]);
+			((Statement*)stmt)->setFloat(7, beta_[i]);
+			((Statement*)stmt)->setFloat(8, lambda_[i]);
+			((Statement*)stmt)->setFloat(9, lambdau_[i]);
+			((Statement*)stmt)->setFloat(10, Gtse_old_[i]);
+			((Statement*)stmt)->setFloat(11, Gtse_new_[i]);
+			((Statement*)stmt)->setFloat(12, comp_[i]);
+			((Statement*)stmt)->setFloat(13, pnorm_[i]);
+			((Statement*)stmt)->setFloat(14, rnorm_[i]);
+			((Statement*)stmt)->setFloat(15, dwnorm_[i]);
+			if (i<(iterationsCnt_-1)) ((Statement*)stmt)->addIteration();
+		}
+		((Statement*)stmt)->executeUpdate();
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
 }
 
 //-- Save/Load engine info

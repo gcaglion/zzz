@@ -1,0 +1,4 @@
+<DataShape>
+	SampleLen		= 50
+	PredictionLen	= 1
+</DataShape>

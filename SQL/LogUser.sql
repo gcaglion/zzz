@@ -100,7 +100,7 @@ create table CoreNNparms(
 	CoreId number,
 	LevelRatioS varchar2(64),
 	LevelActivationS varchar2(1024),
-	UseContext	number,
+	UseContext number,
 	UseBias number,
 	--
 	MaxEpochs number,
@@ -114,4 +114,23 @@ create table CoreNNparms(
 );
 alter table CoreNNparms add constraint CoreNNparms_PK primary key(ProcessId, ThreadId) using index tablespace LogIdx;
 
+drop table CoreNNInternalsSCGD purge;
+create table CoreNNInternalsSCGD(
+	ProcessId number,
+	ThreadId number,
+	Iteration number, 
+	delta number,
+	mu number,
+	alpha number,
+	beta number,
+	lambda number,
+	lambdau number,
+	Gtse_old number,
+	Gtse_new number,
+	comp number,
+	pnorm number,
+	rnorm number,
+	dW number
+);
+alter table CoreNNInternalsSCGD add constraint CoreNNInternalsSCGD_PK primary key(ProcessId, ThreadId, Iteration) using index tablespace LogIdx;
 

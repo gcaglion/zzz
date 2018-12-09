@@ -144,3 +144,8 @@ void sLogger::loadCoreSVMparms(int pid, int tid, int p1, int p2) {
 void sLogger::loadCoreDUMBparms(int pid, int tid, int p1, int p2) {
 	fail("Not implemented.");
 }
+//--
+void sLogger::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, numtype* delta_, numtype* mu_, numtype* alpha_, numtype* beta_, numtype* lambda_, numtype* lambdau_, numtype* Gtse_old_, numtype* Gtse_new_, numtype* comp_, numtype* pnorm_, numtype* rnorm_, numtype* dwnorm_){
+	if (saveToDB) safecall(oradb, saveCoreNNInternalsSCGD, pid_, tid_, iterationsCnt_, delta_, mu_, alpha_, beta_, lambda_, lambdau_, Gtse_old_, Gtse_new_, comp_, pnorm_, rnorm_, dwnorm_);
+	if (saveToFile) safecall(filedb, saveCoreNNInternalsSCGD, pid_, tid_, iterationsCnt_, delta_, mu_, alpha_, beta_, lambda_, lambdau_, Gtse_old_, Gtse_new_, comp_, pnorm_, rnorm_, dwnorm_);
+}

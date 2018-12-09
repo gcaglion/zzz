@@ -15,7 +15,7 @@ sAlgebra::sAlgebra(sObjParmsDef) : sObj(sObjParmsVal) {
 	CUWsafecall(initCUstreams, cuStream);
 #endif
 	//-- init shared scalar
-	safecall(this, myMalloc, &ss, 1);
+	myMalloc(&ss, 1);
 }
 sAlgebra::~sAlgebra() {
 	myFree(ss);
@@ -139,14 +139,6 @@ bool sAlgebra::VbyV2V(int Vlen, numtype* V1, numtype* V2, numtype* oV) {
 	return true;
 #endif
 }
-bool sAlgebra::Vdiff(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov) {
-#ifdef USE_GPU
-	return (Vdiff_cu(vlen, v1, scale1, v2, scale2, ov));
-#else
-	for (int i=0; i<vlen; i++) ov[i]=v1[i]*scale1-v2[i]*scale2;
-	return true;
-#endif
-}
 bool sAlgebra::Vadd(int vlen, numtype* v1, numtype scale1, numtype* v2, numtype scale2, numtype* ov) {
 #ifdef USE_GPU
 	return (Vadd_cu(vlen, v1, scale1, v2, scale2, ov));
@@ -168,19 +160,19 @@ bool sAlgebra::Vscale(int vlen, numtype* v1, numtype scale, numtype* ov) {
 	if (!Vcopy_cu(vlen, v1, ov)) return false;
 	return(Vscale_cu(vlen, ov, scale));
 #else
-	for (int i=0; i<vlen; i++) v1[i]=v1[i]*scale;
+	for (int i=0; i<vlen; i++) ov[i]=v1[i]*scale;
 	return true;
 #endif
 }
-bool sAlgebra::VdotV(int vlen, numtype* v1, numtype* v2, numtype* ovdotv) {
+
+void sAlgebra::VdotV(int vlen, numtype* v1, numtype* v2, numtype* ohvdotv) {
+	(*ohvdotv)=0;
 #ifdef USE_GPU
-	return(VdotV_cu(vlen, v1, v2, ovdotv));
+	if (!VdotV_cu(cublasH, vlen, v1, v2, ohvdotv)) fail("salkaz!");
 #else
-	//== TO DO !!!!!! ==========
-	return false;
+	for (int i = 0; i < vlen; i++) (*ohvdotv) += v1[i]*v2[i];
 #endif
 }
-
 
 //-- Activation Functions
 bool sAlgebra::Tanh(int Vlen, numtype* in, numtype* out) {
@@ -252,7 +244,7 @@ bool sAlgebra::dSoftPlus(int Vlen, numtype* in, numtype* out) {
 bool sAlgebra::Vssum(int vlen, numtype* v, numtype* ovssum) {
 	//-- if using GPU, the sum scalar also resides in GPU
 #ifdef USE_GPU
-	return(Vssum_cu(vlen, v, ovssum));
+	return(Vssum_cu(cublasH, vlen, v, ovssum));
 #else
 	(*ovssum)=0;
 	for (int i=0; i<vlen; i++) (*ovssum)+=v[i]*v[i];
@@ -260,13 +252,12 @@ bool sAlgebra::Vssum(int vlen, numtype* v, numtype* ovssum) {
 #endif
 }
 bool sAlgebra::Vnorm(int vlen, numtype* v, numtype* ovnorm) {
-	//-- if using GPU, the sum scalar also resides in GPU
 #ifdef USE_GPU
-	return(Vnorm_cu(cublasH, vlen, v, ovnorm, ss));
+	return(Vnorm_cu(cublasH, vlen, v, ovnorm));
 #else
 	numtype vssum=0;
 	for (int i=0; i<vlen; i++) vssum+=v[i]*v[i];
-	(*ovnorm)=vssum/vlen;
+	(*ovnorm)=sqrt(vssum);
 	return true;
 #endif
 }
@@ -328,5 +319,30 @@ EXPORT void CUWd2h_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStr
 	d2h_cu(destAddr, srcAddr, size, cuStream);
 #else
 	memcpy_s(destAddr, size, srcAddr, size);
+#endif
+}
+
+
+//-- read/write mem<->file
+EXPORT bool dumpArray(int vlen, numtype* v, const char* fname) {
+#ifdef USE_GPU
+	return(dumpArray_cu(vlen, v, fname));
+#else
+	FILE* f=fopen(fname, "w");
+	if (f==nullptr) return false;
+	for (int i=0; i<vlen; i++) fprintf(f, "%f\n", v[i]);
+	fclose(f);
+	return true;
+#endif
+}
+EXPORT bool loadArray(int vlen, numtype* v, const char* fname) {
+#ifdef USE_GPU
+	return(loadArray_cu(vlen, v, fname));
+#else
+	FILE* f=fopen(fname, "r");
+	if (f==nullptr) return false;
+	for (int i=0; i<vlen; i++) fscanf_s(f, "%f", &v[i]);
+	fclose(f);
+	return true;
 #endif
 }

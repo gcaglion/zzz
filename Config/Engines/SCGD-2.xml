@@ -20,15 +20,15 @@
 					UseBias				= false
 				</Topology>
 				<Training>
-					MaxEpochs			= 200
+					MaxEpochs			= 300
 					TargetMSE			= 0.0001
 					NetSaveFrequency	= 10
 					StopOnDivergence	= false
-					BP_Algo				= BP_STD
+					BP_Algo				= BP_SCGD
 					<BP_Std>
-						LearningRate		= 0.002
-						LearningMomentum	= 0.8
 					</BP_Std>
+					<BP_Scgd>
+					</BP_Scgd>
 					<BP_Qing>
 					</BP_Qing>
 					<BP_Qprop>
@@ -38,7 +38,22 @@
 				</Training>
 			</Parameters>
 			
-			<! CorePersistor-Default.xml >
+			<Persistor>
+				saveMSE			= true
+				saveRun			= true
+				#
+				saveInternals	= true
+				#
+				saveImage		= true
+				readFrom		= OraData
+				saveToDB		= true
+				saveToFile		= false
+				<OraData>
+					UserName	= LogUser
+					Password	= LogPwd
+					ConnString	= Algo
+				</OraData>
+			</Persistor>
 	
 		</Core0>
 	</Custom>
