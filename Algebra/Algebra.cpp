@@ -168,7 +168,7 @@ bool sAlgebra::Vscale(int vlen, numtype* v1, numtype scale, numtype* ov) {
 	if (!Vcopy_cu(vlen, v1, ov)) return false;
 	return(Vscale_cu(vlen, ov, scale));
 #else
-	for (int i=0; i<vlen; i++) v[i]=v[i]*scale;
+	for (int i=0; i<vlen; i++) v1[i]=v1[i]*scale;
 	return true;
 #endif
 }
