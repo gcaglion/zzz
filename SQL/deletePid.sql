@@ -1,11 +1,11 @@
 set verify on
 undefine pid
-delete from CLIENTINFO where processid=&&pid;
-delete from COREIMAGE_NN where processid=&&pid;
-delete from CORELAYOUTS where processid=&&pid;
-delete from ENGINECORES where processid=&&pid;
-delete from ENGINES where processid=&&pid;
-delete from RUNLOG where processid=&&pid;
-delete from TRAINLOG where processid=&&pid;
-delete from CORELOGGERPARMS where processid=&&pid;
-delete from CORENNPARMS where processid=&&pid;
+delete from CLIENTINFO where processid in(&&pid);
+delete from COREIMAGE_NN where processid in(&&pid);
+delete from CORELAYOUTS where processid in(&&pid);
+delete from ENGINECORES where enginepid in(&&pid);
+delete from ENGINES where processid in(&&pid);
+delete from RUNLOG where processid in(&&pid);
+delete from TRAINLOG where processid in(&&pid);
+delete from CORELOGGERPARMS where processid in(&&pid);
+delete from CORENNPARMS where processid in(&&pid);
