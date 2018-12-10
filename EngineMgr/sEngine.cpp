@@ -1,11 +1,11 @@
 #include "sEngine.h"
 
 //-- Engine stuff
-sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersistor_, int loadingPid) : sCfgObj(sCfgObjParmsVal) {
+sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersistor_, int clientPid_, int loadingPid_) : sCfgObj(sCfgObjParmsVal) {
 
 	inputCnt=inputCnt_; outputCnt=outputCnt_;
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
-	pid=GetCurrentProcessId();
+	clientPid=clientPid_;
 
 	//-- 0. mallocs
 	int* coreId=new int(MAX_ENGINE_CORES);
@@ -19,8 +19,8 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPe
 	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
 
 	//-- 2. load info from FROM persistor
-	safecall(fromPersistor_, loadEngineInfo, loadingPid, &type, &coresCnt, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType);
-	if (coresCnt==0) fail("Engine pid %d not found.", loadingPid);
+	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType);
+	if (coresCnt==0) fail("Engine pid %d not found.", loadingPid_);
 
 	//-- 3. malloc one core, one coreLayout and one coreParms for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
@@ -35,7 +35,7 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPe
 	setLayerProps();
 
 	//-- spawn cores
-	safecall(this, spawnCoresFromDB, loadingPid);
+	safecall(this, spawnCoresFromDB, loadingPid_);
 
 	//-- free(s)
 	for (int i=0; i<MAX_ENGINE_CORES; i++) {
@@ -43,11 +43,11 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPe
 	}
 	free(coreParent); free(coreParentConnType); free(coreParentsCnt); free(coreType); free(coreThreadId); free(coreId);
 }
-sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgObjParmsVal) {
+sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int clientPid_) : sCfgObj(sCfgObjParmsVal) {
 
 	inputCnt=inputCnt_; outputCnt=outputCnt_;
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
-	pid=GetCurrentProcessId();
+	clientPid=clientPid_;
 
 	//-- engine-level persistor
 	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
@@ -256,7 +256,7 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_, int savedEnginePi
 		}	
 		//--
 
-		gotoxy(0, 2+l+((l>0) ? layerCoresCnt[l-1] : 0));  printf("Process %6d, %s Layer %d\n", pid, ((procid_==trainProc)?"Training":"Inferencing"), l);
+		gotoxy(0, 2+l+((l>0) ? layerCoresCnt[l-1] : 0));  printf("Process %6d, %s Layer %d\n", clientPid, ((procid_==trainProc)?"Training":"Inferencing"), l);
 		t=0;
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
@@ -287,7 +287,7 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_, int savedEnginePi
 				}
 
 				//-- Store Engine Handler
-				procArgs[t]->coreProcArgs->pid = pid;
+				procArgs[t]->coreProcArgs->pid = clientPid;
 				procArgs[t]->coreProcArgs->tid=(*tid[t]);
 				procArgs[t]->coreProcArgs->testid=testid_;
 
@@ -384,11 +384,11 @@ void sEngine::saveInfo() {
 			parentConnType_[c][p]=core[c]->layout->parentConnType[p];
 		}
 		//-- for each core, save core Parameters
-		safecall(core[c]->parms, save, persistor, pid, coreThreadId_[c]);
+		safecall(core[c]->parms, save, persistor, clientPid, coreThreadId_[c]);
 	}
 
 	//-- actual call
-	safecall(persistor, saveEngineInfo, pid, type, coresCnt, coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_);
+	safecall(persistor, saveEngineInfo, clientPid, type, coresCnt, coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_);
 
 	//-- free temps
 	for (int c=0; c<coresCnt; c++) {

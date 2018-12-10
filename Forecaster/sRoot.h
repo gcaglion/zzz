@@ -44,6 +44,7 @@ private:
 	//-- functions
 	void mallocSimulationDates(sCfg* clientCfg, int* simLen, char*** simTrainStart, char*** simInferStart, char*** simValidStart);
 	void getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates);
+	void getSafePid(sLogger* persistor, int* pid);
 
 };
 

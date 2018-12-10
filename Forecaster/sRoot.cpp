@@ -38,19 +38,22 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), erronlydbg, trainffname);
 		sCfg* engCfg; safespawn(engCfg, newsname("engineCfg"), erronlydbg, engineffname);
 
+		//-- 5. create client persistor, if needed
+		bool saveClient;
+		safecall(clientCfg, setKey, "/Client");
+		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
+		safespawn(clientLog, newsname("ClientLogger"), erronlydbg, clientCfg, "Persistor");
+
+		//-- check for possible duplicate pid in db (through client persistor), and change it
+		safecall(this, getSafePid, clientLog, &pid);
+
 		//-- 2. spawn DataShape
 		safespawn(shape, newsname("TrainDataShape"), erronlydbg, shapeCfg, "/DataShape");
 		//-- 3. spawn Train DataSet and its persistor
 		safespawn(trainDS, newsname("TrainDataSet"), erronlydbg, trainCfg, "/DataSet", shape->sampleLen, shape->predictionLen);
 		safespawn(trainLog, newsname("TrainLogger"), erronlydbg, trainCfg, "/DataSet/Persistor");
 		//-- 4. spawn engine the standard way
-		safespawn(engine, newsname("TrainEngine"), erronlydbg, engCfg, "/Engine", shape->sampleLen*trainDS->selectedFeaturesCnt, shape->predictionLen*trainDS->selectedFeaturesCnt);
-
-		//-- 5. create client persistor, if needed
-		bool saveClient;
-		safecall(clientCfg, setKey, "/Client");
-		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
-		safespawn(clientLog, newsname("ClientLogger"), erronlydbg, clientCfg, "Persistor");
+		safespawn(engine, newsname("TrainEngine"), erronlydbg, engCfg, "/Engine", shape->sampleLen*trainDS->selectedFeaturesCnt, shape->predictionLen*trainDS->selectedFeaturesCnt, pid);
 
 		//-- training cycle core
 		timer->start();
@@ -109,6 +112,15 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		sCfg* inferCfg; safespawn(inferCfg, newsname("inferCfg"), defaultdbg, inferffname);
 		sCfg* engCfg; safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineffname);
 
+		//-- 5.1 create client persistor, if needed
+		bool saveClient;
+		safecall(clientCfg, setKey, "/Client");
+		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
+		safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
+
+		//-- check for possible duplicate pid in db (through client persistor), and change it
+		safecall(this, getSafePid, clientLog, &pid);
+
 		//-- 2. spawn DataShape
 		safespawn(shape, newsname("inferDataShape"), defaultdbg, shapeCfg, "/DataShape");
 		//-- 3. spawn infer DataSet and its persistor
@@ -117,13 +129,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- root-level persistor. this is used, among other things, to spawn engine by pid
 		safespawn(engLog, newsname("ForecasterPersistor"), defaultdbg, engCfg, "/Engine/Persistor");
 		//-- spawn engine from savedEnginePid_ with pid
-		safespawn(engine, newsname("Engine"), defaultdbg, engCfg, "/Engine", shape->sampleLen*inferDS->selectedFeaturesCnt, shape->predictionLen*inferDS->selectedFeaturesCnt, engLog, savedEnginePid_);
-
-		//-- 5.1 create client persistor, if needed
-		bool saveClient;
-		safecall(clientCfg, setKey, "/Client");
-		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
-		safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
+		safespawn(engine, newsname("Engine"), defaultdbg, engCfg, "/Engine", shape->sampleLen*inferDS->selectedFeaturesCnt, shape->predictionLen*inferDS->selectedFeaturesCnt, engLog, pid, savedEnginePid_);
 
 		//-- core infer cycle
 		timer->start();
@@ -150,8 +156,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 }
 void sRoot::bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr) {
 	safecall(this, trainClient, simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, progressPtr);
-	int trainingPid=GetCurrentProcessId();
-	safecall(this, inferClient, simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, trainingPid, progressPtr);
+	safecall(this, inferClient, simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, pid, progressPtr);
 }
 
 void sRoot::mallocSimulationDates(sCfg* clientCfg_, int* simLen, char*** simTrainStart, char*** simInferStart, char*** simValidStart) {
@@ -218,6 +223,15 @@ void sRoot::getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates){
 		break;
 	}
 }
+void sRoot::getSafePid(sLogger* persistor, int* pid) {
+	//-- look for pid in ClientInfo. if found, reduce by 1 until we find an unused pid
+	bool found;
+	do {
+		safecall(persistor, findPid, (*pid), &found);
+		if (found) (*pid)--;
+	} while (found);
+
+}
 
 //-- temp stuff
 
@@ -268,11 +282,11 @@ void sRoot::kaz() {
 	return;
 
 	//---------------- Vadd with scale (v1*1.2 + v2*-0.5 = v4), followed by Vnorm ----------
-	Vadd_cu(vlen, v1d, 1.2, v2d, -0.5, v4d);
+	Vadd_cu(vlen, v1d, 1.2f, v2d, -0.5f, v4d);
 	Vnorm_cu(Alg->cublasH, vlen, v4d, v3h);
 	printf("Vadd(v1*1.2+v2*-0.5)-GPU = %f\n", (*v3h));
 
-	for (int i=0; i<vlen; i++) v4h[i]=v1h[i]*1.2-v2h[i]*0.5;
+	for (int i=0; i<vlen; i++) v4h[i]=v1h[i]*1.2f-v2h[i]*0.5f;
 	(*v3h)=0;
 	for (int i=0; i<vlen; i++) (*v3h)+=v4h[i]*v4h[i];
 	(*v3h)=sqrt((*v3h));
@@ -283,8 +297,8 @@ void sRoot::kaz() {
 	return;
 
 	//------------------------------------------------------
-	Vscale_cu(vlen, v1d, 0.1);
-	for (int i=0; i<vlen; i++) v1h[i]=v1h[i]*0.1;
+	Vscale_cu(vlen, v1d, 0.1f);
+	for (int i=0; i<vlen; i++) v1h[i]=v1h[i]*0.1f;
 	//------------------------------------------------------
 
 

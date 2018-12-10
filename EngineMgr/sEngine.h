@@ -29,9 +29,9 @@ struct sEngine : sCfgObj {
 
 	sLogger* persistor;
 
-	EXPORT sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_);
+	EXPORT sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int clientPid_);
 	EXPORT ~sEngine();
-	EXPORT sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersistor_, int loadingPid);
+	EXPORT sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersistor_, int clientPid_, int loadingPid_);
 
 	EXPORT void train(int testid_, sDataSet* trainDS_);
 	EXPORT void infer(int testid_, sDataSet* inferDS_, int savedEnginePid_);
@@ -45,7 +45,7 @@ struct sEngine : sCfgObj {
 	EXPORT void commit();
 
 private:
-	int pid;
+	int clientPid;
 	sNN* NNc; sGA* GAc; sSVM* SVMc; sSOM* SOMc; sDUMB* DUMBc;
 	sNNparms* NNcp; sGAparms* GAcp; sSVMparms* SVMcp; sSOMparms* SOMcp; sDUMBparms* DUMBcp;
 	void spawnCoresFromXML();

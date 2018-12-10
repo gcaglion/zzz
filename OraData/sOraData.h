@@ -25,6 +25,7 @@ struct sOraData : sCfgObj {
 	EXPORT void close();
 	EXPORT void commit();
 	//--
+	EXPORT void findPid(int pid_, bool* found_);
 	EXPORT void saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doInfer, const char* clientXMLfile_, const char* shapeXMLfile_, const char* actionXMLfile_, const char* engineXMLfile_);
 	//--
 	EXPORT void saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV);

@@ -246,6 +246,27 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 }
 
 //-- Save Client Info
+void sOraData::findPid(int pid_, bool* found_) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	sprintf_s(sqlS, SQL_MAXLEN, "select ProcessId from ClientInfo where ProcessId = %d", pid_);
+
+	try {
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+		
+		int i=0;
+		while (((ResultSet*)rset)->next()) i++;
+		(*found_)=(i>0);
+
+	} catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
+
+}
 void sOraData::saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doInfer, const char* clientXMLfile_, const char* shapeXMLfile_, const char* actionXMLfile_, const char* engineXMLfile_) {
 
 	//-- always check this, first!

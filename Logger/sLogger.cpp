@@ -48,6 +48,10 @@ void sLogger::commit() {
 	if (saveToFile) safecall(filedb, commit);
 }
 //--
+void sLogger::findPid(int pid_, bool* found_) {
+	if (saveToDB) safecall(oradb, findPid, pid_, found_);
+	if (saveToFile) safecall(filedb, findPid, pid_, found_);
+}
 void sLogger::saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doInfer, const char* clientXMLfile_, const char* shapeXMLfile_, const char* actionXMLfile_, const char* engineXMLfile_) {
 	if (saveToDB) safecall(oradb, saveClientInfo, pid, simulationId, clientName, startTime, elapsedSecs, simulStartTrain, simulStartInfer, simulStartValid, doTrain, doInfer, clientXMLfile_, shapeXMLfile_, actionXMLfile_, engineXMLfile_);
 	if (saveToFile) safecall(filedb, saveClientInfo, pid, simulationId, clientName, startTime, elapsedSecs, simulStartTrain, simulStartInfer, simulStartValid, doTrain, doInfer, clientXMLfile_, shapeXMLfile_, actionXMLfile_, engineXMLfile_);
