@@ -12,8 +12,6 @@ void usage() {
 }
 int main(int argc, char* argv[]) {
 
-	if (argc<3) clifail;
-
 	//-- 1. create root object. root constructor does everything else
 	sRoot* root=nullptr;
 	try {
@@ -21,6 +19,8 @@ int main(int argc, char* argv[]) {
 		//-----------
 		//root->kaz(); return -1;
 		//-----------
+
+		if (argc<3) clifail;
 
 		if (_stricmp(argv[1], "Train")==0) {
 			if (argc!=7) { clifail; } else {

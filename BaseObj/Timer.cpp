@@ -8,14 +8,17 @@ sTimer::sTimer() {	//-- timer init
 }
 
 void getTimestamp(double time_, char* oTimeS_) {
-	char* ftime;
+	char ftime[256];
 	time_t ltime; // calendar time 
+	struct tm buf;
 	HANDLE TimeMutex;
 
 	TimeMutex = CreateMutex(NULL, TRUE, NULL);
 	WaitForSingleObject(TimeMutex, INFINITE);
 	ltime = time(NULL); // get current cal time 
-	ftime = asctime(localtime(&ltime));
+	localtime_s(&buf, &ltime);
+	asctime_s(ftime, 256, &buf);
+
 	ftime[strlen(ftime)-1] = '\0';
 	ReleaseMutex(TimeMutex);
 
@@ -57,14 +60,17 @@ void sTimer::stop(char* oElapsedS) {
 
 //-- static versions
 EXPORT void SgetTimestamp(double time_, char* oTimeS_) {
-	char* ftime;
+	char ftime[256];
 	time_t ltime; // calendar time 
+	struct tm buf;
 	HANDLE TimeMutex;
 
 	TimeMutex = CreateMutex(NULL, TRUE, NULL);
 	WaitForSingleObject(TimeMutex, INFINITE);
 	ltime = time(NULL); // get current cal time 
-	ftime = asctime(localtime(&ltime));
+	localtime_s(&buf, &ltime);
+	asctime_s(ftime, 256, &buf);
+
 	ftime[strlen(ftime)-1] = '\0';
 	ReleaseMutex(TimeMutex);
 

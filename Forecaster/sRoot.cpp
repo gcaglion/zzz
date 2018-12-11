@@ -239,6 +239,11 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 
 void sRoot::kaz() {
 
+	sTimer* timer = new sTimer();
+	char el[DATE_FORMAT_LEN];
+	timer->start();
+	Sleep(5000);
+	timer->stop(el);
 
 	sAlgebra* Alg=new sAlgebra(this, newsname("Alg1"), defaultdbg, nullptr);
 
