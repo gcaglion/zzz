@@ -518,13 +518,13 @@ void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, n
 }
 
 //-- Save/Load engine info
-void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+void sOraData::saveEngineInfo(int pid, int engineType, int sampleLen_, int predictionLen_, int featuresCnt_, int coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
 	//-- 1. ENGINES
-	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType) values(%d, %d)", pid, engineType);
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt) values(%d, %d, %d, %d, %d)", pid, engineType, sampleLen_, predictionLen_, featuresCnt_);
 	safecall(this, sqlExec, sqlS);
 
 	//-- 2. ENGINECORES
@@ -539,7 +539,7 @@ void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId
 	}
 
 }
-void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+void sOraData::loadEngineInfo(int pid, int* engineType, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -547,12 +547,25 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* core
 	//-- nested statement and result set
 	char nsqlS[SQL_MAXLEN]; Statement* nstmt; ResultSet* nrset;
 
-	//-- 1. coresCnt, coreId, coreType
-	sprintf_s(sqlS, SQL_MAXLEN, "select CoreId, CoreType, CoreThreadId from EngineCores where EnginePid= %d", pid);
 	try {
+		//-- 0. engine data shape
+		sprintf_s(sqlS, SQL_MAXLEN, "select DataSampleLen, DataPredictionLen, DataFeaturesCnt from Engines where ProcessId= %d", pid);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 		int i=0;
+		while (((ResultSet*)rset)->next()) {
+			(*sampleLen_)=((ResultSet*)rset)->getInt(1);
+			(*predictionLen_)=((ResultSet*)rset)->getInt(2);
+			(*featuresCnt_)=((ResultSet*)rset)->getInt(3);
+			i++;
+		}
+		if (i==0) fail("Engine pid %d not found.", pid);
+
+		//-- 1. coresCnt, coreId, coreType
+		sprintf_s(sqlS, SQL_MAXLEN, "select CoreId, CoreType, CoreThreadId from EngineCores where EnginePid= %d", pid);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+		i=0;
 		while (((ResultSet*)rset)->next()) {
 			coreId[i]=((ResultSet*)rset)->getInt(1);
 			coreType[i]=((ResultSet*)rset)->getInt(2);

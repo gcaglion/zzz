@@ -31,8 +31,8 @@ struct sOraData : sCfgObj {
 	EXPORT void saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV);
 	EXPORT void saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted, numtype* barWidth);
 	//--
-	EXPORT void saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType);
-	EXPORT void loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType);
+	EXPORT void saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType);
+	EXPORT void loadEngineInfo(int pid, int* engineType, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType);
 	EXPORT int getSavedEnginePids(int maxPids_, int* oPid);
 	//--
 	EXPORT void saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
