@@ -524,7 +524,7 @@ void sOraData::saveEngineInfo(int pid, int engineType, int sampleLen_, int predi
 	if (!isOpen) safecall(this, open);
 
 	//-- 1. ENGINES
-	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt, SaveToDB, SaveToFile, Orausername, Orapassword, Oraconnstring) values(%d, %d, %d, %d, %d, %d, %d, %s, %s, %s)", pid, engineType, sampleLen_, predictionLen_, featuresCnt_, (saveToDB_)?1:0, (saveToFile_)?1:0, dbconn_->DBUserName, dbconn_->DBPassword, dbconn_->DBConnString);
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt, SaveToDB, SaveToFile, Orausername, Orapassword, Oraconnstring) values(%d, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s')", pid, engineType, sampleLen_, predictionLen_, featuresCnt_, (saveToDB_)?1:0, (saveToFile_)?1:0, dbconn_->DBUserName, dbconn_->DBPassword, dbconn_->DBConnString);
 	safecall(this, sqlExec, sqlS);
 
 	//-- 2. ENGINECORES
