@@ -373,7 +373,7 @@ void sRoot::kaz() {
 */
 }
 
-
+//-- GUI hooks
 extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
 	sRoot* root=nullptr;
 	try {
