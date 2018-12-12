@@ -1,9 +1,10 @@
 #include "sEngine.h"
 
 //-- Engine stuff
-sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersistor_, int clientPid_, int loadingPid_) : sCfgObj(sCfgObjParmsVal) {
+sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+	
+	safespawn(shape, newsname("%s_DataShape", name->base), defaultdbg, 0, 0, 0);
 
-	inputCnt=inputCnt_; outputCnt=outputCnt_;
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
 	clientPid=clientPid_;
 
@@ -19,7 +20,8 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPe
 	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
 
 	//-- 2. load info from FROM persistor
-	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType);
+
+	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType);
 	if (coresCnt==0) fail("Engine pid %d not found.", loadingPid_);
 
 	//-- 3. malloc one core, one coreLayout and one coreParms for each core
@@ -28,7 +30,7 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPe
 	coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
 	//-- for each Core, get layout info, and set base coreLayout properties  (type, desc, connType, outputCnt)
 	for (int c=0; c<coresCnt; c++) {
-		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, inputCnt, outputCnt, coreType[c], coreParentsCnt[c], coreParent[c], coreParentConnType[c], coreThreadId[c]);
+		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt, coreType[c], coreParentsCnt[c], coreParent[c], coreParentConnType[c], coreThreadId[c]);
 	}
 
 	//-- common to all constructors. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
@@ -43,9 +45,9 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPe
 	}
 	free(coreParent); free(coreParentConnType); free(coreParentsCnt); free(coreType); free(coreThreadId); free(coreId);
 }
-sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int clientPid_) : sCfgObj(sCfgObjParmsVal) {
+sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(sCfgObjParmsVal) {
 
-	inputCnt=inputCnt_; outputCnt=outputCnt_;
+	shape=shape_;
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
 	clientPid=clientPid_;
 
@@ -65,7 +67,7 @@ sEngine::sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int clientPid_)
 		coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
 		//-- 2. for each Core, create layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
 		for (int c=0; c<coresCnt; c++) {
-			safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Custom/Core%d/Layout", c))->base, inputCnt, outputCnt);
+			safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Custom/Core%d/Layout", c))->base, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt);
 		}
 		break;
 	case ENGINE_WNN:
@@ -272,9 +274,9 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_, int savedEnginePi
 				procArgs[t]->coreProcArgs->ds = (sDataSet*)ds_;
 				procArgs[t]->coreProcArgs->npid=savedEnginePid_;
 				procArgs[t]->coreProcArgs->tsFeaturesCnt=procArgs[t]->coreProcArgs->ds->sourceTS->sourceData->featuresCnt;
-				procArgs[t]->coreProcArgs->selectedFeaturesCnt=procArgs[t]->coreProcArgs->ds->selectedFeaturesCnt;
+				procArgs[t]->coreProcArgs->selectedFeaturesCnt=procArgs[t]->coreProcArgs->ds->shape->featuresCnt;
 				procArgs[t]->coreProcArgs->selectedFeature=procArgs[t]->coreProcArgs->ds->selectedFeature;
-				procArgs[t]->coreProcArgs->predictionLen=procArgs[t]->coreProcArgs->ds->predictionLen;
+				procArgs[t]->coreProcArgs->predictionLen=procArgs[t]->coreProcArgs->ds->shape->predictionLen;
 				procArgs[t]->coreProcArgs->targetBFS = procArgs[t]->coreProcArgs->ds->targetBFS;
 				procArgs[t]->coreProcArgs->predictionBFS = procArgs[t]->coreProcArgs->ds->predictionBFS;
 				procArgs[t]->coreProcArgs->targetSBF = procArgs[t]->coreProcArgs->ds->targetSBF;
@@ -336,17 +338,17 @@ void sEngine::saveRun() {
 		if (_ts->doDump) _ts->dump(PREDICTED, TRS);
 
 		//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
-		safecall(_ts, unscale, PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedFeaturesCnt, _ds->selectedFeature, _ds->sampleLen);
+		safecall(_ts, unscale, PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->shape->featuresCnt, _ds->selectedFeature, _ds->shape->sampleLen);
 		if (_ts->doDump) _ts->dump(PREDICTED, TR);
 
 		//-- 5. sourceTS->untransform into valP
-		safecall(_ds->sourceTS, untransform, PREDICTED, PREDICTED, core[c]->procArgs->ds->sampleLen, core[c]->procArgs->ds->selectedFeaturesCnt, core[c]->procArgs->ds->selectedFeature);
+		safecall(_ds->sourceTS, untransform, PREDICTED, PREDICTED, core[c]->procArgs->ds->shape->sampleLen, core[c]->procArgs->ds->shape->featuresCnt, core[c]->procArgs->ds->selectedFeature);
 		if (_ts->doDump) _ts->dump(PREDICTED, BASE);
 
 		//-- persist into runLog
 		int runStepsCnt= core[c]->procArgs->ds->samplesCnt \
-						+core[c]->procArgs->ds->sampleLen \
-						+core[c]->procArgs->ds->predictionLen \
+						+core[c]->procArgs->ds->shape->sampleLen \
+						+core[c]->procArgs->ds->shape->predictionLen \
 						-1;
 
 		if (core[c]->persistor->saveRunFlag) {
@@ -388,7 +390,8 @@ void sEngine::saveInfo() {
 	}
 
 	//-- actual call
-	safecall(persistor, saveEngineInfo, clientPid, type, coresCnt, coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_);
+	//int pid, int engineType, int sampleLen_, int predictionLen_, int featuresCnt_, int coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType
+	safecall(persistor, saveEngineInfo, clientPid, type, shape->sampleLen, shape->predictionLen, shape->featuresCnt, coresCnt, coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_);
 
 	//-- free temps
 	for (int c=0; c<coresCnt; c++) {

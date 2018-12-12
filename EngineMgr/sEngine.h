@@ -17,21 +17,20 @@
 struct sEngine : sCfgObj {
 
 	int type;
-	int inputCnt;
-	int outputCnt;
 	int coresCnt;
 	int layersCnt=0;
 	int* layerCoresCnt;
 
+	sDataShape* shape;
 	sCore** core;
 	sCoreLayout** coreLayout;
 	sCoreParms** coreParms;
 
 	sLogger* persistor;
 
-	EXPORT sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int clientPid_);
+	EXPORT sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_);
+	EXPORT sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_);
 	EXPORT ~sEngine();
-	EXPORT sEngine(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sLogger* fromPersistor_, int clientPid_, int loadingPid_);
 
 	EXPORT void train(int testid_, sDataSet* trainDS_);
 	EXPORT void infer(int testid_, sDataSet* inferDS_, int savedEnginePid_);

@@ -289,7 +289,7 @@ void sNN::WU_std(){
 
 void sNN::loadBatchData(sDataSet* ds, int b) {
 	//-- set number of L0 neurons to load
-	int L0SampleNodesCnt=ds->sampleLen*ds->selectedFeaturesCnt*ds->batchSamplesCnt;
+	int L0SampleNodesCnt=ds->shape->sampleLen*ds->shape->featuresCnt*ds->batchSamplesCnt;
 	//-- load batch samples on L0
 	Alg->h2d(&F[(parms->useBias) ? 1 : 0], &ds->sampleBFS[b*L0SampleNodesCnt], L0SampleNodesCnt*sizeof(numtype), false);
 	//-- load batch target on output level

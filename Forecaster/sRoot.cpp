@@ -50,10 +50,10 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- 2. spawn DataShape
 		safespawn(shape, newsname("TrainDataShape"), erronlydbg, shapeCfg, "/DataShape");
 		//-- 3. spawn Train DataSet and its persistor
-		safespawn(trainDS, newsname("TrainDataSet"), erronlydbg, trainCfg, "/DataSet", shape->sampleLen, shape->predictionLen);
+		safespawn(trainDS, newsname("TrainDataSet"), erronlydbg, trainCfg, "/DataSet", shape);
 		safespawn(trainLog, newsname("TrainLogger"), erronlydbg, trainCfg, "/DataSet/Persistor");
 		//-- 4. spawn engine the standard way
-		safespawn(engine, newsname("TrainEngine"), erronlydbg, engCfg, "/Engine", shape->sampleLen*trainDS->selectedFeaturesCnt, shape->predictionLen*trainDS->selectedFeaturesCnt, pid);
+		safespawn(engine, newsname("TrainEngine"), erronlydbg, engCfg, "/Engine", shape, pid);
 
 		//-- training cycle core
 		timer->start();
@@ -82,7 +82,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 
 
 }
-void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr) {
+void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr) {
 
 	//-- full filenames
 	char clientffname[MAX_PATH];
@@ -97,20 +97,15 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 	sDataSet* inferDS; sLogger* inferLog;
 	sEngine* engine;
 	sLogger* clientLog;
-	sLogger* engLog;
 
 	try {
 		//-- 0. set full file name for each of the input files
 		getFullPath(clientXMLfile_, clientffname);
-		getFullPath(shapeXMLfile_, shapeffname);
 		getFullPath(inferXMLfile_, inferffname);
-		getFullPath(engineXMLfile_, engineffname);
 
 		//-- 1. load separate sCfg* for client, dataShape, inferDataset, Engine
 		sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
-		sCfg* shapeCfg; safespawn(shapeCfg, newsname("shapeCfg"), defaultdbg, shapeffname);
 		sCfg* inferCfg; safespawn(inferCfg, newsname("inferCfg"), defaultdbg, inferffname);
-		sCfg* engCfg; safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineffname);
 
 		//-- 5.1 create client persistor, if needed
 		bool saveClient;
@@ -121,15 +116,15 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- check for possible duplicate pid in db (through client persistor), and change it
 		safecall(this, getSafePid, clientLog, &pid);
 
-		//-- 2. spawn DataShape
-		safespawn(shape, newsname("inferDataShape"), defaultdbg, shapeCfg, "/DataShape");
-		//-- 3. spawn infer DataSet and its persistor
-		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/DataSet", shape->sampleLen, shape->predictionLen);
-		safespawn(inferLog, newsname("inferLogger"), defaultdbg, inferCfg, "/DataSet/Persistor");
-		//-- root-level persistor. this is used, among other things, to spawn engine by pid
-		safespawn(engLog, newsname("ForecasterPersistor"), defaultdbg, engCfg, "/Engine/Persistor");
 		//-- spawn engine from savedEnginePid_ with pid
-		safespawn(engine, newsname("Engine"), defaultdbg, engCfg, "/Engine", shape->sampleLen*inferDS->selectedFeaturesCnt, shape->predictionLen*inferDS->selectedFeaturesCnt, engLog, pid, savedEnginePid_);
+		safespawn(engine, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid_);
+
+		//-- 2. shape is taken from from engine->shape
+		shape=engine->shape;
+
+		//-- 3. spawn infer DataSet and its persistor
+		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/DataSet", shape);
+		safespawn(inferLog, newsname("inferLogger"), defaultdbg, inferCfg, "/DataSet/Persistor");
 
 		//-- core infer cycle
 		timer->start();
@@ -156,7 +151,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 }
 void sRoot::bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr) {
 	safecall(this, trainClient, simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, progressPtr);
-	safecall(this, inferClient, simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, pid, progressPtr);
+	safecall(this, inferClient, simulationId_, clientXMLfile_, trainXMLfile_, pid, progressPtr);
 }
 
 void sRoot::mallocSimulationDates(sCfg* clientCfg_, int* simLen, char*** simTrainStart, char*** simInferStart, char*** simValidStart) {
@@ -392,7 +387,7 @@ extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char*
 		root=new sRoot(&progressPtr);
 		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Infer ...\n");
 		progressPtr(10, progressVar.msg);
-		root->inferClient(simulationId_, clientXMLfile_, shapeXMLfile_, inferXMLfile_, engineXMLfile_, savedEnginePid_, &progressPtr);
+		root->inferClient(simulationId_, clientXMLfile_, inferXMLfile_, savedEnginePid_, &progressPtr);
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");
