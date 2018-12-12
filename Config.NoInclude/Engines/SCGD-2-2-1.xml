@@ -14,7 +14,7 @@
 			<Parameters>
 				<Topology>
 					LevelRatio			= 2, 2, 1
-					LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+					LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
 					UseContext			= true
 					UseBias				= false
 				</Topology>
@@ -24,6 +24,9 @@
 					NetSaveFrequency	= 10
 					StopOnDivergence	= false
 					BP_Algo				= BP_SCGD
+					<BP_SCGD>
+						maxK	= 200
+					</BP_SCGD>
 				</Training>
 			</Parameters>
 			<Persistor>
