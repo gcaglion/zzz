@@ -518,13 +518,13 @@ void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, n
 }
 
 //-- Save/Load engine info
-void sOraData::saveEngineInfo(int pid, int engineType, int sampleLen_, int predictionLen_, int featuresCnt_, int coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+void sOraData::saveEngineInfo(int pid, int engineType, int sampleLen_, int predictionLen_, int featuresCnt_, int coresCnt, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
 	//-- 1. ENGINES
-	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt) values(%d, %d, %d, %d, %d)", pid, engineType, sampleLen_, predictionLen_, featuresCnt_);
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt, SaveToDB, SaveToFile, Orausername, Orapassword, Oraconnstring) values(%d, %d, %d, %d, %d, %d, %d, %s, %s, %s)", pid, engineType, sampleLen_, predictionLen_, featuresCnt_, (saveToDB_)?1:0, (saveToFile_)?1:0, dbconn_->DBUserName, dbconn_->DBPassword, dbconn_->DBConnString);
 	safecall(this, sqlExec, sqlS);
 
 	//-- 2. ENGINECORES
@@ -539,7 +539,7 @@ void sOraData::saveEngineInfo(int pid, int engineType, int sampleLen_, int predi
 	}
 
 }
-void sOraData::loadEngineInfo(int pid, int* engineType, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -549,7 +549,7 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* sampleLen_, int* pr
 
 	try {
 		//-- 0. engine data shape
-		sprintf_s(sqlS, SQL_MAXLEN, "select DataSampleLen, DataPredictionLen, DataFeaturesCnt from Engines where ProcessId= %d", pid);
+		sprintf_s(sqlS, SQL_MAXLEN, "select DataSampleLen, DataPredictionLen, DataFeaturesCnt, saveToDB, saveToFile, OraUserName, OraPassword, OraConnstring from Engines where ProcessId= %d", pid);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 		int i=0;
@@ -557,6 +557,11 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* sampleLen_, int* pr
 			(*sampleLen_)=((ResultSet*)rset)->getInt(1);
 			(*predictionLen_)=((ResultSet*)rset)->getInt(2);
 			(*featuresCnt_)=((ResultSet*)rset)->getInt(3);
+			(*saveToDB_)=(((ResultSet*)rset)->getInt(4)==1);
+			(*saveToFile_)=(((ResultSet*)rset)->getInt(5)==1);
+			strcpy_s(dbconn_->DBUserName, DBUSERNAME_MAXLEN, ((ResultSet*)rset)->getString(6).c_str());
+			strcpy_s(dbconn_->DBPassword, DBPASSWORD_MAXLEN, ((ResultSet*)rset)->getString(7).c_str());
+			strcpy_s(dbconn_->DBConnString, DBCONNSTRING_MAXLEN, ((ResultSet*)rset)->getString(8).c_str());
 			i++;
 		}
 		if (i==0) fail("Engine pid %d not found.", pid);

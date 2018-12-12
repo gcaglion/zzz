@@ -4,6 +4,9 @@
 sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	
 	safespawn(shape, newsname("%s_DataShape", name->base), defaultdbg, 0, 0, 0);
+	sOraData* persistorDB;
+	safespawn(persistorDB, newsname("%s_Logger_DB", name->base), defaultdbg, "", "", "");
+	safespawn(persistor, newsname("%s_Logger", name->base), defaultdbg, persistorDB);
 
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
 	clientPid=clientPid_;
@@ -16,12 +19,8 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	int** coreParent=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParent[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	int** coreParentConnType=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParentConnType[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 
-	//-- engine-level persistor
-	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
-
 	//-- 2. load info from FROM persistor
-
-	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType);
+	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType);
 	if (coresCnt==0) fail("Engine pid %d not found.", loadingPid_);
 
 	//-- 3. malloc one core, one coreLayout and one coreParms for each core
@@ -390,8 +389,7 @@ void sEngine::saveInfo() {
 	}
 
 	//-- actual call
-	//int pid, int engineType, int sampleLen_, int predictionLen_, int featuresCnt_, int coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType
-	safecall(persistor, saveEngineInfo, clientPid, type, shape->sampleLen, shape->predictionLen, shape->featuresCnt, coresCnt, coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_);
+	safecall(persistor, saveEngineInfo, clientPid, type, shape->sampleLen, shape->predictionLen, shape->featuresCnt, coresCnt, persistor->saveToDB, persistor->saveToFile, persistor->oradb, coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_);
 
 	//-- free temps
 	for (int c=0; c<coresCnt; c++) {
