@@ -6,7 +6,7 @@
 void usage() {
 	printf("Usage:\n------\n");
 	printf("zzz Train <Simulation Id> <Client XML file> <DataShape XML file> <trainDataSet XML file> <Engine XML file> \n");
-	printf("zzz Infer <Simulation Id> <Client XML file> <DataShape XML file> <inferDataSet XML file> <Engine XML file> <Saved Engine pid> \n");
+	printf("zzz Infer <Simulation Id> <Client XML file> <inferDataSet XML file> <Saved Engine pid> \n");
 	printf("zzz Both  <Simulation Id> <Client XML file> <DataShape XML file> <inferDataSet XML file> <Engine XML file> <Saved Engine pid> \n");
 	system("pause");
 }
@@ -28,8 +28,8 @@ int main(int argc, char* argv[]) {
 			}
 
 		} else if (_stricmp(argv[1], "Infer")==0) {
-			if (argc!=8) { clifail; } else {
-				root->inferClient(atoi(argv[2]), argv[3], argv[4], argv[5], argv[6], atoi(argv[7]));
+			if (argc!=6) { clifail; } else {
+				root->inferClient(atoi(argv[2]), argv[3], argv[4], atoi(argv[5]));
 			}
 
 		} else if (_stricmp(argv[1], "Both")==0) {

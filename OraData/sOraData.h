@@ -14,6 +14,10 @@
 
 struct sOraData : sCfgObj {
 
+	char* DBUserName = new char[DBUSERNAME_MAXLEN];
+	char* DBPassword = new char[DBPASSWORD_MAXLEN];
+	char* DBConnString = new char[DBCONNSTRING_MAXLEN];
+
 	EXPORT sOraData(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_);
 	EXPORT sOraData(sCfgObjParmsDef);
 	EXPORT ~sOraData();
@@ -31,8 +35,8 @@ struct sOraData : sCfgObj {
 	EXPORT void saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV);
 	EXPORT void saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted, numtype* barWidth);
 	//--
-	EXPORT void saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType);
-	EXPORT void loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType);
+	EXPORT void saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType);
+	EXPORT void loadEngineInfo(int pid, int* engineType, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType);
 	EXPORT int getSavedEnginePids(int maxPids_, int* oPid);
 	//--
 	EXPORT void saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
@@ -57,7 +61,13 @@ struct sOraData : sCfgObj {
 	EXPORT void loadCoreSOMparms(int pid, int tid, int* p1, numtype* p2);
 	EXPORT void loadCoreDUMBparms(int pid, int tid, int* p1, numtype* p2);
 	//--
+	EXPORT void saveCoreLoggerParms(int pid_, int tid_, int readFrom, bool saveToDB, bool saveToFile, bool saveMSEFlag, bool saveRunFlag, bool saveInternalsFlag, bool saveImageFlag);
+	EXPORT void loadCoreLoggerParms(int pid_, int tid_, int* readFrom, bool* saveToDB, bool* saveToFile, bool* saveMSEFlag, bool* saveRunFlag, bool* saveInternalsFlag, bool* saveImageFlag);
+	//--
 	EXPORT void saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, numtype* delta_, numtype* mu_, numtype* alpha_, numtype* beta_, numtype* lambda_, numtype* lambdau_, numtype* comp_, numtype* Gtse_old_, numtype* Gtse_new_, numtype* pnorm_, numtype* rnorm_, numtype* dwnorm_);
+	//--
+	EXPORT void loadDBConnInfo(int pid_, int tid_, char** oDBusername, char** oDBpassword, char** oDBconnstring);
+	EXPORT void saveDBConnInfo(int pid_, int tid_, char* oDBusername, char* oDBpassword, char* oDBconnstring);
 
 private:
 	void* env = nullptr;
@@ -65,10 +75,6 @@ private:
 	void* stmt = nullptr;
 	void* rset = nullptr;
 	bool isOpen = false;
-
-	char* DBUserName = new char[DBUSERNAME_MAXLEN];
-	char* DBPassword = new char[DBPASSWORD_MAXLEN];
-	char* DBConnString = new char[DBCONNSTRING_MAXLEN];
 
 	char sqlS[SQL_MAXLEN];
 

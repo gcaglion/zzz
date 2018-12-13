@@ -71,7 +71,21 @@ alter table CoreImage_NN add constraint CoreImage_NN_PK primary key( ProcessId, 
 drop table Engines purge;
 create table Engines(
 	ProcessId number,
-	EngineType number	
+	EngineType number,
+	-- DataShapeInfo
+	DataSampleLen number,
+	DataPredictionLen number,
+	DataFeaturesCnt number,
+	-- Persistor Info
+	readFrom number,
+	saveToDB number,
+	saveToFile number,
+	-- Persistor-OraData info
+	Orausername varchar2(64),
+	Orapassword varchar2(64),
+	Oraconnstring varchar2(64)
+	-- Persistor-FileData info
+	-- ...
 ) storage (initial 2M minextents 4 pctincrease 0);
 alter table Engines add constraint Engine_PK primary key(ProcessId) using index tablespace LogIdx;
 

@@ -5,6 +5,8 @@
 #include "sSOMparms.h"
 
 struct sSOM : sCore {
+
+	EXPORT sSOM(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sSOMparms* SOMparms_);
 	EXPORT sSOM(sCfgObjParmsDef, sCoreLayout* layout_, sSOMparms* SOMparms_);
 	EXPORT ~sSOM();
 

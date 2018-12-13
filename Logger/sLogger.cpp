@@ -66,13 +66,13 @@ void sLogger::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int
 	if (saveToFile) safecall(filedb, saveRun, pid, tid, npid, ntid, runStepsCnt, tsFeaturesCnt_, selectedFeaturesCnt, selectedFeature, predictionLen, posLabel, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted, barWidth_);
 }
 //--
-void sLogger::saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
-	if (saveToDB) safecall(oradb, saveEngineInfo, pid, engineType, coresCnt, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType);
-	if (saveToFile) safecall(filedb, saveEngineInfo, pid, engineType, coresCnt, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType);
+void sLogger::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+	if (saveToDB) safecall(oradb, saveEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, saveToDB_, saveToFile_, dbconn_, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType);
+	if (saveToFile) safecall(filedb, saveEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType);
 }
-void sLogger::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* coreThreadId, int* parentCoresCnt, int** parentCore, int** parentConnType) {
-	if (source==OraData) safecall(oradb, loadEngineInfo, pid, engineType, coresCnt, coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
-	if (source==FileData) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
+void sLogger::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* coreThreadId, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+	if (source==OraData) safecall(oradb, loadEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, saveToDB_, saveToFile_, dbconn_, coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
+	if (source==FileData) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, saveToDB_, saveToFile_, "DioPorco", coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
 }
 //-- Save/Load Core<XXX>Image
 void sLogger::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
@@ -149,7 +149,25 @@ void sLogger::loadCoreDUMBparms(int pid, int tid, int p1, int p2) {
 	fail("Not implemented.");
 }
 //--
+void sLogger::saveCoreLoggerParms(int pid_, int tid_, int readFrom, bool saveToDB, bool saveToFile, bool saveMSEFlag, bool saveRunFlag, bool saveInternalsFlag, bool saveImageFlag){
+	if (saveToDB) safecall(oradb, saveCoreLoggerParms, pid_, tid_, readFrom, saveToDB, saveToFile, saveMSEFlag, saveRunFlag, saveInternalsFlag, saveImageFlag);
+	if (saveToFile) safecall(filedb, saveCoreLoggerParms, pid_, tid_, readFrom, saveToDB, saveToFile, saveMSEFlag, saveRunFlag, saveInternalsFlag, saveImageFlag);
+}
+void sLogger::loadCoreLoggerParms(int pid_, int tid_, int* readFrom, bool* saveToDB, bool* saveToFile, bool* saveMSEFlag, bool* saveRunFlag, bool* saveInternalsFlag, bool* saveImageFlag){
+	if (source==OraData) safecall(oradb, loadCoreLoggerParms, pid_, tid_, readFrom, saveToDB, saveToFile, saveMSEFlag, saveRunFlag, saveInternalsFlag, saveImageFlag);
+	if (source==FileData) safecall(filedb, loadCoreLoggerParms, pid_, tid_, readFrom, saveToDB, saveToFile, saveMSEFlag, saveRunFlag, saveInternalsFlag, saveImageFlag);
+}
+//--
 void sLogger::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, numtype* delta_, numtype* mu_, numtype* alpha_, numtype* beta_, numtype* lambda_, numtype* lambdau_, numtype* Gtse_old_, numtype* Gtse_new_, numtype* comp_, numtype* pnorm_, numtype* rnorm_, numtype* dwnorm_){
 	if (saveToDB) safecall(oradb, saveCoreNNInternalsSCGD, pid_, tid_, iterationsCnt_, delta_, mu_, alpha_, beta_, lambda_, lambdau_, Gtse_old_, Gtse_new_, comp_, pnorm_, rnorm_, dwnorm_);
 	if (saveToFile) safecall(filedb, saveCoreNNInternalsSCGD, pid_, tid_, iterationsCnt_, delta_, mu_, alpha_, beta_, lambda_, lambdau_, Gtse_old_, Gtse_new_, comp_, pnorm_, rnorm_, dwnorm_);
+}
+//--
+void sLogger::loadDBConnInfo(int pid_, int tid_, char** oDBusername, char** oDBpassword, char** oDBconnstring) {
+	if (source==OraData) safecall(oradb, loadDBConnInfo, pid_, tid_, oDBusername, oDBpassword, oDBconnstring);
+	//if (source==FileData) safecall(filedb, loadDBConnInfo, pid_, tid_, oDBusername, oDBpassword, oDBconnstring);
+}
+void sLogger::saveDBConnInfo(int pid_, int tid_, char* oDBusername, char* oDBpassword, char* oDBconnstring) {
+	if (source==OraData) safecall(oradb, saveDBConnInfo, pid_, tid_, oDBusername, oDBpassword, oDBconnstring);
+	//if (source==FileData) safecall(filedb, saveDBConnInfo, pid_, tid_, oDBusername, oDBpassword, oDBconnstring);
 }

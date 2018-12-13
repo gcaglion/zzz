@@ -404,6 +404,48 @@ void sOraData::loadCoreSOMImage(int pid, int tid, int epoch, int Wcnt, numtype* 
 void sOraData::loadCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	info("Done nothing.");
 }
+//-- Save/Load Core Logger image
+void sOraData::saveCoreLoggerParms(int pid_, int tid_, int readFrom, bool saveToDB, bool saveToFile, bool saveMSEFlag, bool saveRunFlag, bool saveInternalsFlag, bool saveImageFlag) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into coreLoggerParms(ProcessId, ThreadId, ReadFrom, SaveToDB, SaveToFile, SaveMSEFlag, SaveRunFlag, SaveInternalsFlag, SaveImageFlag) values (%d, %d, %d, %d, %d, %d, %d, %d, %d)", pid_, tid_, readFrom, (saveToDB)?1:0, (saveToFile)?1:0, (saveMSEFlag)?1:0, (saveRunFlag)?1:0, (saveInternalsFlag)?1:0, (saveImageFlag)?1:0);
+
+	safecall(this, sqlExec, sqlS);
+
+}
+void sOraData::loadCoreLoggerParms(int pid_, int tid_, int* readFrom, bool* saveToDB, bool* saveToFile, bool* saveMSEFlag, bool* saveRunFlag, bool* saveInternalsFlag, bool* saveImageFlag) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open) {}
+
+	sprintf_s(sqlS, SQL_MAXLEN, "select ReadFrom, SaveToDB, SaveToFile, SaveMSEFlag, SaveRunFlag, SaveInternalsFlag, SaveImageFlag from CoreLoggerParms where ProcessId=%d and ThreadId=%d", pid_, tid_);
+	try {
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+
+		int i=0;
+		while (((ResultSet*)rset)->next()) {
+			(*readFrom)=((ResultSet*)rset)->getInt(1);
+			(*saveToDB)=(((ResultSet*)rset)->getInt(2)==1);
+			(*saveToFile)=(((ResultSet*)rset)->getInt(3)==1);
+			(*saveRunFlag)=(((ResultSet*)rset)->getInt(4)==1);
+			(*saveMSEFlag)=(((ResultSet*)rset)->getInt(5)==1);
+			(*saveInternalsFlag)=(((ResultSet*)rset)->getInt(6)==1);
+			(*saveImageFlag)=(((ResultSet*)rset)->getInt(7)==1);
+			i++;
+		}
+		if (i==0) fail("Core Logger Parameters not found for ProcessId=%d, ThreadId=%d", pid_, tid_);
+
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
+
+}
+
 
 //-- Save/Load Core<XXX>Paameters
 void sOraData::saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* levelActivationS_, bool useContext_, bool useBias_, int maxEpochs_, numtype targetMSE_, int netSaveFrequency_, bool stopOnDivergence_, int BPalgo_, float learningRate_, float learningMomentum_, int SCGDmaxK_) {
@@ -463,8 +505,7 @@ void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** lev
 
 		if (i==0) fail("Core Parameters not found for ProcessId=%d, ThreadId=%d", pid, tid);
 
-	}
-	catch (SQLException ex) {
+	} catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
@@ -518,13 +559,13 @@ void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, n
 }
 
 //-- Save/Load engine info
-void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+void sOraData::saveEngineInfo(int pid, int engineType, int sampleLen_, int predictionLen_, int featuresCnt_, int coresCnt, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
 	//-- 1. ENGINES
-	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType) values(%d, %d)", pid, engineType);
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt, SaveToDB, SaveToFile, Orausername, Orapassword, Oraconnstring) values(%d, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s')", pid, engineType, sampleLen_, predictionLen_, featuresCnt_, (saveToDB_)?1:0, (saveToFile_)?1:0, dbconn_->DBUserName, dbconn_->DBPassword, dbconn_->DBConnString);
 	safecall(this, sqlExec, sqlS);
 
 	//-- 2. ENGINECORES
@@ -539,7 +580,7 @@ void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int* coreId
 	}
 
 }
-void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -547,12 +588,31 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* core
 	//-- nested statement and result set
 	char nsqlS[SQL_MAXLEN]; Statement* nstmt; ResultSet* nrset;
 
-	//-- 1. coresCnt, coreId, coreType
-	sprintf_s(sqlS, SQL_MAXLEN, "select CoreId, CoreType, CoreThreadId from EngineCores where EnginePid= %d", pid);
 	try {
+		//-- 0. engine type, data shape and persistor
+		sprintf_s(sqlS, SQL_MAXLEN, "select EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt, saveToDB, saveToFile, OraUserName, OraPassword, OraConnstring from Engines where ProcessId= %d", pid);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 		int i=0;
+		while (((ResultSet*)rset)->next()) {
+			(*engineType)=((ResultSet*)rset)->getInt(1);
+			(*sampleLen_)=((ResultSet*)rset)->getInt(2);
+			(*predictionLen_)=((ResultSet*)rset)->getInt(3);
+			(*featuresCnt_)=((ResultSet*)rset)->getInt(4);
+			(*saveToDB_)=(((ResultSet*)rset)->getInt(5)==1);
+			(*saveToFile_)=(((ResultSet*)rset)->getInt(6)==1);
+			strcpy_s(dbconn_->DBUserName, DBUSERNAME_MAXLEN, ((ResultSet*)rset)->getString(7).c_str());
+			strcpy_s(dbconn_->DBPassword, DBPASSWORD_MAXLEN, ((ResultSet*)rset)->getString(8).c_str());
+			strcpy_s(dbconn_->DBConnString, DBCONNSTRING_MAXLEN, ((ResultSet*)rset)->getString(9).c_str());
+			i++;
+		}
+		if (i==0) fail("Engine pid %d not found.", pid);
+
+		//-- 1. coresCnt, coreId, coreType
+		sprintf_s(sqlS, SQL_MAXLEN, "select CoreId, CoreType, CoreThreadId from EngineCores where EnginePid= %d", pid);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+		i=0;
 		while (((ResultSet*)rset)->next()) {
 			coreId[i]=((ResultSet*)rset)->getInt(1);
 			coreType[i]=((ResultSet*)rset)->getInt(2);
@@ -608,6 +668,43 @@ int sOraData::getSavedEnginePids(int maxPids_, int* oPid) {
 	}
 
 
+
+}
+
+//--
+void sOraData::loadDBConnInfo(int pid_, int tid_, char** oDBusername, char** oDBpassword, char** oDBconnstring) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open) {}
+
+	sprintf_s(sqlS, SQL_MAXLEN, "select UserName, Password, ConnString from DBConnections where ProcessId=%d and ThreadId=%d", pid_, tid_);
+	try {
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+
+		int i=0;
+		while (((ResultSet*)rset)->next()) {
+			strcpy_s((*oDBusername), DBUSERNAME_MAXLEN, ((ResultSet*)rset)->getString(1).c_str());
+			strcpy_s((*oDBpassword), DBUSERNAME_MAXLEN, ((ResultSet*)rset)->getString(2).c_str());
+			strcpy_s((*oDBconnstring), DBUSERNAME_MAXLEN, ((ResultSet*)rset)->getString(3).c_str());
+			i++;
+		}
+
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+		if (i==0) fail("DB Connection not found for ProcessId=%d, ThreadId=%d", pid_, tid_);
+
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+}
+void sOraData::saveDBConnInfo(int pid_, int tid_, char* oDBusername, char* oDBpassword, char* oDBconnstring){	//-- always check this, first!
+	
+	if (!isOpen) safecall(this, open);
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into DBconnections(ProcessId, ThreadId, DBConnId, Username, Password, ConnString) values(%d, %d, %d, '%s','%s','%s')", pid_, tid_, 0, oDBusername, oDBpassword, oDBconnstring);
+	safecall(this, sqlExec, sqlS);
 
 }
 

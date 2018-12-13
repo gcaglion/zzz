@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../ConfigMgr/sCfgObj.h"
+#include "sDataShape.h"
 #include "sTimeSerie.h"
 #include "../Algebra/Algebra.h"
 
@@ -11,12 +12,8 @@
 
 struct sDataSet : sCfgObj {
 
+	sDataShape* shape;
 	sTimeSerie* sourceTS;
-
-	int sampleLen;
-	int predictionLen;
-
-	int selectedFeaturesCnt;
 	int* selectedFeature;
 
 	int samplesCnt;
@@ -34,8 +31,8 @@ struct sDataSet : sCfgObj {
 	//-- array of pointers to any of the above : 
 	numtype* _data[3][2];	//-- [Source][ordering]
 
-	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool doDump=false, const char* dumpPath_=nullptr);
-	EXPORT sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_);
+	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, sDataShape* shape_, int selectedFeaturesCnt_, int* selectedFeature_, int batchSamplesCnt_, bool doDump=false, const char* dumpPath_=nullptr);
+	EXPORT sDataSet(sCfgObjParmsDef, sDataShape* shape_);
 	EXPORT sDataSet(sObjParmsDef, sDataSet* trainDS_);
 	EXPORT ~sDataSet();
 

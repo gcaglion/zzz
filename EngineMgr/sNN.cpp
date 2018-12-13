@@ -1,22 +1,20 @@
 #include "sNN.h"
 
-sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_, persistor_) {
-	parms=NNparms_;
-
-}
-sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_) {
+void sNN::sNNcommon(sNNparms* NNparms_) {
 	parms=NNparms_;
 	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
-
 	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
 	safespawn(Alg, newsname("%s_Algebra", name->base), dbg);
-
-
 	//-- set Common Layout, independent by batchSampleCnt.
-	setCommonLayout();	
+	setCommonLayout();
 	//-- weights can be set now, as they are not affected by batchSampleCnt
 	createWeights();
-
+}
+sNN::sNN(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sObjParmsVal, nullptr, nullptr, layout_, persistor_) {
+	sNNcommon(NNparms_);
+}
+sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_) {
+	sNNcommon(NNparms_);
 }
 sNN::~sNN() {
 	//free(procArgs->mseT); free(procArgs->mseV);
@@ -289,7 +287,7 @@ void sNN::WU_std(){
 
 void sNN::loadBatchData(sDataSet* ds, int b) {
 	//-- set number of L0 neurons to load
-	int L0SampleNodesCnt=ds->sampleLen*ds->selectedFeaturesCnt*ds->batchSamplesCnt;
+	int L0SampleNodesCnt=ds->shape->sampleLen*ds->shape->featuresCnt*ds->batchSamplesCnt;
 	//-- load batch samples on L0
 	Alg->h2d(&F[(parms->useBias) ? 1 : 0], &ds->sampleBFS[b*L0SampleNodesCnt], L0SampleNodesCnt*sizeof(numtype), false);
 	//-- load batch target on output level

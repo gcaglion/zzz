@@ -1,11 +1,12 @@
 #include "sDataSet.h"
 
-sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, int selectedFeaturesCnt_, int* selectedFeature_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
-	sourceTS=sourceTS_; sampleLen=sampleLen_; predictionLen=predictionLen_; batchSamplesCnt=batchSamplesCnt_; selectedFeaturesCnt=selectedFeaturesCnt_;
+sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, sDataShape* shape_, int selectedFeaturesCnt_, int* selectedFeature_, int batchSamplesCnt_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+	sourceTS=sourceTS_; batchSamplesCnt=batchSamplesCnt_; 
+	shape=shape_; shape->featuresCnt=selectedFeaturesCnt_;
 
 	mallocs1();
 
-	for (int f=0; f<selectedFeaturesCnt; f++) selectedFeature[f]=selectedFeature_[f];
+	for (int f=0; f<shape->featuresCnt; f++) selectedFeature[f]=selectedFeature_[f];
 	doDump=doDump_;
 	if (dumpPath_!=nullptr) {
 		strcpy_s(dumpPath, MAX_PATH, dumpPath_);
@@ -15,14 +16,14 @@ sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, int sampleLen_, int pred
 
 	mallocs2();
 }
-sDataSet::sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_) : sCfgObj(sCfgObjParmsVal) {
-	sampleLen=sampleLen_; predictionLen=predictionLen_;
+sDataSet::sDataSet(sCfgObjParmsDef, sDataShape* shape_) : sCfgObj(sCfgObjParmsVal) {
+	shape=shape_;
 
 	mallocs1();
 
 	//-- 1. get Parameters
 	safecall(cfgKey, getParm, &batchSamplesCnt, "BatchSamplesCount");
-	safecall(cfgKey, getParm, &selectedFeature, "SelectedFeatures", false, &selectedFeaturesCnt);
+	safecall(cfgKey, getParm, &selectedFeature, "SelectedFeatures", false, &shape->featuresCnt);
 	safecall(cfgKey, getParm, &doDump, "Dump");
 	//-- 0. default dump path is dbg outfilepath
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
@@ -37,11 +38,13 @@ sDataSet::sDataSet(sCfgObjParmsDef, int sampleLen_, int predictionLen_) : sCfgOb
 }
 
 sDataSet::sDataSet(sObjParmsDef, sDataSet* trainDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
-	sourceTS=trainDS_->sourceTS; sampleLen=trainDS_->sampleLen; predictionLen=trainDS_->predictionLen; batchSamplesCnt=trainDS_->batchSamplesCnt; selectedFeaturesCnt=trainDS_->selectedFeaturesCnt;
+	sourceTS=trainDS_->sourceTS; 
+	shape=trainDS_->shape; 
+	batchSamplesCnt=trainDS_->batchSamplesCnt;
 
 	mallocs1();
 
-	for (int f=0; f<selectedFeaturesCnt; f++) selectedFeature[f]=trainDS_->selectedFeature[f];
+	for (int f=0; f<shape->featuresCnt; f++) selectedFeature[f]=trainDS_->selectedFeature[f];
 	doDump=trainDS_->doDump;
 	if (trainDS_->dumpPath!=nullptr) {
 		strcpy_s(dumpPath, MAX_PATH, trainDS_->dumpPath);
@@ -50,7 +53,7 @@ sDataSet::sDataSet(sObjParmsDef, sDataSet* trainDS_) : sCfgObj(sObjParmsVal, nul
 	}
 
 	mallocs2();
-	samplesCnt-=predictionLen;
+	samplesCnt-=shape->predictionLen;
 }
 
 sDataSet::~sDataSet() {
@@ -71,8 +74,8 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 
 		//-- sample
 		if (doDump) fprintf(dumpFile, "%d,", sample);
-		for (int bar=0; bar<sampleLen; bar++) {
-			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
+		for (int bar=0; bar<shape->sampleLen; bar++) {
+			for (int dsf=0; dsf<shape->featuresCnt; dsf++) {
 				tsidxS=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
 
 				sampleSBF[dsidxS] = sourceTS->val[fromValSource][fromValStatus][tsidxS]; 
@@ -83,10 +86,10 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 		if (doDump) fprintf(dumpFile, "|,");
 
 		//-- target
-		for (int bar=0; bar<predictionLen; bar++) {
-			for (int dsf=0; dsf<selectedFeaturesCnt; dsf++) {
+		for (int bar=0; bar<shape->predictionLen; bar++) {
+			for (int dsf=0; dsf<shape->featuresCnt; dsf++) {
 				tsidxT=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
-				tsidxT+=tsfcnt*sampleLen;
+				tsidxT+=tsfcnt*shape->sampleLen;
 
 				targetSBF[dsidxT] = sourceTS->val[fromValSource][fromValStatus][tsidxT];
 				if (doDump) fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
@@ -101,14 +104,14 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 
 	int tsfcnt=sourceTS->sourceData->featuresCnt;
-	int dsfcnt=selectedFeaturesCnt;
-	int trowlen=predictionLen*dsfcnt;
-	int srowlen=sampleLen*tsfcnt;
+	int dsfcnt=shape->featuresCnt;
+	int trowlen=shape->predictionLen*dsfcnt;
+	int srowlen=shape->sampleLen*tsfcnt;
 	int dsidx=0;
 	int tsidx=0;
 
 	//-- for the first sample, scan all the bars in sample
-	for (int bar=0; bar<sampleLen; bar++) {
+	for (int bar=0; bar<shape->sampleLen; bar++) {
 		for (int dsf=0; dsf<dsfcnt; dsf++) {
 			tsidx=bar*tsfcnt+selectedFeature[dsf];
 			sourceTS->val[toValSource][toValStatus][tsidx] = EMPTY_VALUE;
@@ -125,10 +128,10 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 	}
 
 	//-- now we are on the last row of the target section. need to take all bars>0
-	for (int bar=1; bar<predictionLen; bar++) {
+	for (int bar=1; bar<shape->predictionLen; bar++) {
 		for (int dsf=0; dsf<dsfcnt; dsf++) {
 			dsidx=(samplesCnt-1)*trowlen+bar*dsfcnt+dsf;
-			tsidx=(samplesCnt+sampleLen)*tsfcnt+(bar-1)*tsfcnt+selectedFeature[dsf];
+			tsidx=(samplesCnt+shape->sampleLen)*tsfcnt+(bar-1)*tsfcnt+selectedFeature[dsf];
 			sourceTS->val[toValSource][toValStatus][tsidx] = _data[fromValSource][SBF][dsidx];
 		}
 	}
@@ -138,19 +141,19 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 void sDataSet::setBFS() {
 	for (int b=0; b<batchCnt; b++) {
 		//-- populate BFS sample/target for every batch
-		SBF2BFS(b, sampleLen, sampleSBF, sampleBFS);
-		SBF2BFS(b, predictionLen, targetSBF, targetBFS);
+		SBF2BFS(b, shape->sampleLen, sampleSBF, sampleBFS);
+		SBF2BFS(b, shape->predictionLen, targetSBF, targetBFS);
 	}
 }
 void sDataSet::setSBF() {
 	for (int b=0; b<batchCnt; b++) {
 		//-- populate SBF predictionfor every batch
-		BFS2SBF(b, predictionLen, predictionBFS, predictionSBF);
+		BFS2SBF(b, shape->predictionLen, predictionBFS, predictionSBF);
 	}
 }
 void sDataSet::SBF2BFS(int batchId, int barCnt, numtype* fromSBF, numtype* toBFS) {
 	int S=batchSamplesCnt;
-	int F=selectedFeaturesCnt;
+	int F=shape->featuresCnt;
 	int B=barCnt;
 	int idx;
 	int idx0=batchId*B*F*S;
@@ -167,7 +170,7 @@ void sDataSet::SBF2BFS(int batchId, int barCnt, numtype* fromSBF, numtype* toBFS
 }
 void sDataSet::BFS2SBF(int batchId, int barCnt, numtype* fromBFS, numtype* toSBF) {
 	int S=batchSamplesCnt;
-	int F=selectedFeaturesCnt;
+	int F=shape->featuresCnt;
 	int B=barCnt;
 	int idx;
 	int idx0=batchId*B*F*S;
@@ -191,20 +194,20 @@ void sDataSet::mallocs1() {
 	dumpPath=(char*)malloc(MAX_PATH);
 }
 void sDataSet::mallocs2() {
-	samplesCnt=sourceTS->stepsCnt-sampleLen+1 -predictionLen;
+	samplesCnt=sourceTS->stepsCnt-shape->sampleLen+1 -shape->predictionLen;
 	if ((samplesCnt%batchSamplesCnt)!=0) {
 		fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", samplesCnt, batchSamplesCnt)
 	} else {
 		batchCnt = samplesCnt/batchSamplesCnt;
 	}
 	//--
-	sampleSBF=(numtype*)malloc(samplesCnt*sampleLen*selectedFeaturesCnt*sizeof(numtype));
-	targetSBF=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
-	predictionSBF=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+	sampleSBF=(numtype*)malloc(samplesCnt*shape->sampleLen*shape->featuresCnt*sizeof(numtype));
+	targetSBF=(numtype*)malloc(samplesCnt*shape->predictionLen*shape->featuresCnt*sizeof(numtype));
+	predictionSBF=(numtype*)malloc(samplesCnt*shape->predictionLen*shape->featuresCnt*sizeof(numtype));
 	//--
-	sampleBFS=(numtype*)malloc(samplesCnt*sampleLen*selectedFeaturesCnt*sizeof(numtype));
-	targetBFS=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
-	predictionBFS=(numtype*)malloc(samplesCnt*predictionLen*selectedFeaturesCnt*sizeof(numtype));
+	sampleBFS=(numtype*)malloc(samplesCnt*shape->sampleLen*shape->featuresCnt*sizeof(numtype));
+	targetBFS=(numtype*)malloc(samplesCnt*shape->predictionLen*shape->featuresCnt*sizeof(numtype));
+	predictionBFS=(numtype*)malloc(samplesCnt*shape->predictionLen*shape->featuresCnt*sizeof(numtype));
 
 	//-- generic pointers
 	_data[SAMPLE][SBF]=sampleSBF;
@@ -224,7 +227,7 @@ void sDataSet::frees() {
 	free(predictionBFS);
 }
 bool sDataSet::isSelected(int ts_f) {
-	for (int ds_f=0; ds_f<selectedFeaturesCnt; ds_f++) {
+	for (int ds_f=0; ds_f<shape->featuresCnt; ds_f++) {
 		if (selectedFeature[ds_f]==ts_f) return true;
 	}
 	return false;
@@ -247,28 +250,28 @@ void sDataSet::dumpPre(int valStatus, FILE** dumpFile) {
 
 	//-- print headers
 	fprintf((*dumpFile), "SampleId,");
-	for (b=0; b<(sampleLen); b++) {
-		for (f=0; f<selectedFeaturesCnt; f++) {
+	for (b=0; b<(shape->sampleLen); b++) {
+		for (f=0; f<shape->featuresCnt; f++) {
 			fprintf((*dumpFile), "Bar%dF%d,", b, selectedFeature[f]);
 		}
 	}
 	fprintf((*dumpFile), ",");
-	for (b=0; b<(predictionLen); b++) {
-		for (f=0; f<selectedFeaturesCnt; f++) {
+	for (b=0; b<(shape->predictionLen); b++) {
+		for (f=0; f<shape->featuresCnt; f++) {
 			fprintf((*dumpFile), "  Target%dF%d,", b, selectedFeature[f]);
 		}
 	}
 	fprintf((*dumpFile), ",");
-	for (b=0; b<(predictionLen); b++) {
-		for (f=0; f<selectedFeaturesCnt; f++) {
+	for (b=0; b<(shape->predictionLen); b++) {
+		for (f=0; f<shape->featuresCnt; f++) {
 			fprintf((*dumpFile), "  Prediction%dF%d,", b, selectedFeature[f]);
 		}
 	}
 	fprintf((*dumpFile), "\n");
-	for (i=0; i<(1+(sampleLen*selectedFeaturesCnt)); i++) fprintf((*dumpFile), "---------,");
+	for (i=0; i<(1+(shape->sampleLen*shape->featuresCnt)); i++) fprintf((*dumpFile), "---------,");
 	fprintf((*dumpFile), ",");
-	for (i=0; i<(predictionLen*selectedFeaturesCnt); i++) fprintf((*dumpFile), "---------,");
+	for (i=0; i<(shape->predictionLen*shape->featuresCnt); i++) fprintf((*dumpFile), "---------,");
 	fprintf((*dumpFile), ",");
-	for (i=0; i<(predictionLen*selectedFeaturesCnt); i++) fprintf((*dumpFile), "---------,");
+	for (i=0; i<(shape->predictionLen*shape->featuresCnt); i++) fprintf((*dumpFile), "---------,");
 	fprintf((*dumpFile), "\n");
 }

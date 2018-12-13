@@ -5,6 +5,8 @@
 #include "sGAparms.h"
 
 struct sGA : sCore {
+
+	EXPORT sGA(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sGAparms* GAparms_);
 	EXPORT sGA(sCfgObjParmsDef, sCoreLayout* layout_, sGAparms* GAparms_);
 	EXPORT ~sGA();
 

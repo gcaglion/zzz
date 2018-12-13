@@ -7,9 +7,9 @@ struct sDataShape : sCfgObj {
 	//-- basic properties
 	int sampleLen;
 	int predictionLen;
-	//int featuresCnt;
+	int featuresCnt;
 
-	EXPORT sDataShape(sObjParmsDef, int sampleLen_, int predictionLen_);
+	EXPORT sDataShape(sObjParmsDef, int sampleLen_, int predictionLen_, int featuresCnt_=0);
 	EXPORT sDataShape(sCfgObjParmsDef);
 	EXPORT ~sDataShape();
 

@@ -11,7 +11,7 @@
 
 struct sNN : sCore {
 
-	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_);
+	EXPORT sNN(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_);
 	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
 	EXPORT ~sNN();
 
@@ -80,6 +80,8 @@ private:
 	DWORD TRstart, TRtimeTot=0, TRcnt=0; float TRtimeAvg;
 
 	//--
+	void sNNcommon(sNNparms* NNparms_);
+
 	void setCommonLayout();
 	void FF();
 	void Activate(int level);
