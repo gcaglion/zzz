@@ -700,7 +700,13 @@ void sOraData::loadDBConnInfo(int pid_, int tid_, char** oDBusername, char** oDB
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
+void sOraData::saveDBConnInfo(int pid_, int tid_, char* oDBusername, char* oDBpassword, char* oDBconnstring){	//-- always check this, first!
+	
+	if (!isOpen) safecall(this, open);
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into DBconnections(ProcessId, ThreadId, DBConnId, Username, Password, ConnString) values(%d, %d, %d, '%s','%s','%s')", pid_, tid_, 0, oDBusername, oDBpassword, oDBconnstring);
+	safecall(this, sqlExec, sqlS);
 
+}
 
 //-- private stuff
 void sOraData::sqlExec(char* sqlS) {

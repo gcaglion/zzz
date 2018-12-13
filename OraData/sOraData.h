@@ -14,6 +14,10 @@
 
 struct sOraData : sCfgObj {
 
+	char* DBUserName = new char[DBUSERNAME_MAXLEN];
+	char* DBPassword = new char[DBPASSWORD_MAXLEN];
+	char* DBConnString = new char[DBCONNSTRING_MAXLEN];
+
 	EXPORT sOraData(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_);
 	EXPORT sOraData(sCfgObjParmsDef);
 	EXPORT ~sOraData();
@@ -63,6 +67,7 @@ struct sOraData : sCfgObj {
 	EXPORT void saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, numtype* delta_, numtype* mu_, numtype* alpha_, numtype* beta_, numtype* lambda_, numtype* lambdau_, numtype* comp_, numtype* Gtse_old_, numtype* Gtse_new_, numtype* pnorm_, numtype* rnorm_, numtype* dwnorm_);
 	//--
 	EXPORT void loadDBConnInfo(int pid_, int tid_, char** oDBusername, char** oDBpassword, char** oDBconnstring);
+	EXPORT void saveDBConnInfo(int pid_, int tid_, char* oDBusername, char* oDBpassword, char* oDBconnstring);
 
 private:
 	void* env = nullptr;
@@ -70,10 +75,6 @@ private:
 	void* stmt = nullptr;
 	void* rset = nullptr;
 	bool isOpen = false;
-
-	char* DBUserName = new char[DBUSERNAME_MAXLEN];
-	char* DBPassword = new char[DBPASSWORD_MAXLEN];
-	char* DBConnString = new char[DBCONNSTRING_MAXLEN];
 
 	char sqlS[SQL_MAXLEN];
 

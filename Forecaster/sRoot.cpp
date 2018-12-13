@@ -20,6 +20,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 
 	char endtimeS[TIMER_ELAPSED_FORMAT_LEN];
 
+	sCfg* clientCfg; sCfg* shapeCfg; sCfg* trainCfg; sCfg* engCfg;
 	sDataShape* shape;
 	sDataSet* trainDS; sLogger* trainLog;
 	sEngine* engine;
@@ -33,10 +34,10 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		getFullPath(engineXMLfile_, engineffname);
 
 		//-- 1. load separate sCfg* for client, dataShape, trainDataset, Engine
-		sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), erronlydbg, clientffname);
-		sCfg* shapeCfg; safespawn(shapeCfg, newsname("shapeCfg"), erronlydbg, shapeffname);
-		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), erronlydbg, trainffname);
-		sCfg* engCfg; safespawn(engCfg, newsname("engineCfg"), erronlydbg, engineffname);
+		safespawn(clientCfg, newsname("clientCfg"), erronlydbg, clientffname);
+		safespawn(shapeCfg, newsname("shapeCfg"), erronlydbg, shapeffname);
+		safespawn(trainCfg, newsname("trainCfg"), erronlydbg, trainffname);
+		safespawn(engCfg, newsname("engineCfg"), erronlydbg, engineffname);
 
 		//-- 5. create client persistor, if needed
 		bool saveClient;
@@ -76,6 +77,17 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- Commit clientpersistor data
 		safecall(clientLog, commit);
 
+		//-- cleanup
+		delete engine;
+		delete trainLog;
+		delete trainDS;
+		delete shape;
+		delete clientLog;
+		delete engCfg;
+		delete trainCfg;
+		delete shapeCfg;
+		delete clientCfg;
+
 	}
 	catch (std::exception exc) {
 		fail("Exception=%s", exc.what());
@@ -87,13 +99,13 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 
 	//-- full filenames
 	char clientffname[MAX_PATH];
-	char shapeffname[MAX_PATH];
 	char inferffname[MAX_PATH];
-	char engineffname[MAX_PATH];
 
 	char endtimeS[TIMER_ELAPSED_FORMAT_LEN]; endtimeS[0]='\0';
 	sTimer* timer=new sTimer();
 
+	sCfg* clientCfg; 
+	sCfg* inferCfg; 
 	sDataShape* shape;
 	sDataSet* inferDS; sLogger* inferLog;
 	sEngine* engine;
@@ -105,8 +117,8 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		getFullPath(inferXMLfile_, inferffname);
 
 		//-- 1. load separate sCfg* for client, dataShape, inferDataset, Engine
-		sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
-		sCfg* inferCfg; safespawn(inferCfg, newsname("inferCfg"), defaultdbg, inferffname);
+		safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
+		safespawn(inferCfg, newsname("inferCfg"), defaultdbg, inferffname);
 
 		//-- 5.1 create client persistor, if needed
 		bool saveClient;
@@ -139,9 +151,17 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferDS->sourceTS->date0, "", false, true, clientffname, shapeffname, inferffname, engineffname);
+		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferDS->sourceTS->date0, "", false, true, clientffname, "", inferffname, "");
 		//-- Commit clientpersistor data
 		safecall(clientLog, commit);
+
+		//-- cleanup
+		delete inferLog;
+		delete inferDS;
+		delete engine;
+		delete clientLog;
+		delete clientCfg;
+		delete inferCfg;
 
 	}
 	catch (std::exception exc) {

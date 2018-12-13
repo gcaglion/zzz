@@ -167,3 +167,7 @@ void sLogger::loadDBConnInfo(int pid_, int tid_, char** oDBusername, char** oDBp
 	if (source==OraData) safecall(oradb, loadDBConnInfo, pid_, tid_, oDBusername, oDBpassword, oDBconnstring);
 	//if (source==FileData) safecall(filedb, loadDBConnInfo, pid_, tid_, oDBusername, oDBpassword, oDBconnstring);
 }
+void sLogger::saveDBConnInfo(int pid_, int tid_, char* oDBusername, char* oDBpassword, char* oDBconnstring) {
+	if (source==OraData) safecall(oradb, saveDBConnInfo, pid_, tid_, oDBusername, oDBpassword, oDBconnstring);
+	//if (source==FileData) safecall(filedb, saveDBConnInfo, pid_, tid_, oDBusername, oDBpassword, oDBconnstring);
+}

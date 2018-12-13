@@ -1,6 +1,7 @@
 #include "sCoreLogger.h"
 
 sCoreLogger::sCoreLogger(sObjParmsDef, int readFrom_, bool saveToDB_, bool saveToFile_, bool saveMSEFlag_, bool saveRunFlag_, bool saveInternalsFlag_, bool saveImageFlag_) : sLogger(sObjParmsVal, readFrom_, saveToDB_, saveToFile_) {
+	logsCnt=4; mallocs();
 	saveToDB=saveToDB_; saveToFile=saveToFile_;
 	saveMSEFlag=saveMSEFlag_;
 	saveRunFlag=saveRunFlag_;
@@ -37,7 +38,7 @@ sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
 
 }
 sCoreLogger::sCoreLogger(sObjParmsDef, sLogger* persistor_, int pid_, int tid_) : sLogger(sObjParmsVal, 0, false, false) {
-
+	logsCnt=4; mallocs();
 	//-- set persistor parameters
 	safecall(persistor_, loadCoreLoggerParms, pid_, tid_, &readFrom, &saveToDB, &saveToFile, &saveMSEFlag, &saveRunFlag, &saveInternalsFlag, &saveImageFlag);
 	//-- spawn oradb
@@ -46,7 +47,8 @@ sCoreLogger::sCoreLogger(sObjParmsDef, sLogger* persistor_, int pid_, int tid_) 
 		char DBpassword[DBPASSWORD_MAXLEN]; char* pDBpassword=&DBpassword[0];
 		char DBconnstring[DBCONNSTRING_MAXLEN]; char* pDBconnstring=&DBconnstring[0];
 		safecall(persistor_, loadDBConnInfo, pid_, tid_, &pDBusername, &pDBpassword, &pDBconnstring);
-
+		
+		safespawn(oradb, newsname("Persistor_OraData"), defaultdbg, pDBusername, pDBpassword, pDBconnstring);
 	}
 }
 sCoreLogger::~sCoreLogger(){
@@ -60,4 +62,6 @@ void sCoreLogger::mallocs() {
 
 void sCoreLogger::save(sLogger* persistor_, int pid_, int tid_){
 	safecall(persistor_, saveCoreLoggerParms, pid_, tid_, readFrom, saveToDB, saveToFile, saveMSEFlag, saveRunFlag, saveInternalsFlag, saveImageFlag);
+	//-- save oradb info
+	safecall(persistor_, saveDBConnInfo, pid_, tid_, oradb->DBUserName, oradb->DBPassword, oradb->DBConnString);
 }
