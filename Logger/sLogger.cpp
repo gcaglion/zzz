@@ -149,6 +149,15 @@ void sLogger::loadCoreDUMBparms(int pid, int tid, int p1, int p2) {
 	fail("Not implemented.");
 }
 //--
+void sLogger::saveCoreLoggerParms(int pid_, int tid_, int readFrom, bool saveToDB, bool saveToFile, bool saveMSEFlag, bool saveRunFlag, bool saveInternalsFlag, bool saveImageFlag){
+	if (saveToDB) safecall(oradb, saveCoreLoggerParms, pid_, tid_, readFrom, saveToDB, saveToFile, saveMSEFlag, saveRunFlag, saveInternalsFlag, saveImageFlag);
+	if (saveToFile) safecall(filedb, saveCoreLoggerParms, pid_, tid_, readFrom, saveToDB, saveToFile, saveMSEFlag, saveRunFlag, saveInternalsFlag, saveImageFlag);
+}
+void sLogger::loadCoreLoggerParms(int pid_, int tid_, int* readFrom, bool* saveToDB, bool* saveToFile, bool* saveMSEFlag, bool* saveRunFlag, bool* saveInternalsFlag, bool* saveImageFlag){
+	if (source==OraData) safecall(oradb, loadCoreLoggerParms, pid_, tid_, readFrom, saveToDB, saveToFile, saveMSEFlag, saveRunFlag, saveInternalsFlag, saveImageFlag);
+	if (source==FileData) safecall(filedb, loadCoreLoggerParms, pid_, tid_, readFrom, saveToDB, saveToFile, saveMSEFlag, saveRunFlag, saveInternalsFlag, saveImageFlag);
+}
+//--
 void sLogger::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, numtype* delta_, numtype* mu_, numtype* alpha_, numtype* beta_, numtype* lambda_, numtype* lambdau_, numtype* Gtse_old_, numtype* Gtse_new_, numtype* comp_, numtype* pnorm_, numtype* rnorm_, numtype* dwnorm_){
 	if (saveToDB) safecall(oradb, saveCoreNNInternalsSCGD, pid_, tid_, iterationsCnt_, delta_, mu_, alpha_, beta_, lambda_, lambdau_, Gtse_old_, Gtse_new_, comp_, pnorm_, rnorm_, dwnorm_);
 	if (saveToFile) safecall(filedb, saveCoreNNInternalsSCGD, pid_, tid_, iterationsCnt_, delta_, mu_, alpha_, beta_, lambda_, lambdau_, Gtse_old_, Gtse_new_, comp_, pnorm_, rnorm_, dwnorm_);

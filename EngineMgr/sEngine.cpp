@@ -5,7 +5,7 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	
 	safespawn(shape, newsname("%s_DataShape", name->base), defaultdbg, 0, 0, 0);
 	sOraData* persistorDB;
-	safespawn(persistorDB, newsname("%s_Logger_DB", name->base), defaultdbg, "", "", "");
+	safespawn(persistorDB, newsname("%s_Logger_DB", name->base), defaultdbg);
 	safespawn(persistor, newsname("%s_Logger", name->base), defaultdbg, persistorDB);
 
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
@@ -19,16 +19,20 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	int** coreParent=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParent[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	int** coreParentConnType=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParentConnType[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 
-	//-- 2. load info from FROM persistor
-	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType);
-	if (coresCnt==0) fail("Engine pid %d not found.", loadingPid_);
-
-	//-- 3. malloc one core, one coreLayout and one coreParms for each core
+	//-- 2. malloc one core, one coreLayout, one coreParms and one corePersistor for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
 	coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
-	//-- for each Core, get layout info, and set base coreLayout properties  (type, desc, connType, outputCnt)
+	corePersistor=(sCoreLogger**)malloc(coresCnt*sizeof(sCoreLogger*));
+
+	//-- 3. load info from FROM persistor
+	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType);
+	if (coresCnt==0) fail("Engine pid %d not found.", loadingPid_);
+
+	//-- for each Core, create corePersistor from DB (coreLoggerParms), using loadingPid_ and coreThreadId[]. Also, get layout info, and set base coreLayout properties  (type, desc, connType, outputCnt).
 	for (int c=0; c<coresCnt; c++) {
+		corePersistor[c]=new sCoreLogger(this, newsname("CorePersistor%d", c), defaultdbg, GUIreporter, persistor, loadingPid_, coreThreadId[c]);
+		safespawn(corePersistor[c], newsname("CorePersistor%d", c), defaultdbg, persistor, loadingPid_, coreThreadId[c]);
 		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt, coreType[c], coreParentsCnt[c], coreParent[c], coreParentConnType[c], coreThreadId[c]);
 	}
 
@@ -158,7 +162,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					NNcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, coreLayout[c], NNcp);
+					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, coreLayout[c], corePersistor[c], NNcp);
 					//-- 3. core image
 					safecall(NNc, loadImage, loadingPid, coreLayout[c]->tid, -1);
 					//-- 4. set parent classes
@@ -169,7 +173,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					GAcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, coreLayout[c], GAcp);
+					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, coreLayout[c], corePersistor[c], GAcp);
 					//-- 3. core image
 					safecall(GAc, loadImage, loadingPid, coreLayout[c]->tid, -1);
 					//-- 4. set parent classes
@@ -180,7 +184,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					SVMcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, coreLayout[c], SVMcp);
+					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, coreLayout[c], corePersistor[c], SVMcp);
 					//-- 3. core image
 					safecall(SVMc, loadImage, loadingPid, coreLayout[c]->tid, -1);
 					//-- 4. set parent classes
@@ -191,7 +195,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					SOMcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, coreLayout[c], SOMcp);
+					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, coreLayout[c], corePersistor[c], SOMcp);
 					//-- 3. core image
 					safecall(SOMc, loadImage, loadingPid, coreLayout[c]->tid, -1);
 					//-- 4. set parent classes
@@ -202,7 +206,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					DUMBcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, cfg, (newsname("Custom/Core%d", c))->base, coreLayout[c], DUMBcp);
+					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, coreLayout[c], corePersistor[c], DUMBcp);
 					//-- 3. core image
 					safecall(DUMBc, loadImage, loadingPid, coreLayout[c]->tid, -1);
 					//-- 4. set parent classes
@@ -318,12 +322,11 @@ void sEngine::saveMSE() {
 		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
 	}
 }
-void sEngine::saveImage(int epoch) {
-
-	//-- cores Images
-	for (int c=0; c<coresCnt; c++) {
-		if (core[c]->persistor->saveImageFlag) safecall(core[c], saveImage, core[c]->procArgs->pid, core[c]->procArgs->tid, epoch);
-	}
+void sEngine::saveCoreLoggers() {
+	for (int c=0; c<coresCnt; c++) safecall(core[c]->persistor, save, persistor, core[c]->procArgs->pid, core[c]->procArgs->tid);
+}
+void sEngine::saveCoreImages(int epoch) {
+	for (int c=0; c<coresCnt; c++) if (core[c]->persistor->saveImageFlag) safecall(core[c], saveImage, core[c]->procArgs->pid, core[c]->procArgs->tid, epoch);
 }
 void sEngine::saveRun() {
 	for (int c=0; c<coresCnt; c++) {

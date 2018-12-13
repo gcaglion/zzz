@@ -95,6 +95,13 @@ void sFileData::loadCoreSOMImage(int pid, int tid, int epoch, int Wcnt, numtype*
 void sFileData::loadCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	fail("Not implemented.");
 }
+//-- Save/Load Core Logger image
+void sFileData::saveCoreLoggerParms(int pid_, int tid_, int readFrom, bool saveToDB, bool saveToFile, bool saveMSEFlag, bool saveRunFlag, bool saveInternalsFlag, bool saveImageFlag) {
+	fail("Not implemented.");
+}
+void sFileData::loadCoreLoggerParms(int pid_, int tid_, int* readFrom, bool* saveToDB, bool* saveToFile, bool* saveMSEFlag, bool* saveRunFlag, bool* saveInternalsFlag, bool* saveImageFlag) {
+	fail("Not implemented.");
+}
 //-- Save/Load core parms
 void sFileData::saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* levelActivationS_, bool useContext_, bool useBias_, int maxEpochs_, numtype targetMSE_, int netSaveFrequency_, bool stopOnDivergence_, int BPalgo_, float learningRate_, float learningMomentum_, int SCGDmaxK_) {
 	fail("Not implemented.");

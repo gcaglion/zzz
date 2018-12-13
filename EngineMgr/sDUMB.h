@@ -8,6 +8,7 @@ struct sDUMB : sCore {
 
 	float fixedTRSerror;
 
+	EXPORT sDUMB(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sDUMBparms* DUMBparms_);
 	EXPORT sDUMB(sCfgObjParmsDef, sCoreLayout* layout_, sDUMBparms* DUMBparms_);
 	EXPORT ~sDUMB();
 

@@ -404,6 +404,48 @@ void sOraData::loadCoreSOMImage(int pid, int tid, int epoch, int Wcnt, numtype* 
 void sOraData::loadCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	info("Done nothing.");
 }
+//-- Save/Load Core Logger image
+void sOraData::saveCoreLoggerParms(int pid_, int tid_, int readFrom, bool saveToDB, bool saveToFile, bool saveMSEFlag, bool saveRunFlag, bool saveInternalsFlag, bool saveImageFlag) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into coreLoggerParms(ProcessId, ThreadId, ReadFrom, SaveToDB, SaveToFile, SaveMSEFlag, SaveRunFlag, SaveInternalsFlag, SaveImageFlag) values (%d, %d, %d, %d, %d, %d, %d, %d, %d)", pid_, tid_, readFrom, (saveToDB)?1:0, (saveToFile)?1:0, (saveMSEFlag)?1:0, (saveRunFlag)?1:0, (saveInternalsFlag)?1:0, (saveImageFlag)?1:0);
+
+	safecall(this, sqlExec, sqlS);
+
+}
+void sOraData::loadCoreLoggerParms(int pid_, int tid_, int* readFrom, bool* saveToDB, bool* saveToFile, bool* saveMSEFlag, bool* saveRunFlag, bool* saveInternalsFlag, bool* saveImageFlag) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open) {}
+
+	sprintf_s(sqlS, SQL_MAXLEN, "select ReadFrom, SaveToDB, SaveToFile, SaveMSEFlag, SaveRunFlag, SaveInternalsFlag, SaveImageFlag from CoreLoggerParms where ProcessId=%d and ThreadId=%d", pid_, tid_);
+	try {
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+
+		int i=0;
+		while (((ResultSet*)rset)->next()) {
+			(*readFrom)=((ResultSet*)rset)->getInt(1);
+			(*saveToDB)=(((ResultSet*)rset)->getInt(2)==1);
+			(*saveToFile)=(((ResultSet*)rset)->getInt(3)==1);
+			(*saveRunFlag)=(((ResultSet*)rset)->getInt(4)==1);
+			(*saveMSEFlag)=(((ResultSet*)rset)->getInt(5)==1);
+			(*saveInternalsFlag)=(((ResultSet*)rset)->getInt(6)==1);
+			(*saveImageFlag)=(((ResultSet*)rset)->getInt(7)==1);
+			i++;
+		}
+		if (i==0) fail("Core Logger Parameters not found for ProcessId=%d, ThreadId=%d", pid_, tid_);
+
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
+
+}
+
 
 //-- Save/Load Core<XXX>Paameters
 void sOraData::saveCoreNNparms(int pid, int tid, char* levelRatioS_, char* levelActivationS_, bool useContext_, bool useBias_, int maxEpochs_, numtype targetMSE_, int netSaveFrequency_, bool stopOnDivergence_, int BPalgo_, float learningRate_, float learningMomentum_, int SCGDmaxK_) {
@@ -463,8 +505,7 @@ void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** lev
 
 		if (i==0) fail("Core Parameters not found for ProcessId=%d, ThreadId=%d", pid, tid);
 
-	}
-	catch (SQLException ex) {
+	} catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
@@ -548,20 +589,21 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* samp
 	char nsqlS[SQL_MAXLEN]; Statement* nstmt; ResultSet* nrset;
 
 	try {
-		//-- 0. engine data shape
-		sprintf_s(sqlS, SQL_MAXLEN, "select DataSampleLen, DataPredictionLen, DataFeaturesCnt, saveToDB, saveToFile, OraUserName, OraPassword, OraConnstring from Engines where ProcessId= %d", pid);
+		//-- 0. engine type, data shape and persistor
+		sprintf_s(sqlS, SQL_MAXLEN, "select EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt, saveToDB, saveToFile, OraUserName, OraPassword, OraConnstring from Engines where ProcessId= %d", pid);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 		int i=0;
 		while (((ResultSet*)rset)->next()) {
-			(*sampleLen_)=((ResultSet*)rset)->getInt(1);
-			(*predictionLen_)=((ResultSet*)rset)->getInt(2);
-			(*featuresCnt_)=((ResultSet*)rset)->getInt(3);
-			(*saveToDB_)=(((ResultSet*)rset)->getInt(4)==1);
-			(*saveToFile_)=(((ResultSet*)rset)->getInt(5)==1);
-			strcpy_s(dbconn_->DBUserName, DBUSERNAME_MAXLEN, ((ResultSet*)rset)->getString(6).c_str());
-			strcpy_s(dbconn_->DBPassword, DBPASSWORD_MAXLEN, ((ResultSet*)rset)->getString(7).c_str());
-			strcpy_s(dbconn_->DBConnString, DBCONNSTRING_MAXLEN, ((ResultSet*)rset)->getString(8).c_str());
+			(*engineType)=((ResultSet*)rset)->getInt(1);
+			(*sampleLen_)=((ResultSet*)rset)->getInt(2);
+			(*predictionLen_)=((ResultSet*)rset)->getInt(3);
+			(*featuresCnt_)=((ResultSet*)rset)->getInt(4);
+			(*saveToDB_)=(((ResultSet*)rset)->getInt(5)==1);
+			(*saveToFile_)=(((ResultSet*)rset)->getInt(6)==1);
+			strcpy_s(dbconn_->DBUserName, DBUSERNAME_MAXLEN, ((ResultSet*)rset)->getString(7).c_str());
+			strcpy_s(dbconn_->DBPassword, DBPASSWORD_MAXLEN, ((ResultSet*)rset)->getString(8).c_str());
+			strcpy_s(dbconn_->DBConnString, DBCONNSTRING_MAXLEN, ((ResultSet*)rset)->getString(9).c_str());
 			i++;
 		}
 		if (i==0) fail("Engine pid %d not found.", pid);

@@ -64,7 +64,8 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- persist MSE logs
 		safecall(engine, saveMSE);
 		//-- persist Core logs
-		safecall(engine, saveImage);
+		safecall(engine, saveCoreImages);
+		safecall(engine, saveCoreLoggers);
 		//-- persist Engine Info
 		safecall(engine, saveInfo);
 		//-- Commit engine persistor data

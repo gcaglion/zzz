@@ -25,6 +25,7 @@ struct sEngine : sCfgObj {
 	sCore** core;
 	sCoreLayout** coreLayout;
 	sCoreParms** coreParms;
+	sCoreLogger** corePersistor;
 
 	sLogger* persistor;
 
@@ -37,7 +38,8 @@ struct sEngine : sCfgObj {
 	//--
 	EXPORT void saveMSE();
 	EXPORT void saveRun();
-	EXPORT void saveImage(int epoch=-1);
+	EXPORT void saveCoreImages(int epoch=-1);
+	EXPORT void saveCoreLoggers();
 	//--
 	EXPORT void saveInfo();
 	//--

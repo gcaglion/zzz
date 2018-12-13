@@ -63,6 +63,9 @@ struct sLogger : sCfgObj {
 	EXPORT void saveCoreSVMparms(int pid, int tid, int p1, int p2);
 	EXPORT void saveCoreDUMBparms(int pid, int tid, int p1, int p2);
 	//--
+	EXPORT void saveCoreLoggerParms(int pid_, int tid_, int readFrom, bool saveToDB, bool saveToFile, bool saveMSEFlag, bool saveRunFlag, bool saveInternalsFlag, bool saveImageFlag);
+	EXPORT void loadCoreLoggerParms(int pid_, int tid_, int* readFrom, bool* saveToDB, bool* saveToFile, bool* saveMSEFlag, bool* saveRunFlag, bool* saveInternalsFlag, bool* saveImageFlag);
+	//--
 	EXPORT void loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, numtype* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_);
 	EXPORT void loadCoreGAparms(int pid, int tid, int p1, int p2);
 	EXPORT void loadCoreSOMparms(int pid, int tid, int p1, int p2);

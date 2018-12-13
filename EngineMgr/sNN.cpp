@@ -1,8 +1,8 @@
 #include "sNN.h"
 
-sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_, persistor_) {
+sNN::sNN(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sObjParmsVal, nullptr, nullptr, layout_, persistor_) {
 	parms=NNparms_;
-
+	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
 }
 sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_) {
 	parms=NNparms_;

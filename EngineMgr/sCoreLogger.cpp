@@ -36,6 +36,9 @@ sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
 
 
 }
+sCoreLogger::sCoreLogger(sObjParmsDef, sLogger* persistor_, int pid_, int tid_) : sLogger(sObjParmsVal, 0, false, false) {
+	safecall(persistor_, loadCoreLoggerParms, pid_, tid_, &readFrom, &saveToDB, &saveToFile, &saveMSEFlag, &saveRunFlag, &saveInternalsFlag, &saveImageFlag);
+}
 sCoreLogger::~sCoreLogger(){
 	for (int f=0; f<logsCnt; f++) free(ffn[f]);
 	free(ffn);
@@ -43,4 +46,8 @@ sCoreLogger::~sCoreLogger(){
 void sCoreLogger::mallocs() {
 	ffn=(char**)malloc(4*sizeof(char*));
 	for (int f=0; f<logsCnt; f++) ffn[f]=(char*)malloc(MAX_PATH);
+}
+
+void sCoreLogger::save(sLogger* persistor_, int pid_, int tid_){
+	safecall(persistor_, saveCoreLoggerParms, pid_, tid_, readFrom, saveToDB, saveToFile, saveMSEFlag, saveRunFlag, saveInternalsFlag, saveImageFlag);
 }
