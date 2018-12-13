@@ -1,22 +1,20 @@
 #include "sNN.h"
 
-sNN::sNN(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sObjParmsVal, nullptr, nullptr, layout_, persistor_) {
+void sNN::sNNcommon(sNNparms* NNparms_) {
 	parms=NNparms_;
 	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
-}
-sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_) {
-	parms=NNparms_;
-	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
-
 	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
 	safespawn(Alg, newsname("%s_Algebra", name->base), dbg);
-
-
 	//-- set Common Layout, independent by batchSampleCnt.
-	setCommonLayout();	
+	setCommonLayout();
 	//-- weights can be set now, as they are not affected by batchSampleCnt
 	createWeights();
-
+}
+sNN::sNN(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sObjParmsVal, nullptr, nullptr, layout_, persistor_) {
+	sNNcommon(NNparms_);
+}
+sNN::sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_) {
+	sNNcommon(NNparms_);
 }
 sNN::~sNN() {
 	//free(procArgs->mseT); free(procArgs->mseV);

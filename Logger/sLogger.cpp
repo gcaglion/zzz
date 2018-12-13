@@ -162,3 +162,8 @@ void sLogger::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, nu
 	if (saveToDB) safecall(oradb, saveCoreNNInternalsSCGD, pid_, tid_, iterationsCnt_, delta_, mu_, alpha_, beta_, lambda_, lambdau_, Gtse_old_, Gtse_new_, comp_, pnorm_, rnorm_, dwnorm_);
 	if (saveToFile) safecall(filedb, saveCoreNNInternalsSCGD, pid_, tid_, iterationsCnt_, delta_, mu_, alpha_, beta_, lambda_, lambdau_, Gtse_old_, Gtse_new_, comp_, pnorm_, rnorm_, dwnorm_);
 }
+//--
+void sLogger::loadDBConnInfo(int pid_, int tid_, char** oDBusername, char** oDBpassword, char** oDBconnstring) {
+	if (source==OraData) safecall(oradb, loadDBConnInfo, pid_, tid_, oDBusername, oDBpassword, oDBconnstring);
+	//if (source==FileData) safecall(filedb, loadDBConnInfo, pid_, tid_, oDBusername, oDBpassword, oDBconnstring);
+}

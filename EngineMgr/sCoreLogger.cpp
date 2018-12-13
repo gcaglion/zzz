@@ -37,7 +37,17 @@ sCoreLogger::sCoreLogger(sCfgObjParmsDef) : sLogger(sCfgObjParmsVal) {
 
 }
 sCoreLogger::sCoreLogger(sObjParmsDef, sLogger* persistor_, int pid_, int tid_) : sLogger(sObjParmsVal, 0, false, false) {
+
+	//-- set persistor parameters
 	safecall(persistor_, loadCoreLoggerParms, pid_, tid_, &readFrom, &saveToDB, &saveToFile, &saveMSEFlag, &saveRunFlag, &saveInternalsFlag, &saveImageFlag);
+	//-- spawn oradb
+	if (saveToDB) {
+		char DBusername[DBUSERNAME_MAXLEN]; char* pDBusername=&DBusername[0];
+		char DBpassword[DBPASSWORD_MAXLEN]; char* pDBpassword=&DBpassword[0];
+		char DBconnstring[DBCONNSTRING_MAXLEN]; char* pDBconnstring=&DBconnstring[0];
+		safecall(persistor_, loadDBConnInfo, pid_, tid_, &pDBusername, &pDBpassword, &pDBconnstring);
+
+	}
 }
 sCoreLogger::~sCoreLogger(){
 	for (int f=0; f<logsCnt; f++) free(ffn[f]);

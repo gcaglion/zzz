@@ -80,6 +80,8 @@ private:
 	DWORD TRstart, TRtimeTot=0, TRcnt=0; float TRtimeAvg;
 
 	//--
+	void sNNcommon(sNNparms* NNparms_);
+
 	void setCommonLayout();
 	void FF();
 	void Activate(int level);

@@ -671,6 +671,37 @@ int sOraData::getSavedEnginePids(int maxPids_, int* oPid) {
 
 }
 
+//--
+void sOraData::loadDBConnInfo(int pid_, int tid_, char** oDBusername, char** oDBpassword, char** oDBconnstring) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open) {}
+
+	sprintf_s(sqlS, SQL_MAXLEN, "select UserName, Password, ConnString from DBConnections where ProcessId=%d and ThreadId=%d", pid_, tid_);
+	try {
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+
+		int i=0;
+		while (((ResultSet*)rset)->next()) {
+			strcpy_s((*oDBusername), DBUSERNAME_MAXLEN, ((ResultSet*)rset)->getString(1).c_str());
+			strcpy_s((*oDBpassword), DBUSERNAME_MAXLEN, ((ResultSet*)rset)->getString(2).c_str());
+			strcpy_s((*oDBconnstring), DBUSERNAME_MAXLEN, ((ResultSet*)rset)->getString(3).c_str());
+			i++;
+		}
+
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+		if (i==0) fail("DB Connection not found for ProcessId=%d, ThreadId=%d", pid_, tid_);
+
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+}
+
+
 //-- private stuff
 void sOraData::sqlExec(char* sqlS) {
 	try {
