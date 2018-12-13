@@ -5,7 +5,7 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	
 	safespawn(shape, newsname("%s_DataShape", name->base), defaultdbg, 0, 0, 0);
 	sOraData* persistorDB;
-	safespawn(persistorDB, newsname("%s_Logger_DB", name->base), defaultdbg);
+	safespawn(persistorDB, newsname("%s_Logger_DB", name->base), defaultdbg,"","","");
 	safespawn(persistor, newsname("%s_Logger", name->base), defaultdbg, persistorDB);
 
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
