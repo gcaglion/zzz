@@ -148,3 +148,13 @@ create table CoreNNInternalsSCGD(
 );
 alter table CoreNNInternalsSCGD add constraint CoreNNInternalsSCGD_PK primary key(ProcessId, ThreadId, Iteration) using index tablespace LogIdx;
 
+drop table DBConnections purge;
+create table DBConnections(
+	ProcessId number,
+	ThreadId number,
+	DBConnId number,
+	UserName varchar2(64),
+	Password varchar2(64),
+	ConnString varchar2(64)
+);
+alter table DBConnections add constraint DBConnections_PK primary key (ProcessId, ThreadId, DBConnId) using index tablespace LogIdx;
