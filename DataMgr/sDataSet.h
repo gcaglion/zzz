@@ -32,7 +32,7 @@ struct sDataSet : sCfgObj {
 	numtype* _data[3][2];	//-- [Source][ordering]
 
 	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, sDataShape* shape_, int selectedFeaturesCnt_, int* selectedFeature_, int batchSamplesCnt_, bool doDump=false, const char* dumpPath_=nullptr);
-	EXPORT sDataSet(sCfgObjParmsDef, sDataShape* shape_);
+	EXPORT sDataSet(sCfgObjParmsDef, sDataShape* shape_, int extraSteps=0);
 	EXPORT sDataSet(sObjParmsDef, sDataSet* trainDS_);
 	EXPORT ~sDataSet();
 

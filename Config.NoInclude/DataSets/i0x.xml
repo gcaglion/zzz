@@ -1,10 +1,10 @@
 <DataSet>
-	BatchSamplesCount	= 10
+	BatchSamplesCount	= 1
 	SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-	Dump 				= false
+	Dump 				= true
 	DumpPath			= c:\temp\DataDump
 	<TimeSerie>
-		Date0				= 2016-11-08-00:00
+		Date0				= 2016-11-01-00:00
 		HistoryLen			= 5
 		DataTransformation	= DT_DELTA
 		Dump				= false

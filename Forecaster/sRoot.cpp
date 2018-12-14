@@ -136,7 +136,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		shape=engine->shape;
 
 		//-- 3. spawn infer DataSet and its persistor
-		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/DataSet", shape);
+		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/DataSet", shape, shape->sampleLen);
 		safespawn(inferLog, newsname("inferLogger"), defaultdbg, inferCfg, "/DataSet/Persistor");
 
 		//-- core infer cycle
