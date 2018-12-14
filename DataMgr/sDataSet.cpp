@@ -100,7 +100,6 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 	}
 	if (doDump)	fclose(dumpFile);
 }
-
 void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 
 	int tsfcnt=sourceTS->sourceData->featuresCnt;
