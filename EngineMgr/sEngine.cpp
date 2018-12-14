@@ -267,8 +267,9 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_, int savedEnginePi
 
 				//-- scale trdata and rebuild training DataSet for current Core
 				ds_->sourceTS->scale(TARGET, TR, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+				ds_->build(TARGET, BASE);
 				ds_->build(TARGET, TRS);
-				
+
 
 				//-- Create Training or Infer Thread for current Core
 				procArgs[t]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
