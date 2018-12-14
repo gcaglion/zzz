@@ -71,7 +71,8 @@ EXPORT void initCUstreams(void* cuStream[]) {
 }
 
 EXPORT void Malloc_cu(numtype** var, int size) {
-	if (cudaMalloc(var, size*sizeof(numtype))!=cudaSuccess) CUWfail("F41LUR3!-1111");
+	int ret=cudaMalloc(var, size*sizeof(numtype));
+	if (ret!=cudaSuccess) CUWfail("%s() failed. Size=%d , Error %d", __func__, size, ret);
 }
 EXPORT void Free_cu(numtype* var) {
 	if (cudaFree(var)!=cudaSuccess) CUWfail("F41LUR3!-2222");
