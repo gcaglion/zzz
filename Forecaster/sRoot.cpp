@@ -11,21 +11,6 @@ sRoot::~sRoot() {}
 //-- core stuff
 void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr) {
 
-
-	//-- full filenames
-	char clientffname[MAX_PATH];
-	char shapeffname[MAX_PATH];
-	char trainffname[MAX_PATH];
-	char engineffname[MAX_PATH];
-
-	char endtimeS[TIMER_ELAPSED_FORMAT_LEN];
-
-	sCfg* clientCfg; sCfg* shapeCfg; sCfg* trainCfg; sCfg* engCfg;
-	sDataShape* shape;
-	sDataSet* trainDS; sLogger* trainLog;
-	sEngine* engine;
-	sLogger* clientLog;
-	
 	try {
 		//-- 0. set full file name for each of the input files
 		getFullPath(clientXMLfile_, clientffname);
@@ -96,20 +81,6 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 
 }
 void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr) {
-
-	//-- full filenames
-	char clientffname[MAX_PATH];
-	char inferffname[MAX_PATH];
-
-	char endtimeS[TIMER_ELAPSED_FORMAT_LEN]; endtimeS[0]='\0';
-	sTimer* timer=new sTimer();
-
-	sCfg* clientCfg; 
-	sCfg* inferCfg; 
-	sDataShape* shape;
-	sDataSet* inferDS; sLogger* inferLog;
-	sEngine* engine;
-	sLogger* clientLog;
 
 	try {
 		//-- 0. set full file name for each of the input files

@@ -46,6 +46,21 @@ private:
 	void getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates);
 	void getSafePid(sLogger* persistor, int* pid);
 
+	//-- the following are used by both trainClient() and inferClient()
+	char clientffname[MAX_PATH];
+	char shapeffname[MAX_PATH];
+	char trainffname[MAX_PATH];
+	char inferffname[MAX_PATH];
+	char engineffname[MAX_PATH];
+	char endtimeS[TIMER_ELAPSED_FORMAT_LEN];
+	sCfg* clientCfg; sCfg* shapeCfg; sCfg* trainCfg; sCfg* inferCfg; sCfg* engCfg;
+	sDataShape* shape;
+	sDataSet* trainDS; sLogger* trainLog;
+	sDataSet* inferDS; sLogger* inferLog;
+	sEngine* engine;
+	sLogger* clientLog;
+
+
 };
 
 //-- client closure
