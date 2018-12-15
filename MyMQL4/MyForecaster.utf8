@@ -1,0 +1,17 @@
+
+
+MyForecaster.mq4 : information: compiling 'MyForecaster.mq4'
+MyForecaster.mq4(7,37) : error 250: '*' - pointer to pointer is illegal
+MyForecaster.mq4(7,39) : error 298: 'oEnv' - invalid parameter for import function
+MyForecaster.mq4(8,24) : error 298: 'iEnv' - invalid parameter for import function
+MyForecaster.mq4(9,23) : error 298: 'iEnv' - invalid parameter for import function
+MyForecaster.mq4(114,15) : error 168: 'MTOraConnect' - function not defined
+MyForecaster.mq4(122,13) : error 168: 'MTSaveClientInfo' - function not defined
+MyForecaster.mq4(177,7) : error 168: 'MTSaveTradeInfo' - function not defined
+MyForecaster.mq4(193,3) : error 168: 'MTOraCommit' - function not defined
+MyForecaster.mq4(199,5) : error 168: 'MTOraCommit' - function not defined
+MyForecaster.mq4(141,3) : error 168: 'MTOraDisconnect' - function not defined
+MyForecaster.mq4(146,7) : error 168: 'MTUpdateClientInfo' - function not defined
+MyForecaster.mq4(148,3) : error 168: 'MTOraDisconnect' - function not defined
+MyForecaster.mq4(315,11) : error 168: 'MTgetForecast' - function not defined
+Result: 13 error(s), 0 warning(s)

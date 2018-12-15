@@ -421,13 +421,13 @@ void sRoot::setMT4env(int accountId_, int* oSampleLen_, int* oPredictionLen_) {
 	(*oPredictionLen_)=MT4predictionLen;
 
 }
-extern "C" __declspec(dllexport) int _createEnv(int accountId_, void** oEnv, int* oSampleLen_, int* oPredictionLen_) {
+extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_) {
 
 	static sRoot* root;
 	try {
 		root=new sRoot(nullptr);
 		root->setMT4env(accountId_, oSampleLen_, oPredictionLen_);
-		(*oEnv)=root;
+		sprintf_s(oEnvS, 64, "%p", root);
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");
