@@ -54,7 +54,7 @@ struct sTimeSerie : sCfgObj {
 
 	//--
 	EXPORT sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, const char* dumpPath_=nullptr);
-	EXPORT sTimeSerie(sCfgObjParmsDef);
+	EXPORT sTimeSerie(sCfgObjParmsDef, int extraSteps);
 	EXPORT ~sTimeSerie();
 
 	EXPORT void load(int valSource, int valStatus, char* date0_=nullptr);

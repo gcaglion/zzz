@@ -17,11 +17,12 @@ sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0
 
 	mallocs2();
 }
-sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
+sTimeSerie::sTimeSerie(sCfgObjParmsDef, int extraSteps) : sCfgObj(sCfgObjParmsVal) {
 	mallocs1();
 	//-- 1. get Parameters
 	safecall(cfgKey, getParm, &date0, "Date0");
-	safecall(cfgKey, getParm, &stepsCnt, "HistoryLen");
+	safecall(cfgKey, getParm, &stepsCnt, "HistoryLen"); 
+	stepsCnt+=extraSteps;
 	safecall(cfgKey, getParm, &dt, "DataTransformation");
 	safecall(cfgKey, getParm, &doDump, "Dump");
 	//-- 0. default dump path is dbg outfilepath

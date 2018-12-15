@@ -16,7 +16,7 @@ sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, sDataShape* shape_, int 
 
 	mallocs2();
 }
-sDataSet::sDataSet(sCfgObjParmsDef, sDataShape* shape_) : sCfgObj(sCfgObjParmsVal) {
+sDataSet::sDataSet(sCfgObjParmsDef, sDataShape* shape_, int extraSteps) : sCfgObj(sCfgObjParmsVal) {
 	shape=shape_;
 
 	mallocs1();
@@ -29,7 +29,7 @@ sDataSet::sDataSet(sCfgObjParmsDef, sDataShape* shape_) : sCfgObj(sCfgObjParmsVa
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	safecall(cfgKey, getParm, &dumpPath, "DumpPath", true);
 	//-- 2. do stuff and spawn sub-Keys
-	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), defaultdbg, cfg, "TimeSerie");
+	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), defaultdbg, cfg, "TimeSerie", extraSteps);
 
 	mallocs2();
 
@@ -100,7 +100,6 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 	}
 	if (doDump)	fclose(dumpFile);
 }
-
 void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 
 	int tsfcnt=sourceTS->sourceData->featuresCnt;
