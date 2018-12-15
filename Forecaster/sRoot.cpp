@@ -250,11 +250,12 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 }
 
 //-- temp stuff
-
 #include "../CUDAwrapper/CUDAwrapper.h"
 
 void sRoot::kaz() {
 
+
+	//======================================================================================
 	sTimer* timer = new sTimer();
 	char el[DATE_FORMAT_LEN];
 	timer->start();
@@ -348,7 +349,6 @@ void sRoot::kaz() {
 
 	system("pause");
 
-
 /*
 //	sCfg* ds2Cfg=new sCfg(this, newsname("ds2Cfg"), defaultdbg, "Config/Light/Infer.xml");
 //	sDataSet* ds2=new sDataSet(this, newsname("ds2"), defaultdbg, ds2Cfg, "DataSet", 100, 3);
@@ -428,4 +428,55 @@ extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* 
 		terminate(false, "Exception thrown by root. See stack.");
 	}
 	terminate(true, "");
+}
+
+//-- MT4 stuff
+void sRoot::getForecast(numtype* iBarO, numtype* iBarH, numtype* iBarL, numtype* iBarC, numtype* iBarV, numtype* oForecastH, numtype* oForecastL) {
+	for (int b=0; b<MT4predictionLen; b++) {
+		oForecastH[b]=(numtype)b/10;
+		oForecastL[b]=(numtype)b/20;
+	}
+}
+void sRoot::setMT4env(int accountId_, int* oSampleLen_, int* oPredictionLen_) {
+	MT4accountId=accountId_;
+
+	//-- these would be set by engine creation
+	MT4sampleLen=20;
+	MT4predictionLen=3;
+	//------------------------------------------
+
+	//-- return them to caller
+	(*oSampleLen_)=MT4sampleLen;
+	(*oPredictionLen_)=MT4predictionLen;
+
+}
+extern "C" __declspec(dllexport) int _createEnv(int accountId_, void** oEnv, int* oSampleLen_, int* oPredictionLen_) {
+
+	static sRoot* root;
+	try {
+		root=new sRoot(nullptr);
+		root->setMT4env(accountId_, oSampleLen_, oPredictionLen_);
+		(*oEnv)=root;
+	}
+	catch (std::exception exc) {
+		terminate(false, "Exception thrown by root. See stack.");
+	}
+	return 0;
+
+}
+extern "C" __declspec(dllexport) int _getForecast(void* iEnv, numtype* iBarO, numtype* iBarH, numtype* iBarL, numtype* iBarC, numtype* iBarV, numtype* oForecastH, numtype* oForecastL) {
+
+	try {
+		((sRoot*)iEnv)->getForecast(iBarO, iBarH, iBarL, iBarC, iBarV, oForecastH, oForecastL);
+	}
+	catch (std::exception exc) {
+		return -1;
+	}
+
+	return 0;
+}
+extern "C" __declspec(dllexport) int _destroyEnv(void* iEnv) {
+	sRoot* root=(sRoot*)iEnv;
+	delete root;
+	return 0;
 }

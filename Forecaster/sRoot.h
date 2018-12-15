@@ -26,6 +26,13 @@ struct sRoot : sCfgObj {
 	EXPORT void  bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr=nullptr);
 	EXPORT void inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr=nullptr);
 	
+	//-- MT4 stuff
+	int MT4accountId;
+	int MT4sampleLen;
+	int MT4predictionLen;
+	EXPORT void getForecast(numtype* iBarO, numtype* iBarH, numtype* iBarL, numtype* iBarC, numtype* iBarV, numtype* oForecastH, numtype* oForecastL);
+	EXPORT void setMT4env(int accountId_, int* oSampleLen_, int* oPredictionLen_);
+
 	//-- temp stuff
 	EXPORT void kaz();
 
