@@ -9,7 +9,7 @@
 #ifdef USE_GPU
 #include "../CUDAwrapper/CUDAwrapper.h"	//-- defines MAX_STREAMS
 #else
-#define MAX_STREAMS 1
+#define MAX_STREAMS 0
 #endif
 
 //-- Exceptions

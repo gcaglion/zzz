@@ -14,11 +14,8 @@ sAlgebra::sAlgebra(sObjParmsDef) : sObj(sObjParmsVal) {
 	CUWsafecall(initCURand, cuRandH);
 	CUWsafecall(initCUstreams, cuStream);
 #endif
-	//-- init shared scalar
-	myMalloc(&ss, 1);
 }
 sAlgebra::~sAlgebra() {
-	myFree(ss);
 	//.....
 	// destroy cublasH, cuRandH, streams, curanddestroygenerator...
 }
