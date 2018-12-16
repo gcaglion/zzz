@@ -10,7 +10,6 @@ sDbg::sDbg(bool verbose_, bool timing_, bool dbgtoscreen_, bool dbgtofile_, char
 	outfile=nullptr;
 }
 sDbg::~sDbg() {
-	free(outfilepath); free(outfilename); free(outfilefullname);
 	if (outfile!=nullptr) {
 		fflush(outfile);
 		fseek(outfile, 0, SEEK_END); // seek to end of file
@@ -18,6 +17,9 @@ sDbg::~sDbg() {
 		fclose(outfile);
 		if (fsize==0) remove(outfilefullname);
 	}
+	free(outfilepath);
+	free(outfilename);
+	free(outfilefullname);
 }
 
 void sDbg::createOutFile(char* objName, void* objAddr, int objDepth) {

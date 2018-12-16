@@ -1,5 +1,6 @@
 
 #include "sRoot.h"
+#include <vld.h>
 
 //-- constructor / destructor
 sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname("RootObj"), defaultdbg, progressReporter, nullptr, nullptr) {
@@ -225,11 +226,18 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 
 void sRoot::kaz() {
 
-	sAlgebra* Alg1=new sAlgebra(this, newsname("Alg1"), defaultdbg, nullptr);
-	delete Alg1;
-	sAlgebra* Alg2=new sAlgebra(this, newsname("Alg1"), defaultdbg, nullptr);
-	delete Alg2;
+	sAlgebra* Alg1;
+	safespawn(Alg1, newsname("%s_Algebra", name->base), defaultdbg);
+	sOraData* oradb1;
+	safespawn(oradb1, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo");
+	sOraData* oradb2;
+	safespawn(oradb2, newsname("oradb1"), defaultdbg, "History", "HistoryPwd", "Algo");
+	sFXDataSource* fxsrc1;
+	safespawn(fxsrc1, newsname("FXDataSource1"), defaultdbg, oradb1, "EURUSD", "H1", false);
+	sTimeSerie* ts1;
+	safespawn(ts1, newsname("TimeSerie1"), defaultdbg, fxsrc1, "2017-10-20-00:00", 202, DT_DELTA, "c:/temp/DataDump");
 	return;
+
 
 	//======================================================================================
 	sTimer* timer = new sTimer();

@@ -22,7 +22,7 @@ struct sObj {
 	int depth;
 	sObj* parent;
 	vector<sObj*> child;
-	svard* cmdSvard;
+	svard* cmdSvard=nullptr;
 	sTimer* timer=new sTimer();
 	char cmd[CmdMaxLen];
 	char cmdElapsed[TIMER_ELAPSED_FORMAT_LEN];
@@ -35,6 +35,7 @@ struct sObj {
 	template<typename objT, class ...constructorArgs> EXPORT void _spawn(const char* callerFunc_, objT** childVar_, sName* childSname_, sDbg* childDbg_, constructorArgs... childCargs) {
 
 		//-- build command svard
+		if (cmdSvard!=nullptr) delete cmdSvard;
 		cmdSvard=new svard(childCargs...);
 		sprintf_s(cmd, CmdMaxLen, "%s = new %s(%s)", childSname_->base, typeid(objT).name(), cmdSvard->fullval);
 

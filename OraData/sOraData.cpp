@@ -22,9 +22,8 @@ sOraData::sOraData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 }
 sOraData::~sOraData() {
-	if (isOpen) {
-		close();
-	}
+	if (isOpen)	close();
+	delete DBUserName; delete DBPassword; delete DBConnString;
 }
 
 void sOraData::open() {

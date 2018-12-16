@@ -48,6 +48,8 @@ sObj::~sObj() {
 	if (parent!=nullptr) {
 		parent->child.pop_back();
 	}
+	delete timer;
+	if (cmdSvard!=nullptr) delete cmdSvard;
 }
 
 void sObj::findChild(const char* relName, sObj** retObj) {

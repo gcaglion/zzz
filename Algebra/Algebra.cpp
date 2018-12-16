@@ -18,6 +18,8 @@ sAlgebra::sAlgebra(sObjParmsDef) : sObj(sObjParmsVal) {
 sAlgebra::~sAlgebra() {
 	//.....
 	// destroy cublasH, cuRandH, streams, curanddestroygenerator...
+	delete cublasH;
+	delete cuRandH;
 }
 //-- class methods
 

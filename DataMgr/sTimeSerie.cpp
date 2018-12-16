@@ -199,9 +199,7 @@ void sTimeSerie::mallocs2() {
 
 }
 void sTimeSerie::frees() {
-	for (int i=0; i<len; i++) {
-		free(dtime[i]);
-	}
+	for (int i=0; i<len; i++) free(dtime[i]);
 	free(dtime);
 
 	for (int source=0; source<2; source++) {
@@ -216,6 +214,7 @@ void sTimeSerie::frees() {
 	free(base);
 	free(dmin);	free(dmax);
 	free(scaleM); free(scaleP);
+	free(date0);
 	free(dumpPath);
 }
 void sTimeSerie::setDataSource() {
