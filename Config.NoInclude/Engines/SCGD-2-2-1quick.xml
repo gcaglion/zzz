@@ -13,13 +13,13 @@
 			</Layout>
 			<Parameters>
 				<Topology>
-					LevelRatio			= 2
-					LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+					LevelRatio			= 2, 2, 1
+					LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
 					UseContext			= true
 					UseBias				= false
 				</Topology>
 				<Training>
-					MaxEpochs			= 200
+					MaxEpochs			= 2
 					TargetMSE			= 0.0001
 					NetSaveFrequency	= 10
 					StopOnDivergence	= false
@@ -33,7 +33,7 @@
 				saveMSE			= true
 				saveRun			= true
 				saveInternals	= false
-				saveImage		= true
+				saveImage		= false
 				readFrom		= OraData
 				saveToDB		= true
 				saveToFile		= false

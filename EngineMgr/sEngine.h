@@ -21,13 +21,14 @@ struct sEngine : sCfgObj {
 	int layersCnt=0;
 	int* layerCoresCnt;
 
+	sAlgebra* Alg;
+	sLogger* persistor;
+
 	sDataShape* shape;
 	sCore** core;
 	sCoreLayout** coreLayout;
 	sCoreParms** coreParms;
 	sCoreLogger** corePersistor;
-
-	sLogger* persistor;
 
 	EXPORT sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_);
 	EXPORT sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_);

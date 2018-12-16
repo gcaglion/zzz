@@ -225,6 +225,11 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 
 void sRoot::kaz() {
 
+	sAlgebra* Alg1=new sAlgebra(this, newsname("Alg1"), defaultdbg, nullptr);
+	delete Alg1;
+	sAlgebra* Alg2=new sAlgebra(this, newsname("Alg1"), defaultdbg, nullptr);
+	delete Alg2;
+	return;
 
 	//======================================================================================
 	sTimer* timer = new sTimer();

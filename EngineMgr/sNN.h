@@ -11,8 +11,8 @@
 
 struct sNN : sCore {
 
-	EXPORT sNN(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_);
-	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
+	EXPORT sNN(sObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_);
+	EXPORT sNN(sCfgObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sNNparms* NNparms_);
 	EXPORT ~sNN();
 
 	//-- local implementations of sCore virtual methods
@@ -24,8 +24,6 @@ struct sNN : sCore {
 	void loadImage(int pid, int tid, int epoch);
 
 private:
-	//-- MyAlgebra common structures
-	sAlgebra* Alg;
 
 	//-- NNParms
 	sNNparms* parms;
