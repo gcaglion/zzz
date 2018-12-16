@@ -1,11 +1,13 @@
 #include "sCore.h"
 
-sCore::sCore(sCfgObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_) : sCfgObj(sCfgObjParmsVal) {
+sCore::sCore(sCfgObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sCoreLogger* persistor_) : sCfgObj(sCfgObjParmsVal) {
+	Alg=Alg_;
 	layout=layout_;
 	persistor=persistor_;
 
 }
-sCore::sCore(sCfgObjParmsDef, sCoreLayout* layout_) : sCfgObj(sCfgObjParmsVal) {
+sCore::sCore(sCfgObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_) : sCfgObj(sCfgObjParmsVal) {
+	Alg=Alg_;
 	layout=layout_;
 
 	//-- 1. get Parameters
