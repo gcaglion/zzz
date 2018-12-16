@@ -107,6 +107,20 @@ create table CoreLayouts(
 );
 alter table CoreLayouts add constraint CoreLayouts_PK primary key(EnginePid, CoreId, ParentCoreId) using index tablespace LogIdx;
 
+drop table CoreLoggerParms purge;
+create table CoreLoggerParms(
+	ProcessId number,
+	ThreadId number,
+	ReadFrom number,
+	SaveToDB number,
+	SaveToFile number,
+	SaveMSEFlag number,
+	SaveRunFlag number,
+	SaveInternalsFlag number,
+	SaveImageFlag number
+);
+alter table CoreLoggerParms add constraint CoreLoggerParms_PK primary key(ProcessId, ThreadId) using index tablespace LogIdx;
+
 drop table CoreNNparms purge;
 create table CoreNNparms(
 	ProcessId number,
