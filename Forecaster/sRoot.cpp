@@ -439,6 +439,25 @@ void sRoot::setMT4env(int accountId_, char* clientXMLFile_, int savedEnginePid_,
 	(*oPredictionLen_)=MT4predictionLen;
 
 }
+void sRoot::MT4createEngine() {
+	//-- 0. set full file name for each of the input files
+	getFullPath(MT4clientXMLFile, clientffname);
+
+	//-- 1. load sCfg* for client
+	safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
+
+	//-- 5.1 create client persistor, if needed
+	bool saveClient;
+	safecall(clientCfg, setKey, "/Client");
+	safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
+	safespawn(clientLog, newsname("ClientLogger"), dbg, clientCfg, "Persistor");
+
+	//-- check for possible duplicate pid in db (through client persistor), and change it
+	safecall(this, getSafePid, clientLog, &pid);
+
+	//-- spawn engine from savedEnginePid_ with pid
+	safespawn(MT4engine, newsname("Engine"), defaultdbg, clientLog, pid, MT4enginePid);
+}
 //--
 extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLFile_, int savedEnginePid_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_) {
 
@@ -447,6 +466,7 @@ extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLF
 		root=new sRoot(nullptr);
 		sprintf_s(oEnvS, 64, "%p", root);
 		root->setMT4env(accountId_, clientXMLFile_, savedEnginePid_, oSampleLen_, oPredictionLen_);
+		root->MT4createEngine();
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");

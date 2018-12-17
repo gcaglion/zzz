@@ -11,7 +11,7 @@ int _destroyEnv(uchar& iEnv[]);
 
 //--- input parameters - Forecaster dll stuff
 input int EnginePid				= 3724;
-input string ClientXMLFile		= "MT4client.xml";
+input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 input int DataTransformation	= 1;
 input int  ValidationShift		= 0;
 input bool SaveLogs				= true;
@@ -104,6 +104,9 @@ int OnInit() {
 	return(INIT_SUCCEEDED);
 }
 void OnTick() {
+
+	return;
+
 	// Only do this if there's a new bar
 	static datetime Time0=0;
 	if (Time0==SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE)) return; 
