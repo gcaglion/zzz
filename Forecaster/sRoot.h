@@ -28,10 +28,12 @@ struct sRoot : sCfgObj {
 	
 	//-- MT4 stuff
 	int MT4accountId;
+	int MT4enginePid;
 	int MT4sampleLen;
 	int MT4predictionLen;
+	char MT4clientXMLFile[MAX_PATH];
 	EXPORT void getForecast(double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, double* oForecastH, double* oForecastL);
-	EXPORT void setMT4env(int accountId_, int* oSampleLen_, int* oPredictionLen_);
+	EXPORT void setMT4env(int accountId_, char* clientXMLFile_, int savedEnginePid_, int* oSampleLen_, int* oPredictionLen_);
 
 	//-- temp stuff
 	EXPORT void kaz();

@@ -423,10 +423,12 @@ void sRoot::getForecast(double* iBarO, double* iBarH, double* iBarL, double* iBa
 		info("oForecastH[%d]=%f ; oForecastL[%d]=%f", b, oForecastH[b], b, oForecastL[b]);
 	}
 }
-void sRoot::setMT4env(int accountId_, int* oSampleLen_, int* oPredictionLen_) {
+void sRoot::setMT4env(int accountId_, char* clientXMLFile_, int savedEnginePid_, int* oSampleLen_, int* oPredictionLen_) {
 	MT4accountId=accountId_;
+	MT4enginePid=savedEnginePid_;
+	strcpy_s(MT4clientXMLFile, MAX_PATH, clientXMLFile_);
 
-	info("Environment initialized for Account Number %d", MT4accountId);
+	info("Environment initialized for Account Number %d inferring from Engine pid %d using config from %s", MT4accountId, MT4enginePid, MT4clientXMLFile);
 	//-- these would be set by engine creation
 	MT4sampleLen=20;
 	MT4predictionLen=3;
@@ -437,13 +439,14 @@ void sRoot::setMT4env(int accountId_, int* oSampleLen_, int* oPredictionLen_) {
 	(*oPredictionLen_)=MT4predictionLen;
 
 }
-extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_) {
+//--
+extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLFile_, int savedEnginePid_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_) {
 
 	static sRoot* root;
 	try {
 		root=new sRoot(nullptr);
 		sprintf_s(oEnvS, 64, "%p", root);
-		root->setMT4env(accountId_, oSampleLen_, oPredictionLen_);
+		root->setMT4env(accountId_, clientXMLFile_, savedEnginePid_, oSampleLen_, oPredictionLen_);
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");

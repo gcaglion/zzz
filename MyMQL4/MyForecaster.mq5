@@ -4,13 +4,14 @@
 #property strict
 
 #import "Forecaster.dll"
-int _createEnv(int accountId_, uchar& oEnv[], int &oSampleLen_, int &oPredictionLen_);
+int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, uchar& oEnv[], int &oSampleLen_, int &oPredictionLen_);
 int _getForecast(uchar& iEnv[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], double &oForecastH[], double &oForecastL[]);
 int _destroyEnv(uchar& iEnv[]);
 #import
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid;
+input int EnginePid				= 3724;
+input string ClientXMLFile		= "MT4client.xml";
 input int DataTransformation	= 1;
 input int  ValidationShift		= 0;
 input bool SaveLogs				= true;
@@ -28,6 +29,7 @@ input int    MinProfitPIPs		= 5;
 int vSampleLen=0;
 int vPredictionLen=0;
 int vValidationShift=-ValidationShift;
+int vEnginePid=EnginePid;
 
 //--- data variables to be passed in MTgetForecast() call
 string vSampleDataT[], vSampleBaseValT;
@@ -51,8 +53,8 @@ string vSampleBaseTime, vValidationBaseTime;
 
 //--- miscellaneous variables
 uchar vEnvS[];		// Env in char* format
+uchar vClientXMLFileS[];
 int DllRetVal=0;	// used from OnDeinit() to determine whether to commit changes to DB
-string sParamOverride="MT4";
 int    vBarId;
 uchar vFirstBarT[]; uchar vLastBarT[];
 double vPrevFH0 = 0;
@@ -76,10 +78,13 @@ int OnInit() {
 	int in=32;
 	int out=0;
 
+	//string ClientXMLFileS="00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+	StringToCharArray(ClientXMLFile, vClientXMLFileS);
+
 	printf("Calling _createEnv()...");
-	DllRetVal = _createEnv(AccountInfoInteger(ACCOUNT_LOGIN), vEnvS, vSampleLen, vPredictionLen);
+	DllRetVal = _createEnv(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vEnvS, vSampleLen, vPredictionLen);
 	EnvS=CharArrayToString(vEnvS);
-	printf("EnvS=%s ; vSampleLen=%d ; vPredictionLen=%d", EnvS, vSampleLen, vPredictionLen);
+	printf("EnvS=%s ; ClientXMLFile=%s ; EnginePid=%d ; vSampleLen=%d ; vPredictionLen=%d", EnvS, ClientXMLFile, EnginePid, vSampleLen, vPredictionLen);
 
 	//--- Resize Sample and Prediction arrays (+1 is for BaseVal)
 	ArrayResize(vSampleDataT, vSampleLen);
