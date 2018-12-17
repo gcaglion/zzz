@@ -98,6 +98,7 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="MacroDef.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -232,6 +233,16 @@ FOR /F "tokens=1,2 delims=: " %%G IN (MyForecaster.utf8) DO (
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <PreBuildEvent>
+      <Command>$(MT5InstallPath)\metaeditor64.exe /compile:MyForecaster.mq5 /log
+type MyForecaster.log &gt; MyForecaster.utf8
+copy MyForecaster.??5 $(MT5UserPath)\MQL5\Experts\
+FOR /F "tokens=1,2 delims=: " %%G IN (MyForecaster.utf8) DO (
+	@echo %%G %%H
+	if %%G==Result (exit %%H)
+)
+</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
