@@ -4,7 +4,6 @@
 #property strict
 
 #import "Forecaster.dll"
-int _dioPorco(int i1, uchar& oEnv[], int &o1);
 int _createEnv(int accountId_, uchar& oEnv[], int &oSampleLen_, int &oPredictionLen_);
 int _getForecast(uchar& iEnv[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], double &oForecastH[], double &oForecastL[]);
 int _destroyEnv(uchar& iEnv[]);
@@ -77,13 +76,8 @@ int OnInit() {
 	int in=32;
 	int out=0;
 
-/*	printf("Calling _dioPorco()...");
-	DllRetVal = _dioPorco(in, vEnvS, out);
-	EnvS=CharArrayToString(vEnvS);
-	printf("in=%d ; out=%d ; envS=%s", in, out, EnvS);
-*/
 	printf("Calling _createEnv()...");
-	DllRetVal = _createEnv(100, vEnvS, vSampleLen, vPredictionLen);
+	DllRetVal = _createEnv(AccountInfoInteger(ACCOUNT_LOGIN), vEnvS, vSampleLen, vPredictionLen);
 	EnvS=CharArrayToString(vEnvS);
 	printf("EnvS=%s ; vSampleLen=%d ; vPredictionLen=%d", EnvS, vSampleLen, vPredictionLen);
 
@@ -117,15 +111,18 @@ void OnTick() {
 	printf("Time0=%s . calling LoadBars()...", Time0);
 	LoadBars();
 
-	//-- before GetForecast()
-	StringToCharArray(vSampleTime[0], vFirstBarT);
-	StringToCharArray(vSampleTime[vSampleLen-1], vLastBarT);
-	if (vBarId>0) {
-		//printf("RunForecast() CheckPoint 2: Previous Forecast (H|L)=%f|%f ; Previous Actual (H|L)=%f|%f => Previous Error (H|L)=%f|%f", vPrevFH0, vPrevFL0, High[1], Low[1], MathAbs(vPrevFH0-High[1]), MathAbs(vPrevFL0-Low[1]));
-	}
+	//-- call Forecaster
+	if (_getForecast(vEnvS, vSampleDataO, vSampleDataH, vSampleDataL, vSampleDataC, vSampleDataO, vPredictedDataH, vPredictedDataL)!=0) {
+		printf("_getForecast() FAILURE! Exiting...");
+		return;
+	};
+	for (int i=0; i<vPredictionLen; i++) printf("vPredictedDataH[%d]=%f , vPredictedDataL[%d]=%f", i, vPredictedDataH[i], i, vPredictedDataL[i]);
 
-	//DllRetVal=GetForecast();
 }
+void OnDeinit(const int reason) {
+	_destroyEnv(vEnvS);
+}
+
 void LoadBars() {
 	//-- This loads bar values into Sample and Base arrays
 
@@ -136,26 +133,21 @@ void LoadBars() {
 	else Print("Copied ", ArraySize(rates), " bars");
 
 	//-- base bar, needed for Delta Transformation
-	StringConcatenate(vSampleBaseValT, TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES));
-	vSampleBaseValO = rates[0].open;
-	vSampleBaseValH = rates[0].high;
-	vSampleBaseValL = rates[0].low;
-	vSampleBaseValC = rates[0].close;
+	StringConcatenate(vSampleBaseValT, TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES));
+	vSampleBaseValO = rates[1].open;
+	vSampleBaseValH = rates[1].high;
+	vSampleBaseValL = rates[1].low;
+	vSampleBaseValC = rates[1].close;
 	printf("Base Bar: T=%s - O=%f - H=%f - L=%f - C=%f", vSampleBaseValT, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC);
 	//-- whole sample
 	for (int i = 0; i<vSampleLen; i++) {    // (i=0 is the current bar)
-		StringConcatenate(vSampleDataT[i], TimeToString(rates[i+1].time, TIME_DATE), ".", TimeToString(rates[i+1].time, TIME_MINUTES));
-		vSampleDataO[i] = rates[i+1].open;
-		vSampleDataH[i] = rates[i+1].high;
-		vSampleDataL[i] = rates[i+1].low;
-		vSampleDataC[i] = rates[i+1].close;
+		StringConcatenate(vSampleDataT[i], TimeToString(rates[i+2].time, TIME_DATE), ".", TimeToString(rates[i+2].time, TIME_MINUTES));
+		vSampleDataO[i] = rates[i+2].open;
+		vSampleDataH[i] = rates[i+2].high;
+		vSampleDataL[i] = rates[i+2].low;
+		vSampleDataC[i] = rates[i+2].close;
 		printf("Bar[%d]: T=%s - O=%f - H=%f - L=%f - C=%f", i, vSampleDataT[i], vSampleDataO[i], vSampleDataH[i], vSampleDataL[i], vSampleDataC[i]);
 	}
 
-	//-- call Forecaster
-	_getForecast(vEnvS, vSampleDataO, vSampleDataH, vSampleDataL, vSampleDataC, vSampleDataO, vPredictedDataH, vPredictedDataL);
-	for (int i=0; i<vPredictionLen; i++) {
-		printf("vPredictedDataH[%d]=%f , vPredictedDataL[%d]=%f", i, vPredictedDataH[i], vPredictedDataL[i]);
-	}
 }
 

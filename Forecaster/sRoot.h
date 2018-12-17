@@ -30,7 +30,7 @@ struct sRoot : sCfgObj {
 	int MT4accountId;
 	int MT4sampleLen;
 	int MT4predictionLen;
-	EXPORT void getForecast(numtype* iBarO, numtype* iBarH, numtype* iBarL, numtype* iBarC, numtype* iBarV, numtype* oForecastH, numtype* oForecastL);
+	EXPORT void getForecast(double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, double* oForecastH, double* oForecastL);
 	EXPORT void setMT4env(int accountId_, int* oSampleLen_, int* oPredictionLen_);
 
 	//-- temp stuff
