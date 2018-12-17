@@ -27,13 +27,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <None Include="MyForecaster.mq4" />
+    <None Include="MyForecaster.mq5" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1A60647B-0061-4841-9707-5844F1331D59}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>MyMQL4</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>MyMQL5</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -90,6 +91,7 @@
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="MacroDef.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='MemCheck|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -168,7 +170,14 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <PreBuildEvent>
-      <Command>$(ProjectDir)MTCompile.cmd</Command>
+      <Command>$(MT5InstallPath)\metaeditor64.exe /compile:MyForecaster.mq5 /log
+type MyForecaster.log &gt; MyForecaster.utf8
+copy MyForecaster.ex5 $(MT5UserPath)\MQL5\Experts\
+FOR /F "tokens=1,2 delims=: " %%G IN (MyForecaster.utf8) DO (
+	@echo %%G %%H
+	if %%G==Result (exit %%H)
+)
+</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MemCheck|x64'">

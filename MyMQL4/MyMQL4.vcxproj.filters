@@ -15,6 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <None Include="MyForecaster.mq4" />
+    <None Include="MyForecaster.mq5" />
   </ItemGroup>
 </Project>
