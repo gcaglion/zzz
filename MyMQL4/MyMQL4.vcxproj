@@ -172,7 +172,7 @@
     <PreBuildEvent>
       <Command>$(MT5InstallPath)\metaeditor64.exe /compile:MyForecaster.mq5 /log
 type MyForecaster.log &gt; MyForecaster.utf8
-copy MyForecaster.ex5 $(MT5UserPath)\MQL5\Experts\
+copy MyForecaster.??5 $(MT5UserPath)\MQL5\Experts\
 FOR /F "tokens=1,2 delims=: " %%G IN (MyForecaster.utf8) DO (
 	@echo %%G %%H
 	if %%G==Result (exit %%H)

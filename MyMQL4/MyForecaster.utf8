@@ -1,5 +1,8 @@
 
 
 MyForecaster.mq5 : information: compiling 'MyForecaster.mq5'
+MyForecaster.mq5(109,8) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(111,6) : warning 31: variable 'vTradeType' not used
+MyForecaster.mq5(112,6) : warning 31: variable 'ret' not used
  : information: info generating code
-Result: 0 error(s), 0 warning(s), compile time: 2705 msec
+Result: 0 error(s), 3 warning(s), compile time: 268 msec
