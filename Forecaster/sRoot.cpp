@@ -415,10 +415,12 @@ extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* 
 }
 
 //-- MT4 stuff
-void sRoot::getForecast(numtype* iBarO, numtype* iBarH, numtype* iBarL, numtype* iBarC, numtype* iBarV, numtype* oForecastH, numtype* oForecastL) {
+void sRoot::getForecast(double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, double* oForecastH, double* oForecastL) {
+
 	for (int b=0; b<MT4predictionLen; b++) {
-		oForecastH[b]=(numtype)b/10;
-		oForecastL[b]=(numtype)b/20;
+		oForecastH[b]=(double)(b+1)/10;
+		oForecastL[b]=(double)(b+1)/20;
+		info("oForecastH[%d]=%f ; oForecastL[%d]=%f", b, oForecastH[b], b, oForecastL[b]);
 	}
 }
 void sRoot::setMT4env(int accountId_, int* oSampleLen_, int* oPredictionLen_) {
@@ -450,9 +452,15 @@ extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* oEnvS, int
 	return 0;
 
 }
-extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, numtype* iBarO, numtype* iBarH, numtype* iBarL, numtype* iBarC, numtype* iBarV, numtype* oForecastH, numtype* oForecastL) {
+extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, double* oForecastH, double* oForecastL) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
+
+	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p", env);
+	
+	for (int b=0; b<env->MT4sampleLen; b++) env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "\t iBar[%d] O-H-L-C : %f-%f-%f-%f", b, iBarO[b], iBarH[b], iBarL[b], iBarC[b]);
+	
+	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "oForecastH[0] BEFORE : %f", oForecastH[0]);
 
 	try {
 		env->getForecast(iBarO, iBarH, iBarL, iBarC, iBarV, oForecastH, oForecastL);
@@ -460,6 +468,7 @@ extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, numtype* iBarO, n
 	catch (std::exception exc) {
 		return -1;
 	}
+	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "oForecastH[0] AFTER  : %f", oForecastH[0]);
 
 	return 0;
 }
@@ -469,10 +478,4 @@ extern "C" __declspec(dllexport) int _destroyEnv(char* iEnvS) {
 
 	delete env;
 	return 0;
-}
-extern "C" __declspec(dllexport) int _dioPorco(int i1, char* oEnvS, int* o1) {
-	(*o1)=i1*2;
-	char* dp="DioPorco!";
-	sprintf_s(oEnvS, 64, "%s", dp);
-	return 99;
 }

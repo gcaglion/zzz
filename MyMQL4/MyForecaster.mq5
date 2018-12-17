@@ -77,11 +77,6 @@ int OnInit() {
 	int in=32;
 	int out=0;
 
-/*	printf("Calling _dioPorco()...");
-	DllRetVal = _dioPorco(in, vEnvS, out);
-	EnvS=CharArrayToString(vEnvS);
-	printf("in=%d ; out=%d ; envS=%s", in, out, EnvS);
-*/
 	printf("Calling _createEnv()...");
 	DllRetVal = _createEnv(100, vEnvS, vSampleLen, vPredictionLen);
 	EnvS=CharArrayToString(vEnvS);
@@ -136,26 +131,27 @@ void LoadBars() {
 	else Print("Copied ", ArraySize(rates), " bars");
 
 	//-- base bar, needed for Delta Transformation
-	StringConcatenate(vSampleBaseValT, TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES));
-	vSampleBaseValO = rates[0].open;
-	vSampleBaseValH = rates[0].high;
-	vSampleBaseValL = rates[0].low;
-	vSampleBaseValC = rates[0].close;
+	StringConcatenate(vSampleBaseValT, TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES));
+	vSampleBaseValO = rates[1].open;
+	vSampleBaseValH = rates[1].high;
+	vSampleBaseValL = rates[1].low;
+	vSampleBaseValC = rates[1].close;
 	printf("Base Bar: T=%s - O=%f - H=%f - L=%f - C=%f", vSampleBaseValT, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC);
 	//-- whole sample
 	for (int i = 0; i<vSampleLen; i++) {    // (i=0 is the current bar)
-		StringConcatenate(vSampleDataT[i], TimeToString(rates[i+1].time, TIME_DATE), ".", TimeToString(rates[i+1].time, TIME_MINUTES));
-		vSampleDataO[i] = rates[i+1].open;
-		vSampleDataH[i] = rates[i+1].high;
-		vSampleDataL[i] = rates[i+1].low;
-		vSampleDataC[i] = rates[i+1].close;
+		StringConcatenate(vSampleDataT[i], TimeToString(rates[i+2].time, TIME_DATE), ".", TimeToString(rates[i+2].time, TIME_MINUTES));
+		vSampleDataO[i] = rates[i+2].open;
+		vSampleDataH[i] = rates[i+2].high;
+		vSampleDataL[i] = rates[i+2].low;
+		vSampleDataC[i] = rates[i+2].close;
 		printf("Bar[%d]: T=%s - O=%f - H=%f - L=%f - C=%f", i, vSampleDataT[i], vSampleDataO[i], vSampleDataH[i], vSampleDataL[i], vSampleDataC[i]);
 	}
 
 	//-- call Forecaster
 	_getForecast(vEnvS, vSampleDataO, vSampleDataH, vSampleDataL, vSampleDataC, vSampleDataO, vPredictedDataH, vPredictedDataL);
 	for (int i=0; i<vPredictionLen; i++) {
-		printf("vPredictedDataH[%d]=%f , vPredictedDataL[%d]=%f", i, vPredictedDataH[i], vPredictedDataL[i]);
+		printf("vPredictedDataH[%d]=%f , vPredictedDataL[%d]=%f", i, vPredictedDataH[i], i, vPredictedDataL[i]);
+		//printf("vPredictedDataL[%d]=%f", i, vPredictedDataL[i]);
 	}
 }
 
