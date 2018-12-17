@@ -439,12 +439,14 @@ extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* oEnvS, int
 	static sRoot* root;
 	try {
 		root=new sRoot(nullptr);
-		root->setMT4env(accountId_, oSampleLen_, oPredictionLen_);
 		sprintf_s(oEnvS, 64, "%p", root);
+		root->setMT4env(accountId_, oSampleLen_, oPredictionLen_);
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");
 	}
+
+
 	return 0;
 
 }
@@ -463,4 +465,10 @@ extern "C" __declspec(dllexport) int _destroyEnv(void* iEnv) {
 	sRoot* root=(sRoot*)iEnv;
 	delete root;
 	return 0;
+}
+extern "C" __declspec(dllexport) int _dioPorco(int i1, char* oEnvS, int* o1) {
+	(*o1)=i1*2;
+	char* dp="DioPorco!";
+	sprintf_s(oEnvS, 64, "%s", dp);
+	return 99;
 }

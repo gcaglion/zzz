@@ -4,6 +4,7 @@
 #property strict
 
 #import "Forecaster.dll"
+int _dioPorco(int i1, uchar& oEnv[], int &o1);
 int _createEnv(int accountId_, uchar& oEnv[], int &oSampleLen_, int &oPredictionLen_);
 int _getForecast(uchar& iEnv[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], double &oForecastH[], double &oForecastL[]);
 int _destroyEnv(uchar& iEnv[]);
@@ -25,8 +26,8 @@ input int	 Default_Slippage	= 8;
 input int    MinProfitPIPs		= 5;
 
 //--- local variables
-int vSampleLen;
-int vPredictionLen;
+int vSampleLen=0;
+int vPredictionLen=0;
 int vValidationShift=-ValidationShift;
 
 //--- data variables to be passed in MTgetForecast() call
@@ -71,8 +72,19 @@ int OnInit() {
 
 	//-- 1. create Env
 	string EnvS;
-	EnvS = "0000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
+	EnvS = "00000000000000000000000000000000000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
+	int in=32;
+	int out=0;
+
+/*	printf("Calling _dioPorco()...");
+	DllRetVal = _dioPorco(in, vEnvS, out);
+	EnvS=CharArrayToString(vEnvS);
+	printf("in=%d ; out=%d ; envS=%s", in, out, EnvS);
+*/
+	printf("Calling _createEnv()...");
 	DllRetVal = _createEnv(100, vEnvS, vSampleLen, vPredictionLen);
+	EnvS=CharArrayToString(vEnvS);
+	printf("EnvS=%s ; vSampleLen=%d ; vPredictionLen=%d", EnvS, vSampleLen, vPredictionLen);
 
 	//--- Resize Sample and Prediction arrays (+1 is for BaseVal)
 	ArrayResize(vSampleDataO, vSampleLen);

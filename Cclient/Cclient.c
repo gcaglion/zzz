@@ -2,7 +2,7 @@
 #include <stdio.h>
 typedef float numtype;
 
-extern int _createEnv(int accountId_, void** oEnv, int* oSampleLen_, int* oPredictionLen_);
+extern int _createEnv(int accountId_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_);
 extern int _getForecast(void* iEnv, numtype* iBarO, numtype* iBarH, numtype* iBarL, numtype* iBarC, numtype* iBarV, numtype* oForecastH, numtype* oForecastL);
 extern int _destroyEnv(void* iEnv);
 
@@ -13,9 +13,9 @@ int main(int argc, char* argv[]) {
 	int accountId=100;
 	int sampleLen;
 	int predictionLen;
-	void* env=NULL;
+	char* env="11111111111111111111111111111111111111111111111111111111111111111";
 
-	ret=_createEnv(accountId, &env, &sampleLen, &predictionLen);
+	ret=_createEnv(accountId, env, &sampleLen, &predictionLen);
 
 	numtype* barO=(numtype*)malloc(sampleLen*sizeof(numtype));
 	numtype* barH=(numtype*)malloc(sampleLen*sizeof(numtype));
