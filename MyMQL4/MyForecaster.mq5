@@ -37,8 +37,10 @@ double vSampleDataH[], vSampleBaseValH;
 double vSampleDataL[], vSampleBaseValL;
 double vSampleDataC[], vSampleBaseValC;
 double vSampleDataV[];
+double vFutureDataO[];
 double vFutureDataH[];
 double vFutureDataL[];
+double vFutureDataC[];
 double vPredictedDataH[], vPredictedDataL[];
 double vSampleBW[];
 double vFutureBW[];
@@ -129,7 +131,7 @@ void LoadBars() {
 
 	MqlRates rates[];
 	int copied=CopyRates(NULL, 0, 1, vSampleLen+2, rates);
-	if (copied<=0)
+	if (copied<(vSampleLen+2))
 		Print("Error copying price data ", GetLastError());
 	else Print("Copied ", ArraySize(rates), " bars");
 
@@ -150,5 +152,10 @@ void LoadBars() {
 		printf("Bar[%d]: T=%s - O=%f - H=%f - L=%f - C=%f", i, vSampleDataT[i], vSampleDataO[i], vSampleDataH[i], vSampleDataL[i], vSampleDataC[i]);
 	}
 
+	//-- call Forecaster
+	_getForecast(vEnvS, vSampleDataO, vSampleDataH, vSampleDataL, vSampleDataC, vSampleDataO, vPredictedDataH, vPredictedDataL);
+	for (int i=0; i<vPredictionLen; i++) {
+		printf("vPredictedDataH[%d]=%f , vPredictedDataL[%d]=%f", i, vPredictedDataH[i], vPredictedDataL[i]);
+	}
 }
 

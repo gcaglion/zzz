@@ -450,10 +450,12 @@ extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* oEnvS, int
 	return 0;
 
 }
-extern "C" __declspec(dllexport) int _getForecast(void* iEnv, numtype* iBarO, numtype* iBarH, numtype* iBarL, numtype* iBarC, numtype* iBarV, numtype* oForecastH, numtype* oForecastL) {
+extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, numtype* iBarO, numtype* iBarH, numtype* iBarL, numtype* iBarC, numtype* iBarV, numtype* oForecastH, numtype* oForecastL) {
+	sRoot* env;
+	sscanf_s(iEnvS, "%p", &env);
 
 	try {
-		((sRoot*)iEnv)->getForecast(iBarO, iBarH, iBarL, iBarC, iBarV, oForecastH, oForecastL);
+		env->getForecast(iBarO, iBarH, iBarL, iBarC, iBarV, oForecastH, oForecastL);
 	}
 	catch (std::exception exc) {
 		return -1;
@@ -461,9 +463,11 @@ extern "C" __declspec(dllexport) int _getForecast(void* iEnv, numtype* iBarO, nu
 
 	return 0;
 }
-extern "C" __declspec(dllexport) int _destroyEnv(void* iEnv) {
-	sRoot* root=(sRoot*)iEnv;
-	delete root;
+extern "C" __declspec(dllexport) int _destroyEnv(char* iEnvS) {
+	sRoot* env;
+	sscanf_s(iEnvS, "%p", &env);
+
+	delete env;
 	return 0;
 }
 extern "C" __declspec(dllexport) int _dioPorco(int i1, char* oEnvS, int* o1) {
