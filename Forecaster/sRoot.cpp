@@ -426,6 +426,7 @@ void sRoot::getForecast(double* iBarO, double* iBarH, double* iBarL, double* iBa
 void sRoot::setMT4env(int accountId_, int* oSampleLen_, int* oPredictionLen_) {
 	MT4accountId=accountId_;
 
+	info("Environment initialized for Account Number %d", MT4accountId);
 	//-- these would be set by engine creation
 	MT4sampleLen=20;
 	MT4predictionLen=3;
@@ -477,5 +478,6 @@ extern "C" __declspec(dllexport) int _destroyEnv(char* iEnvS) {
 	sscanf_s(iEnvS, "%p", &env);
 
 	delete env;
+
 	return 0;
 }
