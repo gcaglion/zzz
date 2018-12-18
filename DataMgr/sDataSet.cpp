@@ -37,7 +37,7 @@ sDataSet::sDataSet(sCfgObjParmsDef, sDataShape* shape_, int extraSteps) : sCfgOb
 	cfg->currentKey=bkpKey;
 }
 
-sDataSet::sDataSet(sObjParmsDef, sDataSet* trainDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+/*sDataSet::sDataSet(sObjParmsDef, sDataSet* trainDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	sourceTS=trainDS_->sourceTS; 
 	shape=trainDS_->shape; 
 	batchSamplesCnt=trainDS_->batchSamplesCnt;
@@ -55,7 +55,7 @@ sDataSet::sDataSet(sObjParmsDef, sDataSet* trainDS_) : sCfgObj(sObjParmsVal, nul
 	mallocs2();
 	samplesCnt-=shape->predictionLen;
 }
-
+*/
 sDataSet::~sDataSet() {
 	frees();
 }

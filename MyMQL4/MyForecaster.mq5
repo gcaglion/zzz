@@ -4,8 +4,8 @@
 #property strict
 
 #import "Forecaster.dll"
-int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, uchar& oEnv[], int &oSampleLen_, int &oPredictionLen_);
-int _getForecast(uchar& iEnv[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], double &oForecastH[], double &oForecastL[]);
+int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[], int &oSampleLen_, int &oPredictionLen_);
+int _getForecast(uchar& iEnv[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double &oForecastH[], double &oForecastL[]);
 int _destroyEnv(uchar& iEnv[]);
 #import
 
@@ -13,7 +13,9 @@ int _destroyEnv(uchar& iEnv[]);
 input int EnginePid				= 3724;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 input int DataTransformation	= 1;
+input bool UseVolume			= false;
 input int  ValidationShift		= 0;
+input bool DumpData				= true;
 input bool SaveLogs				= true;
 input int  Max_Retries			= 3;
 //-- input parameters - Trade stuff
@@ -30,14 +32,18 @@ int vSampleLen=0;
 int vPredictionLen=0;
 int vValidationShift=-ValidationShift;
 int vEnginePid=EnginePid;
+int vUseVolume=UseVolume;
+int vDumpData=DumpData;
+int vDataTransformation=DataTransformation;
 
 //--- data variables to be passed in MTgetForecast() call
-string vSampleDataT[], vSampleBaseValT;
+int vSampleDataT[], vSampleBaseValT;
+string vSampleDataTs[], vSampleBaseValTs;
 double vSampleDataO[], vSampleBaseValO;
 double vSampleDataH[], vSampleBaseValH;
 double vSampleDataL[], vSampleBaseValL;
 double vSampleDataC[], vSampleBaseValC;
-double vSampleDataV[];
+double vSampleDataV[], vSampleBaseValV;
 double vFutureDataO[];
 double vFutureDataH[];
 double vFutureDataL[];
@@ -81,7 +87,7 @@ int OnInit() {
 	StringToCharArray(ClientXMLFile, vClientXMLFileS);
 
 	printf("Calling _createEnv()...");
-	if (_createEnv(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vEnvS, vSampleLen, vPredictionLen)!=0) {
+	if (_createEnv(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vUseVolume, vDataTransformation, vDumpData, vEnvS, vSampleLen, vPredictionLen)!=0) {
 		printf("_createEnv() failed. see Forecaster logs.");
 		return -1;
 	}
@@ -90,10 +96,12 @@ int OnInit() {
 
 	//--- Resize Sample and Prediction arrays (+1 is for BaseVal)
 	ArrayResize(vSampleDataT, vSampleLen);
+	ArrayResize(vSampleDataTs, vSampleLen);
 	ArrayResize(vSampleDataO, vSampleLen);
 	ArrayResize(vSampleDataH, vSampleLen);
 	ArrayResize(vSampleDataL, vSampleLen);
 	ArrayResize(vSampleDataC, vSampleLen);
+	ArrayResize(vSampleDataV, vSampleLen);
 	ArrayResize(vSampleBW, vSampleLen);
 	ArrayResize(vFutureDataH, vPredictionLen);
 	ArrayResize(vFutureDataL, vPredictionLen);
@@ -111,13 +119,15 @@ void OnTick() {
 	static datetime Time0=0;
 	if (Time0==SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE)) return; 
 	Time0 = SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE);
+	string Time0S;
+	StringConcatenate(Time0S, TimeToString(Time0, TIME_DATE), ".", TimeToString(Time0, TIME_MINUTES));
 
 	//-- load bars into arrrays
-	printf("Time0=%s . calling LoadBars()...", Time0);
+	printf("Time0=%s . calling LoadBars()...", Time0S);
 	LoadBars();
 
 	//-- call Forecaster
-	if (_getForecast(vEnvS, vSampleDataO, vSampleDataH, vSampleDataL, vSampleDataC, vSampleDataO, vPredictedDataH, vPredictedDataL)!=0) {
+	if (_getForecast(vEnvS, vSampleDataT, vSampleDataO, vSampleDataH, vSampleDataL, vSampleDataC, vSampleDataV, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC, vSampleBaseValV, vPredictedDataH, vPredictedDataL)!=0) {
 		printf("_getForecast() FAILURE! Exiting...");
 		return;
 	};
@@ -138,20 +148,24 @@ void LoadBars() {
 	else Print("Copied ", ArraySize(rates), " bars");
 
 	//-- base bar, needed for Delta Transformation
-	StringConcatenate(vSampleBaseValT, TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES));
-	vSampleBaseValO = rates[1].open;
-	vSampleBaseValH = rates[1].high;
-	vSampleBaseValL = rates[1].low;
-	vSampleBaseValC = rates[1].close;
-	printf("Base Bar: T=%s - O=%f - H=%f - L=%f - C=%f", vSampleBaseValT, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC);
+	vSampleBaseValT = rates[0].time;
+	StringConcatenate(vSampleBaseValTs, TimeToString(vSampleBaseValT, TIME_DATE), ".", TimeToString(vSampleBaseValT, TIME_MINUTES));
+	vSampleBaseValO = rates[0].open;
+	vSampleBaseValH = rates[0].high;
+	vSampleBaseValL = rates[0].low;
+	vSampleBaseValC = rates[0].close;
+	vSampleBaseValV = rates[0].real_volume;
+	printf("Base Bar: T=%s - O=%f - H=%f - L=%f - C=%f - V=%f", vSampleBaseValTs, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC, vSampleBaseValV);
 	//-- whole sample
 	for (int i = 0; i<vSampleLen; i++) {    // (i=0 is the current bar)
-		StringConcatenate(vSampleDataT[i], TimeToString(rates[i+2].time, TIME_DATE), ".", TimeToString(rates[i+2].time, TIME_MINUTES));
+		vSampleDataT[i] = rates[i+1].time;
+		StringConcatenate(vSampleDataTs[i], TimeToString(vSampleDataT[i], TIME_DATE), ".", TimeToString(vSampleDataT[i], TIME_MINUTES));
 		vSampleDataO[i] = rates[i+2].open;
 		vSampleDataH[i] = rates[i+2].high;
 		vSampleDataL[i] = rates[i+2].low;
 		vSampleDataC[i] = rates[i+2].close;
-		printf("Bar[%d]: T=%s - O=%f - H=%f - L=%f - C=%f", i, vSampleDataT[i], vSampleDataO[i], vSampleDataH[i], vSampleDataL[i], vSampleDataC[i]);
+		vSampleDataV[i] = rates[i+2].real_volume;
+		printf("Bar[%d]: T=%s - O=%f - H=%f - L=%f - C=%f - V=%f", i, vSampleDataTs[i], vSampleDataO[i], vSampleDataH[i], vSampleDataL[i], vSampleDataC[i], vSampleDataV[i]);
 	}
 
 }

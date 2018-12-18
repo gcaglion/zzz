@@ -1,7 +1,11 @@
 
 
 MyForecaster.mq5 : information: Compiling 'MyForecaster.mq5'
-MyForecaster.mq5(84,17) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(113,8) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(90,17) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(121,8) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(151,18) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(157,18) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(161,19) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(167,19) : warning 43: possible loss of data due to type conversion
  : information: error generating code
-Result: 0 error(s), 2 warning(s), compile time: 338 msec
+Result: 0 error(s), 6 warning(s), compile time: 380 msec

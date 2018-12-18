@@ -39,7 +39,9 @@ sTimeSerie::~sTimeSerie() {
 }
 
 void sTimeSerie::load(int valSource, int valStatus, char* date0_) {
+	info("date0_=%s", date0_);
 	if (date0_!=nullptr) strcpy_s(date0, DATE_FORMAT_LEN, date0_);
+	info("CheckPoint 1");
 	safecall(sourceData, load, date0, stepsCnt, dtime, val[valSource][valStatus], bdtime, base, barWidth);
 	//-- since the actual date0 we get from query can be different from the one requested, we update it after the load
 	strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, dtime[stepsCnt-1]);
