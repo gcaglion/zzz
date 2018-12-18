@@ -415,7 +415,7 @@ extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* 
 }
 
 //-- MT4 stuff
-void sRoot::getForecast(int* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastH, double* oForecastL) {
+void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastH, double* oForecastL) {
 
 	sMT4DataSource* dsrc;
 	sTimeSerie* ts;
@@ -426,13 +426,11 @@ void sRoot::getForecast(int* iBarT, double* iBarO, double* iBarH, double* iBarL,
 	for (int f=0; f<selFcnt; f++) selF[f]=f;
 
 	//-- create sMT4Datasource...
-	safespawn(dsrc, newsname("MTdataSource"), defaultdbg, MT4engine->shape->sampleLen, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV);
+	safespawn(dsrc, newsname("MTdataSource"), defaultdbg, MT4engine->shape->sampleLen, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV);
 	//-- create TimeSerie from MTDataSource
-	safespawn(ts, newsname("singleSampleTimeSerie"), defaultdbg, dsrc, dsrc->bartime[0], MT4engine->shape->sampleLen, MT4dt);
+	safespawn(ts, newsname("singleSampleTimeSerie"), defaultdbg, dsrc, dsrc->bartime[0], MT4engine->shape->sampleLen, MT4dt, "C:/temp/DataDump");
 	//-- create DataSet with just this sample, batchSamplesCnt=1 , 	
 	safespawn(ds, newsname("singleSampleDataSet"), defaultdbg, ts,  MT4engine->shape, selFcnt, selF, 1, MT4doDump);
-
-	info("dsrc->bartime[0]=%s", dsrc->bartime[0]);
 
 	//-- set date0 in testDS->TimeSerie, and load it
 	safecall(ds->sourceTS, load, TARGET, BASE, dsrc->bartime[0]);
@@ -495,7 +493,7 @@ extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLF
 	return 0;
 
 }
-extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastH, double* oForecastL) {
+extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastH, double* oForecastL) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
 
@@ -504,7 +502,7 @@ extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int* iBarT, doubl
 
 	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "oForecastH[0] BEFORE : %f", oForecastH[0]);
 	try {
-		env->getForecast(iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastH, oForecastL);
+		env->getForecast(iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastH, oForecastL);
 	}
 	catch (std::exception exc) {
 		return -1;

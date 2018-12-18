@@ -36,7 +36,7 @@ struct sRoot : sCfgObj {
 	int MT4dt;
 	bool MT4doDump;
 	char MT4clientXMLFile[MAX_PATH];
-	EXPORT void getForecast(int* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastH, double* oForecastL);
+	EXPORT void getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastH, double* oForecastL);
 	EXPORT void setMT4env(int accountId_, char* clientXMLFile_, int savedEnginePid_, bool useVolume_, int dt_, bool doDump_);
 	EXPORT void MT4createEngine();
 

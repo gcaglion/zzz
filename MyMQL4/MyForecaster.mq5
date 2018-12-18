@@ -5,7 +5,7 @@
 
 #import "Forecaster.dll"
 int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[], int &oSampleLen_, int &oPredictionLen_);
-int _getForecast(uchar& iEnv[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double &oForecastH[], double &oForecastL[]);
+int _getForecast(uchar& iEnv[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double &oForecastH[], double &oForecastL[]);
 int _destroyEnv(uchar& iEnv[]);
 #import
 
@@ -127,7 +127,7 @@ void OnTick() {
 	LoadBars();
 
 	//-- call Forecaster
-	if (_getForecast(vEnvS, vSampleDataT, vSampleDataO, vSampleDataH, vSampleDataL, vSampleDataC, vSampleDataV, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC, vSampleBaseValV, vPredictedDataH, vPredictedDataL)!=0) {
+	if (_getForecast(vEnvS, vSampleDataT, vSampleDataO, vSampleDataH, vSampleDataL, vSampleDataC, vSampleDataV, vSampleBaseValT, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC, vSampleBaseValV, vPredictedDataH, vPredictedDataL)!=0) {
 		printf("_getForecast() FAILURE! Exiting...");
 		return;
 	};
@@ -143,23 +143,21 @@ void LoadBars() {
 
 	MqlRates rates[];
 	int copied=CopyRates(NULL, 0, 1, vSampleLen+2, rates);
-	if (copied<(vSampleLen+2))
+	if (copied<(vSampleLen+1))
 		Print("Error copying price data ", GetLastError());
 	else Print("Copied ", ArraySize(rates), " bars");
 
 	//-- base bar, needed for Delta Transformation
-	vSampleBaseValT = rates[0].time;
-	StringConcatenate(vSampleBaseValTs, TimeToString(vSampleBaseValT, TIME_DATE), ".", TimeToString(vSampleBaseValT, TIME_MINUTES));
-	vSampleBaseValO = rates[0].open;
-	vSampleBaseValH = rates[0].high;
-	vSampleBaseValL = rates[0].low;
-	vSampleBaseValC = rates[0].close;
-	vSampleBaseValV = rates[0].real_volume;
+	vSampleBaseValT = rates[1].time; StringConcatenate(vSampleBaseValTs, TimeToString(vSampleBaseValT, TIME_DATE), ".", TimeToString(vSampleBaseValT, TIME_MINUTES));
+	vSampleBaseValO = rates[1].open;
+	vSampleBaseValH = rates[1].high;
+	vSampleBaseValL = rates[1].low;
+	vSampleBaseValC = rates[1].close;
+	vSampleBaseValV = rates[1].real_volume;
 	printf("Base Bar: T=%s - O=%f - H=%f - L=%f - C=%f - V=%f", vSampleBaseValTs, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC, vSampleBaseValV);
 	//-- whole sample
 	for (int i = 0; i<vSampleLen; i++) {    // (i=0 is the current bar)
-		vSampleDataT[i] = rates[i+1].time;
-		StringConcatenate(vSampleDataTs[i], TimeToString(vSampleDataT[i], TIME_DATE), ".", TimeToString(vSampleDataT[i], TIME_MINUTES));
+		vSampleDataT[i] = rates[i+2].time; StringConcatenate(vSampleDataTs[i], TimeToString(vSampleDataT[i], TIME_DATE), ".", TimeToString(vSampleDataT[i], TIME_MINUTES));
 		vSampleDataO[i] = rates[i+2].open;
 		vSampleDataH[i] = rates[i+2].high;
 		vSampleDataL[i] = rates[i+2].low;

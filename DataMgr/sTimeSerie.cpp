@@ -11,6 +11,7 @@ sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0
 	doDump=false;
 	if (dumpPath_!=nullptr) {
 		strcpy_s(dumpPath, MAX_PATH, dumpPath_);
+		doDump=true;
 	} else {
 		strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	}

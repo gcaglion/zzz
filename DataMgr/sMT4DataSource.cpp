@@ -1,6 +1,6 @@
 #include "sMT4DataSource.h"
 
-sMT4DataSource::sMT4DataSource(sObjParmsDef, int sampleLen_, int* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV) : sDataSource(sObjParmsVal, FXDATA_FEATURESCNT, true, FXHIGH, FXLOW) {
+sMT4DataSource::sMT4DataSource(sObjParmsDef, int sampleLen_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV) : sDataSource(sObjParmsVal, FXDATA_FEATURESCNT, true, FXHIGH, FXLOW) {
 	sampleLen=sampleLen_;
 
 	//-- 0. mallocs
@@ -17,17 +17,29 @@ sMT4DataSource::sMT4DataSource(sObjParmsDef, int sampleLen_, int* iBarT, double*
 		sample[b*FXDATA_FEATURESCNT+4]=(numtype)iBarV[b];
 	}
 	//-- add base bar
-	basebar[FXOPEN]=iBaseBarO;
-	basebar[FXHIGH]=iBaseBarH;
-	basebar[FXLOW]=iBaseBarL;
-	basebar[FXCLOSE]=iBaseBarC;
-	basebar[FXVOLUME]=iBaseBarV;
+	basebar[FXOPEN]=(numtype)iBaseBarO;
+	basebar[FXHIGH]=(numtype)iBaseBarH;
+	basebar[FXLOW]=(numtype)iBaseBarL;
+	basebar[FXCLOSE]=(numtype)iBaseBarC;
+	basebar[FXVOLUME]=(numtype)iBaseBarV;
 
 
-	//-- 2. convert bar time (TODO!)
+	//-- 2. convert bar time
+	time_t kaz;
+	struct tm buf;
+
+	kaz=(time_t)iBaseBarT;
+	localtime_s(&buf, &kaz);
+	strftime(basetime, DATE_FORMAT_LEN, DATE_FORMAT_C, &buf);
+	info("converted iBaseBarT=%s", basetime);
+
 	for (int b=0; b<sampleLen_; b++) {
-		sprintf_s(bartime[b], DATE_FORMAT_LEN, "%d", iBarT[b]);
+		kaz=(time_t)iBarT[b];
+		localtime_s(&buf, &kaz);
+		strftime(bartime[b], DATE_FORMAT_LEN, DATE_FORMAT_C, &buf);
+		info("converted iBarT[%d]=%s", b, bartime[b]);
 	}
+
 }
 sMT4DataSource::sMT4DataSource(sObjParmsDef, sMT4Data* MT4db_) : sDataSource(sObjParmsVal, FXDATA_FEATURESCNT, true, FXHIGH, FXLOW) {
 	mt4db=MT4db_;
@@ -44,7 +56,8 @@ sMT4DataSource::~sMT4DataSource(){
 
 void sMT4DataSource::load(char* pDate0, int pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar, numtype* oBarWidth) {
 	
-	oBarTime=bartime;
-	oBarData=sample;
-	//oBaseTime=
+	for(int b=0; b<sampleLen; b++) strcpy_s(oBarTime[b], DATE_FORMAT_LEN, bartime[b]);
+	memcpy_s(oBarData, sampleLen*FXDATA_FEATURESCNT*sizeof(numtype), sample, sampleLen*FXDATA_FEATURESCNT*sizeof(numtype));
+	strcpy_s(oBaseTime, DATE_FORMAT_LEN, basetime);
+	memcpy_s(oBaseBar, FXDATA_FEATURESCNT*sizeof(numtype), basebar, FXDATA_FEATURESCNT*sizeof(numtype));
 }

@@ -12,7 +12,8 @@ typedef double altnumtype;
 
 #include "ConfigMgr/XMLdefs.h"
 #define DATE_FORMAT_LEN XMLKEY_PARM_VAL_MAXLEN
-#define DATE_FORMAT "YYYY-MM-DD-HH24:MI"
+#define DATE_FORMAT   "YYYY-MM-DD-HH24:MI"
+#define DATE_FORMAT_C "%Y-%m-%d-%H:%M"
 
 #define USE_ORCL
 //#define USE_GPU	//-- this was moved to Configuration Manager
