@@ -453,10 +453,10 @@ void sRoot::MT4createEngine() {
 	safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
 
 	//-- check for possible duplicate pid in db (through client persistor), and change it
-//	safecall(this, getSafePid, clientLog, &pid);
+	safecall(this, getSafePid, clientLog, &pid);
 
 	//-- spawn engine from savedEnginePid_ with pid
-//	safespawn(MT4engine, newsname("Engine"), defaultdbg, clientLog, pid, MT4enginePid);
+	safespawn(MT4engine, newsname("Engine"), defaultdbg, clientLog, pid, MT4enginePid);
 }
 //--
 extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLFile_, int savedEnginePid_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_) {

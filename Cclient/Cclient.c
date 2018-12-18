@@ -2,35 +2,37 @@
 #include <stdio.h>
 typedef float numtype;
 
-extern int _createEnv(int accountId_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_);
-extern int _getForecast(void* iEnv, numtype* iBarO, numtype* iBarH, numtype* iBarL, numtype* iBarC, numtype* iBarV, numtype* oForecastH, numtype* oForecastL);
-extern int _destroyEnv(void* iEnv);
+extern int _createEnv(int accountId_, char* clientXMLFile_, int savedEnginePid_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_);
+extern int _getForecast(char* iEnvS, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, double* oForecastH, double* oForecastL);
+extern int _destroyEnv(char* iEnvS);
 
 int main(int argc, char* argv[]) {
 
 	//========= THIS GOES IN .MQL4 ==========
 	int ret;
 	int accountId=100;
+	int enginePid=3724;
 	int sampleLen;
 	int predictionLen;
-	char* env="11111111111111111111111111111111111111111111111111111111111111111";
+	char envS[64]; sprintf_s(envS, 64, "1111111");
+	char* clientXML="C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 
-	ret=_createEnv(accountId, env, &sampleLen, &predictionLen);
+	ret=_createEnv(accountId, clientXML, enginePid, envS, &sampleLen, &predictionLen);
 
-	numtype* barO=(numtype*)malloc(sampleLen*sizeof(numtype));
-	numtype* barH=(numtype*)malloc(sampleLen*sizeof(numtype));
-	numtype* barL=(numtype*)malloc(sampleLen*sizeof(numtype));
-	numtype* barC=(numtype*)malloc(sampleLen*sizeof(numtype));
-	numtype* barV=(numtype*)malloc(sampleLen*sizeof(numtype));
+	double* barO=(double*)malloc(sampleLen*sizeof(double));
+	double* barH=(double*)malloc(sampleLen*sizeof(double));
+	double* barL=(double*)malloc(sampleLen*sizeof(double));
+	double* barC=(double*)malloc(sampleLen*sizeof(double));
+	double* barV=(double*)malloc(sampleLen*sizeof(double));
 	//--
-	numtype* forecastH=(numtype*)malloc(predictionLen*sizeof(numtype));
-	numtype* forecastL=(numtype*)malloc(predictionLen*sizeof(numtype));
+	double* forecastH=(double*)malloc(predictionLen*sizeof(double));
+	double* forecastL=(double*)malloc(predictionLen*sizeof(double));
 
 	//-- ... set barO/H/L/C/V
 
-	ret=_getForecast(env, barO, barH, barL, barC, barV, forecastH, forecastL);
+	ret=_getForecast(envS, barO, barH, barL, barC, barV, forecastH, forecastL);
 
-	ret=_destroyEnv(env);
+	ret=_destroyEnv(envS);
 
 	//========================================================================
 

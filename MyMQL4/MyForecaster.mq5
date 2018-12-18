@@ -54,7 +54,7 @@ string vSampleBaseTime, vValidationBaseTime;
 //--- miscellaneous variables
 uchar vEnvS[];		// Env in char* format
 uchar vClientXMLFileS[];
-int DllRetVal=0;	// used from OnDeinit() to determine whether to commit changes to DB
+
 int    vBarId;
 uchar vFirstBarT[]; uchar vLastBarT[];
 double vPrevFH0 = 0;
@@ -78,11 +78,13 @@ int OnInit() {
 	int in=32;
 	int out=0;
 
-	//string ClientXMLFileS="00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 	StringToCharArray(ClientXMLFile, vClientXMLFileS);
 
 	printf("Calling _createEnv()...");
-	DllRetVal = _createEnv(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vEnvS, vSampleLen, vPredictionLen);
+	if (_createEnv(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vEnvS, vSampleLen, vPredictionLen)!=0) {
+		printf("_createEnv() failed. see Forecaster logs.");
+		return -1;
+	}
 	EnvS=CharArrayToString(vEnvS);
 	printf("EnvS=%s ; ClientXMLFile=%s ; EnginePid=%d ; vSampleLen=%d ; vPredictionLen=%d", EnvS, ClientXMLFile, EnginePid, vSampleLen, vPredictionLen);
 
@@ -105,15 +107,10 @@ int OnInit() {
 }
 void OnTick() {
 
-	return;
-
 	// Only do this if there's a new bar
 	static datetime Time0=0;
 	if (Time0==SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE)) return; 
 	Time0 = SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE);
-
-	int vTradeType;
-	int ret;
 
 	//-- load bars into arrrays
 	printf("Time0=%s . calling LoadBars()...", Time0);
