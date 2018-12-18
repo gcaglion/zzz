@@ -18,9 +18,9 @@ sCfgObj::sCfgObj(sCfgObjParmsDef) : sObj(sObjParmsVal) {
 			if (dbg!=parent->dbg) delete dbg;
 			//-- overrideDbg becomes the actual dbg
 			dbg=cfgKey->overrideDbg;
+			//-- create dbg outfile only after possible override of outilfpath
+			dbg->createOutFile(name->base, this, depth);
 		}
-		//-- create dbg outfile only after possible override of outilfpath
-		dbg->createOutFile(name->base, this, depth);
 
 
 
