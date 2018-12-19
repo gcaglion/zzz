@@ -123,8 +123,6 @@ int OnInit() {
 }
 void OnTick() {
 
-	return;
-
 	// Only do this if there's a new bar
 	static datetime Time0=0;
 	if (Time0==SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE)) return; 
