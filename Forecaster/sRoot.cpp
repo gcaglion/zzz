@@ -535,9 +535,10 @@ void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL
 	
 	//-- stop timer, and save client info
 	timer->stop(endtimeS);
-	safecall(MT4clientLog, saveClientInfo, MT4clientPid, MT4accountId, "Root.kaz", timer->startTime, timer->elapsedTime, "", mtDataSet->sourceTS->date0, "", false, true, clientffname, "", "MT4", "");
+
+//	safecall(MT4clientLog, saveClientInfo, MT4clientPid, MT4accountId, "Root.kaz", timer->startTime, timer->elapsedTime, "", mtDataSet->sourceTS->date0, "", false, true, clientffname, "", "MT4", "");
 	//-- Commit clientpersistor data
-	safecall(MT4clientLog, commit);
+//	safecall(MT4clientLog, commit);
 
 	//-- free(s)
 	delete mtDataSrc;

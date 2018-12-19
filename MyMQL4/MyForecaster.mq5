@@ -13,7 +13,7 @@ int _destroyEnv(uchar& iEnv[]);
 
 //--- input parameters - Forecaster dll stuff
 input int EnginePid				= 3724;
-input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
+input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/MetaTrader/Client.xml";
 input int DataTransformation	= 1;
 input bool UseVolume			= false;
 input int  ValidationShift		= 0;
@@ -142,7 +142,7 @@ void OnTick() {
 	for (int i=0; i<vPredictionLen; i++) printf("vPredictedDataO[%d]=%f , vPredictedDataH[%d]=%f , vPredictedDataL[%d]=%f , vPredictedDataC[%d]=%f", i, vPredictedDataO[i], i, vPredictedDataH[i], i, vPredictedDataL[i], i, vPredictedDataC[i]);
 
 	//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
-	//drawForecast(vPredictedDataH[0], vPredictedDataL[0]);
+	drawForecast(vPredictedDataH[0], vPredictedDataL[0]);
 
 	//-- define trade scenario based on current price level and forecast
 	int tradeOp;	//
@@ -267,6 +267,9 @@ int NewTrade(int cmd, double volume, double price, double stoploss, double takep
 	trade.SetAsyncMode(false);
 
 	printf("NewTrade() called with cmd=%s , volume=%f , price=%5.4f , stoploss=%5.4f , takeprofit=%5.4f", (cmd==0 ? "BUY" : "SELL"), volume, price, stoploss, takeprofit);
+	
+	printf("First, closing existing position...");
+	trade.PositionClose(Symbol(), 10);
 
 	string symbol=Symbol();
 	int    digits=(int)SymbolInfoInteger(symbol, SYMBOL_DIGITS); // number of decimal places
