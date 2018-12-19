@@ -25,18 +25,11 @@ sMT4DataSource::sMT4DataSource(sObjParmsDef, int sampleLen_, long* iBarT, double
 
 
 	//-- 2. convert bar time
-	time_t kaz;
-	struct tm buf;
-
-	kaz=(time_t)iBaseBarT;
-	localtime_s(&buf, &kaz);
-	strftime(basetime, DATE_FORMAT_LEN, DATE_FORMAT_C, &buf);
+	MT4time2str(iBaseBarT, DATE_FORMAT_LEN, basetime);
 	info("converted iBaseBarT=%s", basetime);
 
 	for (int b=0; b<sampleLen_; b++) {
-		kaz=(time_t)iBarT[b];
-		localtime_s(&buf, &kaz);
-		strftime(bartime[b], DATE_FORMAT_LEN, DATE_FORMAT_C, &buf);
+		MT4time2str(iBarT[b], DATE_FORMAT_LEN, bartime[b]);
 		info("converted iBarT[%d]=%s", b, bartime[b]);
 	}
 	strcpy_s(lastbartime, DATE_FORMAT_LEN, bartime[sampleLen-1]);

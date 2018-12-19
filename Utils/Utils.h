@@ -22,5 +22,6 @@ EXPORT bool getValuePair(char* istr, char* oName, char* oVal, char eqSign);
 EXPORT bool isnumber(char* str);
 EXPORT bool isInList(int soughtVal, int listLen, int* list);
 EXPORT void gettimestamp(char* timeS, size_t timeSsize);
+EXPORT void MT4time2str(long iTime, int iTimeSsize, char* oTimeS);
 
 EXPORT void gotoxy(int x, int y);

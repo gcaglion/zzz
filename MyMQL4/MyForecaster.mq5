@@ -8,6 +8,7 @@
 #import "Forecaster.dll"
 int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[], int &oSampleLen_, int &oPredictionLen_);
 int _getForecast(uchar& iEnv[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
+int _saveTradeInfo(uchar& iEnv[], int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult);
 int _destroyEnv(uchar& iEnv[]);
 #import
 
@@ -39,6 +40,8 @@ int vDumpData=DumpData;
 int vDataTransformation=DataTransformation;
 //--
 int vRectsCnt=0;
+//--
+long vTicket;
 
 //--- data variables to be passed in MTgetForecast() call
 int vSampleDataT[], vSampleBaseValT;
@@ -145,14 +148,23 @@ void OnTick() {
 	drawForecast(vPredictedDataH[0], vPredictedDataL[0]);
 
 	//-- define trade scenario based on current price level and forecast
-	int tradeOp;	//
 	double tradeVol, tradePrice, tradeTP, tradeSL;
 	int tradeScenario=getTradeScenario(tradePrice, tradeTP, tradeSL); printf("trade scenario=%d ; tradePrice=%f ; tradeTP=%f ; tradeSL=%f", tradeScenario, tradePrice, tradeTP, tradeSL);
-	if (tradeScenario<0) return;
+	if (tradeScenario>=0) {
+		//-- do the actual trade
+		tradeVol=0.1;
+		int tradeResult=NewTrade(tradeScenario, tradeVol, tradePrice, tradeSL, tradeTP);
+		//-- if trade successful, store position ticket in shared variable
+		if (tradeResult==0) {
+			vTicket = PositionGetTicket(0);
+		} else {
+			vTicket=-1;
+		}
+	}
 
-	//-- do the actual trade
-	tradeVol=0.1;
-	int ret=NewTrade(tradeScenario, tradeVol, tradePrice, tradeSL, tradeTP);
+
+	//-- save tradeInfo
+	//_saveTradeInfo(vEnvS, vTicket, 
 
 }
 void OnDeinit(const int reason) {
@@ -196,7 +208,6 @@ int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
 	double FL             = vPredictedDataL[0];
 	double RR             = RiskRatio;          // Risk Ratio (PIPS to SL / PIPS to TP)
 	double SL, TP;
-	//double StopLevel=MarketInfo(Symbol(), MODE_STOPLEVEL)*MarketInfo(Symbol(), MODE_TICKSIZE);
 	double StopLevel=0.0001*5;
 	double MinProfit = MinProfitPIPs*0.0001;
 
@@ -252,8 +263,6 @@ int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
 			SL=tick.ask+(tick.bid-TP)*RR; //printf("Original SL=%f", SL);
 			if ((SL-tick.ask)<StopLevel) SL=tick.ask+StopLevel;
 		}
-		//-- Display Forecasts (only for the next bar)
-		//DrawForecast(vPredictedDataH[0], vPredictedDataL[0]);
 	}
 
 	return scenario;

@@ -545,6 +545,9 @@ void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL
 	delete mtDataSet;
 
 }
+void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult) {
+	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4accountId, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult);
+}
 void sRoot::setMT4env(int accountId_, char* clientXMLFile_, int savedEnginePid_, bool useVolume_, int dt_, bool doDump_) {
 	MT4accountId=accountId_;
 	MT4enginePid=savedEnginePid_;
@@ -611,6 +614,24 @@ extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, long* iBarT, doub
 	}
 	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "oForecastH[0] AFTER  : %f", oForecastH[0]);
 
+	return 0;
+}
+extern "C" __declspec(dllexport) int _saveTradeInfo(char* iEnvS, int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult) {
+	sRoot* env;
+	sscanf_s(iEnvS, "%p", &env);
+
+	char iPositionOpenTimes[DATE_FORMAT_LEN];
+	char iLastBarTs[DATE_FORMAT_LEN];
+	try {
+		//-- first, convert the 2 dates to string
+		MT4time2str(iPositionOpenTime, DATE_FORMAT_LEN, iPositionOpenTimes);
+		MT4time2str(iLastBarT, DATE_FORMAT_LEN, iLastBarTs);
+		//-- then, make the call
+		env->saveTradeInfo(iPositionTicket, iPositionOpenTimes, iLastBarTs, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult);
+	}
+	catch (std::exception exc) {
+		return -1;
+	}
 	return 0;
 }
 extern "C" __declspec(dllexport) int _destroyEnv(char* iEnvS) {

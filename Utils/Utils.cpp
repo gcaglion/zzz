@@ -216,6 +216,12 @@ EXPORT void gettimestamp(char* timeS, size_t timeSsize) {
 	sprintf_s(timeS, 18, "%d%02d%02d-%02d:%02d:%02d", 1900+ltm->tm_year, ltm->tm_mon, ltm->tm_mday, ltm->tm_hour, ltm->tm_min, ltm->tm_sec);
 	ReleaseMutex(TimeMutex);
 }
+EXPORT void MT4time2str(long iTime, int iTimeSsize, char* oTimeS) {
+	struct tm buf;
+	time_t kaz=(time_t)iTime;
+	localtime_s(&buf, &kaz);
+	strftime(oTimeS, DATE_FORMAT_LEN, DATE_FORMAT_C, &buf);
+}
 
 EXPORT void gotoxy(int x, int y) {
 	COORD coord;
