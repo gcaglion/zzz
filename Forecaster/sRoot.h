@@ -74,7 +74,7 @@ private:
 	sEngine* engine;
 	sLogger* clientLog;
 
-
+	void __inferClient(int simulationId_, sLogger* clientLogger_, sDataSet* inferDS_, sLogger* inferLogger_, int savedEnginePid_, NativeReportProgress* progressPtr);
 };
 
 //-- client closure

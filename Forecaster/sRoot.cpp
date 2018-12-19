@@ -81,6 +81,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 
 
 }
+
 void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr) {
 
 	try {
@@ -224,7 +225,75 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 //-- temp stuff
 #include "../CUDAwrapper/CUDAwrapper.h"
 
+void mallocBars(int sampleLen, int predictionLen, long** barT, double** barO, double** barH, double** barL, double** barC, double** barV, double** forecastH, double** forecastL ){
+	(*barT)=(long*)malloc(sampleLen*sizeof(long));
+	(*barO)=(double*)malloc(sampleLen*sizeof(double));
+	(*barH)=(double*)malloc(sampleLen*sizeof(double));
+	(*barL)=(double*)malloc(sampleLen*sizeof(double));
+	(*barC)=(double*)malloc(sampleLen*sizeof(double));
+	(*barV)=(double*)malloc(sampleLen*sizeof(double));
+	//--
+	(*forecastH)=(double*)malloc(predictionLen*sizeof(double));
+	(*forecastL)=(double*)malloc(predictionLen*sizeof(double));
+
+	//-- ... set barO/H/L/C/V
+	for (int i=0; i<sampleLen; i++) {
+		(*barT)[i]=(i+1)*3600;
+		(*barO)[i]=1.3200;
+		(*barH)[i]=1.3400;
+		(*barL)[i]=1.3100;
+		(*barC)[i]=1.3300;
+		(*barV)[i]=-1;
+	}
+}
 void sRoot::kaz() {
+
+	int accountId=25307435;
+	int enginePid=3724;
+	bool useVolume=false;
+	int dt=1;
+
+	//-- need client config to create a client persistor
+	char* clientXMLfile="C:/Users/gcaglion/dev/zzz/Config.NoInclude/Client.xml"; getFullPath(clientXMLfile, clientffname);
+	sCfg* clientCfg; safespawn(clientCfg, newsname("clientConfig"), defaultdbg, clientXMLfile);
+	sLogger* clientPersistor= new sLogger(this, newsname("clientLogger"), defaultdbg, GUIreporter, clientCfg, "/Client/Persistor");
+
+	//-- avoid duplicate client pid
+	int clientPid=GetCurrentProcessId();
+	safecall(this, getSafePid, clientPersistor, &clientPid);
+
+	// spawn engine from enginePid
+	sEngine* mt4eng= new sEngine(this, newsname("Engine_%d", pid), defaultdbg, GUIreporter, clientPersistor, clientPid, enginePid);
+
+	//-- simulate MT bars
+	long* barT=nullptr; double* barO; double* barH; double* barL; double* barC; double* barV; double* forecastH; double* forecastL;
+	long baseBarT=0; double baseBarO=0, baseBarH=0, baseBarL=0, baseBarC=0, baseBarV=0;
+	mallocBars(mt4eng->shape->sampleLen, mt4eng->shape->predictionLen, &barT, &barO, &barH, &barL, &barC, &barV, &forecastH, &forecastL);
+	//-------------------------
+
+	int selF[5];
+	int selFcnt=(useVolume) ? 5 : 4;
+	for (int f=0; f<selFcnt; f++) selF[f]=f;
+
+	sDataShape* mtDataShape= new sDataShape(this, newsname("MT4DataShape"), defaultdbg, nullptr, mt4eng->shape->sampleLen, mt4eng->shape->predictionLen, selFcnt);
+	sMT4DataSource* mtDataSrc= new sMT4DataSource(this, newsname("MT4DataSource"), defaultdbg, nullptr, mt4eng->shape->sampleLen, barT, barO, barH, barL, barC, barV, baseBarT, baseBarO, baseBarH, baseBarL, baseBarC, baseBarV);
+	sDataSet* mtDataSet= new sDataSet(this, newsname("MTdataSet"), defaultdbg, nullptr, mtDataShape, mtDataSrc, selFcnt, selF, dt, true, "C:/temp/DataDump");
+
+	mtDataSet->sourceTS->load(TARGET, BASE);
+
+	//-- do inference (also populates datasets)
+	safecall(mt4eng, infer, accountId, mtDataSet, enginePid);
+	//-- persist Run logs
+	safecall(mt4eng, saveRun);
+	//-- ommit mt4eng persistor data
+	safecall(mt4eng, commit);
+	//-- stop timer, and save client info
+	timer->stop(endtimeS);
+	safecall(clientPersistor, saveClientInfo, clientPid, accountId, "Root.kaz", timer->startTime, timer->elapsedTime, "", mtDataSet->sourceTS->date0, "", false, true, clientffname, "", "MT4", "");
+	//-- Commit clientpersistor data
+	safecall(clientPersistor, commit);
+
+	return;
 
 	sAlgebra* Alg1;
 	safespawn(Alg1, newsname("%s_Algebra", name->base), defaultdbg);

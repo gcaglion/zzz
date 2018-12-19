@@ -19,6 +19,7 @@ struct sDataSet : sCfgObj {
 	int samplesCnt;
 	int batchSamplesCnt;
 	int batchCnt;
+	bool hasTargets;
 
 	//-- sample, target, prediction are stored in  order (Sample-Bar-Feature)
 	numtype* sampleSBF;		
@@ -31,9 +32,9 @@ struct sDataSet : sCfgObj {
 	//-- array of pointers to any of the above : 
 	numtype* _data[3][2];	//-- [Source][ordering]
 
-	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, sDataShape* shape_, int selectedFeaturesCnt_, int* selectedFeature_, int batchSamplesCnt_, bool doDump=false, const char* dumpPath_=nullptr);
+	EXPORT sDataSet(sObjParmsDef, sDataShape* shape_, sMT4DataSource* MTsrc_, int selectedFeaturesCnt_, int* selectedFeature_, int dt_, bool doDump_=false, const char* dumpPath_=nullptr);
+	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, sDataShape* shape_, int selectedFeaturesCnt_, int* selectedFeature_, int batchSamplesCnt_, bool doDump_=false, const char* dumpPath_=nullptr);
 	EXPORT sDataSet(sCfgObjParmsDef, sDataShape* shape_, int extraSteps=0);
-	EXPORT sDataSet(sObjParmsDef, sDataSet* trainDS_);
 	EXPORT ~sDataSet();
 
 	EXPORT void build(int fromValSource, int fromValStatus);
@@ -47,6 +48,7 @@ struct sDataSet : sCfgObj {
 
 private:
 	void mallocs1();
+	void setSamples();
 	void mallocs2();
 	void frees();
 	bool isSelected(int ts_f);

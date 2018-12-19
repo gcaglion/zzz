@@ -39,6 +39,7 @@ sMT4DataSource::sMT4DataSource(sObjParmsDef, int sampleLen_, long* iBarT, double
 		strftime(bartime[b], DATE_FORMAT_LEN, DATE_FORMAT_C, &buf);
 		info("converted iBarT[%d]=%s", b, bartime[b]);
 	}
+	strcpy_s(lastbartime, DATE_FORMAT_LEN, bartime[sampleLen-1]);
 
 }
 sMT4DataSource::sMT4DataSource(sObjParmsDef, sMT4Data* MT4db_) : sDataSource(sObjParmsVal, FXDATA_FEATURESCNT, true, FXHIGH, FXLOW) {

@@ -1,8 +1,35 @@
 #include "sDataSet.h"
 
+sDataSet::sDataSet(sObjParmsDef, sDataShape* shape_, sMT4DataSource* MTsrc_, int selectedFeaturesCnt_, int* selectedFeature_, int dt_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+
+	//-- single sample, no targets
+	hasTargets=false;
+
+	shape=shape_; shape->featuresCnt=selectedFeaturesCnt_;
+	mallocs1();
+	for (int f=0; f<shape->featuresCnt; f++) selectedFeature[f]=selectedFeature_[f];
+
+
+	batchSamplesCnt=1;
+	doDump=doDump_;
+	if (dumpPath_!=nullptr) {
+		strcpy_s(dumpPath, MAX_PATH, dumpPath_);
+	} else {
+		strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
+	}
+
+	//-- timeserie?
+	sourceTS=new sTimeSerie(this, newsname("%s_TimeSerie", name->base), defaultdbg, GUIreporter, MTsrc_, MTsrc_->lastbartime, MTsrc_->sampleLen, dt_, dumpPath);
+
+	setSamples(); 
+	mallocs2();
+
+}
+
 sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, sDataShape* shape_, int selectedFeaturesCnt_, int* selectedFeature_, int batchSamplesCnt_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	sourceTS=sourceTS_; batchSamplesCnt=batchSamplesCnt_; 
 	shape=shape_; shape->featuresCnt=selectedFeaturesCnt_;
+	hasTargets=true;
 
 	mallocs1();
 
@@ -14,10 +41,11 @@ sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, sDataShape* shape_, int 
 		strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	}
 
-	mallocs2();
+	setSamples(); mallocs2();
 }
 sDataSet::sDataSet(sCfgObjParmsDef, sDataShape* shape_, int extraSteps) : sCfgObj(sCfgObjParmsVal) {
 	shape=shape_;
+	hasTargets=true;
 
 	mallocs1();
 
@@ -31,31 +59,12 @@ sDataSet::sDataSet(sCfgObjParmsDef, sDataShape* shape_, int extraSteps) : sCfgOb
 	//-- 2. do stuff and spawn sub-Keys
 	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), defaultdbg, cfg, "TimeSerie", extraSteps);
 
-	mallocs2();
+	setSamples(); mallocs2();
 
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 }
 
-/*sDataSet::sDataSet(sObjParmsDef, sDataSet* trainDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
-	sourceTS=trainDS_->sourceTS; 
-	shape=trainDS_->shape; 
-	batchSamplesCnt=trainDS_->batchSamplesCnt;
-
-	mallocs1();
-
-	for (int f=0; f<shape->featuresCnt; f++) selectedFeature[f]=trainDS_->selectedFeature[f];
-	doDump=trainDS_->doDump;
-	if (trainDS_->dumpPath!=nullptr) {
-		strcpy_s(dumpPath, MAX_PATH, trainDS_->dumpPath);
-	} else {
-		strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
-	}
-
-	mallocs2();
-	samplesCnt-=shape->predictionLen;
-}
-*/
 sDataSet::~sDataSet() {
 	frees();
 }
@@ -192,13 +201,16 @@ void sDataSet::mallocs1() {
 	selectedFeature=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
 	dumpPath=(char*)malloc(MAX_PATH);
 }
-void sDataSet::mallocs2() {
-	samplesCnt=sourceTS->stepsCnt-shape->sampleLen+1 -shape->predictionLen;
+void sDataSet::setSamples() {
+	samplesCnt=sourceTS->stepsCnt-shape->sampleLen+1;
+	if(hasTargets) samplesCnt-=shape->predictionLen;
 	if ((samplesCnt%batchSamplesCnt)!=0) {
 		fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", samplesCnt, batchSamplesCnt)
 	} else {
 		batchCnt = samplesCnt/batchSamplesCnt;
 	}
+}
+void sDataSet::mallocs2() {
 	//--
 	sampleSBF=(numtype*)malloc(samplesCnt*shape->sampleLen*shape->featuresCnt*sizeof(numtype));
 	targetSBF=(numtype*)malloc(samplesCnt*shape->predictionLen*shape->featuresCnt*sizeof(numtype));
