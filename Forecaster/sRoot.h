@@ -27,6 +27,7 @@ struct sRoot : sCfgObj {
 	EXPORT void inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr=nullptr);
 	
 	//-- MT4 stuff
+	int MT4clientPid;
 	int MT4accountId;
 	int MT4enginePid;
 	sEngine* MT4engine;
@@ -36,6 +37,9 @@ struct sRoot : sCfgObj {
 	int MT4dt;
 	bool MT4doDump;
 	char MT4clientXMLFile[MAX_PATH];
+	sCfg* MT4clientCfg;
+	sLogger* MT4clientLog;
+
 	EXPORT void getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV);
 	EXPORT void setMT4env(int accountId_, char* clientXMLFile_, int savedEnginePid_, bool useVolume_, int dt_, bool doDump_);
 	EXPORT void MT4createEngine();

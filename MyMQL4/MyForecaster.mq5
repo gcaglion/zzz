@@ -142,12 +142,13 @@ void OnTick() {
 	for (int i=0; i<vPredictionLen; i++) printf("vPredictedDataO[%d]=%f , vPredictedDataH[%d]=%f , vPredictedDataL[%d]=%f , vPredictedDataC[%d]=%f", i, vPredictedDataO[i], i, vPredictedDataH[i], i, vPredictedDataL[i], i, vPredictedDataC[i]);
 
 	//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
-	drawForecast(vPredictedDataH[0], vPredictedDataL[0]);
+	//drawForecast(vPredictedDataH[0], vPredictedDataL[0]);
 
 	//-- define trade scenario based on current price level and forecast
 	int tradeOp;	//
 	double tradeVol, tradePrice, tradeTP, tradeSL;
 	int tradeScenario=getTradeScenario(tradePrice, tradeTP, tradeSL); printf("trade scenario=%d ; tradePrice=%f ; tradeTP=%f ; tradeSL=%f", tradeScenario, tradePrice, tradeTP, tradeSL);
+	if (tradeScenario<0) return;
 
 	//-- do the actual trade
 	tradeVol=0.1;
@@ -174,7 +175,7 @@ void LoadBars() {
 	vSampleBaseValL = rates[1].low;
 	vSampleBaseValC = rates[1].close;
 	vSampleBaseValV = rates[1].real_volume;
-	printf("Base Bar: T=%s - O=%f - H=%f - L=%f - C=%f - V=%f", vSampleBaseValTs, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC, vSampleBaseValV);
+	//printf("Base Bar: T=%s - O=%f - H=%f - L=%f - C=%f - V=%f", vSampleBaseValTs, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC, vSampleBaseValV);
 	//-- whole sample
 	for (int i = 0; i<vSampleLen; i++) {    // (i=0 is the current bar)
 		vSampleDataT[i] = rates[i+2].time; StringConcatenate(vSampleDataTs[i], TimeToString(vSampleDataT[i], TIME_DATE), ".", TimeToString(vSampleDataT[i], TIME_MINUTES));
@@ -183,7 +184,7 @@ void LoadBars() {
 		vSampleDataL[i] = rates[i+2].low;
 		vSampleDataC[i] = rates[i+2].close;
 		vSampleDataV[i] = rates[i+2].real_volume;
-		printf("Bar[%d]: T=%s - O=%f - H=%f - L=%f - C=%f - V=%f", i, vSampleDataTs[i], vSampleDataO[i], vSampleDataH[i], vSampleDataL[i], vSampleDataC[i], vSampleDataV[i]);
+		//printf("Bar[%d]: T=%s - O=%f - H=%f - L=%f - C=%f - V=%f", i, vSampleDataTs[i], vSampleDataO[i], vSampleDataH[i], vSampleDataL[i], vSampleDataC[i], vSampleDataV[i]);
 	}
 
 }

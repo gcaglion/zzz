@@ -496,24 +496,12 @@ extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* 
 //-- MT4 stuff
 void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
 
-	//-- need client config to create a client persistor
-	sCfg* clientCfg; safespawn(clientCfg, newsname("clientConfig"), defaultdbg, MT4clientXMLFile);
-	sLogger* clientPersistor= new sLogger(this, newsname("clientLogger"), defaultdbg, GUIreporter, clientCfg, "/Client/Persistor");
-
-	//-- avoid duplicate client pid
-	int clientPid=GetCurrentProcessId();
-	safecall(this, getSafePid, clientPersistor, &clientPid);
-
-	// spawn engine from enginePid
-	//sEngine* MT4engine= new sEngine(this, newsname("Engine_%d", MT4enginePid), defaultdbg, GUIreporter, clientPersistor, clientPid, MT4enginePid);
-
 	int selF[5];
 	int selFcnt=(MT4useVolume) ? 5 : 4;
 	for (int f=0; f<selFcnt; f++) selF[f]=f;
 
-	sDataShape* mtDataShape= new sDataShape(this, newsname("MT4DataShape"), defaultdbg, nullptr, MT4engine->shape->sampleLen, MT4engine->shape->predictionLen, selFcnt);
-	sMT4DataSource* mtDataSrc= new sMT4DataSource(this, newsname("MT4DataSource"), defaultdbg, nullptr, MT4engine->shape->sampleLen, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV);
-	sDataSet* mtDataSet= new sDataSet(this, newsname("MTdataSet"), defaultdbg, nullptr, mtDataShape, mtDataSrc, selFcnt, selF, MT4dt, MT4doDump);
+	sMT4DataSource* mtDataSrc; safespawn(mtDataSrc, newsname("MT4DataSource"), defaultdbg, MT4engine->shape->sampleLen, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV);
+	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, MT4engine->shape, mtDataSrc, selFcnt, selF, MT4dt, MT4doDump);
 
 	mtDataSet->sourceTS->load(TARGET, BASE);
 
@@ -533,7 +521,6 @@ void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL
 	for (int b=0; b<MT4engine->shape->predictionLen; b++) info("TR   oForecastO[%d]=%f ; oForecastH[%d]=%f ; oForecastL[%d]=%f ; oForecastC[%d]=%f", b, oForecastO[b], b, oForecastH[b], b, oForecastL[b], b, oForecastC[b]);
 
 	//-- untransform. baseVal is taken from bar0
-
 	if (MT4dt==DT_DELTA) {
 		oForecastO[0]=iBarO[MT4engine->shape->sampleLen-1]+oForecastO[0];
 		oForecastH[0]=iBarH[MT4engine->shape->sampleLen-1]+oForecastH[0];
@@ -545,15 +532,16 @@ void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL
 		}
 	}
 	for (int b=0; b<MT4engine->shape->predictionLen; b++) info("BASE oForecastO[%d]=%f ; oForecastH[%d]=%f ; oForecastL[%d]=%f ; oForecastC[%d]=%f", b, oForecastO[b], b, oForecastH[b], b, oForecastL[b], b, oForecastC[b]);
-
-
-
+	
 	//-- stop timer, and save client info
 	timer->stop(endtimeS);
-	safecall(clientPersistor, saveClientInfo, clientPid, MT4accountId, "Root.kaz", timer->startTime, timer->elapsedTime, "", mtDataSet->sourceTS->date0, "", false, true, clientffname, "", "MT4", "");
+	safecall(MT4clientLog, saveClientInfo, MT4clientPid, MT4accountId, "Root.kaz", timer->startTime, timer->elapsedTime, "", mtDataSet->sourceTS->date0, "", false, true, clientffname, "", "MT4", "");
 	//-- Commit clientpersistor data
-	safecall(clientPersistor, commit);
+	safecall(MT4clientLog, commit);
 
+	//-- free(s)
+	delete mtDataSrc;
+	delete mtDataSet;
 
 }
 void sRoot::setMT4env(int accountId_, char* clientXMLFile_, int savedEnginePid_, bool useVolume_, int dt_, bool doDump_) {
@@ -569,19 +557,19 @@ void sRoot::MT4createEngine() {
 	getFullPath(MT4clientXMLFile, clientffname);
 
 	//-- 1. load sCfg* for client
-	safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
+	safespawn(MT4clientCfg, newsname("MT4clientCfg"), defaultdbg, clientffname);
 
 	//-- 5.1 create client persistor, if needed
 	bool saveClient;
-	safecall(clientCfg, setKey, "/Client");
-	safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
-	safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
+	safecall(MT4clientCfg, setKey, "/Client");
+	safecall(MT4clientCfg->currentKey, getParm, &saveClient, "saveClient");
+	safespawn(MT4clientLog, newsname("ClientLogger"), defaultdbg, MT4clientCfg, "Persistor");
 
 	//-- check for possible duplicate pid in db (through client persistor), and change it
-	safecall(this, getSafePid, clientLog, &pid);
+	safecall(this, getSafePid, MT4clientLog, &MT4clientPid);
 
 	//-- spawn engine from savedEnginePid_ with pid
-	safespawn(MT4engine, newsname("Engine"), defaultdbg, clientLog, pid, MT4enginePid);
+	safespawn(MT4engine, newsname("Engine"), defaultdbg, MT4clientLog, MT4clientPid, MT4enginePid);
 	MT4sampleLen=MT4engine->shape->sampleLen;
 	MT4predictionLen=MT4engine->shape->predictionLen;
 	info("Environment initialized and Engine created for Account Number %d inferring from Engine pid %d using config from %s", MT4accountId, MT4enginePid, MT4clientXMLFile);
