@@ -87,7 +87,7 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 			for (int dsf=0; dsf<shape->featuresCnt; dsf++) {
 				tsidxS=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
 
-				sampleSBF[dsidxS] = sourceTS->val[fromValSource][fromValStatus][tsidxS]; 
+				sampleSBF[dsidxS] = sourceTS->val[fromValSource][fromValStatus][tsidxS];
 				if (doDump) fprintf(dumpFile, "%f,", sampleSBF[dsidxS]);
 				dsidxS++;
 			}
@@ -95,16 +95,19 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 		if (doDump) fprintf(dumpFile, "|,");
 
 		//-- target
-		for (int bar=0; bar<shape->predictionLen; bar++) {
-			for (int dsf=0; dsf<shape->featuresCnt; dsf++) {
-				tsidxT=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
-				tsidxT+=tsfcnt*shape->sampleLen;
+		if (hasTargets) {
+			for (int bar=0; bar<shape->predictionLen; bar++) {
+				for (int dsf=0; dsf<shape->featuresCnt; dsf++) {
+					tsidxT=sample*tsfcnt+bar*tsfcnt+selectedFeature[dsf];
+					tsidxT+=tsfcnt*shape->sampleLen;
 
-				targetSBF[dsidxT] = sourceTS->val[fromValSource][fromValStatus][tsidxT];
-				if (doDump) fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
-				dsidxT++;
+					targetSBF[dsidxT] = sourceTS->val[fromValSource][fromValStatus][tsidxT];
+					if (doDump) fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
+					dsidxT++;
+				}
 			}
 		}
+
 		if (doDump) fprintf(dumpFile, "\n");
 	}
 	if (doDump)	fclose(dumpFile);
@@ -135,12 +138,14 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 		}
 	}
 
-	//-- now we are on the last row of the target section. need to take all bars>0
-	for (int bar=1; bar<shape->predictionLen; bar++) {
-		for (int dsf=0; dsf<dsfcnt; dsf++) {
-			dsidx=(samplesCnt-1)*trowlen+bar*dsfcnt+dsf;
-			tsidx=(samplesCnt+shape->sampleLen)*tsfcnt+(bar-1)*tsfcnt+selectedFeature[dsf];
-			sourceTS->val[toValSource][toValStatus][tsidx] = _data[fromValSource][SBF][dsidx];
+	if (hasTargets) {
+		//-- now we are on the last row of the target section. need to take all bars>0
+		for (int bar=1; bar<shape->predictionLen; bar++) {
+			for (int dsf=0; dsf<dsfcnt; dsf++) {
+				dsidx=(samplesCnt-1)*trowlen+bar*dsfcnt+dsf;
+				tsidx=(samplesCnt+shape->sampleLen)*tsfcnt+(bar-1)*tsfcnt+selectedFeature[dsf];
+				sourceTS->val[toValSource][toValStatus][tsidx] = _data[fromValSource][SBF][dsidx];
+			}
 		}
 	}
 
@@ -150,7 +155,7 @@ void sDataSet::setBFS() {
 	for (int b=0; b<batchCnt; b++) {
 		//-- populate BFS sample/target for every batch
 		SBF2BFS(b, shape->sampleLen, sampleSBF, sampleBFS);
-		SBF2BFS(b, shape->predictionLen, targetSBF, targetBFS);
+		if(hasTargets) SBF2BFS(b, shape->predictionLen, targetSBF, targetBFS);
 	}
 }
 void sDataSet::setSBF() {

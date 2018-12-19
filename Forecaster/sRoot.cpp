@@ -225,7 +225,7 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 //-- temp stuff
 #include "../CUDAwrapper/CUDAwrapper.h"
 
-void mallocBars(int sampleLen, int predictionLen, long** barT, double** barO, double** barH, double** barL, double** barC, double** barV, double** forecastH, double** forecastL ){
+void mallocBars(int sampleLen, int predictionLen, long** barT, double** barO, double** barH, double** barL, double** barC, double** barV, double** forecastO, double** forecastH, double** forecastL, double** forecastC, double** forecastV){
 	(*barT)=(long*)malloc(sampleLen*sizeof(long));
 	(*barO)=(double*)malloc(sampleLen*sizeof(double));
 	(*barH)=(double*)malloc(sampleLen*sizeof(double));
@@ -233,8 +233,11 @@ void mallocBars(int sampleLen, int predictionLen, long** barT, double** barO, do
 	(*barC)=(double*)malloc(sampleLen*sizeof(double));
 	(*barV)=(double*)malloc(sampleLen*sizeof(double));
 	//--
+	(*forecastO)=(double*)malloc(predictionLen*sizeof(double));
 	(*forecastH)=(double*)malloc(predictionLen*sizeof(double));
 	(*forecastL)=(double*)malloc(predictionLen*sizeof(double));
+	(*forecastC)=(double*)malloc(predictionLen*sizeof(double));
+	(*forecastV)=(double*)malloc(predictionLen*sizeof(double));
 
 	//-- ... set barO/H/L/C/V
 	for (int i=0; i<sampleLen; i++) {
@@ -266,9 +269,9 @@ void sRoot::kaz() {
 	sEngine* mt4eng= new sEngine(this, newsname("Engine_%d", pid), defaultdbg, GUIreporter, clientPersistor, clientPid, enginePid);
 
 	//-- simulate MT bars
-	long* barT=nullptr; double* barO; double* barH; double* barL; double* barC; double* barV; double* forecastH; double* forecastL;
+	long* barT=nullptr; double* barO; double* barH; double* barL; double* barC; double* barV; double* forecastO; double* forecastH; double* forecastL; double* forecastC; double* forecastV;
 	long baseBarT=0; double baseBarO=0, baseBarH=0, baseBarL=0, baseBarC=0, baseBarV=0;
-	mallocBars(mt4eng->shape->sampleLen, mt4eng->shape->predictionLen, &barT, &barO, &barH, &barL, &barC, &barV, &forecastH, &forecastL);
+	mallocBars(mt4eng->shape->sampleLen, mt4eng->shape->predictionLen, &barT, &barO, &barH, &barL, &barC, &barV, &forecastO, &forecastH, &forecastL, &forecastC, &forecastV);
 	//-------------------------
 
 	int selF[5];
@@ -283,10 +286,16 @@ void sRoot::kaz() {
 
 	//-- do inference (also populates datasets)
 	safecall(mt4eng, infer, accountId, mtDataSet, enginePid);
-	//-- persist Run logs
-	safecall(mt4eng, saveRun);
-	//-- ommit mt4eng persistor data
-	safecall(mt4eng, commit);
+	//-- prediction is in dataset->predictionSBF
+	for (int b=0; b<mt4eng->shape->predictionLen; b++) {
+		forecastO[b]=mtDataSet->predictionSBF[b*selFcnt+FXOPEN];
+		forecastH[b]=mtDataSet->predictionSBF[b*selFcnt+FXHIGH];
+		forecastL[b]=mtDataSet->predictionSBF[b*selFcnt+FXLOW];
+		forecastC[b]=mtDataSet->predictionSBF[b*selFcnt+FXCLOSE];
+		if(useVolume) forecastV[b]=mtDataSet->predictionSBF[b*selFcnt+FXVOLUME];
+	}
+	
+
 	//-- stop timer, and save client info
 	timer->stop(endtimeS);
 	safecall(clientPersistor, saveClientInfo, clientPid, accountId, "Root.kaz", timer->startTime, timer->elapsedTime, "", mtDataSet->sourceTS->date0, "", false, true, clientffname, "", "MT4", "");

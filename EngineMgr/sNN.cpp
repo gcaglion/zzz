@@ -290,7 +290,7 @@ void sNN::loadBatchData(sDataSet* ds, int b) {
 	//-- load batch samples on L0
 	Alg->h2d(&F[(parms->useBias) ? 1 : 0], &ds->sampleBFS[b*L0SampleNodesCnt], L0SampleNodesCnt*sizeof(numtype), false);
 	//-- load batch target on output level
-	Alg->h2d(&u[0], &ds->targetBFS[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), false);
+	if(ds->hasTargets) Alg->h2d(&u[0], &ds->targetBFS[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), false);
 }
 void sNN::ForwardPass(sDataSet* ds, int batchId, bool inferring) {
 
@@ -304,11 +304,12 @@ void sNN::ForwardPass(sDataSet* ds, int batchId, bool inferring) {
 	safecallSilent(this, FF);
 	FFtimeTot+=((DWORD)(timeGetTime()-FFstart));
 
-	//-- 3. Calc Error (sets e[], te, updates tse) for the whole batch
-	CEstart=timeGetTime(); CEcnt++;
-	safecallSilent(this, Ecalc);
-	CEtimeTot+=((DWORD)(timeGetTime()-CEstart));
-
+	//-- 3. Calc Error (sets e[], te, updates tse) for the whole batch. Only if we have targets
+	if (ds->hasTargets) {
+		CEstart=timeGetTime(); CEcnt++;
+		safecallSilent(this, Ecalc);
+		CEtimeTot+=((DWORD)(timeGetTime()-CEstart));
+	}
 	//-- 4. if Inferring, save results for current batch in batchPrediction
 	if (inferring) Alg->d2h(&ds->predictionBFS[batchId*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 
