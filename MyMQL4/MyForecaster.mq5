@@ -275,12 +275,10 @@ int NewTrade(int cmd, double volume, double price, double stoploss, double takep
 	int    digits=(int)SymbolInfoInteger(symbol, SYMBOL_DIGITS); // number of decimal places
 	double point=SymbolInfoDouble(symbol, SYMBOL_POINT);         // point
 	double bid=SymbolInfoDouble(symbol, SYMBOL_BID);             // current price for closing LONG
-	double SL=bid-1000*point;                                   // unnormalized SL value
-	SL=NormalizeDouble(SL, digits);                              // normalizing Stop Loss
-	double TP=bid+1000*point;                                   // unnormalized TP value
-	TP=NormalizeDouble(TP, digits);                              // normalizing Take Profit
-																 //--- receive the current open price for LONG positions
-	double open_price;
+	double ask=SymbolInfoDouble(symbol, SYMBOL_ASK);             // current price for closing SHORT
+	double SL;	// unnormalized SL value
+	double TP;	// unnormalized TP value
+	double open_price;	//--- receive the current open price for LONG positions
 	
 
 	string comment;
@@ -288,12 +286,20 @@ int NewTrade(int cmd, double volume, double price, double stoploss, double takep
 	if (cmd==1||cmd==3) {
 		//-- Buy
 		open_price=SymbolInfoDouble(symbol, SYMBOL_ASK);
+		SL = bid-1000*point;
+		SL=NormalizeDouble(SL, digits); // normalizing Stop Loss
+		TP = bid+1000*point;
+		TP=NormalizeDouble(TP, digits);                              // normalizing Take Profit
 		string comment=StringFormat("Buy  %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
 		ret=trade.Buy(volume, symbol, open_price, SL, TP, comment);
 	}
 	if (cmd==2||cmd==4) {
 		//-- Sell
-		open_price=SymbolInfoDouble(symbol, SYMBOL_BID);
+		open_price=SymbolInfoDouble(symbol, SYMBOL_ASK);
+		SL = ask+1000*point;
+		SL=NormalizeDouble(SL, digits); // normalizing Stop Loss
+		TP = ask-1000*point;
+		TP=NormalizeDouble(TP, digits);                              // normalizing Take Profit
 		string comment=StringFormat("Sell %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
 		ret=trade.Sell(volume, symbol, open_price, SL, TP, comment);
 	}

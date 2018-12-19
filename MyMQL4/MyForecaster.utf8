@@ -17,11 +17,11 @@ MyForecaster.mq5(172,18) : warning 43: possible loss of data due to type convers
 MyForecaster.mq5(177,18) : warning 43: possible loss of data due to type conversion
 MyForecaster.mq5(181,19) : warning 43: possible loss of data due to type conversion
 MyForecaster.mq5(186,19) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(291,10) : warning 61: declaration of 'comment' hides local declaration at line 286
-MyForecaster.mq5(297,10) : warning 61: declaration of 'comment' hides local declaration at line 286
-MyForecaster.mq5(300,7) : warning 60: possible use of uninitialized variable 'ret'
-MyForecaster.mq5(320,48) : warning 180: implicit conversion from 'string' to 'number'
-MyForecaster.mq5(320,75) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(320,81) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(293,10) : warning 61: declaration of 'comment' hides local declaration at line 284
+MyForecaster.mq5(303,10) : warning 61: declaration of 'comment' hides local declaration at line 284
+MyForecaster.mq5(306,7) : warning 60: possible use of uninitialized variable 'ret'
+MyForecaster.mq5(326,48) : warning 180: implicit conversion from 'string' to 'number'
+MyForecaster.mq5(326,75) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(326,81) : warning 43: possible loss of data due to type conversion
  : information: info generating code
-Result: 0 error(s), 14 warning(s), compile time: 1411 msec
+Result: 0 error(s), 14 warning(s), compile time: 1482 msec
