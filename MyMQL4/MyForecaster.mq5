@@ -37,6 +37,8 @@ int vEnginePid=EnginePid;
 int vUseVolume=UseVolume;
 int vDumpData=DumpData;
 int vDataTransformation=DataTransformation;
+//--
+int vRectsCnt=0;
 
 //--- data variables to be passed in MTgetForecast() call
 int vSampleDataT[], vSampleBaseValT;
@@ -73,6 +75,7 @@ bool   fLog;
 uint t0, t1;						// Time counters. Used to calc elapsed
 
 int OnInit() {
+
 	//Print("Bar count is ",Bars(Symbol(), Period()));
 	t0 = GetTickCount();
 
@@ -120,6 +123,7 @@ int OnInit() {
 }
 void OnTick() {
 
+	return;
 
 	// Only do this if there's a new bar
 	static datetime Time0=0;
@@ -138,6 +142,9 @@ void OnTick() {
 		return;
 	};
 	for (int i=0; i<vPredictionLen; i++) printf("vPredictedDataO[%d]=%f , vPredictedDataH[%d]=%f , vPredictedDataL[%d]=%f , vPredictedDataC[%d]=%f", i, vPredictedDataO[i], i, vPredictedDataH[i], i, vPredictedDataL[i], i, vPredictedDataC[i]);
+
+	//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
+	drawForecast(vPredictedDataH[0], vPredictedDataL[0]);
 
 	//-- define trade scenario based on current price level and forecast
 	int tradeOp;	//
@@ -182,7 +189,6 @@ void LoadBars() {
 	}
 
 }
-
 int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
 	int scenario=-1;
 
@@ -253,7 +259,6 @@ int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
 
 	return scenario;
 }
-
 int NewTrade(int cmd, double volume, double price, double stoploss, double takeprofit) {
 
 	CTrade trade;
@@ -298,4 +303,20 @@ int NewTrade(int cmd, double volume, double price, double stoploss, double takep
 		Print("Trade executed successfully. Return code=", trade.ResultRetcode(), " (", trade.ResultRetcodeDescription(), ")");
 		return 0;
 	}
+}
+void drawForecast(double H, double L) {
+	//-- https://www.youtube.com/watch?v=Y3e1zVROJlY
+
+	string name="Rectangle";
+
+	MqlRates rates[];
+	int copied=CopyRates(NULL, 0, 0, 10, rates);
+	if (copied<=0)
+		Print("Error copying price data ", GetLastError());
+	else Print("Copied ", ArraySize(rates), " bars");
+
+	Print("ObjectCreate() returns ", ObjectCreate(_Symbol, name, 0, rates[2].time, H, rates[0].time, L));
+	ObjectSetInteger(0, name, OBJPROP_COLOR, clrBlue);
+	ObjectSetInteger(0, name, OBJPROP_FILL, clrBlue);
+	ObjectSetInteger(0, name, OBJPROP_HIDDEN, false);
 }
