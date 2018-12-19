@@ -286,6 +286,7 @@ void sRoot::kaz() {
 
 	//-- do inference (also populates datasets)
 	safecall(mt4eng, infer, accountId, mtDataSet, enginePid);
+
 	//-- prediction is in dataset->predictionSBF
 	for (int b=0; b<mt4eng->shape->predictionLen; b++) {
 		forecastO[b]=mtDataSet->predictionSBF[b*selFcnt+FXOPEN];
@@ -504,29 +505,47 @@ void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL
 	safecall(this, getSafePid, clientPersistor, &clientPid);
 
 	// spawn engine from enginePid
-	sEngine* mt4eng= new sEngine(this, newsname("Engine_%d", MT4enginePid), defaultdbg, GUIreporter, clientPersistor, clientPid, MT4enginePid);
+	//sEngine* MT4engine= new sEngine(this, newsname("Engine_%d", MT4enginePid), defaultdbg, GUIreporter, clientPersistor, clientPid, MT4enginePid);
 
 	int selF[5];
 	int selFcnt=(MT4useVolume) ? 5 : 4;
 	for (int f=0; f<selFcnt; f++) selF[f]=f;
 
-	sDataShape* mtDataShape= new sDataShape(this, newsname("MT4DataShape"), defaultdbg, nullptr, mt4eng->shape->sampleLen, mt4eng->shape->predictionLen, selFcnt);
-	sMT4DataSource* mtDataSrc= new sMT4DataSource(this, newsname("MT4DataSource"), defaultdbg, nullptr, mt4eng->shape->sampleLen, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV);
+	sDataShape* mtDataShape= new sDataShape(this, newsname("MT4DataShape"), defaultdbg, nullptr, MT4engine->shape->sampleLen, MT4engine->shape->predictionLen, selFcnt);
+	sMT4DataSource* mtDataSrc= new sMT4DataSource(this, newsname("MT4DataSource"), defaultdbg, nullptr, MT4engine->shape->sampleLen, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV);
 	sDataSet* mtDataSet= new sDataSet(this, newsname("MTdataSet"), defaultdbg, nullptr, mtDataShape, mtDataSrc, selFcnt, selF, MT4dt, MT4doDump);
 
 	mtDataSet->sourceTS->load(TARGET, BASE);
 
 	//-- do inference (also populates datasets)
-	safecall(mt4eng, infer, MT4accountId, mtDataSet, MT4enginePid);
+	safecall(MT4engine, infer, MT4accountId, mtDataSet, MT4enginePid);
+	
 	//-- prediction is in dataset->predictionSBF
-	for (int b=0; b<mt4eng->shape->predictionLen; b++) {
-		oForecastO[b]=mtDataSet->predictionSBF[b*selFcnt+FXOPEN];
-		oForecastH[b]=mtDataSet->predictionSBF[b*selFcnt+FXHIGH];
-		oForecastL[b]=mtDataSet->predictionSBF[b*selFcnt+FXLOW];
-		oForecastC[b]=mtDataSet->predictionSBF[b*selFcnt+FXCLOSE];
-		if (MT4useVolume) oForecastV[b]=mtDataSet->predictionSBF[b*selFcnt+FXVOLUME];
-		info("oForecastO[%d]=%f ; oForecastH[%d]=%f ; oForecastL[%d]=%f ; oForecastC[%d]=%f", b, oForecastO[b], b, oForecastH[b], b, oForecastL[b], b, oForecastC[b]);
+
+	//-- unscale
+	for (int b=0; b<MT4engine->shape->predictionLen; b++) {
+		oForecastO[b]=(mtDataSet->predictionSBF[b*selFcnt+FXOPEN]-mtDataSet->sourceTS->scaleP[FXOPEN])/mtDataSet->sourceTS->scaleM[FXOPEN];
+		oForecastH[b]=(mtDataSet->predictionSBF[b*selFcnt+FXHIGH]-mtDataSet->sourceTS->scaleP[FXHIGH])/mtDataSet->sourceTS->scaleM[FXHIGH];
+		oForecastL[b]=(mtDataSet->predictionSBF[b*selFcnt+FXLOW]-mtDataSet->sourceTS->scaleP[FXLOW])/mtDataSet->sourceTS->scaleM[FXLOW];
+		oForecastC[b]=(mtDataSet->predictionSBF[b*selFcnt+FXCLOSE]-mtDataSet->sourceTS->scaleP[FXCLOSE])/mtDataSet->sourceTS->scaleM[FXCLOSE];
+		if (MT4useVolume) oForecastV[b]=(mtDataSet->predictionSBF[b*selFcnt+FXVOLUME]-mtDataSet->sourceTS->scaleP[FXVOLUME])/mtDataSet->sourceTS->scaleM[FXVOLUME];
 	}
+	for (int b=0; b<MT4engine->shape->predictionLen; b++) info("TR   oForecastO[%d]=%f ; oForecastH[%d]=%f ; oForecastL[%d]=%f ; oForecastC[%d]=%f", b, oForecastO[b], b, oForecastH[b], b, oForecastL[b], b, oForecastC[b]);
+
+	//-- untransform. baseVal is taken from bar0
+
+	if (MT4dt==DT_DELTA) {
+		oForecastO[0]=iBarO[MT4engine->shape->sampleLen-1]+oForecastO[0];
+		oForecastH[0]=iBarH[MT4engine->shape->sampleLen-1]+oForecastH[0];
+		oForecastL[0]=iBarL[MT4engine->shape->sampleLen-1]+oForecastL[0];
+		oForecastC[0]=iBarC[MT4engine->shape->sampleLen-1]+oForecastC[0];
+		oForecastV[0]=iBarV[MT4engine->shape->sampleLen-1]+oForecastV[0];
+		for (int b=0; b<MT4engine->shape->predictionLen; b++){
+			//-- next steps
+		}
+	}
+	for (int b=0; b<MT4engine->shape->predictionLen; b++) info("BASE oForecastO[%d]=%f ; oForecastH[%d]=%f ; oForecastL[%d]=%f ; oForecastC[%d]=%f", b, oForecastO[b], b, oForecastH[b], b, oForecastL[b], b, oForecastC[b]);
+
 
 
 	//-- stop timer, and save client info
