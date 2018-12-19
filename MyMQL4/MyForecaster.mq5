@@ -5,7 +5,7 @@
 
 #import "Forecaster.dll"
 int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[], int &oSampleLen_, int &oPredictionLen_);
-int _getForecast(uchar& iEnv[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double &oForecastH[], double &oForecastL[]);
+int _getForecast(uchar& iEnv[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 int _destroyEnv(uchar& iEnv[]);
 #import
 
@@ -48,7 +48,7 @@ double vFutureDataO[];
 double vFutureDataH[];
 double vFutureDataL[];
 double vFutureDataC[];
-double vPredictedDataH[], vPredictedDataL[];
+double vPredictedDataO[], vPredictedDataH[], vPredictedDataL[], vPredictedDataC[], vPredictedDataV[];
 double vSampleBW[];
 double vFutureBW[];
 
@@ -106,8 +106,11 @@ int OnInit() {
 	ArrayResize(vFutureDataH, vPredictionLen);
 	ArrayResize(vFutureDataL, vPredictionLen);
 	ArrayResize(vFutureBW, vPredictionLen);
+	ArrayResize(vPredictedDataO, vPredictionLen);
 	ArrayResize(vPredictedDataH, vPredictionLen);
 	ArrayResize(vPredictedDataL, vPredictionLen);
+	ArrayResize(vPredictedDataC, vPredictionLen);
+	ArrayResize(vPredictedDataV, vPredictionLen);
 	ArrayResize(vSampleTime, vSampleLen);
 	ArrayResize(vValidationTime, vSampleLen);
 
@@ -127,11 +130,11 @@ void OnTick() {
 	LoadBars();
 
 	//-- call Forecaster
-	if (_getForecast(vEnvS, vSampleDataT, vSampleDataO, vSampleDataH, vSampleDataL, vSampleDataC, vSampleDataV, vSampleBaseValT, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC, vSampleBaseValV, vPredictedDataH, vPredictedDataL)!=0) {
+	if (_getForecast(vEnvS, vSampleDataT, vSampleDataO, vSampleDataH, vSampleDataL, vSampleDataC, vSampleDataV, vSampleBaseValT, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC, vSampleBaseValV, vPredictedDataO, vPredictedDataH, vPredictedDataL, vPredictedDataC, vPredictedDataV)!=0) {
 		printf("_getForecast() FAILURE! Exiting...");
 		return;
 	};
-	for (int i=0; i<vPredictionLen; i++) printf("vPredictedDataH[%d]=%f , vPredictedDataL[%d]=%f", i, vPredictedDataH[i], i, vPredictedDataL[i]);
+	for (int i=0; i<vPredictionLen; i++) printf("vPredictedDataO[%d]=%f , vPredictedDataH[%d]=%f , vPredictedDataL[%d]=%f , vPredictedDataC[%d]=%f", i, vPredictedDataO[i], i, vPredictedDataH[i], i, vPredictedDataL[i], i, vPredictedDataC[i]);
 
 }
 void OnDeinit(const int reason) {

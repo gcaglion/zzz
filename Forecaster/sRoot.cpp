@@ -493,33 +493,49 @@ extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* 
 }
 
 //-- MT4 stuff
-void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastH, double* oForecastL) {
+void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
 
-	sMT4DataSource* dsrc;
-	sTimeSerie* ts;
-	sDataSet* ds;
+	//-- need client config to create a client persistor
+	sCfg* clientCfg; safespawn(clientCfg, newsname("clientConfig"), defaultdbg, MT4clientXMLFile);
+	sLogger* clientPersistor= new sLogger(this, newsname("clientLogger"), defaultdbg, GUIreporter, clientCfg, "/Client/Persistor");
 
-	int selF[FXDATA_FEATURESCNT];
+	//-- avoid duplicate client pid
+	int clientPid=GetCurrentProcessId();
+	safecall(this, getSafePid, clientPersistor, &clientPid);
+
+	// spawn engine from enginePid
+	sEngine* mt4eng= new sEngine(this, newsname("Engine_%d", MT4enginePid), defaultdbg, GUIreporter, clientPersistor, clientPid, MT4enginePid);
+
+	int selF[5];
 	int selFcnt=(MT4useVolume) ? 5 : 4;
 	for (int f=0; f<selFcnt; f++) selF[f]=f;
 
-	//-- create sMT4Datasource...
-	safespawn(dsrc, newsname("MTdataSource"), defaultdbg, MT4engine->shape->sampleLen, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV);
-	//-- create TimeSerie from MTDataSource
-	safespawn(ts, newsname("singleSampleTimeSerie"), defaultdbg, dsrc, dsrc->bartime[0], MT4engine->shape->sampleLen, MT4dt, "C:/temp/DataDump");
-	//-- create DataSet with just this sample, batchSamplesCnt=1 , 	
-	safespawn(ds, newsname("singleSampleDataSet"), defaultdbg, ts,  MT4engine->shape, selFcnt, selF, 1, MT4doDump);
+	sDataShape* mtDataShape= new sDataShape(this, newsname("MT4DataShape"), defaultdbg, nullptr, mt4eng->shape->sampleLen, mt4eng->shape->predictionLen, selFcnt);
+	sMT4DataSource* mtDataSrc= new sMT4DataSource(this, newsname("MT4DataSource"), defaultdbg, nullptr, mt4eng->shape->sampleLen, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV);
+	sDataSet* mtDataSet= new sDataSet(this, newsname("MTdataSet"), defaultdbg, nullptr, mtDataShape, mtDataSrc, selFcnt, selF, MT4dt, MT4doDump);
 
-	//-- set date0 in testDS->TimeSerie, and load it
-	safecall(ds->sourceTS, load, TARGET, BASE, dsrc->bartime[0]);
+	mtDataSet->sourceTS->load(TARGET, BASE);
+
 	//-- do inference (also populates datasets)
-	//safecall(engine, infer, MT4accountId, ds, MT4accountId);
-
-	for (int b=0; b<MT4predictionLen; b++) {
-		oForecastH[b]=(double)(b+1)/10;
-		oForecastL[b]=(double)(b+1)/20;
-		info("oForecastH[%d]=%f ; oForecastL[%d]=%f", b, oForecastH[b], b, oForecastL[b]);
+	safecall(mt4eng, infer, MT4accountId, mtDataSet, MT4enginePid);
+	//-- prediction is in dataset->predictionSBF
+	for (int b=0; b<mt4eng->shape->predictionLen; b++) {
+		oForecastO[b]=mtDataSet->predictionSBF[b*selFcnt+FXOPEN];
+		oForecastH[b]=mtDataSet->predictionSBF[b*selFcnt+FXHIGH];
+		oForecastL[b]=mtDataSet->predictionSBF[b*selFcnt+FXLOW];
+		oForecastC[b]=mtDataSet->predictionSBF[b*selFcnt+FXCLOSE];
+		if (MT4useVolume) oForecastV[b]=mtDataSet->predictionSBF[b*selFcnt+FXVOLUME];
+		info("oForecastO[%d]=%f ; oForecastH[%d]=%f ; oForecastL[%d]=%f ; oForecastC[%d]=%f", b, oForecastO[b], b, oForecastH[b], b, oForecastL[b], b, oForecastC[b]);
 	}
+
+
+	//-- stop timer, and save client info
+	timer->stop(endtimeS);
+	safecall(clientPersistor, saveClientInfo, clientPid, MT4accountId, "Root.kaz", timer->startTime, timer->elapsedTime, "", mtDataSet->sourceTS->date0, "", false, true, clientffname, "", "MT4", "");
+	//-- Commit clientpersistor data
+	safecall(clientPersistor, commit);
+
+
 }
 void sRoot::setMT4env(int accountId_, char* clientXMLFile_, int savedEnginePid_, bool useVolume_, int dt_, bool doDump_) {
 	MT4accountId=accountId_;
@@ -571,7 +587,7 @@ extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLF
 	return 0;
 
 }
-extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastH, double* oForecastL) {
+extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
 
@@ -580,7 +596,7 @@ extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, long* iBarT, doub
 
 	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "oForecastH[0] BEFORE : %f", oForecastH[0]);
 	try {
-		env->getForecast(iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastH, oForecastL);
+		env->getForecast(iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
 	}
 	catch (std::exception exc) {
 		return -1;
