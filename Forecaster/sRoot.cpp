@@ -81,7 +81,6 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 
 
 }
-
 void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr) {
 
 	try {
@@ -148,6 +147,7 @@ void sRoot::bothClient(int simulationId_, const char* clientXMLfile_, const char
 	safecall(this, inferClient, simulationId_, clientXMLfile_, trainXMLfile_, pid, progressPtr);
 }
 
+//-- utils stuff
 void sRoot::mallocSimulationDates(sCfg* clientCfg_, int* simLen, char*** simTrainStart, char*** simInferStart, char*** simValidStart) {
 
 	//-- get Simulation Length and start date[0]
@@ -164,8 +164,6 @@ void sRoot::mallocSimulationDates(sCfg* clientCfg_, int* simLen, char*** simTrai
 	}
 
 }
-
-//-- utils stuff
 void sRoot::CLoverride(int argc, char* argv[]) {
 		char orName[XMLKEY_PARM_NAME_MAXLEN];
 		char orValS[XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];

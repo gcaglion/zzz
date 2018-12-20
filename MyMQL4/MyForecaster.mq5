@@ -168,7 +168,11 @@ void OnTick() {
 
 }
 void OnDeinit(const int reason) {
-	_destroyEnv(vEnvS);
+	string EnvS; CharArrayToString(vEnvS, EnvS);
+	if (EnvS!=NULL) {
+		printf("calling _destroyEnv for vEnvS=%s", EnvS);
+		_destroyEnv(vEnvS);
+	}
 }
 
 void LoadBars() {
