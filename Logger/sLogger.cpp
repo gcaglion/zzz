@@ -173,6 +173,10 @@ void sLogger::saveDBConnInfo(int pid_, int tid_, char* oDBusername, char* oDBpas
 }
 //--
 void sLogger::saveTradeInfo(int MT4clientPid, int MT4accountId, int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult) {
-	if (source==OraData) safecall(oradb, saveTradeInfo, MT4clientPid, MT4accountId, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult);
+	//-- this should be treated as atomic (i.e. automatic commit)
+	if (source==OraData) {
+		safecall(oradb, saveTradeInfo, MT4clientPid, MT4accountId, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult);
+		safecall(oradb, commit);
+	}
 	//if (source==FileData) .....
 }

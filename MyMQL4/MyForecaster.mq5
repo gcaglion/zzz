@@ -13,7 +13,7 @@ int _destroyEnv(uchar& iEnv[]);
 #import
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 3724;
+input int EnginePid				= 11740;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/MetaTrader/Client.xml";
 input int DataTransformation	= 1;
 input bool UseVolume			= false;
@@ -65,6 +65,7 @@ string vSampleTime[], vValidationTime[];
 string vSampleBaseTime, vValidationBaseTime;
 
 //--- miscellaneous variables
+string EnvS;
 uchar vEnvS[];		// Env in char* format
 uchar vClientXMLFileS[];
 
@@ -87,7 +88,6 @@ int OnInit() {
 	if(!GlobalVariableCheck("PrevFL0")) GlobalVariableSet("PrevFL0",0);
 
 	//-- 1. create Env
-	string EnvS;
 	EnvS = "00000000000000000000000000000000000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
 	int in=32;
 	int out=0;
@@ -150,25 +150,28 @@ void OnTick() {
 	//-- define trade scenario based on current price level and forecast
 	double tradeVol, tradePrice, tradeTP, tradeSL;
 	int tradeScenario=getTradeScenario(tradePrice, tradeTP, tradeSL); printf("trade scenario=%d ; tradePrice=%f ; tradeTP=%f ; tradeSL=%f", tradeScenario, tradePrice, tradeTP, tradeSL);
+	int tradeResult; datetime positionTime;
 	if (tradeScenario>=0) {
 		//-- do the actual trade
 		tradeVol=0.1;
-		int tradeResult=NewTrade(tradeScenario, tradeVol, tradePrice, tradeSL, tradeTP);
+		tradeResult=NewTrade(tradeScenario, tradeVol, tradePrice, tradeSL, tradeTP);
 		//-- if trade successful, store position ticket in shared variable
 		if (tradeResult==0) {
 			vTicket = PositionGetTicket(0);
+			int positionId=PositionSelect(Symbol()); printf("positionId=%d", positionId);
+			positionTime=PositionGetInteger(POSITION_TIME); Print("positionTime", positionTime);
 		} else {
 			vTicket=-1;
 		}
 	}
-
-
+	
 	//-- save tradeInfo
-	//_saveTradeInfo(vEnvS, vTicket, 
+	_saveTradeInfo(vEnvS, vTicket, positionTime, vSampleDataT[vSampleLen-2], vSampleDataO[vSampleLen-2], vSampleDataH[vSampleLen-2], vSampleDataL[vSampleLen-2], vSampleDataC[vSampleLen-2], vSampleDataV[vSampleLen-2], vPredictedDataO[0], vPredictedDataH[0], vPredictedDataL[0], vPredictedDataC[0], vPredictedDataV[0], tradeScenario, tradeResult);
 
 }
 void OnDeinit(const int reason) {
-	string EnvS; CharArrayToString(vEnvS, EnvS);
+	CharArrayToString(vEnvS, EnvS);
+	printf("OnDeInit() called. EnvS=%s", EnvS);
 	if (EnvS!=NULL) {
 		printf("calling _destroyEnv for vEnvS=%s", EnvS);
 		_destroyEnv(vEnvS);

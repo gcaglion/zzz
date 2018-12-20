@@ -546,7 +546,8 @@ void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL
 void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult) {
 	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4accountId, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult);
 }
-void sRoot::setMT4env(int accountId_, char* clientXMLFile_, int savedEnginePid_, bool useVolume_, int dt_, bool doDump_) {
+void sRoot::setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int savedEnginePid_, bool useVolume_, int dt_, bool doDump_) {
+	MT4clientPid=clientPid_;
 	MT4accountId=accountId_;
 	MT4enginePid=savedEnginePid_;
 	MT4useVolume=useVolume_;
@@ -583,7 +584,7 @@ extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLF
 	try {
 		root=new sRoot(nullptr);
 		sprintf_s(oEnvS, 64, "%p", root);
-		root->setMT4env(accountId_, clientXMLFile_, savedEnginePid_, useVolume_, dt_, doDump_);
+		root->setMT4env(GetCurrentProcessId(), accountId_, clientXMLFile_, savedEnginePid_, useVolume_, dt_, doDump_);
 		root->MT4createEngine();
 		(*oSampleLen_)=root->MT4engine->shape->sampleLen;
 		(*oPredictionLen_)=root->MT4engine->shape->predictionLen;
