@@ -602,16 +602,14 @@ extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, long* iBarT, doub
 	sscanf_s(iEnvS, "%p", &env);
 
 	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p", env);	
-	for (int b=0; b<env->MT4sampleLen; b++) env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "\t iBar[%d] O-H-L-C : %f-%f-%f-%f", b, iBarO[b], iBarH[b], iBarL[b], iBarC[b]);	
+	for (int b=0; b<env->MT4sampleLen; b++) env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "\t iBar[%d] O-H-L-C-V : %f-%f-%f-%f-%f", b, iBarO[b], iBarH[b], iBarL[b], iBarC[b], iBarV[b]);
 
-	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "oForecastH[0] BEFORE : %f", oForecastH[0]);
 	try {
 		env->getForecast(iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
 	}
 	catch (std::exception exc) {
 		return -1;
 	}
-	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "oForecastH[0] AFTER  : %f", oForecastH[0]);
 
 	return 0;
 }

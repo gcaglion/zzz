@@ -144,8 +144,13 @@ void OnTick() {
 	};
 	for (int i=0; i<vPredictionLen; i++) printf("vPredictedDataO[%d]=%f , vPredictedDataH[%d]=%f , vPredictedDataL[%d]=%f , vPredictedDataC[%d]=%f", i, vPredictedDataO[i], i, vPredictedDataH[i], i, vPredictedDataL[i], i, vPredictedDataC[i]);
 
+	//-- check for forecast consistency (H>L)
+	if (vPredictedDataH[0]<=vPredictedDataL[0]) {
+		printf("Invalid Forecast: H=%f ; L=%f", vPredictedDataH[0], vPredictedDataL[0]);
+		return;
+	}
 	//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
-	drawForecast(vPredictedDataH[0], vPredictedDataL[0]);
+	//drawForecast(vPredictedDataH[0], vPredictedDataL[0]);
 
 	//-- define trade scenario based on current price level and forecast
 	double tradeVol, tradePrice, tradeTP, tradeSL;
@@ -158,8 +163,8 @@ void OnTick() {
 		//-- if trade successful, store position ticket in shared variable
 		if (tradeResult==0) {
 			vTicket = PositionGetTicket(0);
-			int positionId=PositionSelect(Symbol()); printf("positionId=%d", positionId);
-			positionTime=PositionGetInteger(POSITION_TIME); Print("positionTime", positionTime);
+			int positionId=PositionSelect(Symbol()); //printf("positionId=%d", positionId);
+			positionTime=PositionGetInteger(POSITION_TIME); //Print("positionTime", positionTime);
 		} else {
 			vTicket=-1;
 		}
@@ -183,9 +188,8 @@ void LoadBars() {
 
 	MqlRates rates[];
 	int copied=CopyRates(NULL, 0, 1, vSampleLen+2, rates);
-	if (copied<(vSampleLen+1))
-		Print("Error copying price data ", GetLastError());
-	else Print("Copied ", ArraySize(rates), " bars");
+	if (copied<(vSampleLen+1)) Print("Error copying price data ", GetLastError());
+	//else Print("Copied ", ArraySize(rates), " bars");
 
 	//-- base bar, needed for Delta Transformation
 	vSampleBaseValT = rates[1].time; StringConcatenate(vSampleBaseValTs, TimeToString(vSampleBaseValT, TIME_DATE), ".", TimeToString(vSampleBaseValT, TIME_MINUTES));
@@ -218,7 +222,7 @@ int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
 	double StopLevel=0.0001*5;
 	double MinProfit = MinProfitPIPs*0.0001;
 
-	printf("StopLevel=%f ; MinProfit=%f", StopLevel, MinProfit);
+	//printf("StopLevel=%f ; MinProfit=%f", StopLevel, MinProfit);
 
 	MqlTick tick;
 	if(SymbolInfoTick(Symbol(), tick)) {
@@ -226,7 +230,7 @@ int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
 		printf("1. Current Bar tick.ask=%5.4f ; tick.bid=%5.4f ; FH=%5.4f ; FL=%5.4f", tick.ask, tick.bid, FH, FL);
 		//-- Current price (tick.ask) is below   ForecastL                                     => BUY (1)
 		if (tick.ask<FL) {
-			scenario = 1; printf("Scenario %d -> Buy", scenario);
+			scenario = 1; //printf("Scenario %d -> Buy", scenario);
 			TP=FH; //printf("Original TP=%f", TP);  //-Ferr*MarketInfo(Symbol(),MODE_TICKSIZE)*10;
 			if ((TP-tick.ask)<MinProfit) {
 				printf("Profit too small. No Trade.");
@@ -238,7 +242,7 @@ int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
 		}
 		//-- Current price is above   ForecastH                                     => SELL (2)
 		if (tick.bid>FH) {
-			scenario = 2; printf("Scenario %d -> Sell", scenario);
+			scenario = 2; //printf("Scenario %d -> Sell", scenario);
 			TP=FL; //printf("Original TP=%f", TP);   //+Ferr*MarketInfo(Symbol(),MODE_TICKSIZE)*10;
 			if ((tick.bid-TP)<MinProfit) {
 				printf("Profit too small. No Trade.");
@@ -250,7 +254,7 @@ int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
 		}
 		//-- Current price is between ForecastL and ForecastH, closer to ForecastL  => BUY (3)
 		if (tick.ask<=FH && tick.bid>=FL&&(tick.bid-FL)<=(FH-tick.ask)) {
-			scenario = 3; printf("Scenario %d -> Buy", scenario);
+			scenario = 3; //printf("Scenario %d -> Buy", scenario);
 			TP=FH; //printf("Original TP=%f", TP);   //-Ferr*MarketInfo(Symbol(),MODE_TICKSIZE)*10;
 			if ((TP-tick.ask)<MinProfit) {
 				printf("Profit too small. No Trade.");
@@ -261,7 +265,7 @@ int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
 		}
 		//-- Current price is between ForecastL and ForecastH, closer to ForecastH  => SELL (4)
 		if (tick.ask<=FH && tick.bid>=FL&&(FH-tick.ask)<=(tick.bid-FL)) {
-			scenario = 4; printf("Scenario %d -> Sell", scenario);
+			scenario = 4; //printf("Scenario %d -> Sell", scenario);
 			TP=FL; //printf("Original TP=%f", TP);   //+Ferr*MarketInfo(Symbol(),MODE_TICKSIZE)*10;
 			if ((tick.bid-TP)<MinProfit) {
 				printf("Profit too small. No Trade.");
@@ -284,7 +288,7 @@ int NewTrade(int cmd, double volume, double price, double stoploss, double takep
 
 	printf("NewTrade() called with cmd=%s , volume=%f , price=%5.4f , stoploss=%5.4f , takeprofit=%5.4f", (cmd==0 ? "BUY" : "SELL"), volume, price, stoploss, takeprofit);
 	
-	printf("First, closing existing position...");
+	//printf("First, closing existing position...");
 	trade.PositionClose(Symbol(), 10);
 
 	string symbol=Symbol();
