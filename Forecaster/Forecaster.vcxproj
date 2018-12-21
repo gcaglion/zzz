@@ -237,7 +237,8 @@
       <AdditionalLibraryDirectories>$(OutDir);C:\Program Files (x86)\Visual Leak Detector\lib\$(Platform)</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(OutDir)\*.dll $(MT5UserPath)\MQL5\Experts</Command>
+      <Command>copy $(OutDir)\*.dll $(MT5UserPath)\MQL5\Experts
+copy $(OutDir)\*.dll $(MT5TesterPath)\MQL5\Experts</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MemCheck|x64'">

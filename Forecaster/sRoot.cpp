@@ -556,7 +556,8 @@ void sRoot::setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int 
 	strcpy_s(MT4clientXMLFile, MAX_PATH, clientXMLFile_);
 
 	//-- random sessionId generation
-	MT4sessionId=MyRndInt(1,1000000);
+	srand(time(NULL));
+	MT4sessionId=MyRndInt(1, 1000000); info("MT4sessionId=%d", MT4sessionId);
 }
 void sRoot::MT4createEngine() {
 	//-- 0. set full file name for each of the input files

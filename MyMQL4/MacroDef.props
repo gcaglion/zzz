@@ -4,6 +4,7 @@
   <PropertyGroup Label="UserMacros">
     <MT5InstallPath>"C:\Program Files\XM UK MT5"</MT5InstallPath>
     <MT5UserPath>"C:\Users\gcaglion\AppData\Roaming\MetaQuotes\Terminal\91B85E7C52B57BF365F85A909F61CC9C"</MT5UserPath>
+    <MT5TesterPath>C:\Users\gcaglion\AppData\Roaming\MetaQuotes\Tester\91B85E7C52B57BF365F85A909F61CC9C\Agent-127.0.0.1-3000</MT5TesterPath>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />
@@ -13,6 +14,9 @@
     </BuildMacro>
     <BuildMacro Include="MT5UserPath">
       <Value>$(MT5UserPath)</Value>
+    </BuildMacro>
+    <BuildMacro Include="MT5TesterPath">
+      <Value>$(MT5TesterPath)</Value>
     </BuildMacro>
   </ItemGroup>
 </Project>
