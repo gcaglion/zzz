@@ -172,7 +172,7 @@ void OnTick() {
 	}
 	
 	//-- save tradeInfo
-	if (_saveTradeInfo(vEnvS, vTicket, positionTime, vSampleDataT[vSampleLen-2], vSampleDataO[vSampleLen-2], vSampleDataH[vSampleLen-2], vSampleDataL[vSampleLen-2], vSampleDataC[vSampleLen-2], vSampleDataV[vSampleLen-2], vPredictedDataO[0], vPredictedDataH[0], vPredictedDataL[0], vPredictedDataC[0], vPredictedDataV[0], tradeScenario, tradeResult)<0) {
+	if (_saveTradeInfo(vEnvS, vTicket, positionTime, vSampleDataT[vSampleLen-1], vSampleDataO[vSampleLen-1], vSampleDataH[vSampleLen-1], vSampleDataL[vSampleLen-1], vSampleDataC[vSampleLen-1], vSampleDataV[vSampleLen-1], vPredictedDataO[0], vPredictedDataH[0], vPredictedDataL[0], vPredictedDataC[0], vPredictedDataV[0], tradeScenario, tradeResult)<0) {
 		printf("_saveTradeInfo() failed. see Forecaster logs.");
 		return;
 	}
