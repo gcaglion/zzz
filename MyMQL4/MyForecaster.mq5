@@ -164,18 +164,18 @@ void OnTick() {
 		//-- if trade successful, store position ticket in shared variable
 		if (tradeResult==0) {
 			vTicket = PositionGetTicket(0);
-			int positionId=PositionSelect(Symbol()); //printf("positionId=%d", positionId);
-			positionTime=PositionGetInteger(POSITION_TIME); //Print("positionTime", positionTime);
+			int positionId=PositionSelect(Symbol());
+			positionTime=PositionGetInteger(POSITION_TIME);
+			//-- save tradeInfo
+			if (_saveTradeInfo(vEnvS, vTicket, positionTime, vSampleDataT[vSampleLen-1], vSampleDataO[vSampleLen-1], vSampleDataH[vSampleLen-1], vSampleDataL[vSampleLen-1], vSampleDataC[vSampleLen-1], vSampleDataV[vSampleLen-1], vPredictedDataO[0], vPredictedDataH[0], vPredictedDataL[0], vPredictedDataC[0], vPredictedDataV[0], tradeScenario, tradeResult)<0) {
+				printf("_saveTradeInfo() failed. see Forecaster logs.");
+				return;
+			}
 		} else {
 			vTicket=-1;
 		}
 	}
 	
-	//-- save tradeInfo
-	if (_saveTradeInfo(vEnvS, vTicket, positionTime, vSampleDataT[vSampleLen-1], vSampleDataO[vSampleLen-1], vSampleDataH[vSampleLen-1], vSampleDataL[vSampleLen-1], vSampleDataC[vSampleLen-1], vSampleDataV[vSampleLen-1], vPredictedDataO[0], vPredictedDataH[0], vPredictedDataL[0], vPredictedDataC[0], vPredictedDataV[0], tradeScenario, tradeResult)<0) {
-		printf("_saveTradeInfo() failed. see Forecaster logs.");
-		return;
-	}
 
 }
 void OnDeinit(const int reason) {

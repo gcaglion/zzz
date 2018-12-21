@@ -7,6 +7,7 @@
 #include "../DataMgr/sMT4DataSource.h"
 #include "../Logger/sLogger.h"
 #include "../EngineMgr/sEngine.h"
+#include "../Utils/Utils.h"
 
 class sdp {
 public:
@@ -30,6 +31,7 @@ struct sRoot : sCfgObj {
 	int MT4clientPid;
 	int MT4accountId;
 	int MT4enginePid;
+	int MT4sessionId;
 	sEngine* MT4engine;
 	int MT4sampleLen;
 	int MT4predictionLen;

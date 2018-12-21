@@ -3,6 +3,7 @@
 #include "../common.h"
 #include <time.h>
 
+EXPORT int MyRndInt(int rmin, int rmax);
 EXPORT bool getFullPath(const char* iName, char* oName, char* startPath=nullptr);
 EXPORT bool getCurrentPath(char* oPath);
 EXPORT int getCharCnt(const char* str, char c);

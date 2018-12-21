@@ -1,4 +1,13 @@
+#define _CRT_RAND_S
+#include <stdlib.h>
+
 #include "Utils.h"
+
+EXPORT int MyRndInt(int rmin, int rmax) {
+	int ret = -1;
+	while (ret<0) ret= (rmin+(rand()%rmax));
+	return ret;
+}
 
 bool fexist(const char* fname_) {
 	FILE* f;
@@ -9,7 +18,6 @@ bool fexist(const char* fname_) {
 
 	return success;
 }
-
 EXPORT bool getFullPath(const char* iName, char* oName, char* startPath) {
 
 	char ret[MAX_PATH];

@@ -544,7 +544,7 @@ void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL
 
 }
 void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult) {
-	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4accountId, MT4enginePid, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult);
+	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4sessionId, MT4accountId, MT4enginePid, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult);
 }
 void sRoot::setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int savedEnginePid_, bool useVolume_, int dt_, bool doDump_) {
 	MT4clientPid=clientPid_;
@@ -554,6 +554,9 @@ void sRoot::setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int 
 	MT4dt=dt_;
 	MT4doDump=doDump_;
 	strcpy_s(MT4clientXMLFile, MAX_PATH, clientXMLFile_);
+
+	//-- random sessionId generation
+	MT4sessionId=MyRndInt(1,1000000);
 }
 void sRoot::MT4createEngine() {
 	//-- 0. set full file name for each of the input files

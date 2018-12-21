@@ -14,9 +14,7 @@ MyForecaster.mq5(132,8) : warning 43: possible loss of data due to type conversi
 MyForecaster.mq5(158,58) : warning 60: possible use of uninitialized variable 'tradeSL'
 MyForecaster.mq5(166,12) : warning 43: possible loss of data due to type conversion
 MyForecaster.mq5(168,16) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(175,28) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(175,37) : warning 60: possible use of uninitialized variable 'positionTime'
-MyForecaster.mq5(175,334) : warning 60: possible use of uninitialized variable 'tradeResult'
+MyForecaster.mq5(170,30) : warning 43: possible loss of data due to type conversion
 MyForecaster.mq5(182,27) : warning 180: implicit conversion from 'string' to 'number'
 MyForecaster.mq5(199,18) : warning 43: possible loss of data due to type conversion
 MyForecaster.mq5(204,18) : warning 43: possible loss of data due to type conversion
@@ -27,4 +25,4 @@ MyForecaster.mq5(327,10) : warning 61: declaration of 'comment' hides local decl
 MyForecaster.mq5(330,7) : warning 60: possible use of uninitialized variable 'ret'
 MyForecaster.mq5(353,48) : warning 180: implicit conversion from 'string' to 'number'
  : information: info generating code
-Result: 0 error(s), 17 warning(s), compile time: 1458 msec
+Result: 0 error(s), 15 warning(s), compile time: 1437 msec

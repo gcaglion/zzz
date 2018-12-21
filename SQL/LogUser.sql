@@ -11,7 +11,8 @@ create table TrainLog(
 	MSE_T number,
 	MSE_V number
 ) storage (initial 100m next 100m freelists 8);
-alter table TrainLog add constraint TrainLog_PK primary key( ProcessId, ThreadId, Epoch ) using index tablespace LogIdx;
+alter table TrainLog 
+add constraint TrainLog_PK primary key( ProcessId, ThreadId, Epoch ) using index tablespace LogIdx;
 --alter table TrainLog add constraint TrainLog_AdderId_NN check(AdderId is not null);
 
 drop table RunLog purge;
@@ -176,8 +177,10 @@ alter table DBConnections add constraint DBConnections_PK primary key (ProcessId
 drop table TradeInfo purge;
 create table TradeInfo(
 	ClientPid number,
-	AccountId number,
+	SessionId number,
 	TicketId number,
+	AccountId number,
+	EnginePid number,
 	OpenTime date,
 	LastBarT date,
 	LastBarO number,
@@ -193,4 +196,4 @@ create table TradeInfo(
 	TradeScenario number,
 	TradeResult number	
 );
-alter table TradeInfo add constraint TradeInfo_PK primary key(ClientPid, TicketId) using index tablespace LogIdx;
+alter table TradeInfo add constraint TradeInfo_PK primary key(ClientPid, SessionId, TicketId) using index tablespace LogIdx;
