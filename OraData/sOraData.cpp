@@ -339,7 +339,7 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 
 	//-- if a specific epoch is not provided, we first need to find the last epoch
 	if (epoch==-1) {
-		sprintf_s(sqlS, SQL_MAXLEN, "select max(epoch) from CoreImage_NN where processId = %d and ThreadId = %d", pid, tid);
+		sprintf_s(sqlS, SQL_MAXLEN, "select max(epoch) from TrainLog where processId = %d and ThreadId = %d", pid, tid);
 		try {
 			stmt = ((Connection*)conn)->createStatement(sqlS);
 			rset = ((Statement*)stmt)->executeQuery();

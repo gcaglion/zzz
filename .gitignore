@@ -76,6 +76,11 @@ artifacts/
 *.svclog
 *.scc
 
+# MetaTrader
+*.ex4
+*.ex5
+*.utf8
+
 # Chutzpah Test files
 _Chutzpah*
 

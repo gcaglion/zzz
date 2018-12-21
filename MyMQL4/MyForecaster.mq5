@@ -137,6 +137,7 @@ void OnTick() {
 	printf("Time0=%s . calling LoadBars()...", Time0S);
 	LoadBars();
 
+
 	//-- call Forecaster
 	if (_getForecast(vEnvS, vSampleDataT, vSampleDataO, vSampleDataH, vSampleDataL, vSampleDataC, vSampleDataV, vSampleBaseValT, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC, vSampleBaseValV, vPredictedDataO, vPredictedDataH, vPredictedDataL, vPredictedDataC, vPredictedDataV)!=0) {
 		printf("_getForecast() FAILURE! Exiting...");
@@ -150,7 +151,7 @@ void OnTick() {
 		return;
 	}
 	//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
-	//drawForecast(vPredictedDataH[0], vPredictedDataL[0]);
+	drawForecast(vPredictedDataH[0], vPredictedDataL[0]);
 
 	//-- define trade scenario based on current price level and forecast
 	double tradeVol, tradePrice, tradeTP, tradeSL;
@@ -338,16 +339,20 @@ int NewTrade(int cmd, double volume, double price, double stoploss, double takep
 void drawForecast(double H, double L) {
 	//-- https://www.youtube.com/watch?v=Y3e1zVROJlY
 
-	string name="Rectangle";
-
+	//-- get last bar and new bar
 	MqlRates rates[];
-	int copied=CopyRates(NULL, 0, 0, 10, rates);
-	if (copied<=0)
-		Print("Error copying price data ", GetLastError());
-	else Print("Copied ", ArraySize(rates), " bars");
+	int copied=CopyRates(NULL, 0, 0, 2, rates);
+	if (copied<=0) Print("Error copying price data ", GetLastError());
 
-	Print("ObjectCreate() returns ", ObjectCreate(_Symbol, name, 0, rates[2].time, H, rates[0].time, L));
+	string name;
+	StringConcatenate(name, "Rectangle", TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES));
+
+//	ObjectDelete(_Symbol, name);
+
+	//-- draw the rectangle between last bar and new bar
+	Print("ObjectCreate() returns ", ObjectCreate(_Symbol, name, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L));
 	ObjectSetInteger(0, name, OBJPROP_COLOR, clrBlue);
-	ObjectSetInteger(0, name, OBJPROP_FILL, clrBlue);
 	ObjectSetInteger(0, name, OBJPROP_HIDDEN, false);
+
+	vRectsCnt++;
 }
