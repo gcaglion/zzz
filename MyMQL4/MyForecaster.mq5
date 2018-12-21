@@ -351,7 +351,9 @@ void drawForecast(double H, double L) {
 
 	//-- draw the rectangle between last bar and new bar
 	Print("ObjectCreate() returns ", ObjectCreate(_Symbol, name, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L));
-	ObjectSetInteger(0, name, OBJPROP_COLOR, clrBlue);
+	ObjectSetInteger(0, name, OBJPROP_COLOR, clrWhite);
+	ObjectSetInteger(0, name, OBJPROP_WIDTH, 3);
+	//ObjectSetInteger(0, name, OBJPROP_FILL, true);
 	ObjectSetInteger(0, name, OBJPROP_HIDDEN, false);
 
 	vRectsCnt++;
