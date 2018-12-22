@@ -74,6 +74,8 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCn
 
 			i--;
 		}
+		if (i>=0) fail("not enough records. stepsCnt=%d ; missing=%d", stepsCnt, i);
+
 		//-- 3. History: one more fetch to get baseBar
 		strcpy_s(oBarTime0, DATE_FORMAT_LEN, ((ResultSet*)rset)->getString(1).c_str());
 		for (int f=0; f<5; f++)	oBaseBar[f] = ((ResultSet*)rset)->getFloat(f+2);
