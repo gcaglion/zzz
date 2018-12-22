@@ -79,7 +79,6 @@ bool   fLog;
 uint t0, t1;						// Time counters. Used to calc elapsed
 
 int OnInit() {
-
 	//Print("Bar count is ",Bars(Symbol(), Period()));
 	t0 = GetTickCount();
 
@@ -350,8 +349,8 @@ void drawForecast(double H, double L) {
 //	ObjectDelete(_Symbol, name);
 
 	//-- draw the rectangle between last bar and new bar
-	Print("ObjectCreate() returns ", ObjectCreate(_Symbol, name, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L));
-	ObjectSetInteger(0, name, OBJPROP_COLOR, clrWhite);
+	printf("ObjectCreate(H=%f ; L=%f) returns %d", H,L,ObjectCreate(_Symbol, name, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L));
+	ObjectSetInteger(0, name, OBJPROP_COLOR, clrBlue);
 	ObjectSetInteger(0, name, OBJPROP_WIDTH, 3);
 	//ObjectSetInteger(0, name, OBJPROP_FILL, true);
 	ObjectSetInteger(0, name, OBJPROP_HIDDEN, false);

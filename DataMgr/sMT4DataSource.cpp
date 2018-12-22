@@ -26,14 +26,12 @@ sMT4DataSource::sMT4DataSource(sObjParmsDef, int sampleLen_, long* iBarT, double
 
 	//-- 2. convert bar time
 	MT4time2str(iBaseBarT, DATE_FORMAT_LEN, basetime);
-	info("converted iBaseBarT=%s", basetime);
 
-	for (int b=0; b<sampleLen_; b++) {
-		MT4time2str(iBarT[b], DATE_FORMAT_LEN, bartime[b]);
-		info("converted iBarT[%d]=%s", b, bartime[b]);
-	}
+	for (int b=0; b<sampleLen_; b++) MT4time2str(iBarT[b], DATE_FORMAT_LEN, bartime[b]);
 	strcpy_s(lastbartime, DATE_FORMAT_LEN, bartime[sampleLen-1]);
 
+	info("baseBar: %s %f,%f,%f,%f,%f", basetime, basebar[FXOPEN], basebar[FXHIGH], basebar[FXLOW], basebar[FXCLOSE], basebar[FXVOLUME]);
+	for (int b=0; b<sampleLen_; b++) info("Bar[%d]: %s %f,%f,%f,%f,%f", b, bartime[b], sample[b*FXDATA_FEATURESCNT+FXOPEN], sample[b*FXDATA_FEATURESCNT+FXHIGH], sample[b*FXDATA_FEATURESCNT+FXLOW], sample[b*FXDATA_FEATURESCNT+FXCLOSE], sample[b*FXDATA_FEATURESCNT+FXVOLUME]);
 }
 sMT4DataSource::sMT4DataSource(sObjParmsDef, sMT4Data* MT4db_) : sDataSource(sObjParmsVal, FXDATA_FEATURESCNT, true, FXHIGH, FXLOW) {
 	mt4db=MT4db_;

@@ -6,6 +6,16 @@
 #include "FXData_enums.h"
 #include "../MT4Data/sMT4Data.h"
 
+struct sMqlRates {
+	long	time;         // Period start time 
+	double  open;         // Open price 
+	double  high;         // The highest price of the period 
+	double  low;          // The lowest price of the period 
+	double  close;        // Close price 
+	long    tick_volume;  // Tick volume 
+	int     spread;       // Spread 
+	long    real_volume;  // Trade volume 
+};
 struct sMT4DataSource : sDataSource {
 
 	int sampleLen;

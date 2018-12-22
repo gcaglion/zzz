@@ -605,9 +605,7 @@ extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, long* iBarT, doub
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
 
-	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p", env);	
-	for (int b=0; b<env->MT4sampleLen; b++) env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "\t iBar[%d] O-H-L-C-V : %f-%f-%f-%f-%f", b, iBarO[b], iBarH[b], iBarL[b], iBarC[b], iBarV[b]);
-
+	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p . Calling env->getForecast()...", env);	
 	try {
 		env->getForecast(iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
 	}
@@ -643,3 +641,15 @@ extern "C" __declspec(dllexport) int _destroyEnv(char* iEnvS) {
 
 	return 0;
 }
+
+//--
+//#pragma pack(1)
+extern "C" __declspec(dllexport) int kaz(int barsCnt, sMqlRates bar[]) {
+	FILE* kazf;
+	fopen_s(&kazf, "C:/temp/bars.csv", "w");
+	fprintf(kazf, "=======\n");
+	for (int b=0; b<barsCnt; b++) fprintf(kazf, "%f,%f,%f,%f \n", bar[b].open, bar[b].high, bar[b].low, bar[b].close/*, bar[b].tick_volume, bar[b].spread, bar[b].real_volume*/);
+	fclose(kazf);
+	return 1;
+}
+
