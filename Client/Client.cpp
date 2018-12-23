@@ -5,9 +5,9 @@
 
 void usage() {
 	printf("Usage:\n------\n");
-	printf("zzz Train <Simulation Id> <Client XML file> <DataShape XML file> <trainDataSet XML file> <Engine XML file> \n");
+	printf("zzz Train <Simulation Id> <Client XML file> <DataShape XML file> <train DataSet XML file> <Engine XML file> \n");
 	printf("zzz Infer <Simulation Id> <Client XML file> <inferDataSet XML file> <Saved Engine pid> \n");
-	printf("zzz Both  <Simulation Id> <Client XML file> <DataShape XML file> <inferDataSet XML file> <Engine XML file> <Saved Engine pid> \n");
+	printf("zzz Both  <Simulation Id> <Client XML file> <DataShape XML file> <train/infer DataSet XML file> <Engine XML file> <Saved Engine pid> \n");
 	system("pause");
 }
 int main(int argc, char* argv[]) {

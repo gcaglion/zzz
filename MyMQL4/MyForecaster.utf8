@@ -25,4 +25,4 @@ MyForecaster.mq5(326,10) : warning 61: declaration of 'comment' hides local decl
 MyForecaster.mq5(329,7) : warning 60: possible use of uninitialized variable 'ret'
 MyForecaster.mq5(352,66) : warning 180: implicit conversion from 'string' to 'number'
  : information: info generating code
-Result: 0 error(s), 15 warning(s), compile time: 1495 msec
+Result: 0 error(s), 15 warning(s), compile time: 1535 msec
