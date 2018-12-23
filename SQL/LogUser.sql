@@ -197,3 +197,15 @@ create table TradeInfo(
 	TradeResult number	
 );
 alter table TradeInfo add constraint TradeInfo_PK primary key(ClientPid, SessionId, TicketId) using index tablespace LogIdx;
+
+drop table XMLConfigs purge;
+create table XMLConfigs(
+	SimulationId number,
+	ProcessId number,
+	ThreadId number,
+	FileId number,
+	ParmId number,
+	ParmDesc varchar2(4000),
+	ParmVal varchar2(4000)
+);
+alter table XMLConfigs add constraint XMLConfigs_PK primary key(SimulationId, ProcessId, ThreadId, FileId, ParmId) using index tablespace LogIdx;

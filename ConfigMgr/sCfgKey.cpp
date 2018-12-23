@@ -74,3 +74,22 @@ void sCfgKey::setDbg() {
 	//-- 
 
 }
+
+int sCfgKey::getParmsCntTot() {
+	int ret=parmsCnt;
+	for (int k=0; k<keysCnt; k++) {
+		ret+=key[k]->getParmsCntTot();
+	}
+	return ret;
+}
+void sCfgKey::getAllParms(int* oParmsCnt, char** oParmDesc, char** oParmValS) {
+	for (int k=0; k<keysCnt; k++) {
+		key[k]->getAllParms(oParmsCnt, oParmDesc, oParmValS);
+	}
+	for (int p=0; p<parmsCnt; p++) {
+		strcpy_s(oParmDesc[(*oParmsCnt)], ObjMaxDepth*ObjNameMaxLen, parm[p]->name->full);
+		strcpy_s(oParmValS[(*oParmsCnt)], XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT, parm[p]->valcsl);
+		(*oParmsCnt)++;
+	}
+	
+}

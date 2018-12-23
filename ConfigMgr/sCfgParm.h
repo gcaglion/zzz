@@ -9,6 +9,7 @@ struct sCfgParm : sObj {
 
 	//-- id props
 	int valScnt;
+	char  valcsl[XMLKEY_PARM_VAL_MAXCNT*XMLKEY_PARM_VAL_MAXLEN];
 	char** valS;
 
 	EXPORT bool getVal(int* oVal, int* oValsCnt);

@@ -19,6 +19,9 @@ struct sCfg : sObj {
 
 	EXPORT void setKey(const char* keyDesc_, bool ignoreError=false, bool* oKeyFound_=nullptr);
 
+
+	EXPORT void save();
+
 private:
 	int currDepth;
 	int currParent[XMLKEY_MAXDEPTH]; 

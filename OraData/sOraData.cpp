@@ -769,3 +769,38 @@ void sOraData::saveTradeInfo(int MT4clientPid, int MT4sessionId, int MT4accountI
 	safecall(this, sqlExec, sqlS);
 
 }
+
+//--
+void sOraData::saveXMLconfig(int simulationId_, int pid_, int tid_, int fileId_, int parmsCnt_, char** parmDesc_, char** parmVal_) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	string tmpS;
+	try {
+		stmt = ((Connection*)conn)->createStatement("insert into XMLConfigs(SimulationId, ProcessId, ThreadId, FileId, ParmId, ParmDesc, ParmVal) values (:P01, :P02, :P03, :P04, :P05, :P06, :P07)");
+		((Statement*)stmt)->setMaxIterations(parmsCnt_);
+		for (int i=0; i<parmsCnt_; i++) {
+			((Statement*)stmt)->setInt(1, simulationId_);
+			((Statement*)stmt)->setInt(2, pid_);
+			((Statement*)stmt)->setInt(3, tid_);
+			((Statement*)stmt)->setInt(4, fileId_);
+			((Statement*)stmt)->setInt(5, i);
+
+			((Statement*)stmt)->setMaxParamSize(6, 4000);
+			tmpS.assign(parmDesc_[i], 4000);
+			((Statement*)stmt)->setString(6, tmpS);
+
+			((Statement*)stmt)->setMaxParamSize(7, 4000);
+			tmpS.assign(parmVal_[i], 4000);
+			((Statement*)stmt)->setString(7, tmpS);
+			if (i<(parmsCnt_-1)) ((Statement*)stmt)->addIteration();
+		}
+		((Statement*)stmt)->executeUpdate();
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
+}

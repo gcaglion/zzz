@@ -180,3 +180,31 @@ void sLogger::saveTradeInfo(int MT4clientPid, int MT4sessionId, int MT4accountId
 	}
 	//if (source==FileData) .....
 }
+//--
+void sLogger::saveXMLconfig(int simulationId_, int pid_, int tid_, int fileId_, sCfg* cfg_) {
+
+	//-- because sCfg does not know of sLogger, we need to extract all parameters from sCfg here, then call oradb/filedb routines
+	
+	int parmsCnt=cfg_->rootKey->getParmsCntTot();
+	
+	char** parmDesc=(char**)malloc(parmsCnt*sizeof(char*));
+	char** parmVal=(char**)malloc(parmsCnt*sizeof(char*));
+	for (int p=0; p<parmsCnt; p++) {
+		parmDesc[p]=(char*)malloc(ObjMaxDepth*ObjNameMaxLen);
+		parmVal[p]=(char*)malloc(XMLKEY_PARM_VAL_MAXCNT*XMLKEY_PARM_VAL_MAXLEN);
+	}
+
+	parmsCnt=0;
+	cfg_->rootKey->getAllParms(&parmsCnt, parmDesc, parmVal);
+
+
+	if (saveToDB) safecall(oradb, saveXMLconfig, simulationId_, pid_, tid_, fileId_, parmsCnt, parmDesc, parmVal);
+	if (saveToFile) safecall(filedb, saveXMLconfig, simulationId_, pid_, tid_, fileId_, parmsCnt, parmDesc, parmVal);
+
+	for (int p=0; p<parmsCnt; p++) {
+		free(parmDesc[p]);
+		free(parmVal[p]);
+	}
+	free(parmDesc);
+	free(parmVal);
+}

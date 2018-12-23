@@ -32,6 +32,9 @@ struct sCfgKey : sObj {
 
 	}
 
+	EXPORT int getParmsCntTot();
+	EXPORT void getAllParms(int* oParmsCnt, char** oParmDesc, char** oParmValS);
+
 private:
 	void setDbg();
 

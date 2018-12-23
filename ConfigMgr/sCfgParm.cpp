@@ -1,6 +1,7 @@
 #include "sCfgParm.h"
 
 sCfgParm::sCfgParm(sObjParmsDef, char* parmName_, char* parmValS_) : sObj(sObjParmsVal) {
+	strcpy_s(valcsl, XMLKEY_PARM_VAL_MAXCNT*XMLKEY_PARM_VAL_MAXLEN, parmValS_);
 	valS=(char**)malloc(XMLKEY_PARM_VAL_MAXCNT*sizeof(char*)); for (int v=0; v<XMLKEY_PARM_VAL_MAXCNT; v++) valS[v]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
 	valScnt=cslToArray(parmValS_, ',', valS);
 }
