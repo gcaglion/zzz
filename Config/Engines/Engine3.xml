@@ -1,0 +1,24 @@
+<Engine>
+	<Debugger>
+		timing = false
+	</Debugger>
+	Type 		= ENGINE_CUSTOM
+	<Custom>
+		CoresCount	= 1
+		<Core0>
+			<Layout>
+				Type	= CORE_NN
+				Parents			= 
+				ParentsConnType	= 
+			</Layout>
+			
+			<! Core3.xml >
+			
+			<! CorePersistor-Default.xml >
+	
+		</Core0>
+	</Custom>
+
+	<! ..\Persistor-Default.xml >
+
+</Engine>

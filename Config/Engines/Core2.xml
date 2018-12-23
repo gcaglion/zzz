@@ -1,0 +1,25 @@
+			<Parameters>
+				<Topology>
+					LevelRatio			= 2,1
+					LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+					UseContext			= true
+					UseBias				= false
+				</Topology>
+				<Training>
+					MaxEpochs			= 500
+					TargetMSE			= 0.0001
+					NetSaveFrequency	= 10
+					StopOnDivergence	= false
+					BP_Algo				= BP_STD
+					<BP_Std>
+						LearningRate		= 0.002
+						LearningMomentum	= 0.8
+					</BP_Std>
+					<BP_Qing>
+					</BP_Qing>
+					<BP_Qprop>
+					</BP_Qprop>
+					<BP_RProp>
+					</BP_RProp>
+				</Training>
+			</Parameters>

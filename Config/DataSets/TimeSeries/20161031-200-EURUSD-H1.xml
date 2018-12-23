@@ -1,0 +1,10 @@
+	<TimeSerie>
+		Date0				= 2016-10-31-00:00
+		HistoryLen			= 200
+		DataTransformation	= DT_DELTA
+		Dump				= false
+		DumpPath			= c:\temp\DataDump
+		
+		<! ..\..\FXDB-EurUsdH1.xml >
+
+		</TimeSerie>
