@@ -381,6 +381,9 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 		((ResultSet*)rset)->setDataBuffer(2, W, OCCIFLOAT, sizeof(numtype), floatLen);
 
 		((ResultSet*)rset)->next(Wcnt);
+		if (((ResultSet*)rset)->status()!=ResultSet::DATA_AVAILABLE) {
+			fail("Could not find Core Image for ProcessId=%d , ThreadId=%d , Epoch=%d", pid, tid, epoch);
+		}
 
 		free(WidArr); free(intLen); free(floatLen);
 	}

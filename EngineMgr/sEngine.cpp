@@ -331,7 +331,7 @@ void sEngine::saveCoreLoggers() {
 	for (int c=0; c<coresCnt; c++) safecall(core[c]->persistor, save, persistor, core[c]->procArgs->pid, core[c]->procArgs->tid);
 }
 void sEngine::saveCoreImages(int epoch) {
-	for (int c=0; c<coresCnt; c++) if (core[c]->persistor->saveImageFlag) safecall(core[c], saveImage, core[c]->procArgs->pid, core[c]->procArgs->tid, epoch);
+	for (int c=0; c<coresCnt; c++) if (core[c]->persistor->saveImageFlag) safecall(core[c], saveImage, core[c]->procArgs->pid, core[c]->procArgs->tid, (epoch==-1)? core[c]->procArgs->mseCnt-1:epoch);
 }
 void sEngine::saveRun() {
 	for (int c=0; c<coresCnt; c++) {
