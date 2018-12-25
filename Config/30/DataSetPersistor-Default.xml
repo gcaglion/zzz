@@ -1,6 +1,6 @@
 			<Persistor>
 				<Debugger>
-					FileOutput=true;
+					Timing=true;
 				</Debugger>
 				
 				saveMSE			= true

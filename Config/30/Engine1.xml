@@ -1,5 +1,9 @@
 <Engine>
 	Type 		= ENGINE_CUSTOM
+	<Debug>
+		timing = True
+	</Debug>
+
 	<Custom>
 		CoresCount	= 1
 		<Core0>

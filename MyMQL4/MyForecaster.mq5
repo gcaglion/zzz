@@ -71,20 +71,12 @@ uchar vClientXMLFileS[];
 
 int    vBarId;
 uchar vFirstBarT[]; uchar vLastBarT[];
-double vPrevFH0 = 0;
-double vPrevFL0 = 0;
 double vTradeSize=0;			// vTradeSize is global non-static. It is set by NewTrade(), and is needed by MTSaveTradeInfo()
 double vTradeTP=0, vTradeSL=0;	// these, too, are set in NewTrade()
 bool   fLog;
 uint t0, t1;						// Time counters. Used to calc elapsed
 
 int OnInit() {
-	//Print("Bar count is ",Bars(Symbol(), Period()));
-	t0 = GetTickCount();
-
-	//--- counters used to keep track of graphic objects on chart
-	if(!GlobalVariableCheck("PrevFH0")) GlobalVariableSet("PrevFH0",0);
-	if(!GlobalVariableCheck("PrevFL0")) GlobalVariableSet("PrevFL0",0);
 
 	//-- 1. create Env
 	EnvS = "00000000000000000000000000000000000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
@@ -142,7 +134,7 @@ void OnTick() {
 		printf("_getForecast() FAILURE! Exiting...");
 		return;
 	};
-	for (int i=0; i<vPredictionLen; i++) printf("vPredictedDataO[%d]=%f , vPredictedDataH[%d]=%f , vPredictedDataL[%d]=%f , vPredictedDataC[%d]=%f", i, vPredictedDataO[i], i, vPredictedDataH[i], i, vPredictedDataL[i], i, vPredictedDataC[i]);
+	for (int i=0; i<vPredictionLen; i++) printf("vPredictedDataH[%d]=%5.4f , vPredictedDataL[%d]=%5.4f ", i, vPredictedDataH[i], i, vPredictedDataL[i]);
 
 	//-- check for forecast consistency (H>L)
 	if (vPredictedDataH[0]<=vPredictedDataL[0]) {
@@ -153,13 +145,16 @@ void OnTick() {
 	drawForecast(vPredictedDataH[0], vPredictedDataL[0]);
 
 	//-- define trade scenario based on current price level and forecast
-	double tradeVol, tradePrice, tradeTP, tradeSL;
-	int tradeScenario=getTradeScenario(tradePrice, tradeTP, tradeSL); printf("trade scenario=%d ; tradePrice=%f ; tradeTP=%f ; tradeSL=%f", tradeScenario, tradePrice, tradeTP, tradeSL);
+	double tradeVol=0.1;
+	double tradePrice, tradeTP, tradeSL;
 	int tradeResult; datetime positionTime;
+
+	int tradeScenario=getTradeScenario(tradePrice, tradeTP, tradeSL); printf("trade scenario=%d ; tradePrice=%5.4f ; tradeTP=%5.4f ; tradeSL=%5.4f", tradeScenario, tradePrice, tradeTP, tradeSL);
 	if (tradeScenario>=0) {
+
 		//-- do the actual trade
-		tradeVol=0.1;
-		tradeResult=NewTrade(tradeScenario, tradeVol, tradePrice, tradeSL, tradeTP);
+		tradeResult=NewTrade(tradeScenario, tradeVol, tradePrice, tradeTP, tradeSL);
+
 		//-- if trade successful, store position ticket in shared variable
 		if (tradeResult==0) {
 			vTicket = PositionGetTicket(0);
@@ -215,73 +210,82 @@ void LoadBars() {
 
 }
 int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
-	int scenario=-1;
 
-	//-- Determine Trade
-	double FH             = vPredictedDataH[0];
-	double FL             = vPredictedDataL[0];
-	double RR             = RiskRatio;          // Risk Ratio (PIPS to SL / PIPS to TP)
-	double SL, TP;
-	double StopLevel=0.0001*5;
-	double MinProfit = MinProfitPIPs*0.0001;
-
-	//printf("StopLevel=%f ; MinProfit=%f", StopLevel, MinProfit);
+	int scenario;
+	double fTolerance=0.0005;
+	double riskRatio=0.5;	// 
+	double minProfit=0.0003;
 
 	MqlTick tick;
 	if(SymbolInfoTick(Symbol(), tick)) {
 
-		printf("1. Current Bar tick.ask=%5.4f ; tick.bid=%5.4f ; FH=%5.4f ; FL=%5.4f", tick.ask, tick.bid, FH, FL);
-		//-- Current price (tick.ask) is below   ForecastL                                     => BUY (1)
-		if (tick.ask<FL) {
-			scenario = 1; //printf("Scenario %d -> Buy", scenario);
-			TP=FH; //printf("Original TP=%f", TP);  //-Ferr*MarketInfo(Symbol(),MODE_TICKSIZE)*10;
-			if ((TP-tick.ask)<MinProfit) {
-				printf("Profit too small. No Trade.");
-				return (-scenario);
+		double fH=vPredictedDataH[0];
+		double fL=vPredictedDataL[0];
+		double cH=tick.ask;
+		double cL=tick.bid;
+		double dH=fH-cH;
+		double dL=cL-fL;
+		double expProfit, expLoss;
+
+		printf("getTradeScenario(): cH=%5.4f , cL=%5.4f , fH=%5.4f , fL=%5.4f , dH=%5.4f , dL=%5.4f", cH, cL, fH, fL, dH, dL);
+		
+		//-- Current price (tick.ask) is below   ForecastL => BUY (1)
+		if (cH<fL) {
+			scenario = 1; 
+			oTradeTP=fH-fTolerance;
+			expProfit=oTradeTP-cH; 
+			expLoss=expProfit*riskRatio;
+			oTradeSL=cL-expLoss;
+			printf("Scenario 1 (BUY) ; oTradeTP=%5.4f ; expProfit=%5.4f ; expLoss=%5.4f ; oTradeSL=%5.4f", oTradeTP, expProfit, expLoss, oTradeSL);
+			if (expProfit<minProfit) {
+				printf("Profit too small. No trade."); scenario=-scenario;
 			}
-			SL=tick.bid-(TP-tick.ask)*RR; //printf("Original SL=%f", SL);
-			if ((tick.bid-SL)<StopLevel) SL=tick.bid-StopLevel;
-			printf("tick.ask<FL (1); TP=%5.4f ; SL=%5.4f", TP, SL);
 		}
-		//-- Current price is above   ForecastH                                     => SELL (2)
-		if (tick.bid>FH) {
-			scenario = 2; //printf("Scenario %d -> Sell", scenario);
-			TP=FL; //printf("Original TP=%f", TP);   //+Ferr*MarketInfo(Symbol(),MODE_TICKSIZE)*10;
-			if ((tick.bid-TP)<MinProfit) {
-				printf("Profit too small. No Trade.");
-				return (-scenario);
+
+		//-- Current price is above   ForecastH  => SELL (2)
+		if (cL>fH) {
+			scenario = 2;
+			oTradeTP=fL+fTolerance;
+			expProfit=cL-oTradeTP;
+			expLoss=expProfit*riskRatio;
+			oTradeSL=cL+expLoss;
+			printf("Scenario 2 (SELL) ; oTradeTP=%5.4f ; expProfit=%5.4f ; expLoss=%5.4f ; oTradeSL=%5.4f", oTradeTP, expProfit, expLoss, oTradeSL);
+			if (expProfit<minProfit) {
+				printf("Profit too small. No trade."); scenario=-scenario;
 			}
-			SL=tick.ask+(tick.bid-TP)*RR; //printf("Original SL=%f", SL);
-			if ((SL-tick.ask)<StopLevel) SL=tick.ask+StopLevel;
-			printf("tick.bid>FH (2) ; TP=%5.4f ; SL=%5.4f", TP, SL);
 		}
+
 		//-- Current price is between ForecastL and ForecastH, closer to ForecastL  => BUY (3)
-		if (tick.ask<=FH && tick.bid>=FL&&(tick.bid-FL)<=(FH-tick.ask)) {
-			scenario = 3; //printf("Scenario %d -> Buy", scenario);
-			TP=FH; //printf("Original TP=%f", TP);   //-Ferr*MarketInfo(Symbol(),MODE_TICKSIZE)*10;
-			if ((TP-tick.ask)<MinProfit) {
-				printf("Profit too small. No Trade.");
-				return (-scenario);
+		if (cH<=fH && cL>=fL && dL<dH ) {
+			scenario = 3;
+			oTradeTP=fH-fTolerance;
+			expProfit=oTradeTP-cH;
+			expLoss=expProfit*riskRatio;
+			oTradeSL=cL-expLoss;
+			printf("Scenario 3 (BUY) ; oTradeTP=%5.4f ; expProfit=%5.4f ; expLoss=%5.4f ; oTradeSL=%5.4f", oTradeTP, expProfit, expLoss, oTradeSL);
+			if (expProfit<minProfit) {
+				printf("Profit too small. No trade."); scenario=-scenario;
 			}
-			SL=tick.bid-(TP-tick.ask)*RR; //printf("Original SL=%f", SL);
-			if ((tick.bid-SL)<StopLevel) SL=tick.bid-StopLevel;
 		}
+
 		//-- Current price is between ForecastL and ForecastH, closer to ForecastH  => SELL (4)
-		if (tick.ask<=FH && tick.bid>=FL&&(FH-tick.ask)<=(tick.bid-FL)) {
-			scenario = 4; //printf("Scenario %d -> Sell", scenario);
-			TP=FL; //printf("Original TP=%f", TP);   //+Ferr*MarketInfo(Symbol(),MODE_TICKSIZE)*10;
-			if ((tick.bid-TP)<MinProfit) {
-				printf("Profit too small. No Trade.");
-				return (-scenario);
+		if (cH<=fH && cL>=fL && dH<dL) {
+			scenario = 4;
+			oTradeTP=fL+fTolerance;
+			expProfit=cL-oTradeTP;
+			expLoss=expProfit*riskRatio;
+			oTradeSL=cL+expLoss;
+			printf("Scenario 4 (SELL) ; oTradeTP=%5.4f ; expProfit=%5.4f ; expLoss=%5.4f ; oTradeSL=%5.4f", oTradeTP, expProfit, expLoss, oTradeSL);
+			if (expProfit<minProfit) {
+				printf("Profit too small. No trade."); scenario=-scenario;
 			}
-			SL=tick.ask+(tick.bid-TP)*RR; //printf("Original SL=%f", SL);
-			if ((SL-tick.ask)<StopLevel) SL=tick.ask+StopLevel;
 		}
+
 	}
 
 	return scenario;
 }
-int NewTrade(int cmd, double volume, double price, double stoploss, double takeprofit) {
+int NewTrade(int cmd, double volume, double price, double TP, double SL) {
 
 	CTrade trade;
 	trade.SetExpertMagicNumber(123456);
@@ -289,7 +293,7 @@ int NewTrade(int cmd, double volume, double price, double stoploss, double takep
 	trade.SetTypeFilling(ORDER_FILLING_RETURN);
 	trade.SetAsyncMode(false);
 
-	printf("NewTrade() called with cmd=%s , volume=%f , price=%5.4f , stoploss=%5.4f , takeprofit=%5.4f", (cmd==0 ? "BUY" : "SELL"), volume, price, stoploss, takeprofit);
+	printf("NewTrade() called with cmd=%s , volume=%f , price=%5.4f , takeprofit=%5.4f , stoploss=%5.4f", ((cmd==1||cmd==3) ? "BUY" : "SELL"), volume, price, TP, SL);
 	
 	//printf("First, closing existing position...");
 	trade.PositionClose(Symbol(), 10);
@@ -299,8 +303,6 @@ int NewTrade(int cmd, double volume, double price, double stoploss, double takep
 	double point=SymbolInfoDouble(symbol, SYMBOL_POINT);         // point
 	double bid=SymbolInfoDouble(symbol, SYMBOL_BID);             // current price for closing LONG
 	double ask=SymbolInfoDouble(symbol, SYMBOL_ASK);             // current price for closing SHORT
-	double SL;	// unnormalized SL value
-	double TP;	// unnormalized TP value
 	double open_price;	//--- receive the current open price for LONG positions
 	
 
@@ -308,21 +310,13 @@ int NewTrade(int cmd, double volume, double price, double stoploss, double takep
 	bool ret;
 	if (cmd==1||cmd==3) {
 		//-- Buy
-		open_price=SymbolInfoDouble(symbol, SYMBOL_ASK);
-		SL = bid-1000*point;
-		SL=NormalizeDouble(SL, digits); // normalizing Stop Loss
-		TP = bid+1000*point;
-		TP=NormalizeDouble(TP, digits);                              // normalizing Take Profit
+		open_price=SymbolInfoDouble(symbol, SYMBOL_BID);
 		string comment=StringFormat("Buy  %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
 		ret=trade.Buy(volume, symbol, open_price, SL, TP, comment);
 	}
 	if (cmd==2||cmd==4) {
 		//-- Sell
 		open_price=SymbolInfoDouble(symbol, SYMBOL_ASK);
-		SL = ask+1000*point;
-		SL=NormalizeDouble(SL, digits); // normalizing Stop Loss
-		TP = ask-1000*point;
-		TP=NormalizeDouble(TP, digits);                              // normalizing Take Profit
 		string comment=StringFormat("Sell %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
 		ret=trade.Sell(volume, symbol, open_price, SL, TP, comment);
 	}
@@ -349,7 +343,8 @@ void drawForecast(double H, double L) {
 //	ObjectDelete(_Symbol, name);
 
 	//-- draw the rectangle between last bar and new bar
-	printf("ObjectCreate(H=%f ; L=%f) returns %d", H,L,ObjectCreate(_Symbol, name, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L));
+	//printf("ObjectCreate(H=%f ; L=%f) returns %d", H,L,ObjectCreate(_Symbol, name, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L));
+	ObjectCreate(_Symbol, name, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L);
 	ObjectSetInteger(0, name, OBJPROP_COLOR, clrBlue);
 	ObjectSetInteger(0, name, OBJPROP_WIDTH, 3);
 	//ObjectSetInteger(0, name, OBJPROP_FILL, true);

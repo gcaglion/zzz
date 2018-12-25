@@ -5,8 +5,8 @@
 	DumpPath			= c:\temp\DataDump
 
 	<TimeSerie>
-		HistoryLen			= 18000
-		Date0				= 2017-08-31-00:00
+		HistoryLen			= 120
+		Date0				= 2017-11-07-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
