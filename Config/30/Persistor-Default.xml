@@ -1,4 +1,9 @@
 	<Persistor>
+		
+		<Debug>
+			timing = True
+		</Debug>
+		
 		readFrom		= OraData
 		saveToDB		= true
 		saveToFile		= false
