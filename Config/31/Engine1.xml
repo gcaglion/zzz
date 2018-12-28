@@ -1,0 +1,47 @@
+<Engine>
+	Type 		= ENGINE_CUSTOM
+	<Debug>
+		timing = True
+	</Debug>
+
+	<Custom>
+		CoresCount	= 1
+		<Core0>
+			<Layout>
+				Type	= CORE_NN
+				Parents			= 
+				ParentsConnType	= 
+			</Layout>
+			
+			<Parameters>
+				<Topology>
+					LevelRatio			= 2
+					LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+					UseContext			= true
+					UseBias				= false
+				</Topology>
+				<Training>
+					MaxEpochs			= 100
+					TargetMSE			= 0.0001
+					NetSaveFrequency	= 10
+					StopOnDivergence	= false
+					BP_Algo				= BP_SCGD
+					<BP_Std>
+					</BP_Std>
+					<BP_Qing>
+					</BP_Qing>
+					<BP_Qprop>
+					</BP_Qprop>
+					<BP_RProp>
+					</BP_RProp>
+				</Training>
+			</Parameters>
+			
+			<! CorePersistor-Default.xml >
+			
+		</Core0>
+	</Custom>
+
+	<! ..\Persistor-Default.xml >
+
+</Engine>
