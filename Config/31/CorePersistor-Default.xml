@@ -1,0 +1,17 @@
+			<Persistor>
+				saveMSE			= true
+				saveRun			= true
+				#
+				saveInternals	= false
+				#
+				saveImage		= true
+				readFrom		= OraData
+				saveToDB		= true
+				saveToFile		= false
+				<OraData>
+					UserName	= LogUser
+					Password	= LogPwd
+					ConnString	= Algo
+				</OraData>
+			</Persistor>
+	

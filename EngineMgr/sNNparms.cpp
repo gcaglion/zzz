@@ -59,7 +59,6 @@ sNNparms::sNNparms(sCfgObjParmsDef) : sCoreParms(sCfgObjParmsVal) {
 		//--... TO DO ...
 		break;
 	case BP_SCGD: 
-		//safecall(cfgKey, getParm, &SCGDmaxK, "Training/BP_Scgd/maxK");
 		SCGDmaxK=MaxEpochs;
 		break;
 	case BP_LM: break;
