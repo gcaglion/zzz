@@ -9,3 +9,4 @@ delete from RUNLOG where processid in(&&pid);
 delete from TRAINLOG where processid in(&&pid);
 delete from CORELOGGERPARMS where processid in(&&pid);
 delete from CORENNPARMS where processid in(&&pid);
+delete from XMLCONFIGS where processid in(&&pid);

@@ -1,6 +1,6 @@
 <FXDB_DataSource>
 
-	Symbol				= GBPNZD
+	Symbol				= EURUSD
 	TimeFrame			= D1
 	IsFilled			= false
 
