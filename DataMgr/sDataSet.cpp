@@ -43,20 +43,21 @@ sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, sDataShape* shape_, int 
 
 	setSamples(); mallocs2();
 }
-sDataSet::sDataSet(sCfgObjParmsDef, sDataShape* shape_, int extraSteps) : sCfgObj(sCfgObjParmsVal) {
-	shape=shape_;
-	hasTargets=true;
+sDataSet::sDataSet(sCfgObjParmsDef, int extraSteps) : sCfgObj(sCfgObjParmsVal) {
 
+	safespawn(shape, newsname("%s_Shape", name->base), defaultdbg, 0, 0, 0);
+	safecall(cfgKey, getParm, &shape->sampleLen, "SampleLen");
+	safecall(cfgKey, getParm, &shape->predictionLen, "PredictionLen");
 	mallocs1();
-
-	//-- 1. get Parameters
-	safecall(cfgKey, getParm, &batchSamplesCnt, "BatchSamplesCount");
 	safecall(cfgKey, getParm, &selectedFeature, "SelectedFeatures", false, &shape->featuresCnt);
+	safecall(cfgKey, getParm, &batchSamplesCnt, "BatchSamplesCount");
 	safecall(cfgKey, getParm, &doDump, "Dump");
 	//-- 0. default dump path is dbg outfilepath
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	safecall(cfgKey, getParm, &dumpPath, "DumpPath", true);
-	//-- 2. do stuff and spawn sub-Keys
+
+	hasTargets=true;
+
 	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), defaultdbg, cfg, "TimeSerie", extraSteps);
 
 	setSamples(); mallocs2();

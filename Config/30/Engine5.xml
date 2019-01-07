@@ -1,0 +1,58 @@
+<Engine>
+	Type 		= ENGINE_CUSTOM
+	<Debug>
+		timing = True
+	</Debug>
+
+	<Custom>
+		CoresCount	= 1
+		<Core0>
+			<Layout>
+				Type	= CORE_NN
+				Parents			= 
+				ParentsConnType	= 
+			</Layout>
+			
+			<Parameters>
+				<Topology>
+					LevelRatio			= 2
+					LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+					UseContext			= true
+					UseBias				= false
+				</Topology>
+				<Training>
+					MaxEpochs			= 1000
+					TargetMSE			= 0.0001
+					NetSaveFrequency	= 10
+					StopOnDivergence	= false
+					BP_Algo				= BP_STD
+					<BP_Std>
+						LearningRate	 = 0.002
+						LearningMomentum = 0.4
+					</BP_Std>
+				</Training>
+			</Parameters>
+			
+			<Persistor>
+				saveMSE			= true
+				saveRun			= true
+				#
+				saveInternals	= false
+				#
+				saveImage		= true
+				readFrom		= OraData
+				saveToDB		= true
+				saveToFile		= false
+				<OraData>
+					UserName	= LogUser
+					Password	= LogPwd
+					ConnString	= Algo
+				</OraData>
+			</Persistor>
+	
+		</Core0>
+	</Custom>
+
+	<! ..\Persistor-Default.xml >
+
+</Engine>

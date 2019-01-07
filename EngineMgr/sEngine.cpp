@@ -23,7 +23,8 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	int** coreParentConnType=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParentConnType[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 
 	//-- 3. load info from FROM persistor
-	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType);
+	int typeUNUSED;
+	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &typeUNUSED, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType);
 	//-- 2. malloc one core, one coreLayout, one coreParms and one corePersistor for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
@@ -61,35 +62,17 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(
 	//-- engine-level persistor
 	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
 
-	//-- engine type
-	safecall(cfgKey, getParm, &type, "Type");
-
-	switch (type) {
-	case ENGINE_CUSTOM:
-		//-- 0. coresCnt
-		safecall(cfgKey, getParm, &coresCnt, "Custom/CoresCount");
-		//-- 1. malloc one core, one coreLayout and one coreParms for each core
-		core=(sCore**)malloc(coresCnt*sizeof(sCore*));
-		coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
-		coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
-		//-- 2. for each Core, create layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
-		for (int c=0; c<coresCnt; c++) {
-			safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Custom/Core%d/Layout", c))->base, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt);
-		}
-		break;
-	case ENGINE_WNN:
-		//safecall(parms->setKey("WNN"));
-		//... get() ...
-		break;
-	case ENGINE_XIE:
-		//safecall(parms->setKey("XIE"));
-		//... get() ...
-		break;
-	default:
-		fail("Invalid Engine Type: %d", type);
-		break;
+	//-- 0. coresCnt
+	safecall(cfgKey, getParm, &coresCnt, "CoresCount");
+	//-- 1. malloc one core, one coreLayout and one coreParms for each core
+	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
+	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
+	coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
+	//-- 2. for each Core, create layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
+	for (int c=0; c<coresCnt; c++) {
+		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Core%d/Layout", c))->base, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt);
 	}
-	
+
 	//-- common to all constructors. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
 	setLayerProps();
 
@@ -113,37 +96,37 @@ void sEngine::spawnCoresFromXML() {
 			if (coreLayout[c]->layer==l) {
 				switch (coreLayout[c]->type) {
 				case CORE_NN:
-					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
 					NNcp->setScaleMinMax();
 					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", Alg, coreLayout[c], NNcp);
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
-					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
 					GAcp->setScaleMinMax();
 					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, "../", Alg, coreLayout[c], GAcp);
 					coreParms[c]=GAcp; core[c]=GAc;
 					break;
 				case CORE_SVM:
-					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
 					SVMcp->setScaleMinMax();
 					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, "../", Alg, coreLayout[c], SVMcp);
 					coreParms[c]=SVMcp; core[c]=SVMc;
 					break;
 				case CORE_SOM:
-					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
 					SOMcp->setScaleMinMax();
 					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, "../", Alg, coreLayout[c], SOMcp);
 					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
 				case CORE_DUMB:
-					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, cfg, (newsname("Custom/Core%d/Parameters", c))->base);
+					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
 					DUMBcp->setScaleMinMax();
 					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, cfg, "../", Alg, coreLayout[c], DUMBcp);
 					coreParms[c]=DUMBcp; core[c]=DUMBc;
 					break;
 				default:
-					fail("Invalid Core Type: %d", type);
+					fail("Invalid Core Type: %d", coreLayout[c]->type);
 					break;
 				}
 				cfg->currentKey=cfgKey;
@@ -217,7 +200,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					coreParms[c]=DUMBcp; core[c]=DUMBc;
 					break;
 				default:
-					fail("Invalid Core Type: %d", type);
+					fail("Invalid Core Type: %d", coreLayout[c]->type);
 					break;
 				}
 				core[c]->parms=coreParms[c];
@@ -397,7 +380,7 @@ void sEngine::saveInfo() {
 	}
 
 	//-- actual call
-	safecall(persistor, saveEngineInfo, clientPid, type, shape->sampleLen, shape->predictionLen, shape->featuresCnt, coresCnt, persistor->saveToDB, persistor->saveToFile, persistor->oradb, coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_);
+	safecall(persistor, saveEngineInfo, clientPid, -1, shape->sampleLen, shape->predictionLen, shape->featuresCnt, coresCnt, persistor->saveToDB, persistor->saveToFile, persistor->oradb, coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_);
 
 	//-- free temps
 	for (int c=0; c<coresCnt; c++) {

@@ -37,17 +37,17 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- 2. spawn DataShape
 		safespawn(shape, newsname("TrainDataShape"), erronlydbg, shapeCfg, "/DataShape");
 		//-- 3. spawn Train DataSet and its persistor
-		safespawn(trainDS, newsname("TrainDataSet"), erronlydbg, trainCfg, "/DataSet", shape);
-		safespawn(trainLog, newsname("TrainLogger"), erronlydbg, trainCfg, "/DataSet/Persistor");
+		safespawn(trainDSG, newsname("TrainDataSetGroup"), erronlydbg, trainCfg, "/DataSetGroup");
+		safespawn(trainLog, newsname("TrainLogger"), erronlydbg, trainCfg, "/DataSetGroup/DataSet0/Persistor");
 		//-- 4. spawn engine the standard way
 		safespawn(engine, newsname("TrainEngine"), erronlydbg, engCfg, "/Engine", shape, pid);
 
 		//-- training cycle core
 		timer->start();
 		//-- just load trainDS->TimeSerie; it should have its own date0 set already
-		safecall(trainDS->sourceTS, load, TARGET, BASE);
+		for(int i=0; i<trainDSG->dataSetsCnt; i++) safecall(trainDSG->ds[i]->sourceTS, load, TARGET, BASE);
 		//-- do training (also populates datasets)
-		safecall(engine, train, simulationId_, trainDS);
+		safecall(engine, train, simulationId_, trainDSG->ds[0]);
 		//-- persist MSE logs
 		safecall(engine, saveMSE);
 		//-- persist Core logs
@@ -59,7 +59,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainDS->sourceTS->date0, "", "", true, false, clientffname, shapeffname, trainffname, engineffname);
+		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainDSG->ds[0]->sourceTS->date0, "", "", true, false, clientffname, shapeffname, trainffname, engineffname);
 		//-- persist XML config parameters for Client,DataShape,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 1, shapeCfg);
@@ -71,7 +71,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- cleanup
 		delete engine;
 		delete trainLog;
-		delete trainDS;
+		delete trainDSG;
 		delete shape;
 		delete clientLog;
 		delete engCfg;
@@ -113,22 +113,22 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		shape=engine->shape;
 
 		//-- 3. spawn infer DataSet and its persistor
-		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/DataSet", shape, shape->sampleLen);
-		safespawn(inferLog, newsname("inferLogger"), defaultdbg, inferCfg, "/DataSet/Persistor");
+		safespawn(inferDSG, newsname("inferDataSetGroup"), defaultdbg, inferCfg, "/DataSetGroup", shape->sampleLen);
+		safespawn(inferLog, newsname("inferLogger"), defaultdbg, inferCfg, "/DataSetGroup/DataSet0/Persistor");
 
 		//-- core infer cycle
 		timer->start();
 		//-- set date0 in testDS->TimeSerie, and load it
-		safecall(inferDS->sourceTS, load, TARGET, BASE);
+		for (int i=0; i<inferDSG->dataSetsCnt; i++) safecall(inferDSG->ds[0]->sourceTS, load, TARGET, BASE);
 		//-- do inference (also populates datasets)
-		safecall(engine, infer, simulationId_, inferDS, savedEnginePid_);
+		safecall(engine, infer, simulationId_, inferDSG->ds[0], savedEnginePid_);
 		//-- persist Run logs
 		safecall(engine, saveRun);
 		//-- ommit engine persistor data
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferDS->sourceTS->date0, "", false, true, clientffname, "", inferffname, "");
+		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferDSG->ds[0]->sourceTS->date0, "", false, true, clientffname, "", inferffname, "");
 		//-- persist XML config parameters for Client,DataShape,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, inferCfg);
@@ -137,7 +137,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 
 		//-- cleanup
 		delete inferLog;
-		delete inferDS;
+		delete inferDSG;
 		delete engine;
 		delete clientLog;
 		delete clientCfg;

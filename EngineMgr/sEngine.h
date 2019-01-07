@@ -16,7 +16,6 @@
 
 struct sEngine : sCfgObj {
 
-	int type;
 	int coresCnt;
 	int layersCnt=0;
 	int* layerCoresCnt;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../DataMgr/sDataSet.h"
+#include "../DataMgr/sDataSetGroup.h"
 #include "../DataMgr/sDataShape.h"
 #include "../DataMgr/sFXDataSource.h"
 #include "../DataMgr/sGenericDataSource.h"
@@ -76,8 +76,8 @@ private:
 	char endtimeS[TIMER_ELAPSED_FORMAT_LEN];
 	sCfg* clientCfg; sCfg* shapeCfg; sCfg* trainCfg; sCfg* inferCfg; sCfg* engCfg;
 	sDataShape* shape;
-	sDataSet* trainDS; sLogger* trainLog;
-	sDataSet* inferDS; sLogger* inferLog;
+	sDataSetGroup* trainDSG; sLogger* trainLog;
+	sDataSetGroup* inferDSG; sLogger* inferLog;
 	sEngine* engine;
 	sLogger* clientLog;
 

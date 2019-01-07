@@ -8,7 +8,7 @@ sDataShape::sDataShape(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	//-- 1. get Parameters
 	safecall(cfgKey, getParm, &sampleLen, "SampleLen");
 	safecall(cfgKey, getParm, &predictionLen, "PredictionLen");
-	featuresCnt=0;
+	safecall(cfgKey, getParm, &featuresCnt, "FeaturesCount");
 	//-- 2. do stuff and spawn sub-Keys
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;

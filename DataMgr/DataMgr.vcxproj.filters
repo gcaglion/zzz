@@ -39,6 +39,9 @@
     <ClCompile Include="TSF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sDataSetGroup.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataSource_enums.h">
@@ -75,6 +78,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TSF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sDataSetGroup.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
