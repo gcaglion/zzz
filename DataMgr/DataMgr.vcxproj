@@ -307,7 +307,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="sDataSet.cpp" />
-    <ClCompile Include="sDataSetGroup.cpp" />
     <ClCompile Include="sDataShape.cpp" />
     <ClCompile Include="sDataSource.cpp" />
     <ClCompile Include="sGenericDataSource.cpp" />
@@ -317,7 +316,6 @@
     <ClCompile Include="TSF.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="sDataSetGroup.h" />
     <ClInclude Include="sDataShape.h" />
     <ClInclude Include="sDataSet.h" />
     <ClInclude Include="sDataSource.h" />
