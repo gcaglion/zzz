@@ -4,7 +4,6 @@
 		timing = True
 	</Debug>
 
-	<Custom>
 		CoresCount	= 1
 		<Core0>
 			<Layout>
@@ -21,7 +20,7 @@
 					UseBias				= false
 				</Topology>
 				<Training>
-					MaxEpochs			= 20
+					MaxEpochs			= 2000
 					TargetMSE			= 0.0001
 					NetSaveFrequency	= 10
 					StopOnDivergence	= false
@@ -42,8 +41,7 @@
 			<! CorePersistor-Default.xml >
 			
 		</Core0>
-	</Custom>
 
-	<! ..\Persistor-Default.xml >
+	<! Persistor-Default.xml >
 
 </Engine>

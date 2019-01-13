@@ -1,17 +1,19 @@
 <DataSet>
+	SampleLen = 50
+	PredictionLen = 1
 	BatchSamplesCount	= 10
 	SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	Dump 				= false
 	DumpPath			= c:\temp\DataDump
 
 	<TimeSerie>
-		HistoryLen			= 2000
+		HistoryLen			= 5000
 		Date0				= 2017-10-31-17:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
 		
-		<! GBPNZD_D1.xml >
+		<! GBPNZD_H1.xml >
 
 	</TimeSerie>
 
