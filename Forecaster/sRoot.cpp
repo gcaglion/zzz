@@ -40,8 +40,6 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 
 		//-- training cycle core
 		timer->start();
-		//-- just load trainDS->TimeSerie; it should have its own date0 set already
-		safecall(trainDS, load, ACTUAL, BASE);
 		//-- do training (also populates datasets)
 		safecall(engine, train, simulationId_, trainDS);
 
@@ -115,8 +113,6 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 
 		//-- core infer cycle
 		timer->start();
-		//-- set date0 in testDS->TimeSerie, and load it
-		safecall(inferDS, load, ACTUAL, BASE);
 		//-- do inference (also populates datasets)
 		safecall(engine, infer, simulationId_, inferDS, savedEnginePid_);
 		//-- persist Run logs
