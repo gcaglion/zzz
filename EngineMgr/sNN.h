@@ -40,9 +40,9 @@ private:
 	int* levelFirstWeight;
 
 	//-- error measuring
-	//numtype* tse;	// total squared error.	Scalar. On GPU (if used)
-	//numtype* se;	// squared sum error.	Scalar. On GPU (if used)
-	numtype tse;
+	numtype* tse;	// total squared error.	Scalar. On GPU (if used)
+	numtype* se;	// squared sum error.	Scalar. On GPU (if used)
+	numtype tse_h;
 
 	//-- set at each level according to ActivationFunction
 	float* scaleMin;	
@@ -58,6 +58,9 @@ private:
 	numtype* dJdW;
 	numtype* e;
 	numtype* u;
+	//--
+	numtype* sample_d;
+	numtype* target_d;
 	//-- SCGD-specific
 	sSCGD* scgd;
 
