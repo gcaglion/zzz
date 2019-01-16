@@ -27,24 +27,21 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		bool saveClient;
 		safecall(clientCfg, setKey, "/Client");
 		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
-		safespawn(clientLog, newsname("ClientLogger"), erronlydbg, clientCfg, "Persistor");
+		safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
 
 		//-- check for possible duplicate pid in db (through client persistor), and change it
 		safecall(this, getSafePid, clientLog, &pid);
 
 		//-- 3. spawn Train DataSet and its persistor
-		safespawn(trainDS, newsname("TrainDataSet"), erronlydbg, trainCfg, "/DataSet", false);
-		safespawn(trainLog, newsname("TrainLogger"), erronlydbg, trainCfg, "/DataSet/Persistor");
+		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/DataSet", false);
+		safespawn(trainLog, newsname("TrainLogger"), defaultdbg, trainCfg, "/DataSet/Persistor");
 		//-- 4. spawn engine the standard way
-		safespawn(engine, newsname("TrainEngine"), erronlydbg, engCfg, "/Engine", trainDS->shape, pid);
+		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", trainDS->shape, pid);
 
 		//-- training cycle core
 		timer->start();
 		//-- just load trainDS->TimeSerie; it should have its own date0 set already
 		safecall(trainDS, load, ACTUAL, BASE);
-//		trainDS->build(ACTUAL, BASE);
-//		trainDS->unbuild(ACTUAL, PREDICTED, BASE);
-//		trainDS->sourceTS[0]->dump(PREDICTED, BASE); trainDS->sourceTS[1]->dump(PREDICTED, BASE);
 		//-- do training (also populates datasets)
 		safecall(engine, train, simulationId_, trainDS);
 		//-- persist MSE logs
