@@ -61,8 +61,8 @@ void sLogger::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV
 	if (saveToDB) safecall(oradb, saveMSE, pid, tid, mseCnt, mseT, mseV);
 	if (saveToFile) safecall(filedb, saveMSE, pid, tid, mseCnt, mseT, mseV);
 }
-void sLogger::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted, numtype* barWidth_) {
-	if (saveToDB) safecall(oradb, saveRun, pid, tid, npid, ntid, runStepsCnt, tsFeaturesCnt_, selectedFeaturesCnt, selectedFeature, predictionLen, posLabel, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted, barWidth_);
+void sLogger::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsid_, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted, numtype* barWidth_) {
+	if (saveToDB) safecall(oradb, saveRun, pid, tid, npid, ntid, runStepsCnt, tsid_, tsFeaturesCnt_, selectedFeaturesCnt, selectedFeature, predictionLen, posLabel, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted, barWidth_);
 	if (saveToFile) safecall(filedb, saveRun, pid, tid, npid, ntid, runStepsCnt, tsFeaturesCnt_, selectedFeaturesCnt, selectedFeature, predictionLen, posLabel, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted, barWidth_);
 }
 //--

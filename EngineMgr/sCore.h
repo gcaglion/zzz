@@ -24,14 +24,6 @@ struct sCoreProcArgs {
 	//-- infer-specific
 	int npid;
 	int ntid;
-	int tsFeaturesCnt;
-	int selectedFeaturesCnt;
-	int* selectedFeature;
-	int predictionLen;
-	numtype* targetBFS;
-	numtype* predictionBFS;
-	numtype* targetSBF;
-	numtype* predictionSBF;
 };
 
 struct sCore : sCfgObj {

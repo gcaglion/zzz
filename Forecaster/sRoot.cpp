@@ -41,7 +41,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- training cycle core
 		timer->start();
 		//-- just load trainDS->TimeSerie; it should have its own date0 set already
-		safecall(trainDS->sourceTS, load, ACTUAL, BASE);
+		safecall(trainDS, load, ACTUAL, BASE);
 		//-- do training (also populates datasets)
 		safecall(engine, train, simulationId_, trainDS);
 		//-- persist MSE logs
@@ -55,7 +55,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainDS->sourceTS->date0, "", "", true, false, clientffname, "", trainffname, engineffname);
+		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainDS->sourceTS[0]->date0, "", "", true, false, clientffname, "", trainffname, engineffname);
 		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, trainCfg);
@@ -109,7 +109,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- core infer cycle
 		timer->start();
 		//-- set date0 in testDS->TimeSerie, and load it
-		safecall(inferDS->sourceTS, load, ACTUAL, BASE);
+		safecall(inferDS, load, ACTUAL, BASE);
 		//-- do inference (also populates datasets)
 		safecall(engine, infer, simulationId_, inferDS, savedEnginePid_);
 		//-- persist Run logs
@@ -118,7 +118,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferDS->sourceTS->date0, "", false, true, clientffname, "", inferffname, "");
+		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferDS->sourceTS[0]->date0, "", false, true, clientffname, "", inferffname, "");
 		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, inferCfg);
@@ -188,26 +188,6 @@ void sRoot::CLoverride(int argc, char* argv[]) {
 			}
 		}
 	}
-void sRoot::getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates){
-	sFXDataSource* fxsrc; sGenericDataSource* filesrc; sMT4DataSource* mt4src;
-	switch (ds->sourceTS->sourceData->type) {
-	case DB_SOURCE:
-		fxsrc = (sFXDataSource*)ds->sourceTS->sourceData;
-		safecall(fxsrc, getStartDates, date00_, len, oDates);
-		break;
-	case FILE_SOURCE:
-		filesrc = (sGenericDataSource*)ds->sourceTS->sourceData;
-		safecall(filesrc, getStartDates, date00_, len, oDates);
-		break;
-	case MT4_SOURCE:
-		mt4src = (sMT4DataSource*)ds->sourceTS->sourceData;
-		//--.............
-		break;
-	default:
-		fail("Invalid ds->sourceTS->sourceData->type (%d)", ds->sourceTS->sourceData->type);
-		break;
-	}
-}
 void sRoot::getSafePid(sLogger* persistor, int* pid) {
 	//-- look for pid in ClientInfo. if found, reduce by 1 until we find an unused pid
 	bool found;
@@ -520,7 +500,7 @@ void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL
 	sMT4DataSource* mtDataSrc; safespawn(mtDataSrc, newsname("MT4DataSource"), defaultdbg, MT4engine->shape->sampleLen, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV);
 	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, MT4engine->shape, mtDataSrc, selFcnt, selF, MT4dt, MT4doDump);
 
-	mtDataSet->sourceTS->load(ACTUAL, BASE);
+	mtDataSet->sourceTS[0]->load(ACTUAL, BASE);
 
 	//-- do inference (also populates datasets)
 	safecall(MT4engine, infer, MT4accountId, mtDataSet, MT4enginePid);
@@ -529,11 +509,11 @@ void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL
 
 	//-- unscale
 	for (int b=0; b<MT4engine->shape->predictionLen; b++) {
-		oForecastO[b]=(mtDataSet->predictionSBF[b*selFcnt+FXOPEN]-mtDataSet->sourceTS->scaleP[FXOPEN])/mtDataSet->sourceTS->scaleM[FXOPEN];
-		oForecastH[b]=(mtDataSet->predictionSBF[b*selFcnt+FXHIGH]-mtDataSet->sourceTS->scaleP[FXHIGH])/mtDataSet->sourceTS->scaleM[FXHIGH];
-		oForecastL[b]=(mtDataSet->predictionSBF[b*selFcnt+FXLOW]-mtDataSet->sourceTS->scaleP[FXLOW])/mtDataSet->sourceTS->scaleM[FXLOW];
-		oForecastC[b]=(mtDataSet->predictionSBF[b*selFcnt+FXCLOSE]-mtDataSet->sourceTS->scaleP[FXCLOSE])/mtDataSet->sourceTS->scaleM[FXCLOSE];
-		if (MT4useVolume) oForecastV[b]=(mtDataSet->predictionSBF[b*selFcnt+FXVOLUME]-mtDataSet->sourceTS->scaleP[FXVOLUME])/mtDataSet->sourceTS->scaleM[FXVOLUME];
+		oForecastO[b]=(mtDataSet->predictionSBF[b*selFcnt+FXOPEN]-mtDataSet->sourceTS[0]->scaleP[FXOPEN])/mtDataSet->sourceTS[0]->scaleM[FXOPEN];
+		oForecastH[b]=(mtDataSet->predictionSBF[b*selFcnt+FXHIGH]-mtDataSet->sourceTS[0]->scaleP[FXHIGH])/mtDataSet->sourceTS[0]->scaleM[FXHIGH];
+		oForecastL[b]=(mtDataSet->predictionSBF[b*selFcnt+FXLOW]-mtDataSet->sourceTS[0]->scaleP[FXLOW])/mtDataSet->sourceTS[0]->scaleM[FXLOW];
+		oForecastC[b]=(mtDataSet->predictionSBF[b*selFcnt+FXCLOSE]-mtDataSet->sourceTS[0]->scaleP[FXCLOSE])/mtDataSet->sourceTS[0]->scaleM[FXCLOSE];
+		if (MT4useVolume) oForecastV[b]=(mtDataSet->predictionSBF[b*selFcnt+FXVOLUME]-mtDataSet->sourceTS[0]->scaleP[FXVOLUME])/mtDataSet->sourceTS[0]->scaleM[FXVOLUME];
 	}
 	for (int b=0; b<MT4engine->shape->predictionLen; b++) info("TR   oForecastO[%d]=%f ; oForecastH[%d]=%f ; oForecastL[%d]=%f ; oForecastC[%d]=%f", b, oForecastO[b], b, oForecastH[b], b, oForecastL[b], b, oForecastC[b]);
 
