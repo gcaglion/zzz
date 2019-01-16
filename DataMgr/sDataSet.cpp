@@ -229,8 +229,8 @@ void sDataSet::mallocs2() {
 	//-- generic pointers
 	_data[SAMPLE][SBF]=sampleSBF;
 	_data[SAMPLE][BFS]=sampleBFS;
-	_data[TARGET][SBF]=targetSBF;
-	_data[TARGET][BFS]=targetBFS;
+	_data[ACTUAL][SBF]=targetSBF;
+	_data[ACTUAL][BFS]=targetBFS;
 	_data[PREDICTED][SBF]=predictionSBF;
 	_data[PREDICTED][BFS]=predictionBFS;
 

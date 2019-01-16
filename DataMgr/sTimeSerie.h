@@ -11,7 +11,7 @@
 #define MAX_DATA_FEATURES 128
 
 //-- val Source
-#define TARGET		0
+#define ACTUAL		0
 #define PREDICTED	1
 #define SAMPLE		2	//-- used only in sDataSet
 //-- val Status

@@ -41,7 +41,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- training cycle core
 		timer->start();
 		//-- just load trainDS->TimeSerie; it should have its own date0 set already
-		safecall(trainDS->sourceTS, load, TARGET, BASE);
+		safecall(trainDS->sourceTS, load, ACTUAL, BASE);
 		//-- do training (also populates datasets)
 		safecall(engine, train, simulationId_, trainDS);
 		//-- persist MSE logs
@@ -109,7 +109,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- core infer cycle
 		timer->start();
 		//-- set date0 in testDS->TimeSerie, and load it
-		safecall(inferDS->sourceTS, load, TARGET, BASE);
+		safecall(inferDS->sourceTS, load, ACTUAL, BASE);
 		//-- do inference (also populates datasets)
 		safecall(engine, infer, simulationId_, inferDS, savedEnginePid_);
 		//-- persist Run logs
@@ -299,7 +299,7 @@ void sRoot::kaz() {
 	sMT4DataSource* mtDataSrc= new sMT4DataSource(this, newsname("MT4DataSource"), defaultdbg, nullptr, mt4eng->shape->sampleLen, barT, barO, barH, barL, barC, barV, baseBarT, baseBarO, baseBarH, baseBarL, baseBarC, baseBarV);
 	sDataSet* mtDataSet= new sDataSet(this, newsname("MTdataSet"), defaultdbg, nullptr, mtDataShape, mtDataSrc, selFcnt, selF, dt, true, "C:/temp/DataDump");
 
-	mtDataSet->sourceTS->load(TARGET, BASE);
+	mtDataSet->sourceTS->load(ACTUAL, BASE);
 
 	//-- do inference (also populates datasets)
 	safecall(mt4eng, infer, accountId, mtDataSet, enginePid);
@@ -441,24 +441,24 @@ void sRoot::kaz() {
 	int sampleLen=10; int predictionLen=3;
 	sDataSet* ds1= new sDataSet(this, newsname("DataSet1"), defaultdbg, ts1, sampleLen, predictionLen, 10, selFcnt, selF, false, "C:/Temp/DataDump");
 
-	ts1->load(TARGET, BASE, "201710010000");
-	ts1->dump(TARGET, BASE);
+	ts1->load(ACTUAL, BASE, "201710010000");
+	ts1->dump(ACTUAL, BASE);
 
-	ts1->transform(TARGET, DT_DELTA);
-	ts1->dump(TARGET, TR);
+	ts1->transform(ACTUAL, DT_DELTA);
+	ts1->dump(ACTUAL, TR);
 
-	ts1->scale(TARGET, TR, -1, 1);
-	ts1->dump(TARGET, TRS);
+	ts1->scale(ACTUAL, TR, -1, 1);
+	ts1->dump(ACTUAL, TRS);
 
-	//-- Engine work... copy TARGET_TRS->PREDICTED_TRS, AND SKIP FIRST SAMPLE!
+	//-- Engine work... copy ACTUAL_TRS->PREDICTED_TRS, AND SKIP FIRST SAMPLE!
 	int idx;
 	for (int s=0; s<ts1->stepsCnt; s++) {
 		for (int f=0; f<ts1->sourceData->featuresCnt; f++) {
 			idx=s*ts1->sourceData->featuresCnt+f;
-			ts1->val[PREDICTED][TRS][idx]=ts1->val[TARGET][TRS][idx];
+			ts1->val[PREDICTED][TRS][idx]=ts1->val[ACTUAL][TRS][idx];
 		}
 	}
-	ts1->dump(TARGET, TRS);
+	ts1->dump(ACTUAL, TRS);
 	ts1->dump(PREDICTED, TRS);
 
 	ts1->unscale(PREDICTED, -1, 1, selFcnt, selF, sampleLen );
@@ -520,7 +520,7 @@ void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL
 	sMT4DataSource* mtDataSrc; safespawn(mtDataSrc, newsname("MT4DataSource"), defaultdbg, MT4engine->shape->sampleLen, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV);
 	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, MT4engine->shape, mtDataSrc, selFcnt, selF, MT4dt, MT4doDump);
 
-	mtDataSet->sourceTS->load(TARGET, BASE);
+	mtDataSet->sourceTS->load(ACTUAL, BASE);
 
 	//-- do inference (also populates datasets)
 	safecall(MT4engine, infer, MT4accountId, mtDataSet, MT4enginePid);
