@@ -43,7 +43,7 @@ sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, sDataShape* shape_, int 
 
 	setSamples(); mallocs2();
 }
-sDataSet::sDataSet(sCfgObjParmsDef, int extraSteps) : sCfgObj(sCfgObjParmsVal) {
+sDataSet::sDataSet(sCfgObjParmsDef, bool inferring_) : sCfgObj(sCfgObjParmsVal) {
 
 	safespawn(shape, newsname("%s_Shape", name->base), defaultdbg, 0, 0, 0);
 	safecall(cfgKey, getParm, &shape->sampleLen, "SampleLen");
@@ -58,7 +58,7 @@ sDataSet::sDataSet(sCfgObjParmsDef, int extraSteps) : sCfgObj(sCfgObjParmsVal) {
 
 	hasTargets=true;
 
-	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), defaultdbg, cfg, "TimeSerie", extraSteps);
+	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), defaultdbg, cfg, "TimeSerie", (inferring_)?shape->sampleLen:0);
 
 	setSamples(); mallocs2();
 
@@ -229,8 +229,8 @@ void sDataSet::mallocs2() {
 	//-- generic pointers
 	_data[SAMPLE][SBF]=sampleSBF;
 	_data[SAMPLE][BFS]=sampleBFS;
-	_data[TARGET][SBF]=targetSBF;
-	_data[TARGET][BFS]=targetBFS;
+	_data[ACTUAL][SBF]=targetSBF;
+	_data[ACTUAL][BFS]=targetBFS;
 	_data[PREDICTED][SBF]=predictionSBF;
 	_data[PREDICTED][BFS]=predictionBFS;
 

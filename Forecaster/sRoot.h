@@ -23,9 +23,9 @@ struct sRoot : sCfgObj {
 	EXPORT sRoot(NativeReportProgress* progressReporter);
 	EXPORT ~sRoot();
 
-	EXPORT void trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr, int overridesCnt_, char* override_[]);
-	EXPORT void  bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr, int overridesCnt_, char* override_[]);
-	EXPORT void inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr, int clientargc, char* clientargv[]);
+	EXPORT void trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr);
+	EXPORT void  bothClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr);
+	EXPORT void inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr);
 	
 	//-- MT4 stuff
 	int MT4clientPid;
@@ -74,8 +74,7 @@ private:
 	char inferffname[MAX_PATH];
 	char engineffname[MAX_PATH];
 	char endtimeS[TIMER_ELAPSED_FORMAT_LEN];
-	sCfg* clientCfg; sCfg* shapeCfg; sCfg* trainCfg; sCfg* inferCfg; sCfg* engCfg;
-	sDataShape* shape;
+	sCfg* clientCfg; sCfg* trainCfg; sCfg* inferCfg; sCfg* engCfg;
 	sDataSet* trainDS; sLogger* trainLog;
 	sDataSet* inferDS; sLogger* inferLog;
 	sEngine* engine;

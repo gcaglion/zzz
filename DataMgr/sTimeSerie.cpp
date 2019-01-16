@@ -130,7 +130,7 @@ void sTimeSerie::dump(int valSource, int valStatus) {
 	if (valSource==PREDICTED) {
 		strcpy_s(suffix2, 12, "PREDICTED");
 	} else {
-		strcpy_s(suffix2, 12, "TARGET");
+		strcpy_s(suffix2, 12, "ACTUAL");
 	}
 
 	char dumpFileName[MAX_PATH];
@@ -259,7 +259,7 @@ void sTimeSerie::untransform(int fromValSource, int toValSource, int sampleLen_,
 	int fromStep=sampleLen_;
 	int toStep=stepsCnt;
 
-	dataUnTransform(dt, stepsCnt, sourceData->featuresCnt, fromStep, toStep, val[fromValSource][TR], base, val[TARGET][BASE], val[toValSource][BASE]);
+	dataUnTransform(dt, stepsCnt, sourceData->featuresCnt, fromStep, toStep, val[fromValSource][TR], base, val[ACTUAL][BASE], val[toValSource][BASE]);
 
 }
 
@@ -321,16 +321,16 @@ void dataUnScale(numtype* scaleM_, numtype* scaleP_, int stepsCnt, int featuresC
 //-- Timeseries Statistical Features
 void sTimeSerie::calcTSFs() {
 
-	//-- all of them are calculated on TARGET-BASE value
+	//-- all of them are calculated on ACTUAL-BASE value
 
-	tsf[TSF_MEAN]=TSMean(len, val[TARGET][BASE]);
-	tsf[TSF_MAD]=TSMeanAbsoluteDeviation(len, val[TARGET][BASE]);
-	tsf[TSF_VARIANCE]=TSVariance(len, val[TARGET][BASE]);
-	tsf[TSF_SKEWNESS]=TSSkewness(len, val[TARGET][BASE]);
-	tsf[TSF_KURTOSIS]=TSKurtosis(len, val[TARGET][BASE]);
-	tsf[TSF_TURNINGPOINTS]=TSTurningPoints(len, val[TARGET][BASE]);
-	tsf[TSF_SHE]=TSShannonEntropy(len, val[TARGET][BASE]);
-	tsf[TSF_HISTVOL]=TSHistoricalVolatility(len, val[TARGET][BASE]);
+	tsf[TSF_MEAN]=TSMean(len, val[ACTUAL][BASE]);
+	tsf[TSF_MAD]=TSMeanAbsoluteDeviation(len, val[ACTUAL][BASE]);
+	tsf[TSF_VARIANCE]=TSVariance(len, val[ACTUAL][BASE]);
+	tsf[TSF_SKEWNESS]=TSSkewness(len, val[ACTUAL][BASE]);
+	tsf[TSF_KURTOSIS]=TSKurtosis(len, val[ACTUAL][BASE]);
+	tsf[TSF_TURNINGPOINTS]=TSTurningPoints(len, val[ACTUAL][BASE]);
+	tsf[TSF_SHE]=TSShannonEntropy(len, val[ACTUAL][BASE]);
+	tsf[TSF_HISTVOL]=TSHistoricalVolatility(len, val[ACTUAL][BASE]);
 
 }
 

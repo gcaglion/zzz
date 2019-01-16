@@ -10,18 +10,16 @@ sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname
 sRoot::~sRoot() {}
 
 //-- core stuff
-void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr, int overridesCnt_, char* override_[]) {
+void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr) {
 
 	try {
 		//-- 0. set full file name for each of the input files
 		getFullPath(clientXMLfile_, clientffname);
-		getFullPath(shapeXMLfile_, shapeffname);
 		getFullPath(trainXMLfile_, trainffname);
 		getFullPath(engineXMLfile_, engineffname);
 
-		//-- 1. load separate sCfg* for client, dataShape, trainDataset, Engine
+		//-- 1. load separate sCfg* for client, trainDataset, Engine
 		safespawn(clientCfg, newsname("clientCfg"), erronlydbg, clientffname);
-		safespawn(shapeCfg, newsname("shapeCfg"), erronlydbg, shapeffname);
 		safespawn(trainCfg, newsname("trainCfg"), erronlydbg, trainffname);
 		safespawn(engCfg, newsname("engineCfg"), erronlydbg, engineffname);
 
@@ -34,18 +32,16 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- check for possible duplicate pid in db (through client persistor), and change it
 		safecall(this, getSafePid, clientLog, &pid);
 
-		//-- 2. spawn DataShape
-		safespawn(shape, newsname("TrainDataShape"), erronlydbg, shapeCfg, "/DataShape");
 		//-- 3. spawn Train DataSet and its persistor
-		safespawn(trainDS, newsname("TrainDataSet"), erronlydbg, trainCfg, "/DataSet");
+		safespawn(trainDS, newsname("TrainDataSet"), erronlydbg, trainCfg, "/DataSet", false);
 		safespawn(trainLog, newsname("TrainLogger"), erronlydbg, trainCfg, "/DataSet/Persistor");
 		//-- 4. spawn engine the standard way
-		safespawn(engine, newsname("TrainEngine"), erronlydbg, engCfg, "/Engine", shape, pid);
+		safespawn(engine, newsname("TrainEngine"), erronlydbg, engCfg, "/Engine", trainDS->shape, pid);
 
 		//-- training cycle core
 		timer->start();
 		//-- just load trainDS->TimeSerie; it should have its own date0 set already
-		safecall(trainDS->sourceTS, load, TARGET, BASE);
+		safecall(trainDS->sourceTS, load, ACTUAL, BASE);
 		//-- do training (also populates datasets)
 		safecall(engine, train, simulationId_, trainDS);
 		//-- persist MSE logs
@@ -59,10 +55,9 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainDS->sourceTS->date0, "", "", true, false, clientffname, shapeffname, trainffname, engineffname);
-		//-- persist XML config parameters for Client,DataShape,DataSet,Engine
+		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainDS->sourceTS->date0, "", "", true, false, clientffname, "", trainffname, engineffname);
+		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
-		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 1, shapeCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, trainCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 3, engCfg);
 		//-- Commit clientpersistor data
@@ -72,11 +67,9 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		delete engine;
 		delete trainLog;
 		delete trainDS;
-		delete shape;
 		delete clientLog;
 		delete engCfg;
 		delete trainCfg;
-		delete shapeCfg;
 		delete clientCfg;
 
 	}
@@ -86,14 +79,14 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 
 
 }
-void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr, int clientargc, char* clientargv[]) {
+void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr) {
 
 	try {
 		//-- 0. set full file name for each of the input files
 		getFullPath(clientXMLfile_, clientffname);
 		getFullPath(inferXMLfile_, inferffname);
 
-		//-- 1. load separate sCfg* for client, dataShape, inferDataset, Engine
+		//-- 1. load separate sCfg* for client, inferDataset, Engine
 		safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
 		safespawn(inferCfg, newsname("inferCfg"), defaultdbg, inferffname);
 
@@ -108,18 +101,15 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 
 		//-- spawn engine from savedEnginePid_ with pid
 		safespawn(engine, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid_);
-
-		//-- 2. shape is taken from from engine->shape
-		shape=engine->shape;
-
+		
 		//-- 3. spawn infer DataSet and its persistor
-		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/DataSet", shape->sampleLen);
+		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/DataSet", true);
 		safespawn(inferLog, newsname("inferLogger"), defaultdbg, inferCfg, "/DataSet/Persistor");
 
 		//-- core infer cycle
 		timer->start();
 		//-- set date0 in testDS->TimeSerie, and load it
-		safecall(inferDS->sourceTS, load, TARGET, BASE);
+		safecall(inferDS->sourceTS, load, ACTUAL, BASE);
 		//-- do inference (also populates datasets)
 		safecall(engine, infer, simulationId_, inferDS, savedEnginePid_);
 		//-- persist Run logs
@@ -129,7 +119,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
 		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferDS->sourceTS->date0, "", false, true, clientffname, "", inferffname, "");
-		//-- persist XML config parameters for Client,DataShape,DataSet,Engine
+		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, inferCfg);
 		//-- Commit clientpersistor data
@@ -150,9 +140,9 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 
 
 }
-void sRoot::bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr, int clientargc, char* clientargv[]) {
-	safecall(this, trainClient, simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, progressPtr, clientargc, clientargv);
-	safecall(this, inferClient, simulationId_, clientXMLfile_, trainXMLfile_, pid, progressPtr, clientargc, clientargv);
+void sRoot::bothClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr) {
+	safecall(this, trainClient, simulationId_, clientXMLfile_, trainXMLfile_, engineXMLfile_, progressPtr);
+	safecall(this, inferClient, simulationId_, clientXMLfile_, trainXMLfile_, pid, progressPtr);
 }
 
 //-- utils stuff
@@ -309,7 +299,7 @@ void sRoot::kaz() {
 	sMT4DataSource* mtDataSrc= new sMT4DataSource(this, newsname("MT4DataSource"), defaultdbg, nullptr, mt4eng->shape->sampleLen, barT, barO, barH, barL, barC, barV, baseBarT, baseBarO, baseBarH, baseBarL, baseBarC, baseBarV);
 	sDataSet* mtDataSet= new sDataSet(this, newsname("MTdataSet"), defaultdbg, nullptr, mtDataShape, mtDataSrc, selFcnt, selF, dt, true, "C:/temp/DataDump");
 
-	mtDataSet->sourceTS->load(TARGET, BASE);
+	mtDataSet->sourceTS->load(ACTUAL, BASE);
 
 	//-- do inference (also populates datasets)
 	safecall(mt4eng, infer, accountId, mtDataSet, enginePid);
@@ -451,24 +441,24 @@ void sRoot::kaz() {
 	int sampleLen=10; int predictionLen=3;
 	sDataSet* ds1= new sDataSet(this, newsname("DataSet1"), defaultdbg, ts1, sampleLen, predictionLen, 10, selFcnt, selF, false, "C:/Temp/DataDump");
 
-	ts1->load(TARGET, BASE, "201710010000");
-	ts1->dump(TARGET, BASE);
+	ts1->load(ACTUAL, BASE, "201710010000");
+	ts1->dump(ACTUAL, BASE);
 
-	ts1->transform(TARGET, DT_DELTA);
-	ts1->dump(TARGET, TR);
+	ts1->transform(ACTUAL, DT_DELTA);
+	ts1->dump(ACTUAL, TR);
 
-	ts1->scale(TARGET, TR, -1, 1);
-	ts1->dump(TARGET, TRS);
+	ts1->scale(ACTUAL, TR, -1, 1);
+	ts1->dump(ACTUAL, TRS);
 
-	//-- Engine work... copy TARGET_TRS->PREDICTED_TRS, AND SKIP FIRST SAMPLE!
+	//-- Engine work... copy ACTUAL_TRS->PREDICTED_TRS, AND SKIP FIRST SAMPLE!
 	int idx;
 	for (int s=0; s<ts1->stepsCnt; s++) {
 		for (int f=0; f<ts1->sourceData->featuresCnt; f++) {
 			idx=s*ts1->sourceData->featuresCnt+f;
-			ts1->val[PREDICTED][TRS][idx]=ts1->val[TARGET][TRS][idx];
+			ts1->val[PREDICTED][TRS][idx]=ts1->val[ACTUAL][TRS][idx];
 		}
 	}
-	ts1->dump(TARGET, TRS);
+	ts1->dump(ACTUAL, TRS);
 	ts1->dump(PREDICTED, TRS);
 
 	ts1->unscale(PREDICTED, -1, 1, selFcnt, selF, sampleLen );
@@ -480,39 +470,39 @@ void sRoot::kaz() {
 }
 
 //-- GUI hooks
-extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
+extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
 	sRoot* root=nullptr;
 	try {
 		root=new sRoot(&progressPtr);
 		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Train ...\n");
 		progressPtr(10, progressVar.msg);
-		root->trainClient(simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr, 0, nullptr);
+		root->trainClient(simulationId_, clientXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr);
 	} catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");
 	}
 	terminate(true, "");
 }
-extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_, NativeReportProgress progressPtr) {
+extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_, NativeReportProgress progressPtr) {
 	sRoot* root=nullptr;
 	try {
 		root=new sRoot(&progressPtr);
 		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Infer ...\n");
 		progressPtr(10, progressVar.msg);
-		root->inferClient(simulationId_, clientXMLfile_, inferXMLfile_, savedEnginePid_, &progressPtr, 0, nullptr);
+		root->inferClient(simulationId_, clientXMLfile_, inferXMLfile_, savedEnginePid_, &progressPtr);
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");
 	}
 	terminate(true, "");
 }
-extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
+extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
 
 	sRoot* root=nullptr;
 	try {
 		root=new sRoot(&progressPtr);
 		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Train + Infer ...\n");
 		progressPtr(10, progressVar.msg);
-		root->bothClient(simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr, 0, nullptr);
+		root->bothClient(simulationId_, clientXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr);
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");
@@ -530,7 +520,7 @@ void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL
 	sMT4DataSource* mtDataSrc; safespawn(mtDataSrc, newsname("MT4DataSource"), defaultdbg, MT4engine->shape->sampleLen, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV);
 	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, MT4engine->shape, mtDataSrc, selFcnt, selF, MT4dt, MT4doDump);
 
-	mtDataSet->sourceTS->load(TARGET, BASE);
+	mtDataSet->sourceTS->load(ACTUAL, BASE);
 
 	//-- do inference (also populates datasets)
 	safecall(MT4engine, infer, MT4accountId, mtDataSet, MT4enginePid);

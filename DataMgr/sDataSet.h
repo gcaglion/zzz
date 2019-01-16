@@ -34,7 +34,7 @@ struct sDataSet : sCfgObj {
 
 	EXPORT sDataSet(sObjParmsDef, sDataShape* shape_, sMT4DataSource* MTsrc_, int selectedFeaturesCnt_, int* selectedFeature_, int dt_, bool doDump_=false, const char* dumpPath_=nullptr);
 	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, sDataShape* shape_, int selectedFeaturesCnt_, int* selectedFeature_, int batchSamplesCnt_, bool doDump_=false, const char* dumpPath_=nullptr);
-	EXPORT sDataSet(sCfgObjParmsDef, int extraSteps=0);
+	EXPORT sDataSet(sCfgObjParmsDef, bool inferring_);
 	EXPORT ~sDataSet();
 
 	EXPORT void build(int fromValSource, int fromValStatus);
