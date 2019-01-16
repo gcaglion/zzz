@@ -212,7 +212,7 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 		}
 		((Statement*)stmt)->executeUpdate();
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
-
+/*
 		//-- insert spacers (one for every feature)
 		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, Pos, PosLabel, Feature, StepAhead, PredictedTRS, ActualTRS, ErrorTRS, PredictedTR, ActualTR, ErrorTR, Predicted, Actual, Error) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15, :P16, :P17)");
 		((Statement*)stmt)->setMaxIterations(selectedFeaturesCnt);
@@ -238,7 +238,7 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 		}
 		((Statement*)stmt)->executeUpdate();
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
-
+*/
 
 	}
 	catch (SQLException ex) {

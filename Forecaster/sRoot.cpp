@@ -42,6 +42,9 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		timer->start();
 		//-- just load trainDS->TimeSerie; it should have its own date0 set already
 		safecall(trainDS, load, ACTUAL, BASE);
+		trainDS->build(ACTUAL, BASE);
+		trainDS->unbuild(ACTUAL, PREDICTED, BASE);
+		trainDS->sourceTS[0]->dump(PREDICTED, BASE); trainDS->sourceTS[1]->dump(PREDICTED, BASE);
 		//-- do training (also populates datasets)
 		safecall(engine, train, simulationId_, trainDS);
 		//-- persist MSE logs

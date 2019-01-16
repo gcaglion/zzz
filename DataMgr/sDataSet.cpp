@@ -109,43 +109,34 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 	if (doDump)	fclose(dumpFile);
 }
 void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
-/*
-	int tsfcnt=sourceTS->sourceData->featuresCnt;
-	int dsfcnt=shape->featuresCnt;
-	int dsidx=0;
-	int tsidx=0;
+	int dsidxS=0; int tsidxS=0;
+	int dsidxT=0; int tsidxT=0;
 
 	//-- for the first sample, scan all the bars in sample
 	for (int bar=0; bar<shape->sampleLen; bar++) {
 		for (int ts=0; ts<sourceTScnt; ts++) {
 			for (int tsf=0; tsf<selectedTSfeaturesCnt[ts]; tsf++) {
-				tsidx=bar*selectedTSfeaturesCnt[ts]+selectedTSfeature[ts][tsf];
-				sourceTS[ts]->val[toValSource][toValStatus][tsidx] = EMPTY_VALUE;
+				tsidxS=bar*sourceTS[ts]->sourceData->featuresCnt+selectedTSfeature[ts][tsf];
+				sourceTS[ts]->val[toValSource][toValStatus][tsidxS] = EMPTY_VALUE;
 			}
 		}
 	}
 
-	//-- for each sample/target row, take first bar from the target section
-	for (int s=0; s<samplesCnt; s++) {
-		for (int ts=0; ts<sourceTScnt; ts++) {
-			for (int tsf=0; tsf<selectedTSfeaturesCnt[ts]; tsf++) {
-				dsidx=
-				sourceTS->val[toValSource][toValStatus][tsidx] = _data[fromValSource][SBF][dsidx];
+	//-- target
+	for (int sample=0; sample<samplesCnt; sample++) {
+		for (int bar=0; bar<shape->predictionLen; bar++) {
+			for (int ts=0; ts<sourceTScnt; ts++) {
+				for (int tsf=0; tsf<selectedTSfeaturesCnt[ts]; tsf++) {
+					tsidxT=(sample+bar)*sourceTS[ts]->sourceData->featuresCnt+selectedTSfeature[ts][tsf];
+					tsidxT+=sourceTS[ts]->sourceData->featuresCnt*shape->sampleLen;
+
+					sourceTS[ts]->val[toValSource][toValStatus][tsidxT] = targetSBF[dsidxT]; //predictionSBF[dsidxT];
+					dsidxT++;
+				}
 			}
 		}
 	}
 
-	if (hasTargets) {
-		//-- now we are on the last row of the target section. need to take all bars>0
-		for (int bar=1; bar<shape->predictionLen; bar++) {
-			for (int dsf=0; dsf<dsfcnt; dsf++) {
-				dsidx=(samplesCnt-1)*trowlen+bar*dsfcnt+dsf;
-				tsidx=(samplesCnt+shape->sampleLen)*tsfcnt+(bar-1)*tsfcnt+selectedFeature[dsf];
-				sourceTS->val[toValSource][toValStatus][tsidx] = _data[fromValSource][SBF][dsidx];
-			}
-		}
-	}
-*/
 }
 
 /*void sDataSet::build(int fromValSource, int fromValStatus) {
