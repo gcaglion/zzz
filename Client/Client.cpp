@@ -7,7 +7,6 @@ void usage() {
 	printf("Usage:\n------\n");
 	printf("zzz Train <Simulation Id> <Client XML file> <trainDataSet XML file> <Engine XML file> \n");
 	printf("zzz Infer <Simulation Id> <Client XML file> <inferDataSet XML file> <Saved Engine pid> \n");
-	printf("zzz Both  <Simulation Id> <Client XML file> <trainDataSet XML file> <Engine XML file>\n");
 	system("pause");
 }
 int main(int argc, char* argv[]) {
@@ -26,8 +25,6 @@ int main(int argc, char* argv[]) {
 			root->trainClient(atoi(argv[2]), argv[3], argv[4], argv[5], nullptr);
 		} else if (_stricmp(argv[1], "Infer")==0) {
 			root->inferClient(atoi(argv[2]), argv[3], argv[4], atoi(argv[5]), nullptr);
-		} else if (_stricmp(argv[1], "Both")==0) {
-			root->bothClient(atoi(argv[2]), argv[3], argv[4], argv[5], nullptr);
 		} else { clifail; }
 	}
 	catch (std::exception exc) {

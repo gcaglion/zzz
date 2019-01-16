@@ -3,7 +3,8 @@
 #include "../common.h"
 
 #define CUDA_BLOCK_SIZE 64
-#define MAX_STREAMS 1
+#undef MAX_STREAMS
+#define MAX_STREAMS 2
 
 //-- CUDA Exceptions
 #define FAIL_INITCUDA "CUDA Initialization Failed. \n"

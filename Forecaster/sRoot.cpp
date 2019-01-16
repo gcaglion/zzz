@@ -44,6 +44,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(trainDS, load, ACTUAL, BASE);
 		//-- do training (also populates datasets)
 		safecall(engine, train, simulationId_, trainDS);
+
 		//-- persist MSE logs
 		safecall(engine, saveMSE);
 		//-- persist Core logs
@@ -51,6 +52,12 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, saveCoreLoggers);
 		//-- persist Engine Info
 		safecall(engine, saveInfo);
+
+		//-- do infer on training data, without reloading engine
+		safecall(engine, infer, simulationId_, trainDS, pid);
+		//-- persist Run logs
+		safecall(engine, saveRun);
+
 		//-- Commit engine persistor data
 		safecall(engine, commit);
 		//-- stop timer, and save client info
@@ -140,54 +147,8 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 
 
 }
-void sRoot::bothClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr) {
-	safecall(this, trainClient, simulationId_, clientXMLfile_, trainXMLfile_, engineXMLfile_, progressPtr);
-	safecall(this, inferClient, simulationId_, clientXMLfile_, trainXMLfile_, pid, progressPtr);
-}
 
 //-- utils stuff
-void sRoot::mallocSimulationDates(sCfg* clientCfg_, int* simLen, char*** simTrainStart, char*** simInferStart, char*** simValidStart) {
-
-	//-- get Simulation Length and start date[0]
-	safecall(clientCfg_->currentKey, getParm, simLen, "SimulationLength");
-	int sl=(*simLen);
-	//--
-	(*simTrainStart)=(char**)malloc(sl*sizeof(char*));
-	(*simInferStart)=(char**)malloc((*simLen)*sizeof(char*));
-	(*simValidStart)=(char**)malloc((*simLen)*sizeof(char*));
-	for (int s=0; s<(*simLen); s++) {
-		(*simTrainStart)[s]=(char*)malloc(DATE_FORMAT_LEN); (*simTrainStart)[s][0]='\0';
-		(*simInferStart)[s]=(char*)malloc(DATE_FORMAT_LEN); (*simInferStart)[s][0]='\0';
-		(*simValidStart)[s]=(char*)malloc(DATE_FORMAT_LEN); (*simValidStart)[s][0]='\0';
-	}
-
-}
-void sRoot::CLoverride(int argc, char* argv[]) {
-		char orName[XMLKEY_PARM_NAME_MAXLEN];
-		char orValS[XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
-
-		//-- set default forecasterCfgFileFullName
-		getFullPath("Tester.xml", clientCfgFileFullName);
-		getFullPath("Forecaster.xml", forecasterCfgFileFullName);
-
-		for (int p=1; p<argc; p++) {
-			if (!getValuePair(argv[p], &orName[0], &orValS[0], '=')) fail("wrong parameter format in command line: %s", argv[p]);
-
-			if (_stricmp(orName, "--cfgFileF")==0) {
-				//-- special parameters, 1: alternative configuration file (forecaster)
-				if (!getFullPath(orValS, forecasterCfgFileFullName)) fail("could not set cfgFileFullName from override parameter: %s", orValS);
-			} else if (_stricmp(orName, "--cfgFileC")==0) {
-				//-- special parameters, 1: alternative configuration file (forecaster)
-				if (!getFullPath(orValS, clientCfgFileFullName)) fail("could not set cfgFileFullName from override parameter: %s", orValS);
-			} else if (_stricmp(orName, "--VerboseRoot")==0) {
-				dbg->verbose=(_stricmp(orValS, "TRUE")==0);
-			} else {
-				strcpy_s(cfgOverrideName[cfgOverrideCnt], XMLKEY_PARM_NAME_MAXLEN, orName);
-				strcpy_s(cfgOverrideValS[cfgOverrideCnt], XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT, orValS);
-				cfgOverrideCnt++;
-			}
-		}
-	}
 void sRoot::getSafePid(sLogger* persistor, int* pid) {
 	//-- look for pid in ClientInfo. if found, reduce by 1 until we find an unused pid
 	bool found;
@@ -469,20 +430,6 @@ extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char*
 		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Infer ...\n");
 		progressPtr(10, progressVar.msg);
 		root->inferClient(simulationId_, clientXMLfile_, inferXMLfile_, savedEnginePid_, &progressPtr);
-	}
-	catch (std::exception exc) {
-		terminate(false, "Exception thrown by root. See stack.");
-	}
-	terminate(true, "");
-}
-extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
-
-	sRoot* root=nullptr;
-	try {
-		root=new sRoot(&progressPtr);
-		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Train + Infer ...\n");
-		progressPtr(10, progressVar.msg);
-		root->bothClient(simulationId_, clientXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr);
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");
