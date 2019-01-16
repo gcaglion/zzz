@@ -1,22 +1,31 @@
 <DataSet>
+
+	TimeSeriesCount	= 2
+	<TimeSerie0>
+		HistoryLen			= 80
+		Date0				= 2017-08-31-00:00
+		DataTransformation	= DT_DELTA
+		Dump				= true
+		DumpPath			= c:\temp\DataDump
+		<! FXDB-EurUsdH1.xml >
+		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+	</TimeSerie0>
+	<TimeSerie1>
+		HistoryLen			= 80
+		Date0				= 2017-08-31-00:00
+		DataTransformation	= DT_DELTA
+		Dump				= true
+		DumpPath			= c:\temp\DataDump
+		<! FXDB-GbpNzdH1.xml >
+		SelectedFeatures	= FXHIGH, FXLOW
+	</TimeSerie1>
+
 	SampleLen = 50
 	PredictionLen = 1
 	
 	BatchSamplesCount	= 10
-	SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-	Dump 				= false
+	Dump 				= true
 	DumpPath			= c:\temp\DataDump
-
-	<TimeSerie>
-		HistoryLen			= 1000
-		Date0				= 2017-08-31-00:00
-		DataTransformation	= DT_DELTA
-		Dump				= false
-		DumpPath			= c:\temp\DataDump
-		
-		<! FXDB-EurUsdH1.xml >
-
-	</TimeSerie>
 
 	<! DataSetPersistor-Default.xml >
 </DataSet>

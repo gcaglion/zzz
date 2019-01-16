@@ -23,6 +23,7 @@ create table RunLog(
 	NetThreadId number,
 	Pos number,
 	PosLabel varchar2(64),
+	SourceTSId number, 
 	Feature number,
 	StepAhead number,
 	ActualTRS number,
@@ -37,7 +38,7 @@ create table RunLog(
 	BarWidth number,
 	ErrorP number
 ) storage (initial 1024M minextents 8 pctincrease 0);
-alter table RunLog add constraint RunLog_PK primary key( ProcessId, ThreadId, Pos, Feature, StepAhead ) using index tablespace LogIdx;
+alter table RunLog add constraint RunLog_PK primary key( ProcessId, ThreadId, Pos, SourceTSId, Feature, StepAhead ) using index tablespace LogIdx;
 
 drop table ClientInfo purge;
 create table ClientInfo(

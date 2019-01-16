@@ -254,7 +254,7 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_, int savedEnginePi
 			if (core[c]->layout->layer==l) {
 
 				//-- scale trdata and rebuild training DataSet for current Core
-				safecall(ds_->sourceTS, scale, ACTUAL, TR, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+				for(int t=0; t<ds_->sourceTScnt; t++) safecall(ds_->sourceTS[t], scale, ACTUAL, TR, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 				safecall(ds_, build, ACTUAL, TRS);
 
 				//-- Create Training or Infer Thread for current Core
@@ -262,14 +262,6 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_, int savedEnginePi
 				procArgs[t]->core=core[c];
 				procArgs[t]->coreProcArgs->ds = (sDataSet*)ds_;
 				procArgs[t]->coreProcArgs->npid=savedEnginePid_;
-				procArgs[t]->coreProcArgs->tsFeaturesCnt=procArgs[t]->coreProcArgs->ds->sourceTS->sourceData->featuresCnt;
-				procArgs[t]->coreProcArgs->selectedFeaturesCnt=procArgs[t]->coreProcArgs->ds->shape->featuresCnt;
-				procArgs[t]->coreProcArgs->selectedFeature=procArgs[t]->coreProcArgs->ds->selectedFeature;
-				procArgs[t]->coreProcArgs->predictionLen=procArgs[t]->coreProcArgs->ds->shape->predictionLen;
-				procArgs[t]->coreProcArgs->targetBFS = procArgs[t]->coreProcArgs->ds->targetBFS;
-				procArgs[t]->coreProcArgs->predictionBFS = procArgs[t]->coreProcArgs->ds->predictionBFS;
-				procArgs[t]->coreProcArgs->targetSBF = procArgs[t]->coreProcArgs->ds->targetSBF;
-				procArgs[t]->coreProcArgs->predictionSBF = procArgs[t]->coreProcArgs->ds->predictionSBF;
 
 				if (procid_==trainProc) {
 					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadTrain, &(*procArgs[t]), 0, tid[t]);
@@ -315,32 +307,39 @@ void sEngine::saveCoreImages(int epoch) {
 	for (int c=0; c<coresCnt; c++) if (core[c]->persistor->saveImageFlag) safecall(core[c], saveImage, core[c]->procArgs->pid, core[c]->procArgs->tid, (epoch==-1)? core[c]->procArgs->mseCnt-1:epoch);
 }
 void sEngine::saveRun() {
+
+	sDataSet* _ds;
+	sTimeSerie* _ts;
+	int layer;
+	int runStepsCnt;
+
 	for (int c=0; c<coresCnt; c++) {
+		layer=core[c]->layout->layer;
+		_ds = core[c]->procArgs->ds;
 
-		sDataSet* _ds = core[c]->procArgs->ds;
-		sTimeSerie* _ts = _ds->sourceTS;
-		int layer=core[c]->layout->layer;
+		for (int t=0; t<_ds->sourceTScnt; t++) {
+			_ts = _ds->sourceTS[t];
 
-		//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
-		safecall(_ds, unbuild, PREDICTED, PREDICTED, TRS);
-		if (_ts->doDump) _ts->dump(PREDICTED, TRS);
+			//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
+			safecall(_ds, unbuild, PREDICTED, PREDICTED, TRS);
+			if (_ts->doDump) _ts->dump(PREDICTED, TRS);
 
-		//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
-		safecall(_ts, unscale, PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->shape->featuresCnt, _ds->selectedFeature, _ds->shape->sampleLen);
-		if (_ts->doDump) _ts->dump(PREDICTED, TR);
+			//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
+			safecall(_ts, unscale, PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t], _ds->shape->sampleLen);
+			if (_ts->doDump) _ts->dump(PREDICTED, TR);
 
-		//-- 5. sourceTS->untransform into valP
-		safecall(_ds->sourceTS, untransform, PREDICTED, PREDICTED, core[c]->procArgs->ds->shape->sampleLen, core[c]->procArgs->ds->shape->featuresCnt, core[c]->procArgs->ds->selectedFeature);
-		if (_ts->doDump) _ts->dump(PREDICTED, BASE);
+			//-- 5. sourceTS->untransform into valP
+			safecall(_ts, untransform, PREDICTED, PREDICTED, _ds->shape->sampleLen, _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t]);
+			if (_ts->doDump) _ts->dump(PREDICTED, BASE);
 
-		//-- persist into runLog
-		int runStepsCnt= core[c]->procArgs->ds->samplesCnt \
-						+core[c]->procArgs->ds->shape->sampleLen \
-						+core[c]->procArgs->ds->shape->predictionLen \
-						-1;
+			//-- persist into runLog
+			runStepsCnt= _ds->samplesCnt + _ds->shape->sampleLen + _ds->shape->predictionLen -1;
 
-		if (core[c]->persistor->saveRunFlag) {
-			safecall(core[c]->persistor, saveRun, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, runStepsCnt, core[c]->procArgs->tsFeaturesCnt, core[c]->procArgs->selectedFeaturesCnt, core[c]->procArgs->selectedFeature, core[c]->procArgs->predictionLen, _ts->dtime, _ts->val[ACTUAL][TRS], _ts->val[PREDICTED][TRS], _ts->val[ACTUAL][TR], _ts->val[PREDICTED][TR], _ts->val[ACTUAL][BASE], _ts->val[PREDICTED][BASE], _ts->barWidth);
+			if (core[c]->persistor->saveRunFlag) {
+				core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, \
+						runStepsCnt, t, _ts->sourceData->featuresCnt, _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t], _ds->shape->predictionLen, \
+						_ts->dtime, _ts->val[ACTUAL][TRS], _ts->val[PREDICTED][TRS], _ts->val[ACTUAL][TR], _ts->val[PREDICTED][TR], _ts->val[ACTUAL][BASE], _ts->val[PREDICTED][BASE], _ts->barWidth);
+			}
 		}
 	}
 }

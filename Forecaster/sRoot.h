@@ -64,7 +64,6 @@ private:
 
 	//-- functions
 	void mallocSimulationDates(sCfg* clientCfg, int* simLen, char*** simTrainStart, char*** simInferStart, char*** simValidStart);
-	void getStartDates(sDataSet* ds, char* date00_, int len, char*** oDates);
 	void getSafePid(sLogger* persistor, int* pid);
 
 	//-- the following are used by both trainClient() and inferClient()
@@ -80,7 +79,6 @@ private:
 	sEngine* engine;
 	sLogger* clientLog;
 
-	void __inferClient(int simulationId_, sLogger* clientLogger_, sDataSet* inferDS_, sLogger* inferLogger_, int savedEnginePid_, NativeReportProgress* progressPtr);
 };
 
 //-- client closure
