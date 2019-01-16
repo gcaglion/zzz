@@ -34,13 +34,11 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- check for possible duplicate pid in db (through client persistor), and change it
 		safecall(this, getSafePid, clientLog, &pid);
 
-		//-- 2. spawn DataShape
-		safespawn(shape, newsname("TrainDataShape"), erronlydbg, shapeCfg, "/DataShape");
 		//-- 3. spawn Train DataSet and its persistor
-		safespawn(trainDS, newsname("TrainDataSet"), erronlydbg, trainCfg, "/DataSet");
+		safespawn(trainDS, newsname("TrainDataSet"), erronlydbg, trainCfg, "/DataSet", false);
 		safespawn(trainLog, newsname("TrainLogger"), erronlydbg, trainCfg, "/DataSet/Persistor");
 		//-- 4. spawn engine the standard way
-		safespawn(engine, newsname("TrainEngine"), erronlydbg, engCfg, "/Engine", shape, pid);
+		safespawn(engine, newsname("TrainEngine"), erronlydbg, engCfg, "/Engine", trainDS->shape, pid);
 
 		//-- training cycle core
 		timer->start();
@@ -72,7 +70,6 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		delete engine;
 		delete trainLog;
 		delete trainDS;
-		delete shape;
 		delete clientLog;
 		delete engCfg;
 		delete trainCfg;
@@ -108,12 +105,9 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 
 		//-- spawn engine from savedEnginePid_ with pid
 		safespawn(engine, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid_);
-
-		//-- 2. shape is taken from from engine->shape
-		shape=engine->shape;
-
+		
 		//-- 3. spawn infer DataSet and its persistor
-		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/DataSet", shape->sampleLen);
+		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/DataSet", true);
 		safespawn(inferLog, newsname("inferLogger"), defaultdbg, inferCfg, "/DataSet/Persistor");
 
 		//-- core infer cycle

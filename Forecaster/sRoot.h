@@ -75,7 +75,6 @@ private:
 	char engineffname[MAX_PATH];
 	char endtimeS[TIMER_ELAPSED_FORMAT_LEN];
 	sCfg* clientCfg; sCfg* shapeCfg; sCfg* trainCfg; sCfg* inferCfg; sCfg* engCfg;
-	sDataShape* shape;
 	sDataSet* trainDS; sLogger* trainLog;
 	sDataSet* inferDS; sLogger* inferLog;
 	sEngine* engine;
