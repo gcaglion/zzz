@@ -101,11 +101,10 @@ void sNN::Activate(int level) {
 }
 
 void sNN::Ecalc() {
-	numtype se;
 	//-- sets e, bte; adds squared sum(e) to tse
 	Alg->Vadd(nodesCnt[outputLevel], &F[levelFirstNode[outputLevel]], 1, u, -1, e);	// e=F[2]-u
-	Alg->Vssum(nodesCnt[outputLevel], e, &se);										// se=ssum(e) 
-	tse+=se;														// tse+=se;
+	Alg->Vssum(nodesCnt[outputLevel], e, se);										// se=ssum(e) 
+	Alg->Vadd(1, tse, 1, se, 1, tse);												// tse+=se;
 }
 void sNN::dEcalc() {
 	int Ay, Ax, Astart, By, Bx, Bstart, Cy, Cx, Cstart;
@@ -163,7 +162,7 @@ void sNN::EcalcG(sDataSet* ds, numtype* inW, numtype* outE) {
 	Alg->Vcopy(weightsCntTotal, inW, W);
 
 	//-- zero tse, outE
-	tse=0;
+	Alg->Vinit(1, tse, 0, 0);
 	(*outE)=0;
 	//-- sum tse for every batch into outE
 	for (int b=0; b<_batchCnt; b++) {
@@ -175,8 +174,9 @@ void sNN::EcalcG(sDataSet* ds, numtype* inW, numtype* outE) {
 		//-- Calc Error (sets e[], te, updates tse) for the whole batch
 		safecallSilent(this, Ecalc);
 
+		Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
 		//-- increment global outE = outE + tse
-		(*outE)+=tse;
+		(*outE)+=tse_h;
 
 	}
 
@@ -195,7 +195,7 @@ void sNN::dEcalcG(sDataSet* ds, numtype* inW, numtype* outdE) {
 	Alg->Vcopy(weightsCntTotal, inW, W);
 
 	//-- zero tse
-	tse=0;
+	Alg->Vinit(1, tse, 0, 0);
 	//-- zero outdE
 	Alg->Vinit(weightsCntTotal, outdE, 0, 0);
 
@@ -229,6 +229,8 @@ void sNN::mallocNeurons() {
 	Alg->myMalloc(&edF, nodesCntTotal);
 	Alg->myMalloc(&e, nodesCnt[outputLevel]);
 	Alg->myMalloc(&u, nodesCnt[outputLevel]);
+	Alg->myMalloc(&tse, 1);
+	Alg->myMalloc(&se, 1);
 }
 void sNN::initNeurons(){
 	//--
@@ -252,6 +254,8 @@ void sNN::destroyNeurons() {
 	Alg->myFree(edF);
 	Alg->myFree(e);
 	Alg->myFree(u);
+	Alg->myFree(se);
+	Alg->myFree(tse);
 }
 void sNN::createWeights() {
 	//-- need to set weightsCntTotal, which will not be affected by batchSampleCnt
@@ -288,9 +292,9 @@ void sNN::loadBatchData(sDataSet* ds, int b) {
 	//-- set number of L0 neurons to load
 	int L0SampleNodesCnt=ds->shape->sampleLen*ds->shape->featuresCnt*ds->batchSamplesCnt;
 	//-- load batch samples on L0
-	Alg->h2d(&F[(parms->useBias) ? 1 : 0], &ds->sampleBFS[b*L0SampleNodesCnt], L0SampleNodesCnt*sizeof(numtype), false);
+	Alg->d2d(&F[(parms->useBias) ? 1 : 0], &sample_d[b*L0SampleNodesCnt], L0SampleNodesCnt*sizeof(numtype));
 	//-- load batch target on output level
-	if(ds->hasTargets) Alg->h2d(&u[0], &ds->targetBFS[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype), false);
+	Alg->d2d(&u[0], &target_d[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 }
 void sNN::ForwardPass(sDataSet* ds, int batchId, bool inferring) {
 
@@ -467,6 +471,9 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	//-- 0.4. convert samples and targets from SBF to BFS  in training dataset
 	trainArgs->ds->setBFS();
 
+	//-- pre-load the whole dataset (samples+targets) on GPU !
+	loadWholeDataSet();
+
 	//-- 1. for every epoch, train all batches with one Forward pass ( loadSamples(b)+FF()+calcErr() ), and one Backward pass (BP + calcdW + W update)
 	if (parms->BP_Algo==BP_SCGD) {
 
@@ -487,7 +494,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 			epoch_starttime=timeGetTime();
 
 			//-- 1.0. reset epoch tse
-			tse=0;
+			Alg->Vinit(1, tse, 0, 0);
 
 			//-- 1.1. train one batch at a time
 			for (b=0; b<trainSet->batchCnt; b++) {
@@ -501,9 +508,10 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 			}
 
 			//-- 1.2. calc epoch MSE (for ALL batches), and check criteria for terminating training (targetMSE, Divergence)
-			procArgs->mseT[epoch]=tse/nodesCnt[outputLevel]/_batchCnt;
+			Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
+			procArgs->mseT[epoch]=tse_h/nodesCnt[outputLevel]/_batchCnt;
 			procArgs->mseV[epoch]=0;	// TO DO !
-										//-- 1.3. show epoch info
+			//-- 1.3. show epoch info
 			showEpochStats(epoch, epoch_starttime);
 			//-- break if TargetMSE is reached
 			if (procArgs->mseT[epoch]<parms->TargetMSE) break;
@@ -519,24 +527,21 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	//-- 2. test run. need this to make sure all batches pass through the net with the latest weights, and training targets
 	TRstart=timeGetTime(); TRcnt++;
 
-	tse=0;
+	Alg->Vinit(1, tse, 0, 0);
 	for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b, false);
-	procArgs->mseT[trainArgs->mseCnt-1]=tse/nodesCnt[outputLevel]/_batchCnt;
-	showEpochStats(trainArgs->mseCnt-1, epoch_starttime);
-	
-	tse=0;
+	Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
+	procArgs->mseT[procArgs->mseCnt-1]=tse_h/nodesCnt[outputLevel]/_batchCnt;
+	showEpochStats(procArgs->mseCnt-1, epoch_starttime);
+
+	Alg->Vinit(1, tse, 0, 0);
 	for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b, false);
-	procArgs->mseT[trainArgs->mseCnt-1]=tse/nodesCnt[outputLevel]/_batchCnt;
-	showEpochStats(trainArgs->mseCnt-1, epoch_starttime);
-
-	//for (int b=0; b<procArgs->ds->batchCnt; b++) procArgs->ds->BFS2SBF(b, procArgs->ds->predictionLen, procArgs->ds->predictionBFS, procArgs->ds->predictionSBF);
-	//dumpArrayH((procArgs->ds->samplesCnt*procArgs->ds->predictionLen*procArgs->ds->selectedFeaturesCnt), procArgs->ds->predictionSBF, "C:/temp/TRAINpredictionSBF.csv");
-	//dumpArrayH((procArgs->ds->samplesCnt*procArgs->ds->predictionLen*procArgs->ds->selectedFeaturesCnt), procArgs->ds->targetSBF, "C:/temp/TRAINtargetSBF.csv");
-
+	Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
+	procArgs->mseT[procArgs->mseCnt-1]=tse_h/nodesCnt[outputLevel]/_batchCnt;
+	showEpochStats(procArgs->mseCnt-1, epoch_starttime);
 
 	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
 
-/*	float elapsed_tot=(float)timeGetTime()-(float)training_starttime;
+	float elapsed_tot=(float)timeGetTime()-(float)training_starttime;
 	float elapsed_avg=elapsed_tot/trainArgs->mseCnt;
 	printf("\nTraining complete. Elapsed time: %0.1f seconds. Epoch average=%0.0f ms.\n", (elapsed_tot/(float)1000), elapsed_avg);
 	LDtimeAvg=(float)LDtimeTot/LDcnt; printf("LD count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", LDcnt, (LDtimeTot/(float)1000), LDtimeAvg);
@@ -551,7 +556,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	//VStimeAvg=(float)VStimeTot/VScnt; printf("VS count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", VScnt, (VStimeTot/(float)1000), VStimeAvg);
 	BPtimeAvg=(float)BPtimeTot/LDcnt; printf("BP count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", BPcnt, (BPtimeTot/(float)1000), BPtimeAvg);
 	TRtimeAvg=(float)TRtimeTot/LDcnt; printf("TR count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", TRcnt, (TRtimeTot/(float)1000), TRtimeAvg);
-*/
+
 
 	//-- feee neurons()
 	destroyNeurons();
@@ -577,23 +582,26 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	mallocNeurons();
 	initNeurons();
 
-	//-- 0.3. W[] should have already been loaded
-
 	//-- 0.4. convert samples and targets from SBF to BFS  in inference dataset
 	inferArgs->ds->setBFS();
+
+	//-- pre-load the whole dataset (samples+targets) on GPU !
+	loadWholeDataSet();
 
 	//-- 1. infer all batches with one Forward pass ( loadSamples(b)+FF()+calcErr() ). No backward pass, obviously.
 
 	//-- timing
 	inferStartTime=timeGetTime();
 
-	tse=0;
-	for (int b=0; b<inferSet->batchCnt; b++) ForwardPass(inferSet, b, true);
-	procArgs->mseR=tse/nodesCnt[outputLevel]/_batchCnt;
+	Alg->Vinit(1, tse, 0, 0);
+	for (int b=0; b<_batchCnt; b++) ForwardPass(inferSet, b, true);
+	Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
+	procArgs->mseR=tse_h/nodesCnt[outputLevel]/_batchCnt;
 
-	tse=0;
-	for (int b=0; b<inferSet->batchCnt; b++) ForwardPass(inferSet, b, true);
-	procArgs->mseR=tse/nodesCnt[outputLevel]/_batchCnt;
+	Alg->Vinit(1, tse, 0, 0);
+	for (int b=0; b<_batchCnt; b++) ForwardPass(inferSet, b, true);
+	Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
+	procArgs->mseR=tse_h/nodesCnt[outputLevel]/_batchCnt;
 
 	//-- 0.4. convert samples and targets back from BFS to SBF in inference dataset
 	inferArgs->ds->setSBF();
@@ -629,7 +637,7 @@ void sNN::loadImage(int pid, int tid, int epoch) {
 
 }
 
-void sNN::trainSCGD(sCoreProcArgs* trainArgs) {
+void sNN::trainSCGD(sCoreProcArgs* procArgs) {
 
 	bool success;
 	numtype pnorm, rnorm;
@@ -651,7 +659,7 @@ void sNN::trainSCGD(sCoreProcArgs* trainArgs) {
 
 	Alg->Vnorm(weightsCntTotal, W, &Wnorm);
 	//-- 1.1 calc GdJwd
-	dEcalcG(trainArgs->ds, W, scgd->GdJdW);
+	dEcalcG(procArgs->ds, W, scgd->GdJdW);
 	//-- 1.2 p=-GdJdW
 	Alg->Vscale(weightsCntTotal, scgd->GdJdW, -1, scgd->p);
 	//-- 1.3 r=p
@@ -674,9 +682,9 @@ void sNN::trainSCGD(sCoreProcArgs* trainArgs) {
 			//-- newW=w+sigma*p
 			Alg->Vadd(weightsCntTotal, scgd->p, sigma, W, 1, scgd->newW); Alg->Vnorm(weightsCntTotal, scgd->newW, &newWnorm);
 			//-- dE0=dEcalcG(W)
-			dEcalcG(trainArgs->ds, W, scgd->dE0); Alg->Vnorm(weightsCntTotal, scgd->dE0, &dE0norm);
+			dEcalcG(procArgs->ds, W, scgd->dE0); Alg->Vnorm(weightsCntTotal, scgd->dE0, &dE0norm);
 			//-- dE1=dEcalcG(newW)
-			dEcalcG(trainArgs->ds, scgd->newW, scgd->dE1); Alg->Vnorm(weightsCntTotal, scgd->dE1, &dE1norm);
+			dEcalcG(procArgs->ds, scgd->newW, scgd->dE1); Alg->Vnorm(weightsCntTotal, scgd->dE1, &dE1norm);
 			//-- dE=dE1-dE0
 			Alg->Vadd(weightsCntTotal, scgd->dE1, 1, scgd->dE0, -1, scgd->dE); Alg->Vnorm(weightsCntTotal, scgd->dE, &dEnorm);
 			//-- s=(dE)/sigma
@@ -712,11 +720,11 @@ void sNN::trainSCGD(sCoreProcArgs* trainArgs) {
 
 		//-- 6. Calculate comparison parameter
 		//-- Gtse_old=EcalcG(W)
-		EcalcG(trainArgs->ds, W, &Gtse_old);
+		EcalcG(procArgs->ds, W, &Gtse_old);
 		//-- newW=W+alpha*p
 		Alg->Vadd(weightsCntTotal, scgd->p, alpha, W, 1, scgd->newW); Alg->Vnorm(weightsCntTotal, scgd->newW, &newWnorm);
 		//-- Gtse_new=EcalcG(newW)
-		EcalcG(trainArgs->ds, scgd->newW, &Gtse_new);
+		EcalcG(procArgs->ds, scgd->newW, &Gtse_new);
 		//-- comp=2*delta/mu^2*(Gtse_old-Gtse_new)
 		comp=2*delta/(mu*mu)*(Gtse_old-Gtse_new);
 
@@ -727,7 +735,7 @@ void sNN::trainSCGD(sCoreProcArgs* trainArgs) {
 			//-- prevR=r
 			Alg->Vcopy(weightsCntTotal, scgd->r, scgd->prev_r);
 			//-- r=-dEcalcG(w)
-			dEcalcG(trainArgs->ds, W, scgd->r); Alg->Vscale(weightsCntTotal, scgd->r, -1, scgd->r);
+			dEcalcG(procArgs->ds, W, scgd->r); Alg->Vscale(weightsCntTotal, scgd->r, -1, scgd->r);
 			lambdau=0;
 			success=true;
 
@@ -787,4 +795,13 @@ void sNN::trainSCGD(sCoreProcArgs* trainArgs) {
 	//-- persist scgd->log
 	if (persistor->saveInternalsFlag) safecall(persistor, saveCoreNNInternalsSCGD, pid, tid, k-1, scgd->log->delta, scgd->log->mu, scgd->log->alpha, scgd->log->beta, scgd->log->lambda, scgd->log->lambdau, scgd->log->Gtse_old, scgd->log->Gtse_new, scgd->log->comp, scgd->log->pnorm, scgd->log->rnorm, scgd->log->dwnorm);
 
+}
+void sNN::loadWholeDataSet() {
+	int sampleSize=procArgs->ds->samplesCnt*procArgs->ds->shape->sampleLen*procArgs->ds->shape->featuresCnt;
+	Alg->myMalloc(&sample_d, sampleSize);
+	Alg->h2d(sample_d, procArgs->ds->sampleBFS, sampleSize, false);
+
+	int targetSize=procArgs->ds->samplesCnt*procArgs->ds->shape->predictionLen*procArgs->ds->shape->featuresCnt;
+	Alg->myMalloc(&target_d, targetSize);
+	Alg->h2d(target_d, procArgs->ds->targetBFS, targetSize, false);
 }

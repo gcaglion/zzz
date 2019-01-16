@@ -109,6 +109,7 @@ private:
 	//-- free
 	void destroyNeurons();
 	void destroyWeights();
+	void loadWholeDataSet();
 
 	void trainSCGD(sCoreProcArgs* trainArgs);
 };
