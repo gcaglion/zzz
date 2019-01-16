@@ -3,7 +3,7 @@
 #include "../common.h"
 
 #define CUDA_BLOCK_SIZE 64
-#define MAX_STREAMS 0
+#define MAX_STREAMS 1
 
 //-- CUDA Exceptions
 #define FAIL_INITCUDA "CUDA Initialization Failed. \n"
@@ -22,6 +22,7 @@ EXPORT void Free_cu(numtype* var);
 //-- CPU<->GPU transfer functions
 EXPORT void h2d_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]);
 EXPORT void d2h_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]);
+EXPORT void d2d_cu(numtype* destAddr, numtype* srcAddr, int size);
 
 EXPORT bool loadBatchData_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream[]);
 EXPORT bool MbyM_cu(void* cublasH, int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, numtype* C);

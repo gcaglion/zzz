@@ -136,6 +136,9 @@ EXPORT void d2h_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStream
 		}
 	}
 }
+EXPORT void d2d_cu(numtype* destAddr, numtype* srcAddr, int size) {
+	if (!(cudaMemcpy(destAddr, srcAddr, size, cudaMemcpyDeviceToDevice)==cudaSuccess)) CUWfail("CUDA error %d", cudaGetLastError());
+}
 
 //==================================
 __global__	void initGPUData_ker(float *data, int numElements, float value) {
@@ -276,6 +279,7 @@ __global__ void cuVsum_ker(const int vlen, const numtype *v, numtype* osum) {
 		osum[blockIdx.x] = partialSum[0];
 
 }
+
 __global__ void cuVssum_ker(const int vlen, const numtype *v, numtype* ossum) {
 
 	//@@ Load a segment of the input vector into shared memory
@@ -301,6 +305,7 @@ __global__ void cuVssum_ker(const int vlen, const numtype *v, numtype* ossum) {
 		ossum[blockIdx.x] = partialSum[0];
 
 }
+
 __global__ void Vscale(int vlen, numtype* v, numtype scaleM, numtype scaleP) {
 	int i = blockIdx.x*blockDim.x+threadIdx.x;
 	if (i<vlen) v[i] = scaleM*v[i]+scaleP;
@@ -367,19 +372,28 @@ EXPORT bool Vsum_cu(int vlen, numtype* v, numtype* ovsum, numtype* ss_d) {
 
 	cuVsum_ker<<< gridDim, blockDim>>> (vlen, v, ss_d );
 
-	if (cudaMemcpy(ovsum, ss_d, sizeof(numtype), cudaMemcpyDeviceToHost)!=cudaSuccess) return false;
-
 	return ((cudaGetLastError()==cudaSuccess));
 }
 
-EXPORT bool Vssum_cu(void* cublasH, int vlen, numtype* v, numtype* oVnorm) {
-	if (Vnorm_cu(cublasH, vlen, v, oVnorm)) {
+EXPORT bool Vssum_cu(void* cublasH, int vlen, numtype* v, numtype* oVssum) {
+/*	if (Vnorm_cu(cublasH, vlen, v, oVnorm)) {
 		(*oVnorm)=((*oVnorm)*(*oVnorm));
 		return true;
 	} else {
 		return false;
 	}
+*/
+
+	dim3 gridDim;
+	dim3 blockDim;
+	blockDim.x = CUDA_BLOCK_SIZE;
+	gridDim.x = (vlen+blockDim.x-1)/blockDim.x;
+
+	cuVssum_ker<<< gridDim, blockDim>>> (vlen, v, oVssum);
+
+	return ((cudaGetLastError()==cudaSuccess));
 }
+
 EXPORT bool Vnorm_cu(void* cublasH, int Vlen, numtype* V,  numtype* oVssum) {
 	cublasStatus_t cur=cublasSnrm2((*(cublasHandle_t*)cublasH), Vlen, V, 1, oVssum);
 	if (cur!=CUBLAS_STATUS_SUCCESS) { printf("error code %d, line(%d)\n", cur, __LINE__); return false; }

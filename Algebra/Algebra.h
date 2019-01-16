@@ -44,8 +44,7 @@ struct sAlgebra : public sObj {
 	//-- CPU<->GPU transfer functions
 	EXPORT void h2d(numtype* destAddr, numtype* srcAddr, int size, bool useStreams=false);
 	EXPORT void d2h(numtype* destAddr, numtype* srcAddr, int size, bool useStreams=false);
-	EXPORT void x2h(numtype* destAddr, numtype* srcAddr, int size, bool useStreams=false);
-	EXPORT void h2x(numtype* destAddr, numtype* srcAddr, int size, bool useStreams=false);
+	EXPORT void d2d(numtype* destAddr, numtype* srcAddr, int size);
 
 	EXPORT bool getMcol_cpu(int Ay, int Ax, numtype* A, int col, numtype* oCol);
 	EXPORT bool MbyM_std(int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, numtype* C);

@@ -68,28 +68,21 @@ void sAlgebra::MbyM(int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By
 }
 void sAlgebra::h2d(numtype* destAddr, numtype* srcAddr, int size, bool useStreams) {
 #ifdef USE_GPU
-	CUWsafecallSilent(h2d_cu, destAddr, srcAddr, size, ((useStreams) ? cuStream : nullptr));
+	CUWsafecallSilent(h2d_cu, destAddr, srcAddr, size, ((useStreams&&MAX_STREAMS>1) ? cuStream : nullptr));
 #else
 	memcpy_s(destAddr, size, srcAddr, size);
 #endif
 }
 void sAlgebra::d2h(numtype* destAddr, numtype* srcAddr, int size, bool useStreams) {
 #ifdef USE_GPU
-	CUWsafecallSilent(d2h_cu, destAddr, srcAddr, size, ((useStreams) ? cuStream : nullptr));
+	CUWsafecallSilent(d2h_cu, destAddr, srcAddr, size, ((useStreams&&MAX_STREAMS>1) ? cuStream : nullptr));
 #else
 	memcpy_s(destAddr, size, srcAddr, size);
 #endif
 }
-void sAlgebra::x2h(numtype* destAddr, numtype* srcAddr, int size, bool useStreams) {
+void sAlgebra::d2d(numtype* destAddr, numtype* srcAddr, int size) {
 #ifdef USE_GPU
-	CUWsafecallSilent(d2h_cu, destAddr, srcAddr, size, ((useStreams) ? cuStream : nullptr));
-#else
-	memcpy_s(destAddr, size, srcAddr, size);
-#endif
-}
-void sAlgebra::h2x(numtype* destAddr, numtype* srcAddr, int size, bool useStreams) {
-#ifdef USE_GPU
-	CUWsafecallSilent(h2d_cu, destAddr, srcAddr, size, ((useStreams) ? cuStream : nullptr));
+	CUWsafecallSilent(d2d_cu, destAddr, srcAddr, size);
 #else
 	memcpy_s(destAddr, size, srcAddr, size);
 #endif
