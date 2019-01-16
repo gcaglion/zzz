@@ -13,8 +13,10 @@
 struct sDataSet : sCfgObj {
 
 	sDataShape* shape;
-	sTimeSerie* sourceTS;
-	int* selectedFeature;
+	int sourceTScnt;
+	sTimeSerie** sourceTS;
+	int* selectedTSfeaturesCnt;
+	int** selectedTSfeature;
 
 	int samplesCnt;
 	int batchSamplesCnt;
@@ -33,7 +35,6 @@ struct sDataSet : sCfgObj {
 	numtype* _data[3][2];	//-- [Source][ordering]
 
 	EXPORT sDataSet(sObjParmsDef, sDataShape* shape_, sMT4DataSource* MTsrc_, int selectedFeaturesCnt_, int* selectedFeature_, int dt_, bool doDump_=false, const char* dumpPath_=nullptr);
-	EXPORT sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, sDataShape* shape_, int selectedFeaturesCnt_, int* selectedFeature_, int batchSamplesCnt_, bool doDump_=false, const char* dumpPath_=nullptr);
 	EXPORT sDataSet(sCfgObjParmsDef, bool inferring_);
 	EXPORT ~sDataSet();
 
