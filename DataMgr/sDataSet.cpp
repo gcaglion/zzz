@@ -130,7 +130,7 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 					tsidxT=(sample+bar)*sourceTS[ts]->sourceData->featuresCnt+selectedTSfeature[ts][tsf];
 					tsidxT+=sourceTS[ts]->sourceData->featuresCnt*shape->sampleLen;
 
-					sourceTS[ts]->val[toValSource][toValStatus][tsidxT] = targetSBF[dsidxT]; //predictionSBF[dsidxT];
+					sourceTS[ts]->val[toValSource][toValStatus][tsidxT] = predictionSBF[dsidxT];
 					dsidxT++;
 				}
 			}
