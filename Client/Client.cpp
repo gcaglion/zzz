@@ -5,9 +5,9 @@
 
 void usage() {
 	printf("Usage:\n------\n");
-	printf("zzz Train <Simulation Id> <Client XML file> <DataShape XML file> <trainDataSet XML file> <Engine XML file> \n");
+	printf("zzz Train <Simulation Id> <Client XML file> <trainDataSet XML file> <Engine XML file> \n");
 	printf("zzz Infer <Simulation Id> <Client XML file> <inferDataSet XML file> <Saved Engine pid> \n");
-	printf("zzz Both  <Simulation Id> <Client XML file> <DataShape XML file> <inferDataSet XML file> <Engine XML file> <Saved Engine pid> \n");
+	printf("zzz Both  <Simulation Id> <Client XML file> <trainDataSet XML file> <Engine XML file>\n");
 	system("pause");
 }
 int main(int argc, char* argv[]) {
@@ -20,22 +20,14 @@ int main(int argc, char* argv[]) {
 		//root->kaz(); terminate(true, "");
 		//-----------
 
-		if (argc<3) clifail;
+		if (argc<6) clifail;
 
 		if (_stricmp(argv[1], "Train")==0) {
-			if (argc<7) { clifail; } else {
-				root->trainClient(atoi(argv[2]), argv[3], argv[4], argv[5], argv[6], nullptr, argc-7, &argv[6]);
-			}
-
+			root->trainClient(atoi(argv[2]), argv[3], argv[4], argv[5], nullptr);
 		} else if (_stricmp(argv[1], "Infer")==0) {
-			if (argc<6) { clifail; } else {
-				root->inferClient(atoi(argv[2]), argv[3], argv[4], atoi(argv[5]), nullptr, argc-6, &argv[5]);
-			}
-
+			root->inferClient(atoi(argv[2]), argv[3], argv[4], atoi(argv[5]), nullptr);
 		} else if (_stricmp(argv[1], "Both")==0) {
-			if (argc<7) { clifail; } else {
-				root->bothClient(atoi(argv[2]), argv[3], argv[4], argv[5], argv[6], nullptr, argc-7, &argv[6]);
-			}
+			root->bothClient(atoi(argv[2]), argv[3], argv[4], argv[5], nullptr);
 		} else { clifail; }
 	}
 	catch (std::exception exc) {

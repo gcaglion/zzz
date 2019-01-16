@@ -10,18 +10,16 @@ sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname
 sRoot::~sRoot() {}
 
 //-- core stuff
-void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr, int overridesCnt_, char* override_[]) {
+void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr) {
 
 	try {
 		//-- 0. set full file name for each of the input files
 		getFullPath(clientXMLfile_, clientffname);
-		getFullPath(shapeXMLfile_, shapeffname);
 		getFullPath(trainXMLfile_, trainffname);
 		getFullPath(engineXMLfile_, engineffname);
 
-		//-- 1. load separate sCfg* for client, dataShape, trainDataset, Engine
+		//-- 1. load separate sCfg* for client, trainDataset, Engine
 		safespawn(clientCfg, newsname("clientCfg"), erronlydbg, clientffname);
-		safespawn(shapeCfg, newsname("shapeCfg"), erronlydbg, shapeffname);
 		safespawn(trainCfg, newsname("trainCfg"), erronlydbg, trainffname);
 		safespawn(engCfg, newsname("engineCfg"), erronlydbg, engineffname);
 
@@ -57,10 +55,9 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainDS->sourceTS->date0, "", "", true, false, clientffname, shapeffname, trainffname, engineffname);
-		//-- persist XML config parameters for Client,DataShape,DataSet,Engine
+		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainDS->sourceTS->date0, "", "", true, false, clientffname, "", trainffname, engineffname);
+		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
-		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 1, shapeCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, trainCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 3, engCfg);
 		//-- Commit clientpersistor data
@@ -73,7 +70,6 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		delete clientLog;
 		delete engCfg;
 		delete trainCfg;
-		delete shapeCfg;
 		delete clientCfg;
 
 	}
@@ -83,14 +79,14 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 
 
 }
-void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr, int clientargc, char* clientargv[]) {
+void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr) {
 
 	try {
 		//-- 0. set full file name for each of the input files
 		getFullPath(clientXMLfile_, clientffname);
 		getFullPath(inferXMLfile_, inferffname);
 
-		//-- 1. load separate sCfg* for client, dataShape, inferDataset, Engine
+		//-- 1. load separate sCfg* for client, inferDataset, Engine
 		safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
 		safespawn(inferCfg, newsname("inferCfg"), defaultdbg, inferffname);
 
@@ -123,7 +119,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
 		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferDS->sourceTS->date0, "", false, true, clientffname, "", inferffname, "");
-		//-- persist XML config parameters for Client,DataShape,DataSet,Engine
+		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, inferCfg);
 		//-- Commit clientpersistor data
@@ -144,9 +140,9 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 
 
 }
-void sRoot::bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr, int clientargc, char* clientargv[]) {
-	safecall(this, trainClient, simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, progressPtr, clientargc, clientargv);
-	safecall(this, inferClient, simulationId_, clientXMLfile_, trainXMLfile_, pid, progressPtr, clientargc, clientargv);
+void sRoot::bothClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr) {
+	safecall(this, trainClient, simulationId_, clientXMLfile_, trainXMLfile_, engineXMLfile_, progressPtr);
+	safecall(this, inferClient, simulationId_, clientXMLfile_, trainXMLfile_, pid, progressPtr);
 }
 
 //-- utils stuff
@@ -474,39 +470,39 @@ void sRoot::kaz() {
 }
 
 //-- GUI hooks
-extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
+extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
 	sRoot* root=nullptr;
 	try {
 		root=new sRoot(&progressPtr);
 		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Train ...\n");
 		progressPtr(10, progressVar.msg);
-		root->trainClient(simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr, 0, nullptr);
+		root->trainClient(simulationId_, clientXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr);
 	} catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");
 	}
 	terminate(true, "");
 }
-extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_, NativeReportProgress progressPtr) {
+extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, const char* engineXMLfile_, int savedEnginePid_, NativeReportProgress progressPtr) {
 	sRoot* root=nullptr;
 	try {
 		root=new sRoot(&progressPtr);
 		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Infer ...\n");
 		progressPtr(10, progressVar.msg);
-		root->inferClient(simulationId_, clientXMLfile_, inferXMLfile_, savedEnginePid_, &progressPtr, 0, nullptr);
+		root->inferClient(simulationId_, clientXMLfile_, inferXMLfile_, savedEnginePid_, &progressPtr);
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");
 	}
 	terminate(true, "");
 }
-extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* clientXMLfile_, const char* shapeXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
+extern "C" __declspec(dllexport) int _bothClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
 
 	sRoot* root=nullptr;
 	try {
 		root=new sRoot(&progressPtr);
 		sdp progressVar; progressVar.p1=10; progressVar.p2=50.0f; strcpy_s(progressVar.msg, DBG_MSG_MAXLEN, "Starting Train + Infer ...\n");
 		progressPtr(10, progressVar.msg);
-		root->bothClient(simulationId_, clientXMLfile_, shapeXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr, 0, nullptr);
+		root->bothClient(simulationId_, clientXMLfile_, trainXMLfile_, engineXMLfile_, &progressPtr);
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");
