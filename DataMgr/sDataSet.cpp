@@ -7,7 +7,7 @@ sDataSet::sDataSet(sObjParmsDef, sDataShape* shape_, sMT4DataSource* MTsrc_, int
 
 	shape=shape_; shape->featuresCnt=selectedFeaturesCnt_;
 	mallocs1();
-	for (int f=0; f<shape->featuresCnt; f++) selectedFeature[f]=selectedFeature_[f];
+	for (int f=0; f<shape->featuresCnt; f++) selectedTSfeature[0][f]=selectedFeature_[f];
 
 
 	batchSamplesCnt=1;
@@ -19,7 +19,7 @@ sDataSet::sDataSet(sObjParmsDef, sDataShape* shape_, sMT4DataSource* MTsrc_, int
 	}
 
 	//-- timeserie?
-	sourceTS=new sTimeSerie(this, newsname("%s_TimeSerie", name->base), defaultdbg, GUIreporter, MTsrc_, MTsrc_->lastbartime, MTsrc_->sampleLen, dt_, dumpPath);
+	sourceTS[0]=new sTimeSerie(this, newsname("%s_TimeSerie", name->base), defaultdbg, GUIreporter, MTsrc_, MTsrc_->lastbartime, MTsrc_->sampleLen, dt_, dumpPath);
 
 	setSamples(); 
 	mallocs2();
@@ -46,10 +46,18 @@ sDataSet::sDataSet(sObjParmsDef, sTimeSerie* sourceTS_, sDataShape* shape_, int 
 sDataSet::sDataSet(sCfgObjParmsDef, bool inferring_) : sCfgObj(sCfgObjParmsVal) {
 
 	safespawn(shape, newsname("%s_Shape", name->base), defaultdbg, 0, 0, 0);
+
+	safecall(cfgKey, getParm, &sourceTScnt, "TimeSeriesCount");
+	mallocs1();
+	for (int t=0; t<sourceTScnt; t++) {
+		safespawn(sourceTS[t], newsname("%s_TimeSerie%d", name->base, t), defaultdbg, cfg, (newsname("TimeSerie%d", t))->base, (inferring_) ? shape->sampleLen : 0);
+		safecall(cfgKey, getParm, &selectedTSfeature[t], (newsname("TimeSerie%d/selectedFeatures", t))->base, false, &selectedTSfeaturesCnt[t]);
+		safecall(sourceTS[t], load, TARGET, BASE);
+		shape->featuresCnt+=selectedTSfeaturesCnt[t];
+	}
+
 	safecall(cfgKey, getParm, &shape->sampleLen, "SampleLen");
 	safecall(cfgKey, getParm, &shape->predictionLen, "PredictionLen");
-	mallocs1();
-	safecall(cfgKey, getParm, &selectedFeature, "SelectedFeatures", false, &shape->featuresCnt);
 	safecall(cfgKey, getParm, &batchSamplesCnt, "BatchSamplesCount");
 	safecall(cfgKey, getParm, &doDump, "Dump");
 	//-- 0. default dump path is dbg outfilepath
@@ -58,7 +66,6 @@ sDataSet::sDataSet(sCfgObjParmsDef, bool inferring_) : sCfgObj(sCfgObjParmsVal) 
 
 	hasTargets=true;
 
-	safespawn(sourceTS, newsname("%s_TimeSerie", name->base), defaultdbg, cfg, "TimeSerie", (inferring_)?shape->sampleLen:0);
 
 	setSamples(); mallocs2();
 
@@ -201,14 +208,16 @@ void sDataSet::BFS2SBF(int batchId, int barCnt, numtype* fromBFS, numtype* toSBF
 
 }
 
-
 //-- private stuff
 void sDataSet::mallocs1() {
-	selectedFeature=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
+	selectedTSfeaturesCnt=(int*)malloc(sourceTScnt*sizeof(int));
+	selectedTSfeature=(int**)malloc(sourceTScnt*sizeof(int*));
+	sourceTS=(sTimeSerie**)malloc(sourceTScnt*sizeof(sTimeSerie*));
+	for (int t=0; t<sourceTScnt; t++) selectedTSfeature[t]=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
 	dumpPath=(char*)malloc(MAX_PATH);
 }
 void sDataSet::setSamples() {
-	samplesCnt=sourceTS->stepsCnt-shape->sampleLen+1;
+	samplesCnt=sourceTS[0]->stepsCnt-shape->sampleLen+1;
 	if(hasTargets) samplesCnt-=shape->predictionLen;
 	if ((samplesCnt%batchSamplesCnt)!=0) {
 		fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", samplesCnt, batchSamplesCnt)
@@ -242,12 +251,6 @@ void sDataSet::frees() {
 	free(sampleBFS);
 	free(targetBFS);
 	free(predictionBFS);
-}
-bool sDataSet::isSelected(int ts_f) {
-	for (int ds_f=0; ds_f<shape->featuresCnt; ds_f++) {
-		if (selectedFeature[ds_f]==ts_f) return true;
-	}
-	return false;
 }
 void sDataSet::dumpPre(int valStatus, FILE** dumpFile) {
 	int b, f, i;

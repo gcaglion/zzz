@@ -13,8 +13,10 @@
 struct sDataSet : sCfgObj {
 
 	sDataShape* shape;
-	sTimeSerie* sourceTS;
-	int* selectedFeature;
+	int sourceTScnt;
+	sTimeSerie** sourceTS;
+	int* selectedTSfeaturesCnt;
+	int** selectedTSfeature;
 
 	int samplesCnt;
 	int batchSamplesCnt;
