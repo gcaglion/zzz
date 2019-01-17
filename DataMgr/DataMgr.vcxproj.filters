@@ -30,13 +30,13 @@
     <ClCompile Include="sFXDataSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sMT4DataSource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sGenericDataSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="TSF.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sMT4DataSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -68,13 +68,13 @@
     <ClInclude Include="sFXDataSource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sMT4dataSource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sGenericDataSource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TSF.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sMT4dataSource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

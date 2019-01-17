@@ -1,31 +1,21 @@
 #include "sDataSet.h"
 
-sDataSet::sDataSet(sObjParmsDef, sDataShape* shape_, sMT4DataSource* MTsrc_, int selectedFeaturesCnt_, int* selectedFeature_, int dt_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sDataSet::sDataSet(sObjParmsDef, int sourceTScnt_, sTimeSerie** sourceTS_, int* selectedTSfeaturesCnt_, int** selectedTSfeature_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, bool doDump_, char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 
-	//-- single sample, no targets
+	safespawn(shape, newsname("%s_Shape", name->base), defaultdbg, 0, 0, 0);
+
+	sourceTScnt=sourceTScnt_; sourceTS=sourceTS_; selectedTSfeaturesCnt=selectedTSfeaturesCnt_; selectedTSfeature=selectedTSfeature_;
+	shape->sampleLen=sampleLen_; shape->predictionLen=predictionLen_; batchSamplesCnt=batchSamplesCnt_;
+	doDump=doDump_; 
+	//-- 0. default dump path is dbg outfilepath
+	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
+	if(dumpPath_!=nullptr) dumpPath=dumpPath_;
+
 	hasTargets=false;
 
-	shape=shape_; shape->featuresCnt=selectedFeaturesCnt_;
-	mallocs1();
-	for (int f=0; f<shape->featuresCnt; f++) selectedTSfeature[0][f]=selectedFeature_[f];
-
-
-	batchSamplesCnt=1;
-	doDump=doDump_;
-	if (dumpPath_!=nullptr) {
-		strcpy_s(dumpPath, MAX_PATH, dumpPath_);
-	} else {
-		strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
-	}
-
-	//-- timeserie?
-	sourceTS[0]=new sTimeSerie(this, newsname("%s_TimeSerie", name->base), defaultdbg, GUIreporter, MTsrc_, MTsrc_->lastbartime, MTsrc_->sampleLen, dt_, dumpPath);
-
-	setSamples(); 
-	mallocs2();
+	setSamples(); mallocs2();
 
 }
-
 sDataSet::sDataSet(sCfgObjParmsDef, bool inferring_) : sCfgObj(sCfgObjParmsVal) {
 
 	safespawn(shape, newsname("%s_Shape", name->base), defaultdbg, 0, 0, 0);

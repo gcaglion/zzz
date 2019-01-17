@@ -3,8 +3,8 @@
 #include "../ConfigMgr/sCfgObj.h"
 #include "sDataSource.h"
 #include "sFXDataSource.h"
+#include "sMT4DataSource.h"
 #include "sGenericDataSource.h"
-#include "sMT4dataSource.h"
 #include "TSF.h"
 #include "TimeSerie_enums.h"
 

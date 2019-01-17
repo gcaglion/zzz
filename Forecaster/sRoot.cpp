@@ -466,6 +466,77 @@ void sRoot::getSeriesInfo(int* oSeriesCnt_, int* oSampleLen_, int* oPredictionLe
 	strcpy_s(oFeaturesCSL_, XMLKEY_PARM_VAL_MAXLEN, tmpFeaturesList);
 
 }
+
+void sRoot::getForecast2(int seriesCnt_, int* sampleLen, int* predictionLen_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
+
+	//-- decompose flat arrays (SERIE-BAR ordered) in 2d-arrays
+	long*   oBaseBarT=(long*)malloc(seriesCnt_*sizeof(long));
+	double* oBaseBarO=(double*)malloc(seriesCnt_*sizeof(double));
+	double* oBaseBarH=(double*)malloc(seriesCnt_*sizeof(double));
+	double* oBaseBarL=(double*)malloc(seriesCnt_*sizeof(double));
+	double* oBaseBarC=(double*)malloc(seriesCnt_*sizeof(double));
+	double* oBaseBarV=(double*)malloc(seriesCnt_*sizeof(double));
+	//--
+	long**   oBarT=(long**)malloc(seriesCnt_*sizeof(long*));
+	double** oBarO=(double**)malloc(seriesCnt_*sizeof(double*));
+	double** oBarH=(double**)malloc(seriesCnt_*sizeof(double*));
+	double** oBarL=(double**)malloc(seriesCnt_*sizeof(double*));
+	double** oBarC=(double**)malloc(seriesCnt_*sizeof(double*));
+	double** oBarV=(double**)malloc(seriesCnt_*sizeof(double*));
+
+	int i=0;
+	char bartime[DATE_FORMAT_LEN];
+	for (int serie=0; serie<seriesCnt_; serie++) {
+		oBaseBarT[serie]=iBaseBarT[serie]; MT4time2str(oBaseBarT[serie], DATE_FORMAT_LEN, bartime);
+		oBaseBarO[serie]=iBaseBarO[serie];
+		oBaseBarH[serie]=iBaseBarH[serie];
+		oBaseBarL[serie]=iBaseBarL[serie];
+		oBaseBarC[serie]=iBaseBarC[serie];
+		oBaseBarV[serie]=iBaseBarV[serie];
+
+		info("oBaseBar: %s %f,%f,%f,%f,%f", bartime, oBaseBarO[serie], oBaseBarH[serie], oBaseBarL[serie], oBaseBarC[serie], oBaseBarV[serie]);
+		//--
+		oBarT[serie]=(long*)malloc(sampleLen[serie]*sizeof(long)); 
+		oBarO[serie]=(double*)malloc(sampleLen[serie]*sizeof(double));
+		oBarH[serie]=(double*)malloc(sampleLen[serie]*sizeof(double));
+		oBarL[serie]=(double*)malloc(sampleLen[serie]*sizeof(double));
+		oBarC[serie]=(double*)malloc(sampleLen[serie]*sizeof(double));
+		oBarV[serie]=(double*)malloc(sampleLen[serie]*sizeof(double));
+		for (int bar=0; bar<sampleLen[serie]; bar++) {
+			oBarT[serie][bar]=iBarT[i]; MT4time2str(oBarT[serie][bar], DATE_FORMAT_LEN, bartime);
+			oBarO[serie][bar]=iBarO[i];
+			oBarH[serie][bar]=iBarH[i];
+			oBarL[serie][bar]=iBarL[i];
+			oBarC[serie][bar]=iBarC[i];
+			oBarV[serie][bar]=iBarV[i];
+			info("Bar[%d]: %s %f,%f,%f,%f,%f", bar, bartime, oBarO[serie][bar], oBarH[serie][bar], oBarL[serie][bar], oBarC[serie][bar], oBarV[serie][bar]);
+
+			i++;
+		}
+	}
+
+	//-- manually spawn one DataSrc, one TimeSerie for each serie
+	sMT4DataSource** mtDataSrc = (sMT4DataSource**)malloc(seriesCnt_*sizeof(sMT4DataSource*));
+	sTimeSerie** mtTimeSerie = (sTimeSerie**)malloc(seriesCnt_*sizeof(sTimeSerie*));
+	char tmpDate0[DATE_FORMAT_LEN];
+	for (int serie=0; serie<seriesCnt_; serie++) {
+		safespawn(mtDataSrc[serie], newsname("MT4DataSource"), defaultdbg, sampleLen[serie], oBarT[serie], oBarO[serie], oBarH[serie], oBarL[serie], oBarC[serie], oBarV[serie], oBaseBarT[serie], oBaseBarO[serie], oBaseBarH[serie], oBaseBarL[serie], oBaseBarC[serie], oBaseBarV[serie]);
+		MT4time2str(oBarT[serie][sampleLen[serie]-1], DATE_FORMAT_LEN, tmpDate0); info("tmpDate0=%s", tmpDate0);
+		safespawn(mtTimeSerie[serie], newsname("MTtimeSerie%d", serie), defaultdbg, mtDataSrc[serie], tmpDate0, sampleLen[serie], dt_);
+		safecall(mtTimeSerie[serie], load, ACTUAL, BASE);
+		mtTimeSerie[serie]->dump(ACTUAL, BASE);
+	}
+
+	//-- featureMask_ to selectedFeature[]
+	int selFcnt=0;
+	int selF[5];	
+	if(
+	//-- manually spawn infer dataset from timeseries, sampleLen, predictionLen
+	sDataSet* mtDataSet = new sDataSet(this, newsname("MTdataSet"), defaultdbg, GUIreporter, seriesCnt_, mtTimeSerie, )
+
+
+
+}
 void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
 
 	int selF[5];
@@ -473,7 +544,7 @@ void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL
 	for (int f=0; f<selFcnt; f++) selF[f]=f;
 
 	sMT4DataSource* mtDataSrc; safespawn(mtDataSrc, newsname("MT4DataSource"), defaultdbg, MT4engine->shape->sampleLen, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV);
-	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, MT4engine->shape, mtDataSrc, selFcnt, selF, MT4dt, MT4doDump);
+	sDataSet* mtDataSet=nullptr; //safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, MT4engine->shape, mtDataSrc, selFcnt, selF, MT4dt, MT4doDump);
 
 	mtDataSet->sourceTS[0]->load(ACTUAL, BASE);
 
@@ -603,13 +674,13 @@ extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLF
 	return 0;
 
 }
-extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
+extern "C" __declspec(dllexport) int _getForecast2(char* iEnvS, int seriesCnt_, int* sampleLen_, int* predictionLen_, int dt_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
 
 	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p . Calling env->getForecast()...", env);	
 	try {
-		env->getForecast(iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
+		env->getForecast2(seriesCnt_, sampleLen_, predictionLen_, dt_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
 	}
 	catch (std::exception exc) {
 		return -1;

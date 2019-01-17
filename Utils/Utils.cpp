@@ -230,7 +230,7 @@ EXPORT void MT4time2str(long iTime, int iTimeSsize, char* oTimeS) {
 	struct tm buf;
 	time_t kaz=(time_t)iTime;
 	localtime_s(&buf, &kaz);
-	strftime(oTimeS, DATE_FORMAT_LEN, DATE_FORMAT_C, &buf);
+	strftime(oTimeS, iTimeSsize, DATE_FORMAT_C, &buf);
 }
 
 EXPORT void gotoxy(int x, int y) {

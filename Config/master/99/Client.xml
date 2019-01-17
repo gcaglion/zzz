@@ -39,7 +39,7 @@
 			SelectedFeatures	= FXHIGH, FXLOW
 		</Chart1>
 		<Chart2>
-			Symbol				= SPX
+			Symbol				= US500-MAR19
 			TimeFrame			= H1
 			SampleLen			= 30
 			PredictionLen		= 1

@@ -223,7 +223,7 @@ void sTimeSerie::setDataSource() {
 	bool found=false;
 	sFXDataSource* fxData;
 	sGenericDataSource* fileData;
-	sMT4DataSource* mt4Data;
+	sMT4DataSource* mtData;
 
 	//-- first, find and set
 	safecall(cfg, setKey, "File_DataSource", true, &found);	//-- ignore error
@@ -241,8 +241,8 @@ void sTimeSerie::setDataSource() {
 			safecall(cfg, setKey, "MT4_DataSource", true, &found);	//-- ignore error
 			if (found) {
 				safecall(cfg, setKey, "../"); //-- get back;
-				safespawn(mt4Data, newsname("MT4_DataSource"), defaultdbg, cfg, "MT4_DataSource");
-				sourceData=mt4Data;
+				safespawn(mtData, newsname("MT_DataSource"), defaultdbg, cfg, "MT_DataSource");
+				sourceData=mtData;
 			}
 		}
 	}
