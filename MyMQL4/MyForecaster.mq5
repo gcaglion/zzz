@@ -87,9 +87,9 @@ int OnInit() {
 	int    serieFeature[5];	//-- reused by every serie
 	//--
 	int totSampleLen;
-	double vhigh[];
+	double vopen[], vhigh[], vlow[], vclose[], vvolume[];
 	//--
-	MqlRates tmprates[];
+	MqlRates serierates[];
 
 	EnvS = "00000000000000000000000000000000000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
 	StringToCharArray(ClientXMLFile, vClientXMLFileS);
@@ -137,17 +137,30 @@ int OnInit() {
 	}
 
 	totSampleLen=0;
-	for (int s=0; s<seriesCnt; s++)	totSampleLen+=sampleLen[s];
+	for (int s=0; s<seriesCnt; s++) totSampleLen+=sampleLen[s];	
+	ArrayResize(vopen, totSampleLen);
 	ArrayResize(vhigh, totSampleLen);
+	ArrayResize(vlow, totSampleLen);
+	ArrayResize(vclose, totSampleLen);
+	ArrayResize(vvolume, totSampleLen);
+	
+	//========================   THIS GOES INTO OnTick() =========================
 	int i=0;
 	ENUM_TIMEFRAMES tf;
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
-		int copied=CopyRates(serieSymbol[s], tf, 1, sampleLen[s], tmprates);	printf("copied[%d]=%d", s, copied);
+		int copied=CopyRates(serieSymbol[s], tf, 1, sampleLen[s], serierates);	printf("copied[%d]=%d", s, copied);
 		if (copied!=sampleLen[s]) return -1;
-		i++;
+		for (int bar=0; bar<sampleLen[s]; bar++) {
+			vopen[i]=serierates[b].open;
+			vhigh[i]=serierates[b].high;
+			vlow[i]=serierates[b].low;
+			vclose[i]=serierates[b].close;
+			vvolume[i]=serierates[b].volume;
+			i++;
+		}		
 	}
-
+	//===============================================================================
 	return -1;
 	//--------------------------------------------------------------------------------------------------------
 	
