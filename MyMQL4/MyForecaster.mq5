@@ -10,7 +10,7 @@
 #import "Forecaster.dll"
 //--
 int _createEnv2(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[]);
-int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, int& oSampleLen_[], int& oPredictionLen_[], uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[]);
+int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, int& oSampleLen_[], int& oPredictionLen_[], uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[]);
 //--
 int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[], int &oSampleLen_, int &oPredictionLen_);
 int _getForecast(uchar& iEnv[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
@@ -83,70 +83,74 @@ int OnInit() {
 	int predictionLen[MT_MAX_SERIES_CNT];	// 
 	string serieSymbol[MT_MAX_SERIES_CNT];
 	string serieTimeFrame[MT_MAX_SERIES_CNT];
+	string serieFeatList[MT_MAX_SERIES_CNT];
+	int    serieFeature[5];	//-- reused by every serie
 	//--
 	int totSampleLen;
 	double vhigh[];
 	//--
 	MqlRates tmprates[];
 
-	/*// ------------- the following  should be filled when calling _createEnv() -----------
-	seriesCnt= 3;
-	sampleLen[0]=5; sampleLen[1]=4; sampleLen[2]=6;
-	predictionLen[0]=1; predictionLen[1]=1; predictionLen[2]=1;
-	serieSymbol[0]="EURUSD"; serieSymbol[1]="GBPNZD"; serieSymbol[2]="USDCHF";
-	serieTimeFrame[0]="H1"; serieTimeFrame[1]="H1"; serieTimeFrame[2]="H1";
-	//--*/
 	EnvS = "00000000000000000000000000000000000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
 	StringToCharArray(ClientXMLFile, vClientXMLFileS);
 	if (_createEnv2(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vUseVolume, vDataTransformation, vDumpData, vEnvS)!=0) {
 		printf("_createEnv2() failed. see Forecaster logs.");
 		return -1;
 	}
+	EnvS=CharArrayToString(vEnvS);
+	printf("EnvS=%s ; ClientXMLFile=%s ; EnginePid=%d", EnvS, ClientXMLFile, EnginePid);
 
 	string sSymbolsCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 	string sTimeFramesCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+	string sFeaturesCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 	uchar uSymbolsCSL[]; StringToCharArray(sSymbolsCSL, uSymbolsCSL);
 	uchar uTimeFramesCSL[]; StringToCharArray(sTimeFramesCSL, uTimeFramesCSL);
+	uchar uFeaturesCSL[]; StringToCharArray(sFeaturesCSL, uFeaturesCSL);
 
-	if (_getSeriesInfo(vEnvS, seriesCnt, sampleLen, predictionLen, uSymbolsCSL, uTimeFramesCSL)!=0) {
+	if (_getSeriesInfo(vEnvS, seriesCnt, sampleLen, predictionLen, uSymbolsCSL, uTimeFramesCSL, uFeaturesCSL)!=0) {
 		printf("_getSeriesInfo() failed. see Forecaster logs.");
 		return -1;
 	}
-	CharArrayToString(uSymbolsCSL, sSymbolsCSL);
-	CharArrayToString(uTimeFramesCSL, sTimeFramesCSL);
-	printf("seriesCnt=%d ; symbolsCSL=%s ; timeFramesCSL=%s", seriesCnt, sSymbolsCSL, sTimeFramesCSL);
+	sSymbolsCSL=CharArrayToString(uSymbolsCSL);
+	sTimeFramesCSL=CharArrayToString(uTimeFramesCSL);
+	sFeaturesCSL=CharArrayToString(uFeaturesCSL);
+	printf("seriesCnt=%d ; symbolsCSL=%s ; timeFramesCSL=%s, featuresCSL=%s", seriesCnt, sSymbolsCSL, sTimeFramesCSL, sFeaturesCSL);
 
 	if (StringSplit(sSymbolsCSL, '|', serieSymbol)!=seriesCnt) {
-		printf("Symbol DIOPORCO!");
+		printf("Invalid Symbol CSL");
 		return -1;
 	}
 	if (StringSplit(sTimeFramesCSL, '|', serieTimeFrame)!=seriesCnt) {
-		printf("TimeFrame DIOPORCO!");
+		printf("Invalid TimeFrame CSL");
+		return -1;
+	}
+	if (StringSplit(sFeaturesCSL, '|', serieFeatList)!=seriesCnt) {
+		printf("Invalid Feature CSL");
 		return -1;
 	}
 
 	for (int s=0; s<seriesCnt; s++) {
+		printf("Symbol/TF [%d] : %s/%s", s, serieSymbol[s], serieTimeFrame[s]);
+		printf("FeatureList [%d] : %s", s, serieFeatList[s]);
 		printf("sampleLen[%d]=%d", s, sampleLen[s]);
 		printf("predictionLen[%d]=%d", s, predictionLen[s]);
 	}
-	//------------------------------------------------------------------------------------
-
-return -1;
 
 	totSampleLen=0;
-	for (int s=0; s<seriesCnt; s++) {
-		totSampleLen+=sampleLen[s];
-	}
+	for (int s=0; s<seriesCnt; s++)	totSampleLen+=sampleLen[s];
 	ArrayResize(vhigh, totSampleLen);
 	int i=0;
+	ENUM_TIMEFRAMES tf;
 	for (int s=0; s<seriesCnt; s++) {
-		int copied=CopyRates(serieSymbol[s], 0, 1, sampleLen[s], tmprates);	printf("copied[%d]=%d", s, copied);
+		tf = getTimeFrameEnum(serieTimeFrame[s]);
+		int copied=CopyRates(serieSymbol[s], tf, 1, sampleLen[s], tmprates);	printf("copied[%d]=%d", s, copied);
 		if (copied!=sampleLen[s]) return -1;
 		i++;
 	}
 
-	return 0;
-
+	return -1;
+	//--------------------------------------------------------------------------------------------------------
+	
 	//-- 1. create Env
 	EnvS = "00000000000000000000000000000000000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
 	int in=32;
@@ -417,4 +421,9 @@ void drawForecast(double H, double L) {
 	ObjectSetInteger(0, name, OBJPROP_HIDDEN, false);
 
 	vRectsCnt++;
+}
+
+ENUM_TIMEFRAMES getTimeFrameEnum(string tfS) {
+	if (tfS=="H1") return PERIOD_H1;
+	return 0;
 }

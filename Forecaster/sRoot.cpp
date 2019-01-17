@@ -191,17 +191,15 @@ void sRoot::kaz() {
 	int tid=GetCurrentThreadId();
 
 	//-- need client config to create a client persistor
-	char* clientXMLfile="Config/30/Client.xml"; getFullPath(clientXMLfile, clientffname);
+	char* clientXMLfile="Config/master/99/Client.xml"; getFullPath(clientXMLfile, clientffname);
 	sCfg* clientCfg; safespawn(clientCfg, newsname("clientConfig"), defaultdbg, clientXMLfile);
 	sLogger* clientPersistor= new sLogger(this, newsname("clientLogger"), defaultdbg, GUIreporter, clientCfg, "/Client/Persistor");
 
-	sCfg* BaseDataSetCfg;
-	safespawn(BaseDataSetCfg, newsname("baseCfg"), defaultdbg, BaseDataSetXMLFile);
+	char featList[XMLKEY_PARM_VAL_MAXLEN]; char* tmpS=&featList[0]; int s=0;
+	clientCfg->setKey("/Client/MetaTrader/Chart0");
+	safecall(clientCfg->currentKey, getParm, &tmpS, "TimeFrame");
+	safecall(clientCfg->currentKey, getParm, &tmpS, "SelectedFeatures");
 
-
-
-	safecall(clientPersistor, saveXMLconfig, simulationId, pid, tid, 0, BaseDataSetCfg);
-	safecall(clientPersistor, commit);
 
 	return;
 /*
@@ -436,26 +434,36 @@ extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char*
 //-- MT4 stuff
 
 #define MT_MAX_SERIES_CNT 12
-void sRoot::getSeriesInfo(int* oSeriesCnt_, int* oSampleLen_, int* oPredictionLen_, char* oSymbolsCSL_, char* oTimeFramesCSL_) {
+void sRoot::getSeriesInfo(int* oSeriesCnt_, int* oSampleLen_, int* oPredictionLen_, char* oSymbolsCSL_, char* oTimeFramesCSL_, char* oFeaturesCSL_) {
 
 	char tmpSymbol[XMLKEY_PARM_VAL_MAXLEN]; char tmpSymbolList[XMLKEY_PARM_VAL_MAXLEN]="";
 	char tmpTF[XMLKEY_PARM_VAL_MAXLEN]; char tmpTFList[XMLKEY_PARM_VAL_MAXLEN]="";
 	char* tmpC;
+
+	int tmpFeaturesCnt; int tmpFeature[MAX_DATA_FEATURES]; char tmpFeatureS[XMLKEY_PARM_VAL_MAXLEN]; char tmpFeaturesList[XMLKEY_PARM_VAL_MAXLEN]="";
+	int* tmpFeatureP=&tmpFeature[0];
 
 	safecall(MT4clientCfg->currentKey, getParm, oSeriesCnt_, "MetaTrader/ChartsCount");
 	for (int s=0; s<(*oSeriesCnt_); s++) {
 		safecall(MT4clientCfg->currentKey, getParm, &oSampleLen_[s], (newsname("MetaTrader/Chart%d/SampleLen", s))->base);
 		safecall(MT4clientCfg->currentKey, getParm, &oPredictionLen_[s], (newsname("MetaTrader/Chart%d/PredictionLen", s))->base);
 		//--
-		
+
 		tmpC=&tmpSymbol[0]; safecall(MT4clientCfg->currentKey, getParm, &tmpC, (newsname("MetaTrader/Chart%d/Symbol", s))->base);
 		tmpC=&tmpTF[0]; safecall(MT4clientCfg->currentKey, getParm, &tmpC, (newsname("MetaTrader/Chart%d/TimeFrame", s))->base);
+		safecall(MT4clientCfg->currentKey, getParm, &tmpFeatureP, (newsname("MetaTrader/Chart%d/SelectedFeatures", s))->base, false, &tmpFeaturesCnt);
 		//-- build symbol and TF CSLs
 		strcat_s(tmpSymbolList, XMLKEY_PARM_VAL_MAXLEN, tmpSymbol); if (s<((*oSeriesCnt_)-1)) strcat_s(tmpSymbolList, XMLKEY_PARM_VAL_MAXLEN, "|");
 		strcat_s(tmpTFList, XMLKEY_PARM_VAL_MAXLEN, tmpTF); if (s<((*oSeriesCnt_)-1)) strcat_s(tmpTFList, XMLKEY_PARM_VAL_MAXLEN, "|");
+		for (int f=0; f<tmpFeaturesCnt; f++) {
+			sprintf_s(tmpFeatureS, XMLKEY_PARM_VAL_MAXLEN, "%d", tmpFeature[f]);
+			strcat_s(tmpFeaturesList, XMLKEY_PARM_VAL_MAXLEN, tmpFeatureS); if (f<(tmpFeaturesCnt-1)) strcat_s(tmpFeaturesList, XMLKEY_PARM_VAL_MAXLEN, ",");
+		}
+		if (s<((*oSeriesCnt_)-1)) strcat_s(tmpFeaturesList, XMLKEY_PARM_VAL_MAXLEN, "|");
 	}
 	strcpy_s(oSymbolsCSL_, XMLKEY_PARM_VAL_MAXLEN, tmpSymbolList);
 	strcpy_s(oTimeFramesCSL_, XMLKEY_PARM_VAL_MAXLEN, tmpTFList);
+	strcpy_s(oFeaturesCSL_, XMLKEY_PARM_VAL_MAXLEN, tmpFeaturesList);
 
 }
 void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
@@ -561,14 +569,13 @@ extern "C" __declspec(dllexport) int _createEnv2(int accountId_, char* clientXML
 	}
 	return 0;
 }
-extern "C" __declspec(dllexport) int _getSeriesInfo(char* iEnvS, int* oSeriesCnt_, int* oSampleLen_, int* oPredictionLen_, char* oSymbolsCSL_, char* oTimeFramesCSL_) {
+extern "C" __declspec(dllexport) int _getSeriesInfo(char* iEnvS, int* oSeriesCnt_, int* oSampleLen_, int* oPredictionLen_, char* oSymbolsCSL_, char* oTimeFramesCSL_, char* oFeaturesCSL_) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
 
 	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p . Calling env->getSeriesInfo()...", env);
 	try {
-		//env->getSeriesInfo(oSeriesCnt_, oSampleLen_, oPredictionLen_, oSymbolsCSL_, oTimeFramesCSL_);
-		sprintf_s(oSymbolsCSL_, 256, "%s", "DIOPORCOOOOOOOO");
+		env->getSeriesInfo(oSeriesCnt_, oSampleLen_, oPredictionLen_, oSymbolsCSL_, oTimeFramesCSL_, oFeaturesCSL_);
 	}
 	catch (std::exception exc) {
 		return -1;

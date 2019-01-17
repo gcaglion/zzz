@@ -9,24 +9,22 @@ C:\Users\gcaglion\AppData\Roaming\MetaQuotes\Terminal\91B85E7C52B57BF365F85A909F
 C:\Users\gcaglion\AppData\Roaming\MetaQuotes\Terminal\91B85E7C52B57BF365F85A909F61CC9C\MQL5\Include\Trade\HistoryOrderInfo.mqh : information: including 'HistoryOrderInfo.mqh'
 C:\Users\gcaglion\AppData\Roaming\MetaQuotes\Terminal\91B85E7C52B57BF365F85A909F61CC9C\MQL5\Include\Trade\PositionInfo.mqh : information: including 'PositionInfo.mqh'
 C:\Users\gcaglion\AppData\Roaming\MetaQuotes\Terminal\91B85E7C52B57BF365F85A909F61CC9C\MQL5\Include\Trade\DealInfo.mqh : information: including 'DealInfo.mqh'
-MyForecaster.mq5(101,18) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(115,33) : warning 180: implicit conversion from 'string' to 'number'
-MyForecaster.mq5(116,36) : warning 180: implicit conversion from 'string' to 'number'
-MyForecaster.mq5(158,17) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(189,8) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(218,58) : warning 60: possible use of uninitialized variable 'tradeSL'
-MyForecaster.mq5(226,12) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(228,16) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(230,30) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(242,27) : warning 180: implicit conversion from 'string' to 'number'
-MyForecaster.mq5(259,18) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(264,18) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(268,19) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(273,19) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(352,9) : warning 60: possible use of uninitialized variable 'scenario'
-MyForecaster.mq5(380,10) : warning 61: declaration of 'comment' hides local declaration at line 375
-MyForecaster.mq5(386,10) : warning 61: declaration of 'comment' hides local declaration at line 375
-MyForecaster.mq5(389,7) : warning 60: possible use of uninitialized variable 'ret'
-MyForecaster.mq5(413,15) : warning 180: implicit conversion from 'string' to 'number'
+MyForecaster.mq5(96,18) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(162,17) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(193,8) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(222,58) : warning 60: possible use of uninitialized variable 'tradeSL'
+MyForecaster.mq5(230,12) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(232,16) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(234,30) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(246,27) : warning 180: implicit conversion from 'string' to 'number'
+MyForecaster.mq5(263,18) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(268,18) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(272,19) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(277,19) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(356,9) : warning 60: possible use of uninitialized variable 'scenario'
+MyForecaster.mq5(384,10) : warning 61: declaration of 'comment' hides local declaration at line 379
+MyForecaster.mq5(390,10) : warning 61: declaration of 'comment' hides local declaration at line 379
+MyForecaster.mq5(393,7) : warning 60: possible use of uninitialized variable 'ret'
+MyForecaster.mq5(417,15) : warning 180: implicit conversion from 'string' to 'number'
  : information: info generating code
-Result: 0 error(s), 19 warning(s), compile time: 1369 msec
+Result: 0 error(s), 17 warning(s), compile time: 1402 msec
