@@ -528,11 +528,23 @@ void sRoot::getForecast2(int seriesCnt_, int* sampleLen, int* predictionLen_, in
 	}
 
 	//-- featureMask_ to selectedFeature[]
-	int selFcnt=0;
-	int selF[5];	
-	if(
+	int selFcnt;
+	int** selF=(int**)malloc(seriesCnt_*sizeof(int*));
+	for (int serie=0; serie<seriesCnt_; serie++) {
+		selFcnt=0;
+		selF[serie]=(int*)malloc(5*sizeof(int));
+		if (featureMask_[serie]>=10000) {/* OPEN is selected*/ selF[serie][selFcnt]=FXOPEN; selFcnt++; featureMask_[serie]-=10000; }
+		if (featureMask_[serie]>=1000) {/* HIGH is selected*/ selF[serie][selFcnt]=FXHIGH; selFcnt++; featureMask_[serie]-=1000; }
+		if (featureMask_[serie]>=100) {/* LOW is selected*/ selF[serie][selFcnt]=FXLOW; selFcnt++; featureMask_[serie]-=100; }
+		if (featureMask_[serie]>=10) {/* CLOSE is selected*/ selF[serie][selFcnt]=FXCLOSE; selFcnt++; featureMask_[serie]-=10; }
+		if (featureMask_[serie]>=1) {/* VOLUME is selected*/ selF[serie][selFcnt]=FXVOLUME; selFcnt++; featureMask_[serie]-=1; }
+		info("serie[%d] featuresCnt=%d", serie, selFcnt);
+		for (int sf=0; sf<selFcnt; sf++) info("serie[%d] feature [%d]=%d", serie, sf, selF[serie][sf]);
+	}
+
+	
 	//-- manually spawn infer dataset from timeseries, sampleLen, predictionLen
-	sDataSet* mtDataSet = new sDataSet(this, newsname("MTdataSet"), defaultdbg, GUIreporter, seriesCnt_, mtTimeSerie, )
+	//sDataSet* mtDataSet = new sDataSet(this, newsname("MTdataSet"), defaultdbg, GUIreporter, seriesCnt_, mtTimeSerie, )
 
 
 
@@ -674,13 +686,13 @@ extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLF
 	return 0;
 
 }
-extern "C" __declspec(dllexport) int _getForecast2(char* iEnvS, int seriesCnt_, int* sampleLen_, int* predictionLen_, int dt_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
+extern "C" __declspec(dllexport) int _getForecast2(char* iEnvS, int seriesCnt_, int* sampleLen_, int* predictionLen_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
 
 	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p . Calling env->getForecast()...", env);	
 	try {
-		env->getForecast2(seriesCnt_, sampleLen_, predictionLen_, dt_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
+		env->getForecast2(seriesCnt_, sampleLen_, predictionLen_, dt_, featureMask_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
 	}
 	catch (std::exception exc) {
 		return -1;
