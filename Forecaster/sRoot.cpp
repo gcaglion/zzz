@@ -434,6 +434,30 @@ extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char*
 }
 
 //-- MT4 stuff
+
+#define MT_MAX_SERIES_CNT 12
+void sRoot::getSeriesInfo(int* oSeriesCnt_, int* oSampleLen_, int* oPredictionLen_, char* oSymbolsCSL_, char* oTimeFramesCSL_) {
+
+	char tmpSymbol[XMLKEY_PARM_VAL_MAXLEN]; char tmpSymbolList[XMLKEY_PARM_VAL_MAXLEN]="";
+	char tmpTF[XMLKEY_PARM_VAL_MAXLEN]; char tmpTFList[XMLKEY_PARM_VAL_MAXLEN]="";
+	char* tmpC;
+
+	safecall(MT4clientCfg->currentKey, getParm, oSeriesCnt_, "MetaTrader/ChartsCount");
+	for (int s=0; s<(*oSeriesCnt_); s++) {
+		safecall(MT4clientCfg->currentKey, getParm, &oSampleLen_[s], (newsname("MetaTrader/Chart%d/SampleLen", s))->base);
+		safecall(MT4clientCfg->currentKey, getParm, &oPredictionLen_[s], (newsname("MetaTrader/Chart%d/PredictionLen", s))->base);
+		//--
+		
+		tmpC=&tmpSymbol[0]; safecall(MT4clientCfg->currentKey, getParm, &tmpC, (newsname("MetaTrader/Chart%d/Symbol", s))->base);
+		tmpC=&tmpTF[0]; safecall(MT4clientCfg->currentKey, getParm, &tmpC, (newsname("MetaTrader/Chart%d/TimeFrame", s))->base);
+		//-- build symbol and TF CSLs
+		strcat_s(tmpSymbolList, XMLKEY_PARM_VAL_MAXLEN, tmpSymbol); if (s<((*oSeriesCnt_)-1)) strcat_s(tmpSymbolList, XMLKEY_PARM_VAL_MAXLEN, "|");
+		strcat_s(tmpTFList, XMLKEY_PARM_VAL_MAXLEN, tmpTF); if (s<((*oSeriesCnt_)-1)) strcat_s(tmpTFList, XMLKEY_PARM_VAL_MAXLEN, "|");
+	}
+	strcpy_s(oSymbolsCSL_, XMLKEY_PARM_VAL_MAXLEN, tmpSymbolList);
+	strcpy_s(oTimeFramesCSL_, XMLKEY_PARM_VAL_MAXLEN, tmpTFList);
+
+}
 void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
 
 	int selF[5];
@@ -495,24 +519,24 @@ void sRoot::setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int 
 	MT4useVolume=useVolume_;
 	MT4dt=dt_;
 	MT4doDump=doDump_;
+
+	//-- client Configurator ----------------------------------------------------------------
 	strcpy_s(MT4clientXMLFile, MAX_PATH, clientXMLFile_);
+	getFullPath(MT4clientXMLFile, clientffname);
+	//-- load sCfg* for client
+	safespawn(MT4clientCfg, newsname("MT4clientCfg"), defaultdbg, clientffname);
+	//-- create client persistor, if needed
+	bool saveClient;
+	safecall(MT4clientCfg, setKey, "/Client");
+	safecall(MT4clientCfg->currentKey, getParm, &saveClient, "saveClient");
+	safespawn(MT4clientLog, newsname("ClientLogger"), defaultdbg, MT4clientCfg, "Persistor");
+	//-----------------------------------------------------------------------------------------
 
 	//-- random sessionId generation
 	srand((unsigned int)time(NULL));
 	MT4sessionId=MyRndInt(1, 1000000); info("MT4sessionId=%d", MT4sessionId);
 }
 void sRoot::MT4createEngine() {
-	//-- 0. set full file name for each of the input files
-	getFullPath(MT4clientXMLFile, clientffname);
-
-	//-- 1. load sCfg* for client
-	safespawn(MT4clientCfg, newsname("MT4clientCfg"), defaultdbg, clientffname);
-
-	//-- 5.1 create client persistor, if needed
-	bool saveClient;
-	safecall(MT4clientCfg, setKey, "/Client");
-	safecall(MT4clientCfg->currentKey, getParm, &saveClient, "saveClient");
-	safespawn(MT4clientLog, newsname("ClientLogger"), defaultdbg, MT4clientCfg, "Persistor");
 
 	//-- check for possible duplicate pid in db (through client persistor), and change it
 	safecall(this, getSafePid, MT4clientLog, &MT4clientPid);
@@ -522,6 +546,35 @@ void sRoot::MT4createEngine() {
 	MT4sampleLen=MT4engine->shape->sampleLen;
 	MT4predictionLen=MT4engine->shape->predictionLen;
 	info("Environment initialized and Engine created for Account Number %d inferring from Engine pid %d using config from %s", MT4accountId, MT4enginePid, MT4clientXMLFile);
+}
+//--
+extern "C" __declspec(dllexport) int _createEnv2(int accountId_, char* clientXMLFile_, int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, char* oEnvS) {
+	static sRoot* root;
+	try {
+		root=new sRoot(nullptr);
+		sprintf_s(oEnvS, 64, "%p", root);
+		root->setMT4env(GetCurrentProcessId(), accountId_, clientXMLFile_, savedEnginePid_, useVolume_, dt_, doDump_);
+		//root->MT4createEngine();
+	}
+	catch (std::exception exc) {
+		terminate(false, "Exception thrown by root. See stack.");
+	}
+	return 0;
+}
+extern "C" __declspec(dllexport) int _getSeriesInfo(char* iEnvS, int* oSeriesCnt_, int* oSampleLen_, int* oPredictionLen_, char* oSymbolsCSL_, char* oTimeFramesCSL_) {
+	sRoot* env;
+	sscanf_s(iEnvS, "%p", &env);
+
+	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p . Calling env->getSeriesInfo()...", env);
+	try {
+		//env->getSeriesInfo(oSeriesCnt_, oSampleLen_, oPredictionLen_, oSymbolsCSL_, oTimeFramesCSL_);
+		sprintf_s(oSymbolsCSL_, 256, "%s", "DIOPORCOOOOOOOO");
+	}
+	catch (std::exception exc) {
+		return -1;
+	}
+
+	return 0;
 }
 //--
 extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLFile_, int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_) {

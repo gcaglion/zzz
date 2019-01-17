@@ -24,7 +24,6 @@ struct sRoot : sCfgObj {
 	EXPORT ~sRoot();
 
 	EXPORT void trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr);
-	EXPORT void  bothClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr);
 	EXPORT void inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr);
 	
 	//-- MT4 stuff
@@ -42,6 +41,7 @@ struct sRoot : sCfgObj {
 	sCfg* MT4clientCfg;
 	sLogger* MT4clientLog;
 
+	EXPORT void getSeriesInfo(int* oSeriesCnt_, int* oSampleLen_, int* oPredictionLen_, char* oSymbolsCSL_, char* oTimeFramesCSL_);
 	EXPORT void getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV);
 	EXPORT void setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int savedEnginePid_, bool useVolume_, int dt_, bool doDump_);
 	EXPORT void saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult);

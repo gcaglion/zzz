@@ -5,7 +5,13 @@
 
 #include <Trade/Trade.mqh>
 
+#define MT_MAX_SERIES_CNT 12
+
 #import "Forecaster.dll"
+//--
+int _createEnv2(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[]);
+int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, int& oSampleLen_[], int& oPredictionLen_[], uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[]);
+//--
 int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[], int &oSampleLen_, int &oPredictionLen_);
 int _getForecast(uchar& iEnv[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 int _saveTradeInfo(uchar& iEnv[], int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult);
@@ -14,7 +20,7 @@ int _destroyEnv(uchar& iEnv[]);
 
 //--- input parameters - Forecaster dll stuff
 input int EnginePid				= 11740;
-input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/MetaTrader/Client.xml";
+input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/master/99/Client.xml";
 input int DataTransformation	= 1;
 input bool UseVolume			= false;
 input int  ValidationShift		= 0;
@@ -51,16 +57,10 @@ double vSampleDataH[], vSampleBaseValH;
 double vSampleDataL[], vSampleBaseValL;
 double vSampleDataC[], vSampleBaseValC;
 double vSampleDataV[], vSampleBaseValV;
-double vFutureDataO[];
-double vFutureDataH[];
-double vFutureDataL[];
-double vFutureDataC[];
 double vPredictedDataO[], vPredictedDataH[], vPredictedDataL[], vPredictedDataC[], vPredictedDataV[];
 double vSampleBW[];
-double vFutureBW[];
 
 //--- bars timestamps
-string sCurrentBarTime; uchar vCurrentBarTime[];
 string vSampleTime[], vValidationTime[];
 string vSampleBaseTime, vValidationBaseTime;
 
@@ -77,6 +77,75 @@ bool   fLog;
 uint t0, t1;						// Time counters. Used to calc elapsed
 
 int OnInit() {
+
+	int seriesCnt;
+	int sampleLen[MT_MAX_SERIES_CNT];	// 
+	int predictionLen[MT_MAX_SERIES_CNT];	// 
+	string serieSymbol[MT_MAX_SERIES_CNT];
+	string serieTimeFrame[MT_MAX_SERIES_CNT];
+	//--
+	int totSampleLen;
+	double vhigh[];
+	//--
+	MqlRates tmprates[];
+
+	/*// ------------- the following  should be filled when calling _createEnv() -----------
+	seriesCnt= 3;
+	sampleLen[0]=5; sampleLen[1]=4; sampleLen[2]=6;
+	predictionLen[0]=1; predictionLen[1]=1; predictionLen[2]=1;
+	serieSymbol[0]="EURUSD"; serieSymbol[1]="GBPNZD"; serieSymbol[2]="USDCHF";
+	serieTimeFrame[0]="H1"; serieTimeFrame[1]="H1"; serieTimeFrame[2]="H1";
+	//--*/
+	EnvS = "00000000000000000000000000000000000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
+	StringToCharArray(ClientXMLFile, vClientXMLFileS);
+	if (_createEnv2(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vUseVolume, vDataTransformation, vDumpData, vEnvS)!=0) {
+		printf("_createEnv2() failed. see Forecaster logs.");
+		return -1;
+	}
+
+	string sSymbolsCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+	string sTimeFramesCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+	uchar uSymbolsCSL[]; StringToCharArray(sSymbolsCSL, uSymbolsCSL);
+	uchar uTimeFramesCSL[]; StringToCharArray(sTimeFramesCSL, uTimeFramesCSL);
+
+	if (_getSeriesInfo(vEnvS, seriesCnt, sampleLen, predictionLen, uSymbolsCSL, uTimeFramesCSL)!=0) {
+		printf("_getSeriesInfo() failed. see Forecaster logs.");
+		return -1;
+	}
+	CharArrayToString(uSymbolsCSL, sSymbolsCSL);
+	CharArrayToString(uTimeFramesCSL, sTimeFramesCSL);
+	printf("seriesCnt=%d ; symbolsCSL=%s ; timeFramesCSL=%s", seriesCnt, sSymbolsCSL, sTimeFramesCSL);
+
+	if (StringSplit(sSymbolsCSL, '|', serieSymbol)!=seriesCnt) {
+		printf("Symbol DIOPORCO!");
+		return -1;
+	}
+	if (StringSplit(sTimeFramesCSL, '|', serieTimeFrame)!=seriesCnt) {
+		printf("TimeFrame DIOPORCO!");
+		return -1;
+	}
+
+	for (int s=0; s<seriesCnt; s++) {
+		printf("sampleLen[%d]=%d", s, sampleLen[s]);
+		printf("predictionLen[%d]=%d", s, predictionLen[s]);
+	}
+	//------------------------------------------------------------------------------------
+
+return -1;
+
+	totSampleLen=0;
+	for (int s=0; s<seriesCnt; s++) {
+		totSampleLen+=sampleLen[s];
+	}
+	ArrayResize(vhigh, totSampleLen);
+	int i=0;
+	for (int s=0; s<seriesCnt; s++) {
+		int copied=CopyRates(serieSymbol[s], 0, 1, sampleLen[s], tmprates);	printf("copied[%d]=%d", s, copied);
+		if (copied!=sampleLen[s]) return -1;
+		i++;
+	}
+
+	return 0;
 
 	//-- 1. create Env
 	EnvS = "00000000000000000000000000000000000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
@@ -102,9 +171,6 @@ int OnInit() {
 	ArrayResize(vSampleDataC, vSampleLen);
 	ArrayResize(vSampleDataV, vSampleLen);
 	ArrayResize(vSampleBW, vSampleLen);
-	ArrayResize(vFutureDataH, vPredictionLen);
-	ArrayResize(vFutureDataL, vPredictionLen);
-	ArrayResize(vFutureBW, vPredictionLen);
 	ArrayResize(vPredictedDataO, vPredictionLen);
 	ArrayResize(vPredictedDataH, vPredictionLen);
 	ArrayResize(vPredictedDataL, vPredictionLen);
@@ -175,7 +241,7 @@ void OnTick() {
 void OnDeinit(const int reason) {
 	CharArrayToString(vEnvS, EnvS);
 	printf("OnDeInit() called. EnvS=%s", EnvS);
-	if (EnvS!=NULL) {
+	if (EnvS!="00000000000000000000000000000000000000000000000000000000000000000") {
 		printf("calling _destroyEnv for vEnvS=%s", EnvS);
 		_destroyEnv(vEnvS);
 	}
