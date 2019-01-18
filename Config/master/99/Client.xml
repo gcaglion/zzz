@@ -23,8 +23,9 @@
 	</Persistor>
 	
 	<MetaTrader>
-		ChartsCount = 3
-		HistoryLen	= 50
+		ChartsCount 	= 3
+		HistoryLen		= 30
+		PredictionLen	= 1
 		<Chart0>
 			Symbol				= EURUSD
 			TimeFrame			= H1

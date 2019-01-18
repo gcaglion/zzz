@@ -293,6 +293,31 @@ void sEngine::train(int testid_, sDataSet* trainDS_) {
 }
 void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_) {
 	safecall(this, process, inferProc, testid_, inferDS_, savedEnginePid_);
+
+	sDataSet* _ds;
+	sTimeSerie* _ts;
+	int layer;
+
+	for (int c=0; c<coresCnt; c++) {
+		layer=core[c]->layout->layer;
+		_ds = core[c]->procArgs->ds;
+
+		for (int t=0; t<_ds->sourceTScnt; t++) {
+			_ts = _ds->sourceTS[t];
+
+			//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
+			safecall(_ds, unbuild, PREDICTED, PREDICTED, TRS);
+			if (_ts->doDump) _ts->dump(PREDICTED, TRS);
+
+			//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
+			safecall(_ts, unscale, PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t], _ds->shape->sampleLen);
+			if (_ts->doDump) _ts->dump(PREDICTED, TR);
+
+			//-- 5. sourceTS->untransform into valP
+			safecall(_ts, untransform, PREDICTED, PREDICTED, _ds->shape->sampleLen, _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t]);
+			if (_ts->doDump) _ts->dump(PREDICTED, BASE);
+		}
+	}
 }
 
 void sEngine::saveMSE() {
@@ -319,18 +344,6 @@ void sEngine::saveRun() {
 
 		for (int t=0; t<_ds->sourceTScnt; t++) {
 			_ts = _ds->sourceTS[t];
-
-			//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
-			safecall(_ds, unbuild, PREDICTED, PREDICTED, TRS);
-			if (_ts->doDump) _ts->dump(PREDICTED, TRS);
-
-			//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
-			safecall(_ts, unscale, PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t], _ds->shape->sampleLen);
-			if (_ts->doDump) _ts->dump(PREDICTED, TR);
-
-			//-- 5. sourceTS->untransform into valP
-			safecall(_ts, untransform, PREDICTED, PREDICTED, _ds->shape->sampleLen, _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t]);
-			if (_ts->doDump) _ts->dump(PREDICTED, BASE);
 
 			//-- persist into runLog
 			runStepsCnt= _ds->samplesCnt + _ds->shape->sampleLen + _ds->shape->predictionLen -1;
