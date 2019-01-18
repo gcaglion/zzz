@@ -528,26 +528,32 @@ void sRoot::getForecast2(int seriesCnt_, int* sampleLen, int* predictionLen_, in
 	}
 
 	//-- featureMask_ to selectedFeature[]
-	int selFcnt;
+	int* selFcnt=(int*)malloc(seriesCnt_*sizeof(int));
 	int** selF=(int**)malloc(seriesCnt_*sizeof(int*));
 	for (int serie=0; serie<seriesCnt_; serie++) {
-		selFcnt=0;
+		selFcnt[serie]=0;
 		selF[serie]=(int*)malloc(5*sizeof(int));
-		if (featureMask_[serie]>=10000) {/* OPEN is selected*/ selF[serie][selFcnt]=FXOPEN; selFcnt++; featureMask_[serie]-=10000; }
-		if (featureMask_[serie]>=1000) {/* HIGH is selected*/ selF[serie][selFcnt]=FXHIGH; selFcnt++; featureMask_[serie]-=1000; }
-		if (featureMask_[serie]>=100) {/* LOW is selected*/ selF[serie][selFcnt]=FXLOW; selFcnt++; featureMask_[serie]-=100; }
-		if (featureMask_[serie]>=10) {/* CLOSE is selected*/ selF[serie][selFcnt]=FXCLOSE; selFcnt++; featureMask_[serie]-=10; }
-		if (featureMask_[serie]>=1) {/* VOLUME is selected*/ selF[serie][selFcnt]=FXVOLUME; selFcnt++; featureMask_[serie]-=1; }
+		if (featureMask_[serie]>=10000) {/* OPEN is selected*/ selF[serie][selFcnt[serie]]=FXOPEN; selFcnt++; featureMask_[serie]-=10000; }
+		if (featureMask_[serie]>=1000) {/* HIGH is selected*/ selF[serie][selFcnt[serie]]=FXHIGH; selFcnt++; featureMask_[serie]-=1000; }
+		if (featureMask_[serie]>=100) {/* LOW is selected*/ selF[serie][selFcnt[serie]]=FXLOW; selFcnt++; featureMask_[serie]-=100; }
+		if (featureMask_[serie]>=10) {/* CLOSE is selected*/ selF[serie][selFcnt[serie]]=FXCLOSE; selFcnt++; featureMask_[serie]-=10; }
+		if (featureMask_[serie]>=1) {/* VOLUME is selected*/ selF[serie][selFcnt[serie]]=FXVOLUME; selFcnt++; featureMask_[serie]-=1; }
 		info("serie[%d] featuresCnt=%d", serie, selFcnt);
-		for (int sf=0; sf<selFcnt; sf++) info("serie[%d] feature [%d]=%d", serie, sf, selF[serie][sf]);
+		for (int sf=0; sf<selFcnt[serie]; sf++) info("serie[%d] feature [%d]=%d", serie, sf, selF[serie][sf]);
 	}
 
 	
 	//-- manually spawn infer dataset from timeseries, sampleLen, predictionLen
-	//sDataSet* mtDataSet = new sDataSet(this, newsname("MTdataSet"), defaultdbg, GUIreporter, seriesCnt_, mtTimeSerie, )
+	sDataSet* mtDataSet = new sDataSet(this, newsname("MTdataSet"), defaultdbg, GUIreporter, seriesCnt_, mtTimeSerie, selFcnt, selF, );
 
-
-
+	//-- cleanup
+	for (int serie=0; serie<seriesCnt_; serie++) {
+		free(oBarT[serie]); free(oBarO[serie]);	free(oBarH[serie]);	free(oBarL[serie]);	free(oBarC[serie]);	free(oBarV[serie]);	
+	}
+	free(oBarT); free(oBarO); free(oBarH); free(oBarL); free(oBarC); free(oBarV);
+	free(oBaseBarT); free(oBaseBarO); free(oBaseBarH); free(oBaseBarL); free(oBaseBarC); free(oBaseBarV);
+	for (int serie=0; serie<seriesCnt_; serie++) free(selF[serie]);
+	free(selF); free(selFcnt);
 }
 void sRoot::getForecast(long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
 
