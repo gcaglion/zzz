@@ -3,10 +3,18 @@
 sDataSet::sDataSet(sObjParmsDef, int sourceTScnt_, sTimeSerie** sourceTS_, int* selectedTSfeaturesCnt_, int** selectedTSfeature_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, bool doDump_, char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 
 	safespawn(shape, newsname("%s_Shape", name->base), defaultdbg, 0, 0, 0);
-
-	sourceTScnt=sourceTScnt_; sourceTS=sourceTS_; selectedTSfeaturesCnt=selectedTSfeaturesCnt_; selectedTSfeature=selectedTSfeature_;
+	sourceTScnt=sourceTScnt_; 
+	mallocs1();
+	for (int t=0; t<sourceTScnt; t++) {
+		sourceTS[t]=sourceTS_[t];
+	}
+	info("Checkpoint 1");
+	selectedTSfeaturesCnt=selectedTSfeaturesCnt_; selectedTSfeature=selectedTSfeature_;
 	shape->sampleLen=sampleLen_; shape->predictionLen=predictionLen_; batchSamplesCnt=batchSamplesCnt_;
-	doDump=doDump_; 
+	for (int t=0; t<sourceTScnt; t++) shape->featuresCnt+=selectedTSfeaturesCnt[t];
+
+
+	doDump=doDump_;
 	//-- 0. default dump path is dbg outfilepath
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	if(dumpPath_!=nullptr) dumpPath=dumpPath_;
@@ -20,6 +28,9 @@ sDataSet::sDataSet(sCfgObjParmsDef, bool inferring_) : sCfgObj(sCfgObjParmsVal) 
 
 	safespawn(shape, newsname("%s_Shape", name->base), defaultdbg, 0, 0, 0);
 
+	safecall(cfgKey, getParm, &shape->sampleLen, "SampleLen");
+	safecall(cfgKey, getParm, &shape->predictionLen, "PredictionLen");
+
 	safecall(cfgKey, getParm, &sourceTScnt, "TimeSeriesCount");
 	mallocs1();
 	for (int t=0; t<sourceTScnt; t++) {
@@ -29,8 +40,6 @@ sDataSet::sDataSet(sCfgObjParmsDef, bool inferring_) : sCfgObj(sCfgObjParmsVal) 
 		shape->featuresCnt+=selectedTSfeaturesCnt[t];
 	}
 
-	safecall(cfgKey, getParm, &shape->sampleLen, "SampleLen");
-	safecall(cfgKey, getParm, &shape->predictionLen, "PredictionLen");
 	safecall(cfgKey, getParm, &batchSamplesCnt, "BatchSamplesCount");
 	safecall(cfgKey, getParm, &doDump, "Dump");
 	//-- 0. default dump path is dbg outfilepath

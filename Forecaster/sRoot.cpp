@@ -533,18 +533,18 @@ void sRoot::getForecast2(int seriesCnt_, int* sampleLen, int* predictionLen_, in
 	for (int serie=0; serie<seriesCnt_; serie++) {
 		selFcnt[serie]=0;
 		selF[serie]=(int*)malloc(5*sizeof(int));
-		if (featureMask_[serie]>=10000) {/* OPEN is selected*/ selF[serie][selFcnt[serie]]=FXOPEN; selFcnt++; featureMask_[serie]-=10000; }
-		if (featureMask_[serie]>=1000) {/* HIGH is selected*/ selF[serie][selFcnt[serie]]=FXHIGH; selFcnt++; featureMask_[serie]-=1000; }
-		if (featureMask_[serie]>=100) {/* LOW is selected*/ selF[serie][selFcnt[serie]]=FXLOW; selFcnt++; featureMask_[serie]-=100; }
-		if (featureMask_[serie]>=10) {/* CLOSE is selected*/ selF[serie][selFcnt[serie]]=FXCLOSE; selFcnt++; featureMask_[serie]-=10; }
-		if (featureMask_[serie]>=1) {/* VOLUME is selected*/ selF[serie][selFcnt[serie]]=FXVOLUME; selFcnt++; featureMask_[serie]-=1; }
-		info("serie[%d] featuresCnt=%d", serie, selFcnt);
+		if (featureMask_[serie]>=10000) {/* OPEN is selected*/ selF[serie][selFcnt[serie]]=FXOPEN; selFcnt[serie]++; featureMask_[serie]-=10000; }
+		if (featureMask_[serie]>=1000) {/* HIGH is selected*/ selF[serie][selFcnt[serie]]=FXHIGH; selFcnt[serie]++; featureMask_[serie]-=1000; }
+		if (featureMask_[serie]>=100) {/* LOW is selected*/ selF[serie][selFcnt[serie]]=FXLOW; selFcnt[serie]++; featureMask_[serie]-=100; }
+		if (featureMask_[serie]>=10) {/* CLOSE is selected*/ selF[serie][selFcnt[serie]]=FXCLOSE; selFcnt[serie]++; featureMask_[serie]-=10; }
+		if (featureMask_[serie]>=1) {/* VOLUME is selected*/ selF[serie][selFcnt[serie]]=FXVOLUME; selFcnt[serie]++; featureMask_[serie]-=1; }
+		info("serie[%d] featuresCnt=%d", serie, selFcnt[serie]);
 		for (int sf=0; sf<selFcnt[serie]; sf++) info("serie[%d] feature [%d]=%d", serie, sf, selF[serie][sf]);
 	}
-
-	
+		
 	//-- manually spawn infer dataset from timeseries, sampleLen, predictionLen
-	sDataSet* mtDataSet = new sDataSet(this, newsname("MTdataSet"), defaultdbg, GUIreporter, seriesCnt_, mtTimeSerie, selFcnt, selF, );
+	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, seriesCnt_, mtTimeSerie, selFcnt, selF, 1, 1, 1, MT4doDump);
+	mtDataSet->build(ACTUAL, BASE);
 
 	//-- cleanup
 	for (int serie=0; serie<seriesCnt_; serie++) {
