@@ -10,8 +10,8 @@
 #import "Forecaster.dll"
 //--
 int _createEnv2(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[]);
-int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, int& oSampleLen_[], int& oPredictionLen_[], uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[]);
-int _getForecast2(uchar& iEnv[], int seriesCnt_, int& sampleLen[], int &predictionLen_[], int dt_, int& featMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
+int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, int& oHistoryLen_, uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[]);
+int _getForecast2(uchar& iEnv[], int seriesCnt_, int historyLen_, int dt_, int& featMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 //--
 int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[], int &oSampleLen_, int &oPredictionLen_);
 int _getForecast(uchar& iEnv[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
@@ -80,14 +80,12 @@ uint t0, t1;						// Time counters. Used to calc elapsed
 int OnInit() {
 
 	int seriesCnt;
-	int sampleLen[MT_MAX_SERIES_CNT];	// 
-	int predictionLen[MT_MAX_SERIES_CNT];	// 
+	int historyLen;
 	string serieSymbol[MT_MAX_SERIES_CNT];
 	string serieTimeFrame[MT_MAX_SERIES_CNT];
 	string serieFeatList[MT_MAX_SERIES_CNT];
 	int serieFeatMask[MT_MAX_SERIES_CNT];
 	//--
-	int totSampleLen;
 	double vopen[], vhigh[], vlow[], vclose[], vvolume[];
 	int vtime[]; string vtimeS[];
 	double vopenB[], vhighB[], vlowB[], vcloseB[], vvolumeB[];
@@ -112,14 +110,14 @@ int OnInit() {
 	uchar uTimeFramesCSL[]; StringToCharArray(sTimeFramesCSL, uTimeFramesCSL);
 	uchar uFeaturesCSL[]; StringToCharArray(sFeaturesCSL, uFeaturesCSL);
 
-	if (_getSeriesInfo(vEnvS, seriesCnt, sampleLen, predictionLen, uSymbolsCSL, uTimeFramesCSL, uFeaturesCSL)!=0) {
+	if (_getSeriesInfo(vEnvS, seriesCnt, historyLen, uSymbolsCSL, uTimeFramesCSL, uFeaturesCSL)!=0) {
 		printf("_getSeriesInfo() failed. see Forecaster logs.");
 		return -1;
 	}
 	sSymbolsCSL=CharArrayToString(uSymbolsCSL);
 	sTimeFramesCSL=CharArrayToString(uTimeFramesCSL);
 	sFeaturesCSL=CharArrayToString(uFeaturesCSL);
-	printf("seriesCnt=%d ; symbolsCSL=%s ; timeFramesCSL=%s, featuresCSL=%s", seriesCnt, sSymbolsCSL, sTimeFramesCSL, sFeaturesCSL);
+	printf("seriesCnt=%d ; historyLen=%d ; symbolsCSL=%s ; timeFramesCSL=%s, featuresCSL=%s", seriesCnt, historyLen, sSymbolsCSL, sTimeFramesCSL, sFeaturesCSL);
 
 	if (StringSplit(sSymbolsCSL, '|', serieSymbol)!=seriesCnt) {
 		printf("Invalid Symbol CSL");
@@ -138,8 +136,6 @@ int OnInit() {
 		printf("Symbol/TF [%d] : %s/%s", s, serieSymbol[s], serieTimeFrame[s]);
 		serieFeatMask[s]=CSL2Mask(serieFeatList[s]);
 		printf("FeatureList [%d] : %s (%d)", s, serieFeatList[s], serieFeatMask[s]);
-		printf("sampleLen[%d]=%d", s, sampleLen[s]);
-		printf("predictionLen[%d]=%d", s, predictionLen[s]);
 	}
 
 	ArrayResize(vtimeB, seriesCnt);
@@ -150,29 +146,27 @@ int OnInit() {
 	ArrayResize(vcloseB, seriesCnt);
 	ArrayResize(vvolumeB, seriesCnt);
 	//--
-	totSampleLen=0;
-	for (int s=0; s<seriesCnt; s++) totSampleLen+=sampleLen[s];	
-	ArrayResize(vtime, totSampleLen);
-	ArrayResize(vtimeS, totSampleLen);
-	ArrayResize(vopen, totSampleLen);
-	ArrayResize(vhigh, totSampleLen);
-	ArrayResize(vlow, totSampleLen);
-	ArrayResize(vclose, totSampleLen);
-	ArrayResize(vvolume, totSampleLen);
+	ArrayResize(vtime, historyLen*seriesCnt);
+	ArrayResize(vtimeS, historyLen*seriesCnt);
+	ArrayResize(vopen, historyLen*seriesCnt);
+	ArrayResize(vhigh, historyLen*seriesCnt);
+	ArrayResize(vlow, historyLen*seriesCnt);
+	ArrayResize(vclose, historyLen*seriesCnt);
+	ArrayResize(vvolume, historyLen*seriesCnt);
 	//--
-	ArrayResize(vopenF, totSampleLen);
-	ArrayResize(vhighF, totSampleLen);
-	ArrayResize(vlowF, totSampleLen);
-	ArrayResize(vcloseF, totSampleLen);
-	ArrayResize(vvolumeF, totSampleLen);
+	ArrayResize(vopenF, historyLen*seriesCnt);
+	ArrayResize(vhighF, historyLen*seriesCnt);
+	ArrayResize(vlowF, historyLen*seriesCnt);
+	ArrayResize(vcloseF, historyLen*seriesCnt);
+	ArrayResize(vvolumeF, historyLen*seriesCnt);
 
 	//========== LOAD BARS ==============   THIS GOES INTO OnTick() =========================
 	int i=0;
 	ENUM_TIMEFRAMES tf;
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
-		int copied=CopyRates(serieSymbol[s], tf, 1, sampleLen[s]+2, serierates);	printf("copied[%d]=%d", s, copied);
-		if (copied!=(sampleLen[s]+2)) return -1;
+		int copied=CopyRates(serieSymbol[s], tf, 1, historyLen+2, serierates);	printf("copied[%d]=%d", s, copied);
+		if (copied!=(historyLen+2)) return -1;
 		//-- base bar
 		vtimeB[s]=serierates[1].time+TimeGMTOffset();
 		StringConcatenate(vtimeSB[s], TimeToString(vtimeB[s], TIME_DATE), ".", TimeToString(vtimeB[s], TIME_MINUTES));
@@ -182,8 +176,8 @@ int OnInit() {
 		vcloseB[s]=serierates[1].close;
 		vvolumeB[s]=serierates[1].real_volume;
 		printf("serie=%d ; time=%s ; OHLCV=%f|%f|%f|%f|%f", s, vtimeSB[s], vopenB[s], vhighB[s], vlowB[s], vcloseB[s], vvolumeB[s]);
-		//-- [sampleLen] bars
-		for (int bar=2; bar<(sampleLen[s]+2); bar++) {
+		//-- [historyLen] bars
+		for (int bar=2; bar<(historyLen+2); bar++) {
 			vtime[i]=serierates[bar].time+TimeGMTOffset();
 			StringConcatenate(vtimeS[i], TimeToString(vtime[i], TIME_DATE), ".", TimeToString(vtime[i], TIME_MINUTES));
 			vopen[i]=serierates[bar].open;
@@ -197,7 +191,7 @@ int OnInit() {
 	}
 	//--
 	//------ GET FORECAST ---------
-	if (_getForecast2(vEnvS, seriesCnt, sampleLen, predictionLen, vDataTransformation, serieFeatMask, vtime, vopen, vhigh, vlow, vclose, vvolume, vtimeB, vopenB, vhighB, vlowB, vcloseB, vvolumeB, vopenF, vhighF, vlowF, vcloseF, vvolumeF)!=0) {
+	if (_getForecast2(vEnvS, seriesCnt, historyLen, vDataTransformation, serieFeatMask, vtime, vopen, vhigh, vlow, vclose, vvolume, vtimeB, vopenB, vhighB, vlowB, vcloseB, vvolumeB, vopenF, vhighF, vlowF, vcloseF, vvolumeF)!=0) {
 		printf("_getForecast() FAILURE! Exiting...");
 		return -1;
 	};

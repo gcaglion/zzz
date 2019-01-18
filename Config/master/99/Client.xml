@@ -24,25 +24,20 @@
 	
 	<MetaTrader>
 		ChartsCount = 3
+		HistoryLen	= 50
 		<Chart0>
 			Symbol				= EURUSD
 			TimeFrame			= H1
-			SampleLen			= 50
-			PredictionLen		= 1
 			SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 		</Chart0>
 		<Chart1>
 			Symbol				= GBPNZD
 			TimeFrame			= H1
-			SampleLen			= 100
-			PredictionLen		= 1
 			SelectedFeatures	= FXHIGH, FXLOW
 		</Chart1>
 		<Chart2>
 			Symbol				= US500-MAR19
 			TimeFrame			= H1
-			SampleLen			= 30
-			PredictionLen		= 1
 			SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 		</Chart2>
 	</MetaTrader>

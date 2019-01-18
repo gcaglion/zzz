@@ -9,25 +9,25 @@ C:\Users\gcaglion\AppData\Roaming\MetaQuotes\Terminal\91B85E7C52B57BF365F85A909F
 C:\Users\gcaglion\AppData\Roaming\MetaQuotes\Terminal\91B85E7C52B57BF365F85A909F61CC9C\MQL5\Include\Trade\HistoryOrderInfo.mqh : information: including 'HistoryOrderInfo.mqh'
 C:\Users\gcaglion\AppData\Roaming\MetaQuotes\Terminal\91B85E7C52B57BF365F85A909F61CC9C\MQL5\Include\Trade\PositionInfo.mqh : information: including 'PositionInfo.mqh'
 C:\Users\gcaglion\AppData\Roaming\MetaQuotes\Terminal\91B85E7C52B57BF365F85A909F61CC9C\MQL5\Include\Trade\DealInfo.mqh : information: including 'DealInfo.mqh'
-MyForecaster.mq5(101,18) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(177,12) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(183,14) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(187,12) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(193,14) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(214,8) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(243,58) : warning 60: possible use of uninitialized variable 'tradeSL'
-MyForecaster.mq5(251,12) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(253,16) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(255,30) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(267,27) : warning 180: implicit conversion from 'string' to 'number'
-MyForecaster.mq5(284,18) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(289,18) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(293,19) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(298,19) : warning 43: possible loss of data due to type conversion
-MyForecaster.mq5(377,9) : warning 60: possible use of uninitialized variable 'scenario'
-MyForecaster.mq5(405,10) : warning 61: declaration of 'comment' hides local declaration at line 400
-MyForecaster.mq5(411,10) : warning 61: declaration of 'comment' hides local declaration at line 400
-MyForecaster.mq5(414,7) : warning 60: possible use of uninitialized variable 'ret'
-MyForecaster.mq5(438,15) : warning 180: implicit conversion from 'string' to 'number'
+MyForecaster.mq5(99,18) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(171,12) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(177,14) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(181,12) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(187,14) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(208,8) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(237,58) : warning 60: possible use of uninitialized variable 'tradeSL'
+MyForecaster.mq5(245,12) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(247,16) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(249,30) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(261,27) : warning 180: implicit conversion from 'string' to 'number'
+MyForecaster.mq5(278,18) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(283,18) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(287,19) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(292,19) : warning 43: possible loss of data due to type conversion
+MyForecaster.mq5(371,9) : warning 60: possible use of uninitialized variable 'scenario'
+MyForecaster.mq5(399,10) : warning 61: declaration of 'comment' hides local declaration at line 394
+MyForecaster.mq5(405,10) : warning 61: declaration of 'comment' hides local declaration at line 394
+MyForecaster.mq5(408,7) : warning 60: possible use of uninitialized variable 'ret'
+MyForecaster.mq5(432,15) : warning 180: implicit conversion from 'string' to 'number'
  : information: info generating code
-Result: 0 error(s), 20 warning(s), compile time: 1870 msec
+Result: 0 error(s), 20 warning(s), compile time: 1922 msec

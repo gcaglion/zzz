@@ -8,7 +8,6 @@ sDataSet::sDataSet(sObjParmsDef, int sourceTScnt_, sTimeSerie** sourceTS_, int* 
 	for (int t=0; t<sourceTScnt; t++) {
 		sourceTS[t]=sourceTS_[t];
 	}
-	info("Checkpoint 1");
 	selectedTSfeaturesCnt=selectedTSfeaturesCnt_; selectedTSfeature=selectedTSfeature_;
 	shape->sampleLen=sampleLen_; shape->predictionLen=predictionLen_; batchSamplesCnt=batchSamplesCnt_;
 	for (int t=0; t<sourceTScnt; t++) shape->featuresCnt+=selectedTSfeaturesCnt[t];

@@ -434,7 +434,7 @@ extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char*
 //-- MT4 stuff
 
 #define MT_MAX_SERIES_CNT 12
-void sRoot::getSeriesInfo(int* oSeriesCnt_, int* oSampleLen_, int* oPredictionLen_, char* oSymbolsCSL_, char* oTimeFramesCSL_, char* oFeaturesCSL_) {
+void sRoot::getSeriesInfo(int* oSeriesCnt_, int* oHistoryLen_, char* oSymbolsCSL_, char* oTimeFramesCSL_, char* oFeaturesCSL_) {
 
 	char tmpSymbol[XMLKEY_PARM_VAL_MAXLEN]; char tmpSymbolList[XMLKEY_PARM_VAL_MAXLEN]="";
 	char tmpTF[XMLKEY_PARM_VAL_MAXLEN]; char tmpTFList[XMLKEY_PARM_VAL_MAXLEN]="";
@@ -444,11 +444,8 @@ void sRoot::getSeriesInfo(int* oSeriesCnt_, int* oSampleLen_, int* oPredictionLe
 	int* tmpFeatureP=&tmpFeature[0];
 
 	safecall(MT4clientCfg->currentKey, getParm, oSeriesCnt_, "MetaTrader/ChartsCount");
+	safecall(MT4clientCfg->currentKey, getParm, oHistoryLen_, "MetaTrader/HistoryLen");
 	for (int s=0; s<(*oSeriesCnt_); s++) {
-		safecall(MT4clientCfg->currentKey, getParm, &oSampleLen_[s], (newsname("MetaTrader/Chart%d/SampleLen", s))->base);
-		safecall(MT4clientCfg->currentKey, getParm, &oPredictionLen_[s], (newsname("MetaTrader/Chart%d/PredictionLen", s))->base);
-		//--
-
 		tmpC=&tmpSymbol[0]; safecall(MT4clientCfg->currentKey, getParm, &tmpC, (newsname("MetaTrader/Chart%d/Symbol", s))->base);
 		tmpC=&tmpTF[0]; safecall(MT4clientCfg->currentKey, getParm, &tmpC, (newsname("MetaTrader/Chart%d/TimeFrame", s))->base);
 		safecall(MT4clientCfg->currentKey, getParm, &tmpFeatureP, (newsname("MetaTrader/Chart%d/SelectedFeatures", s))->base, false, &tmpFeaturesCnt);
@@ -467,7 +464,7 @@ void sRoot::getSeriesInfo(int* oSeriesCnt_, int* oSampleLen_, int* oPredictionLe
 
 }
 
-void sRoot::getForecast2(int seriesCnt_, int* sampleLen, int* predictionLen_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
+void sRoot::getForecast2(int seriesCnt_, int historyLen_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
 
 	//-- decompose flat arrays (SERIE-BAR ordered) in 2d-arrays
 	long*   oBaseBarT=(long*)malloc(seriesCnt_*sizeof(long));
@@ -496,13 +493,13 @@ void sRoot::getForecast2(int seriesCnt_, int* sampleLen, int* predictionLen_, in
 
 		info("oBaseBar: %s %f,%f,%f,%f,%f", bartime, oBaseBarO[serie], oBaseBarH[serie], oBaseBarL[serie], oBaseBarC[serie], oBaseBarV[serie]);
 		//--
-		oBarT[serie]=(long*)malloc(sampleLen[serie]*sizeof(long)); 
-		oBarO[serie]=(double*)malloc(sampleLen[serie]*sizeof(double));
-		oBarH[serie]=(double*)malloc(sampleLen[serie]*sizeof(double));
-		oBarL[serie]=(double*)malloc(sampleLen[serie]*sizeof(double));
-		oBarC[serie]=(double*)malloc(sampleLen[serie]*sizeof(double));
-		oBarV[serie]=(double*)malloc(sampleLen[serie]*sizeof(double));
-		for (int bar=0; bar<sampleLen[serie]; bar++) {
+		oBarT[serie]=(long*)malloc(historyLen_*sizeof(long)); 
+		oBarO[serie]=(double*)malloc(historyLen_*sizeof(double));
+		oBarH[serie]=(double*)malloc(historyLen_*sizeof(double));
+		oBarL[serie]=(double*)malloc(historyLen_*sizeof(double));
+		oBarC[serie]=(double*)malloc(historyLen_*sizeof(double));
+		oBarV[serie]=(double*)malloc(historyLen_*sizeof(double));
+		for (int bar=0; bar<historyLen_; bar++) {
 			oBarT[serie][bar]=iBarT[i]; MT4time2str(oBarT[serie][bar], DATE_FORMAT_LEN, bartime);
 			oBarO[serie][bar]=iBarO[i];
 			oBarH[serie][bar]=iBarH[i];
@@ -520,9 +517,9 @@ void sRoot::getForecast2(int seriesCnt_, int* sampleLen, int* predictionLen_, in
 	sTimeSerie** mtTimeSerie = (sTimeSerie**)malloc(seriesCnt_*sizeof(sTimeSerie*));
 	char tmpDate0[DATE_FORMAT_LEN];
 	for (int serie=0; serie<seriesCnt_; serie++) {
-		safespawn(mtDataSrc[serie], newsname("MT4DataSource"), defaultdbg, sampleLen[serie], oBarT[serie], oBarO[serie], oBarH[serie], oBarL[serie], oBarC[serie], oBarV[serie], oBaseBarT[serie], oBaseBarO[serie], oBaseBarH[serie], oBaseBarL[serie], oBaseBarC[serie], oBaseBarV[serie]);
-		MT4time2str(oBarT[serie][sampleLen[serie]-1], DATE_FORMAT_LEN, tmpDate0); info("tmpDate0=%s", tmpDate0);
-		safespawn(mtTimeSerie[serie], newsname("MTtimeSerie%d", serie), defaultdbg, mtDataSrc[serie], tmpDate0, sampleLen[serie], dt_);
+		safespawn(mtDataSrc[serie], newsname("MT4DataSource"), defaultdbg, historyLen_, oBarT[serie], oBarO[serie], oBarH[serie], oBarL[serie], oBarC[serie], oBarV[serie], oBaseBarT[serie], oBaseBarO[serie], oBaseBarH[serie], oBaseBarL[serie], oBaseBarC[serie], oBaseBarV[serie]);
+		MT4time2str(oBarT[serie][historyLen_-1], DATE_FORMAT_LEN, tmpDate0); info("tmpDate0=%s", tmpDate0);
+		safespawn(mtTimeSerie[serie], newsname("MTtimeSerie%d", serie), defaultdbg, mtDataSrc[serie], tmpDate0, historyLen_, dt_);
 		safecall(mtTimeSerie[serie], load, ACTUAL, BASE);
 		mtTimeSerie[serie]->dump(ACTUAL, BASE);
 	}
@@ -543,7 +540,7 @@ void sRoot::getForecast2(int seriesCnt_, int* sampleLen, int* predictionLen_, in
 	}
 		
 	//-- manually spawn infer dataset from timeseries, sampleLen, predictionLen
-	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, seriesCnt_, mtTimeSerie, selFcnt, selF, 1, 1, 1, MT4doDump);
+	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, seriesCnt_, mtTimeSerie, selFcnt, selF, historyLen_, 1, 1, MT4doDump);
 	mtDataSet->build(ACTUAL, BASE);
 
 	//-- cleanup
@@ -658,13 +655,13 @@ extern "C" __declspec(dllexport) int _createEnv2(int accountId_, char* clientXML
 	}
 	return 0;
 }
-extern "C" __declspec(dllexport) int _getSeriesInfo(char* iEnvS, int* oSeriesCnt_, int* oSampleLen_, int* oPredictionLen_, char* oSymbolsCSL_, char* oTimeFramesCSL_, char* oFeaturesCSL_) {
+extern "C" __declspec(dllexport) int _getSeriesInfo(char* iEnvS, int* oSeriesCnt_, int* oHistoryLen_, char* oSymbolsCSL_, char* oTimeFramesCSL_, char* oFeaturesCSL_) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
 
 	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p . Calling env->getSeriesInfo()...", env);
 	try {
-		env->getSeriesInfo(oSeriesCnt_, oSampleLen_, oPredictionLen_, oSymbolsCSL_, oTimeFramesCSL_, oFeaturesCSL_);
+		env->getSeriesInfo(oSeriesCnt_, oHistoryLen_, oSymbolsCSL_, oTimeFramesCSL_, oFeaturesCSL_);
 	}
 	catch (std::exception exc) {
 		return -1;
@@ -692,13 +689,13 @@ extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLF
 	return 0;
 
 }
-extern "C" __declspec(dllexport) int _getForecast2(char* iEnvS, int seriesCnt_, int* sampleLen_, int* predictionLen_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
+extern "C" __declspec(dllexport) int _getForecast2(char* iEnvS, int seriesCnt_, int historyLen_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
 
 	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p . Calling env->getForecast()...", env);	
 	try {
-		env->getForecast2(seriesCnt_, sampleLen_, predictionLen_, dt_, featureMask_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
+		env->getForecast2(seriesCnt_, historyLen_, dt_, featureMask_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
 	}
 	catch (std::exception exc) {
 		return -1;
