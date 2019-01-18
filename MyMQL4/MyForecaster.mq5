@@ -20,7 +20,7 @@ int _destroyEnv(uchar& iEnv[]);
 #import
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 11740;
+input int EnginePid				= 10232;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/master/99/Client.xml";
 input int DataTransformation	= 1;
 input bool UseVolume			= false;
@@ -96,6 +96,7 @@ int OnInit() {
 
 	EnvS = "00000000000000000000000000000000000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
 	StringToCharArray(ClientXMLFile, vClientXMLFileS);
+	printf("Creating Environment from saved engine (pid=%d) ...", vEnginePid);
 	if (_createEnv2(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vUseVolume, vDataTransformation, vDumpData, vEnvS)!=0) {
 		printf("_createEnv2() failed. see Forecaster logs.");
 		return -1;
@@ -110,6 +111,7 @@ int OnInit() {
 	uchar uTimeFramesCSL[]; StringToCharArray(sTimeFramesCSL, uTimeFramesCSL);
 	uchar uFeaturesCSL[]; StringToCharArray(sFeaturesCSL, uFeaturesCSL);
 
+	printf("Getting TimeSeries Info...");
 	if (_getSeriesInfo(vEnvS, seriesCnt, historyLen, uSymbolsCSL, uTimeFramesCSL, uFeaturesCSL)!=0) {
 		printf("_getSeriesInfo() failed. see Forecaster logs.");
 		return -1;
@@ -175,7 +177,7 @@ int OnInit() {
 		vlowB[s]=serierates[1].low;
 		vcloseB[s]=serierates[1].close;
 		vvolumeB[s]=serierates[1].real_volume;
-		printf("serie=%d ; time=%s ; OHLCV=%f|%f|%f|%f|%f", s, vtimeSB[s], vopenB[s], vhighB[s], vlowB[s], vcloseB[s], vvolumeB[s]);
+		//printf("serie=%d ; time=%s ; OHLCV=%f|%f|%f|%f|%f", s, vtimeSB[s], vopenB[s], vhighB[s], vlowB[s], vcloseB[s], vvolumeB[s]);
 		//-- [historyLen] bars
 		for (int bar=2; bar<(historyLen+2); bar++) {
 			vtime[i]=serierates[bar].time+TimeGMTOffset();
@@ -185,12 +187,13 @@ int OnInit() {
 			vlow[i]=serierates[bar].low;
 			vclose[i]=serierates[bar].close;
 			vvolume[i]=serierates[bar].real_volume;
-			printf("time[%d]=%s ; OHLCV[%d]=%f|%f|%f|%f|%f", i, vtimeS[i], i, vopen[i], vhigh[i], vlow[i], vclose[i], vvolume[i]);
+			//printf("time[%d]=%s ; OHLCV[%d]=%f|%f|%f|%f|%f", i, vtimeS[i], i, vopen[i], vhigh[i], vlow[i], vclose[i], vvolume[i]);
 			i++;
 		}		
 	}
 	//--
 	//------ GET FORECAST ---------
+	printf("Getting Forecast...");
 	if (_getForecast2(vEnvS, seriesCnt, historyLen, vDataTransformation, serieFeatMask, vtime, vopen, vhigh, vlow, vclose, vvolume, vtimeB, vopenB, vhighB, vlowB, vcloseB, vvolumeB, vopenF, vhighF, vlowF, vcloseF, vvolumeF)!=0) {
 		printf("_getForecast() FAILURE! Exiting...");
 		return -1;

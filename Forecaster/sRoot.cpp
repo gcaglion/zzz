@@ -543,6 +543,11 @@ void sRoot::getForecast2(int seriesCnt_, int historyLen_, int dt_, int* featureM
 	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, seriesCnt_, mtTimeSerie, selFcnt, selF, historyLen_, 1, 1, MT4doDump);
 	mtDataSet->build(ACTUAL, BASE);
 
+
+	//-- do inference (also populates datasets)
+//	safecall(MT4engine, infer, MT4accountId, mtDataSet, MT4enginePid);
+
+
 	//-- cleanup
 	for (int serie=0; serie<seriesCnt_; serie++) {
 		free(oBarT[serie]); free(oBarO[serie]);	free(oBarH[serie]);	free(oBarL[serie]);	free(oBarC[serie]);	free(oBarV[serie]);	
@@ -648,7 +653,7 @@ extern "C" __declspec(dllexport) int _createEnv2(int accountId_, char* clientXML
 		root=new sRoot(nullptr);
 		sprintf_s(oEnvS, 64, "%p", root);
 		root->setMT4env(GetCurrentProcessId(), accountId_, clientXMLFile_, savedEnginePid_, useVolume_, dt_, doDump_);
-		//root->MT4createEngine();
+		root->MT4createEngine();
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");
@@ -670,25 +675,6 @@ extern "C" __declspec(dllexport) int _getSeriesInfo(char* iEnvS, int* oSeriesCnt
 	return 0;
 }
 //--
-extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLFile_, int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_) {
-
-	static sRoot* root;
-	try {
-		root=new sRoot(nullptr);
-		sprintf_s(oEnvS, 64, "%p", root);
-		root->setMT4env(GetCurrentProcessId(), accountId_, clientXMLFile_, savedEnginePid_, useVolume_, dt_, doDump_);
-		root->MT4createEngine();
-		(*oSampleLen_)=root->MT4engine->shape->sampleLen;
-		(*oPredictionLen_)=root->MT4engine->shape->predictionLen;
-	}
-	catch (std::exception exc) {
-		terminate(false, "Exception thrown by root. See stack.");
-	}
-
-
-	return 0;
-
-}
 extern "C" __declspec(dllexport) int _getForecast2(char* iEnvS, int seriesCnt_, int historyLen_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
