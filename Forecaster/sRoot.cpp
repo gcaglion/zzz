@@ -583,11 +583,11 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	//-- forecast is now in the last <predictionLen> steps of mtTimeSerie
 	for (int serie=0; serie<seriesCnt_; serie++) {
 		for (int bar=0; bar<MT4engine->shape->predictionLen; bar++) {
-			oForecastO[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][bar*FXDATA_FEATURESCNT+FXOPEN];
-			oForecastH[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][bar*FXDATA_FEATURESCNT+FXHIGH];
-			oForecastL[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][bar*FXDATA_FEATURESCNT+FXLOW];
-			oForecastC[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][bar*FXDATA_FEATURESCNT+FXCLOSE];
-			oForecastV[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][bar*FXDATA_FEATURESCNT+FXVOLUME];
+			oForecastO[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->shape->sampleLen+bar)*FXDATA_FEATURESCNT+FXOPEN];
+			oForecastH[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->shape->sampleLen+bar)*FXDATA_FEATURESCNT+FXHIGH];
+			oForecastL[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->shape->sampleLen+bar)*FXDATA_FEATURESCNT+FXLOW];
+			oForecastC[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->shape->sampleLen+bar)*FXDATA_FEATURESCNT+FXCLOSE];
+			oForecastV[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->shape->sampleLen+bar)*FXDATA_FEATURESCNT+FXVOLUME];
 			info("OHLCV Forecast, serie %d , bar %d: %f|%f|%f|%f|%f", serie, bar, oForecastO[serie*MT4engine->shape->predictionLen+bar], oForecastH[serie*MT4engine->shape->predictionLen+bar], oForecastL[serie*MT4engine->shape->predictionLen+bar], oForecastC[serie*MT4engine->shape->predictionLen+bar], oForecastV[serie*MT4engine->shape->predictionLen+bar]);
 		}
 	}

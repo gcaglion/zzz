@@ -23,7 +23,7 @@
 	</Persistor>
 	
 	<MetaTrader>
-		ChartsCount 	= 1
+		ChartsCount 	= 3
 		<Chart0>
 			Symbol				= EURUSD
 			TimeFrame			= H1

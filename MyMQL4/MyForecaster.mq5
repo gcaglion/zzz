@@ -18,7 +18,7 @@ int _destroyEnv(uchar& iEnv[]);
 #import
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 12792;
+input int EnginePid				= 8252;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/master/99/Client.xml";
 input int DataTransformation	= 1;
 input bool UseVolume			= false;
@@ -207,9 +207,10 @@ int OnInit() {
 		printf("_getForecast() FAILURE! Exiting...");
 		return -1;
 	};
+	//------ PRINT FORECAST FOR ALL SERIES ---------
 	for (int s=0; s<seriesCnt; s++) {
 		for (int bar=0; bar<predictionLen; bar++) {
-			printf("OHLCV Forecast, serie %d: %f|%f|%f|%f|%f", s, vopenF[s*predictionLen+bar], vhighF[s*predictionLen+bar], vlowF[s*predictionLen+bar], vcloseF[s*predictionLen+bar], vvolumeF[s*predictionLen+bar]);
+			printf("OHLCV Forecast, serie %d: %f|%f|%f|%f|%f", s, (vopenF[s*predictionLen+bar]<0)?0: vopenF[s*predictionLen+bar], (vhighF[s*predictionLen+bar]<0)?0:vhighF[s*predictionLen+bar], (vlowF[s*predictionLen+bar]<0)?0: vlowF[s*predictionLen+bar], (vcloseF[s*predictionLen+bar]<0)?0:vcloseF[s*predictionLen+bar], (vvolumeF[s*predictionLen+bar]<0)?0:vvolumeF[s*predictionLen+bar]);
 		}
 	}
 	//===============================================================================
