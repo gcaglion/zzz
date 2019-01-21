@@ -259,6 +259,7 @@ void sTimeSerie::setDataSource() {
 	//safecall(sourceData, open);
 }
 
+/*
 void sTimeSerie::untransform(int fromValSource, int toValSource, int sampleLen_, int selectedFeaturesCnt_, int* selectedFeature_) {
 
 	int fromStep=sampleLen_;
@@ -267,7 +268,7 @@ void sTimeSerie::untransform(int fromValSource, int toValSource, int sampleLen_,
 	dataUnTransform(dt, stepsCnt, sourceData->featuresCnt, fromStep, toStep, val[fromValSource][TR], base, val[ACTUAL][BASE], val[toValSource][BASE]);
 
 }
-
+*/
 void dataUnTransform(int dt_, int stepsCnt, int featuresCnt_, int fromStep_, int toStep_, numtype* idata, numtype* baseVal, numtype* iActual, numtype* odata) {
 	numtype* prev=(numtype*)malloc(featuresCnt_*sizeof(numtype));
 	int s;
@@ -339,3 +340,28 @@ void sTimeSerie::calcTSFs() {
 
 }
 
+void sTimeSerie::untransform(int valSource) {
+	int curr, prev;
+	for (int s=0; s<stepsCnt; s++) {
+		for (int f=0; f<sourceData->featuresCnt; f++) {
+			curr=s*sourceData->featuresCnt+f;
+			prev=(s-1)*sourceData->featuresCnt+f;
+			if (dt==DT_DELTA) {
+				if (s>0) {
+					if (val[valSource][TR][curr]==EMPTY_VALUE) {
+						val[valSource][BASE][curr]=EMPTY_VALUE;
+					} else {
+						val[valSource][BASE][curr]=val[valSource][TR][curr]+val[ACTUAL][BASE][prev];
+						val[ACTUAL][BASE][curr]=val[valSource][BASE][curr];
+					}
+				} else {
+					if (val[valSource][TR][curr]==EMPTY_VALUE) {
+						val[valSource][BASE][curr]=EMPTY_VALUE;
+					} else {
+						val[valSource][BASE][curr]=val[valSource][TR][curr]+base[f];
+					}
+				}
+			}
+		}
+	}
+}

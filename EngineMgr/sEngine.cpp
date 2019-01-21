@@ -314,7 +314,7 @@ void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_) {
 			if (_ts->doDump) _ts->dump(PREDICTED, TR);
 
 			//-- 5. sourceTS->untransform into valP
-			safecall(_ts, untransform, PREDICTED, PREDICTED, _ds->shape->sampleLen, _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t]);
+			safecall(_ts, untransform, PREDICTED);
 			if (_ts->doDump) _ts->dump(PREDICTED, BASE);
 		}
 	}
