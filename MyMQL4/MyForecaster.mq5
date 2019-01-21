@@ -10,7 +10,7 @@
 #import "Forecaster.dll"
 //--
 int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[], int& oSampleLen_, int &oPredictionLen_, int &oFeaturesCnt_);
-int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[]);
+int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[], bool& oChartTrade[]);
 int _getForecast(uchar& iEnv[], int seriesCnt_, int dt_, int& featMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 //--
 int _saveTradeInfo(uchar& iEnv[], int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult);
@@ -86,6 +86,7 @@ int OnInit() {
 	string serieTimeFrame[MT_MAX_SERIES_CNT];
 	string serieFeatList[MT_MAX_SERIES_CNT];
 	int serieFeatMask[MT_MAX_SERIES_CNT];
+	bool chartTrade[MT_MAX_SERIES_CNT];
 	//--
 	double vopen[], vhigh[], vlow[], vclose[], vvolume[];
 	int vtime[]; string vtimeS[];
@@ -113,7 +114,7 @@ int OnInit() {
 	uchar uFeaturesCSL[]; StringToCharArray(sFeaturesCSL, uFeaturesCSL);
 
 	printf("Getting TimeSeries Info from Client Config...");
-	if (_getSeriesInfo(vEnvS, seriesCnt, uSymbolsCSL, uTimeFramesCSL, uFeaturesCSL)!=0) {
+	if (_getSeriesInfo(vEnvS, seriesCnt, uSymbolsCSL, uTimeFramesCSL, uFeaturesCSL, chartTrade)!=0) {
 		printf("FAILURE: _getSeriesInfo() failed. see Forecaster logs.");
 		return -1;
 	}
@@ -141,7 +142,7 @@ int OnInit() {
 		printf("Symbol/TF [%d] : %s/%s", s, serieSymbol[s], serieTimeFrame[s]);
 		serieFeatMask[s]=CSL2Mask(serieFeatList[s]);
 		printf("FeatureList [%d] : %s (%d)", s, serieFeatList[s], serieFeatMask[s]);
-
+		printf("Trade [%d] : %s", s, (chartTrade[s]) ? "TRUE" : "FALSE");
 		featuresCntFromCfg+=StringSplit(serieFeatList[s], ',', serieFeatTmp);
 	}
 	if (featuresCntFromCfg!=featuresCnt) {
