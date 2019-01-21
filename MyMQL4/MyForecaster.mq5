@@ -18,7 +18,7 @@ int _destroyEnv(uchar& iEnv[]);
 #import
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 15264;
+input int EnginePid				= 12792;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/master/99/Client.xml";
 input int DataTransformation	= 1;
 input bool UseVolume			= false;

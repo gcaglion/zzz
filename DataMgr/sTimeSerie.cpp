@@ -42,7 +42,7 @@ void sTimeSerie::load(int valSource, int valStatus, char* date0_) {
 	if (date0_!=nullptr) strcpy_s(date0, DATE_FORMAT_LEN, date0_);
 	safecall(sourceData, load, date0, stepsCnt, dtime, val[valSource][valStatus], bdtime, base, barWidth);
 	//-- since the actual date0 we get from query can be different from the one requested, we update it after the load
-	strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, dtime[stepsCnt-1]);
+	//strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, dtime[stepsCnt-1]);
 	//--
 	if (doDump) dump(valSource, valStatus);
 	//-- 1. calc TSFs
@@ -60,10 +60,14 @@ void sTimeSerie::transform(int valSource, int dt_) {
 				val[valSource][TR][curr]=val[valSource][BASE][curr];
 				break;
 			case DT_DELTA:
-				if (s==0) {
-					val[valSource][TR][curr]=val[valSource][BASE][curr]-base[f];
+				if (val[valSource][BASE][curr]==EMPTY_VALUE) {
+					val[valSource][TR][curr]=EMPTY_VALUE;
 				} else {
-					val[valSource][TR][curr]=val[valSource][BASE][curr]-val[valSource][BASE][(s-1)*sourceData->featuresCnt+f];
+					if (s==0) {
+						val[valSource][TR][curr]=val[valSource][BASE][curr]-base[f];
+					} else {
+						val[valSource][TR][curr]=val[valSource][BASE][curr]-val[valSource][BASE][(s-1)*sourceData->featuresCnt+f];
+					}
 				}
 				break;
 			case DT_LOG:
@@ -75,8 +79,8 @@ void sTimeSerie::transform(int valSource, int dt_) {
 			}
 
 			//-- min/max calc
-			if (val[valSource][TR][curr]<dmin[f]) dmin[f]=val[valSource][TR][curr];
-			if (val[valSource][TR][curr]>dmax[f]) dmax[f]=val[valSource][TR][curr];
+			if (val[valSource][TR][curr]!=EMPTY_VALUE&&val[valSource][TR][curr]<dmin[f]) dmin[f]=val[valSource][TR][curr];
+			if (val[valSource][TR][curr]!=EMPTY_VALUE&&val[valSource][TR][curr]>dmax[f]) dmax[f]=val[valSource][TR][curr];
 
 			curr++;
 		}
@@ -92,7 +96,11 @@ void sTimeSerie::scale(int valSource, int valStatus, float scaleMin_, float scal
 
 	for (int f=0; f<sourceData->featuresCnt; f++) {
 		for (int s=0; s<stepsCnt; s++) {
-			val[valSource][TRS][s*sourceData->featuresCnt+f]=val[valSource][valStatus][s*sourceData->featuresCnt+f]*scaleM[f]+scaleP[f];
+			if (val[valSource][valStatus][s*sourceData->featuresCnt+f]==EMPTY_VALUE) {
+				val[valSource][TRS][s*sourceData->featuresCnt+f]=EMPTY_VALUE;
+			} else {
+				val[valSource][TRS][s*sourceData->featuresCnt+f]=val[valSource][valStatus][s*sourceData->featuresCnt+f]*scaleM[f]+scaleP[f];
+			}
 		}
 	}
 

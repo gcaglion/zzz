@@ -197,7 +197,8 @@ void sDataSet::mallocs1() {
 }
 void sDataSet::setSamples() {
 	samplesCnt=sourceTS[0]->stepsCnt-shape->sampleLen+1;
-	if(hasTargets) samplesCnt-=shape->predictionLen;
+	/*if(hasTargets)*/ samplesCnt-=shape->predictionLen;
+	info("stepsCnt=%d ; sampleLen=%d ; predictionLen=%d ; hasTargets=%s ; samplesCnt=%d", sourceTS[0]->stepsCnt, shape->sampleLen, shape->predictionLen, (hasTargets)?"TRUE":"FALSE", samplesCnt);
 	if ((samplesCnt%batchSamplesCnt)!=0) {
 		fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", samplesCnt, batchSamplesCnt)
 	} else {

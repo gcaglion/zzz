@@ -557,7 +557,6 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 		safespawn(mtTimeSerie[serie], newsname("MTtimeSerie%d", serie), defaultdbg, mtDataSrc[serie], tmpDate0, MT4engine->shape->sampleLen+MT4engine->shape->predictionLen, dt_, MT4doDump);
 		safecall(mtTimeSerie[serie], load, ACTUAL, BASE);
 	}
-
 	//-- featureMask_ to selectedFeature[]
 	int* selFcnt=(int*)malloc(seriesCnt_*sizeof(int));
 	int** selF=(int**)malloc(seriesCnt_*sizeof(int*));
@@ -574,7 +573,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	}
 		
 	//-- manually spawn infer dataset from timeseries, sampleLen, predictionLen
-	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, seriesCnt_, mtTimeSerie, selFcnt, selF, MT4engine->shape->sampleLen, 1, 1, MT4doDump);
+	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, seriesCnt_, mtTimeSerie, selFcnt, selF, MT4engine->shape->sampleLen, MT4engine->shape->predictionLen, 1, MT4doDump);
 	mtDataSet->build(ACTUAL, BASE);
 	
 	//-- do inference (also populates datasets)
@@ -625,6 +624,7 @@ void sRoot::MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeatur
 
 	//-- spawn engine from savedEnginePid_ with pid
 	safespawn(MT4engine, newsname("Engine"), defaultdbg, MT4clientLog, MT4clientPid, MT4enginePid);
+	
 	(*oSampleLen_)=MT4engine->shape->sampleLen;
 	(*oPredictionLen_)=MT4engine->shape->predictionLen;
 	(*oFeaturesCnt_)=MT4engine->shape->featuresCnt;
