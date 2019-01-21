@@ -799,9 +799,9 @@ void sNN::trainSCGD(sCoreProcArgs* procArgs) {
 void sNN::loadWholeDataSet() {
 	int sampleSize=procArgs->ds->samplesCnt*procArgs->ds->shape->sampleLen*procArgs->ds->shape->featuresCnt;
 	Alg->myMalloc(&sample_d, sampleSize);
-	Alg->h2d(sample_d, procArgs->ds->sampleBFS, sampleSize, false);
+	Alg->h2d(sample_d, procArgs->ds->sampleBFS, sampleSize*sizeof(numtype), false);
 
 	int targetSize=procArgs->ds->samplesCnt*procArgs->ds->shape->predictionLen*procArgs->ds->shape->featuresCnt;
 	Alg->myMalloc(&target_d, targetSize);
-	Alg->h2d(target_d, procArgs->ds->targetBFS, targetSize, false);
+	Alg->h2d(target_d, procArgs->ds->targetBFS, targetSize*sizeof(numtype), false);
 }
