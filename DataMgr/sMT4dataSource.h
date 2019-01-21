@@ -18,14 +18,14 @@ struct sMqlRates {
 };
 struct sMT4DataSource : sDataSource {
 
-	int sampleLen;
+	int historyLen; int predictionLen;
 	char** bartime;
 	numtype* sample;
 	char basetime[DATE_FORMAT_LEN];
 	numtype basebar[FXDATA_FEATURESCNT];
 	char lastbartime[DATE_FORMAT_LEN];
 
-	EXPORT sMT4DataSource(sObjParmsDef, int sampleLen_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV);
+	EXPORT sMT4DataSource(sObjParmsDef, int historyLen_, int predictionLen_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV);
 	EXPORT sMT4DataSource(sObjParmsDef, sMT4Data* mt4db_);
 	EXPORT sMT4DataSource(sCfgObjParmsDef);
 	EXPORT ~sMT4DataSource();

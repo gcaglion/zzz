@@ -9,18 +9,16 @@
 
 #import "Forecaster.dll"
 //--
-int _createEnv2(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[]);
-int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, int& oHistoryLen_, uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[]);
-int _getForecast2(uchar& iEnv[], int seriesCnt_, int historyLen_, int dt_, int& featMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
+int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[], int& oSampleLen_, int &oPredictionLen_, int &oFeaturesCnt_);
+int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[]);
+int _getForecast(uchar& iEnv[], int seriesCnt_, int dt_, int& featMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 //--
-int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[], int &oSampleLen_, int &oPredictionLen_);
-int _getForecast(uchar& iEnv[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int iBaseBarT, double iBaseBarO, double iBaseBarH, double iBaseBarL, double iBaseBarC, double iBaseBarV, double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 int _saveTradeInfo(uchar& iEnv[], int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult);
 int _destroyEnv(uchar& iEnv[]);
 #import
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 10232;
+input int EnginePid				= 15264;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/master/99/Client.xml";
 input int DataTransformation	= 1;
 input bool UseVolume			= false;
@@ -81,6 +79,9 @@ int OnInit() {
 
 	int seriesCnt;
 	int historyLen;
+	int predictionLen;
+	int featuresCnt;
+	int featuresCntFromCfg;
 	string serieSymbol[MT_MAX_SERIES_CNT];
 	string serieTimeFrame[MT_MAX_SERIES_CNT];
 	string serieFeatList[MT_MAX_SERIES_CNT];
@@ -97,12 +98,12 @@ int OnInit() {
 	EnvS = "00000000000000000000000000000000000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
 	StringToCharArray(ClientXMLFile, vClientXMLFileS);
 	printf("Creating Environment from saved engine (pid=%d) ...", vEnginePid);
-	if (_createEnv2(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vUseVolume, vDataTransformation, vDumpData, vEnvS)!=0) {
-		printf("_createEnv2() failed. see Forecaster logs.");
+	if (_createEnv(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vUseVolume, vDataTransformation, vDumpData, vEnvS, historyLen, predictionLen, featuresCnt)!=0) {
+		printf("FAILURE: _createEnv() failed. see Forecaster logs.");
 		return -1;
 	}
 	EnvS=CharArrayToString(vEnvS);
-	printf("EnvS=%s ; ClientXMLFile=%s ; EnginePid=%d", EnvS, ClientXMLFile, EnginePid);
+	printf("EnginePid=%d ; SampleLen/PredictionLen/FeaturesCnt=%d/%d/%d ; EnvS=%s ; ClientXMLFile=%s", EnginePid, historyLen, predictionLen, featuresCnt, EnvS, ClientXMLFile);
 
 	string sSymbolsCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
 	string sTimeFramesCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
@@ -111,15 +112,15 @@ int OnInit() {
 	uchar uTimeFramesCSL[]; StringToCharArray(sTimeFramesCSL, uTimeFramesCSL);
 	uchar uFeaturesCSL[]; StringToCharArray(sFeaturesCSL, uFeaturesCSL);
 
-	printf("Getting TimeSeries Info...");
-	if (_getSeriesInfo(vEnvS, seriesCnt, historyLen, uSymbolsCSL, uTimeFramesCSL, uFeaturesCSL)!=0) {
-		printf("_getSeriesInfo() failed. see Forecaster logs.");
+	printf("Getting TimeSeries Info from Client Config...");
+	if (_getSeriesInfo(vEnvS, seriesCnt, uSymbolsCSL, uTimeFramesCSL, uFeaturesCSL)!=0) {
+		printf("FAILURE: _getSeriesInfo() failed. see Forecaster logs.");
 		return -1;
 	}
 	sSymbolsCSL=CharArrayToString(uSymbolsCSL);
 	sTimeFramesCSL=CharArrayToString(uTimeFramesCSL);
 	sFeaturesCSL=CharArrayToString(uFeaturesCSL);
-	printf("seriesCnt=%d ; historyLen=%d ; symbolsCSL=%s ; timeFramesCSL=%s, featuresCSL=%s", seriesCnt, historyLen, sSymbolsCSL, sTimeFramesCSL, sFeaturesCSL);
+	printf("seriesCnt=%d ; symbolsCSL=%s ; timeFramesCSL=%s, featuresCSL=%s", seriesCnt, sSymbolsCSL, sTimeFramesCSL, sFeaturesCSL);
 
 	if (StringSplit(sSymbolsCSL, '|', serieSymbol)!=seriesCnt) {
 		printf("Invalid Symbol CSL");
@@ -134,10 +135,18 @@ int OnInit() {
 		return -1;
 	}
 
+	featuresCntFromCfg=0;
+	string serieFeatTmp[5];
 	for (int s=0; s<seriesCnt; s++) {
 		printf("Symbol/TF [%d] : %s/%s", s, serieSymbol[s], serieTimeFrame[s]);
 		serieFeatMask[s]=CSL2Mask(serieFeatList[s]);
 		printf("FeatureList [%d] : %s (%d)", s, serieFeatList[s], serieFeatMask[s]);
+
+		featuresCntFromCfg+=StringSplit(serieFeatList[s], ',', serieFeatTmp);
+	}
+	if (featuresCntFromCfg!=featuresCnt) {
+		printf("FAILURE: Total Features Count from Client Config (%d) differs from Engine Features Count (%d)", featuresCntFromCfg, featuresCnt);
+		return -1;
 	}
 
 	ArrayResize(vtimeB, seriesCnt);
@@ -194,7 +203,7 @@ int OnInit() {
 	//--
 	//------ GET FORECAST ---------
 	printf("Getting Forecast...");
-	if (_getForecast2(vEnvS, seriesCnt, historyLen, vDataTransformation, serieFeatMask, vtime, vopen, vhigh, vlow, vclose, vvolume, vtimeB, vopenB, vhighB, vlowB, vcloseB, vvolumeB, vopenF, vhighF, vlowF, vcloseF, vvolumeF)!=0) {
+	if (_getForecast(vEnvS, seriesCnt, vDataTransformation, serieFeatMask, vtime, vopen, vhigh, vlow, vclose, vvolume, vtimeB, vopenB, vhighB, vlowB, vcloseB, vvolumeB, vopenF, vhighF, vlowF, vcloseF, vvolumeF)!=0) {
 		printf("_getForecast() FAILURE! Exiting...");
 		return -1;
 	};
@@ -217,13 +226,13 @@ void OnTick() {
 	LoadBars();
 
 
-	//-- call Forecaster
+/*	//-- call Forecaster
 	if (_getForecast(vEnvS, vSampleDataT, vSampleDataO, vSampleDataH, vSampleDataL, vSampleDataC, vSampleDataV, vSampleBaseValT, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC, vSampleBaseValV, vPredictedDataO, vPredictedDataH, vPredictedDataL, vPredictedDataC, vPredictedDataV)!=0) {
 		printf("_getForecast() FAILURE! Exiting...");
 		return;
 	};
 	for (int i=0; i<vPredictionLen; i++) printf("vPredictedDataH[%d]=%5.4f , vPredictedDataL[%d]=%5.4f ", i, vPredictedDataH[i], i, vPredictedDataL[i]);
-
+*/
 	//-- check for forecast consistency (H>L)
 	if (vPredictedDataH[0]<=vPredictedDataL[0]) {
 		printf("Invalid Forecast: H=%f ; L=%f", vPredictedDataH[0], vPredictedDataL[0]);

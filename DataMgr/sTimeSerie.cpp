@@ -1,6 +1,6 @@
 #include "sTimeSerie.h"
 
-sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	mallocs1();
 
 	strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, date0_);
@@ -8,10 +8,9 @@ sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0
 	dt=dt_;
 	sourceData=sourceData_;
 
-	doDump=false;
+	doDump=doDump_;
 	if (dumpPath_!=nullptr) {
 		strcpy_s(dumpPath, MAX_PATH, dumpPath_);
-		doDump=true;
 	} else {
 		strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	}
