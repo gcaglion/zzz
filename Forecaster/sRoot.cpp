@@ -580,6 +580,30 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	safecall(MT4engine, infer, MT4accountId, mtDataSet, MT4enginePid);
 
 
+	//-- forecast is now in the last <predictionLen> steps of mtTimeSerie
+	for (int serie=0; serie<seriesCnt_; serie++) {
+		for (int bar=0; bar<MT4engine->shape->predictionLen; bar++) {
+			oForecastO[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][bar*FXDATA_FEATURESCNT+FXOPEN];
+			oForecastH[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][bar*FXDATA_FEATURESCNT+FXHIGH];
+			oForecastL[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][bar*FXDATA_FEATURESCNT+FXLOW];
+			oForecastC[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][bar*FXDATA_FEATURESCNT+FXCLOSE];
+			oForecastV[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][bar*FXDATA_FEATURESCNT+FXVOLUME];
+			info("OHLCV Forecast, serie %d , bar %d: %f|%f|%f|%f|%f", serie, bar, oForecastO[serie*MT4engine->shape->predictionLen+bar], oForecastH[serie*MT4engine->shape->predictionLen+bar], oForecastL[serie*MT4engine->shape->predictionLen+bar], oForecastC[serie*MT4engine->shape->predictionLen+bar], oForecastV[serie*MT4engine->shape->predictionLen+bar]);
+		}
+	}
+
+/*		//-- forecast is now in the last <predictionLen> steps of oBar<>	
+		for (int serie=0; serie<seriesCnt_; serie++) {
+		for (int bar=0; bar<MT4engine->shape->predictionLen; bar++) {
+			oForecastO[serie*MT4engine->shape->predictionLen+bar]=oBarO[serie][MT4engine->shape->sampleLen+bar];
+			oForecastH[serie*MT4engine->shape->predictionLen+bar]=oBarH[serie][MT4engine->shape->sampleLen+bar];
+			oForecastL[serie*MT4engine->shape->predictionLen+bar]=oBarL[serie][MT4engine->shape->sampleLen+bar];
+			oForecastC[serie*MT4engine->shape->predictionLen+bar]=oBarC[serie][MT4engine->shape->sampleLen+bar];
+			oForecastV[serie*MT4engine->shape->predictionLen+bar]=oBarV[serie][MT4engine->shape->sampleLen+bar];
+			info("OHLCV Forecast, bar %d: %f|%f|%f|%f|%f", bar, oForecastO[serie*MT4engine->shape->predictionLen+bar], oForecastH[serie*MT4engine->shape->predictionLen+bar], oForecastL[serie*MT4engine->shape->predictionLen+bar], oForecastC[serie*MT4engine->shape->predictionLen+bar], oForecastV[serie*MT4engine->shape->predictionLen+bar]);
+		}
+	}
+*/
 	//-- cleanup
 	for (int serie=0; serie<seriesCnt_; serie++) {
 		free(oBarT[serie]); free(oBarO[serie]);	free(oBarH[serie]);	free(oBarL[serie]);	free(oBarC[serie]);	free(oBarV[serie]);	

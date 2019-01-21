@@ -165,11 +165,11 @@ int OnInit() {
 	ArrayResize(vclose, historyLen*seriesCnt);
 	ArrayResize(vvolume, historyLen*seriesCnt);
 	//--
-	ArrayResize(vopenF, historyLen*seriesCnt);
-	ArrayResize(vhighF, historyLen*seriesCnt);
-	ArrayResize(vlowF, historyLen*seriesCnt);
-	ArrayResize(vcloseF, historyLen*seriesCnt);
-	ArrayResize(vvolumeF, historyLen*seriesCnt);
+	ArrayResize(vopenF, predictionLen*seriesCnt);
+	ArrayResize(vhighF, predictionLen*seriesCnt);
+	ArrayResize(vlowF, predictionLen*seriesCnt);
+	ArrayResize(vcloseF, predictionLen*seriesCnt);
+	ArrayResize(vvolumeF, predictionLen*seriesCnt);
 
 	//========== LOAD BARS ==============   THIS GOES INTO OnTick() =========================
 	int i=0;
@@ -207,6 +207,11 @@ int OnInit() {
 		printf("_getForecast() FAILURE! Exiting...");
 		return -1;
 	};
+	for (int s=0; s<seriesCnt; s++) {
+		for (int bar=0; bar<predictionLen; bar++) {
+			printf("OHLCV Forecast, serie %d: %f|%f|%f|%f|%f", s, vopenF[s*predictionLen+bar], vhighF[s*predictionLen+bar], vlowF[s*predictionLen+bar], vcloseF[s*predictionLen+bar], vvolumeF[s*predictionLen+bar]);
+		}
+	}
 	//===============================================================================
 	return -1;
 	//--------------------------------------------------------------------------------------------------------
