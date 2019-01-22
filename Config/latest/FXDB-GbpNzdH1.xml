@@ -1,0 +1,8 @@
+<FXDB_DataSource>
+
+	Symbol				= GBPNZD
+	TimeFrame			= H1
+	IsFilled			= false
+
+	<! DBConnection-History.xml >
+</FXDB_DataSource>

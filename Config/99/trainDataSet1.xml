@@ -2,13 +2,13 @@
 	SampleLen = 50
 	PredictionLen = 1
 	
-	BatchSamplesCount	= 10
+	BatchSamplesCount	= 1
 	SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	Dump 				= false
 	DumpPath			= c:\temp\DataDump
 
 	<TimeSerie>
-		HistoryLen			= 18000
+		HistoryLen			= 1000
 		Date0				= 2017-08-31-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
