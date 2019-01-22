@@ -21,7 +21,7 @@
 				BP_Algo				= BP_STD
 				<BP_Std>
 					LearningRate		= 0.001
-					LearningMomentum	= 0.8
+					LearningMomentum	= 0.4
 				</BP_Std>
 			</Training>
 		</Parameters>

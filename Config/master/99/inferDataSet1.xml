@@ -1,9 +1,9 @@
 <DataSet>
 
-	TimeSeriesCount	= 3
+	TimeSeriesCount	= 1
 	<TimeSerie0>
-		HistoryLen			= 500
-		Date0				= 2017-09-07-00:00
+		HistoryLen			= 122
+		Date0				= 2017-08-31-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
@@ -30,7 +30,7 @@
 	</TimeSerie2>
 
 	SampleLen = 50
-	PredictionLen = 1
+	PredictionLen = 3
 	
 	BatchSamplesCount	= 10
 	Dump 				= false

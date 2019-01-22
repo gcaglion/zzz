@@ -1,8 +1,8 @@
 <DataSet>
 
-	TimeSeriesCount	= 3
+	TimeSeriesCount	= 1
 	<TimeSerie0>
-		HistoryLen			= 1002
+		HistoryLen			= 10002
 		Date0				= 2017-08-31-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
