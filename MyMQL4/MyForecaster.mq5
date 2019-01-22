@@ -199,20 +199,24 @@ int OnInit() {
 			i++;
 		}		
 	}
-	//--
 	//------ GET FORECAST ---------
 	printf("Getting Forecast...");
 	if (_getForecast(vEnvS, seriesCnt, vDataTransformation, serieFeatMask, vtime, vopen, vhigh, vlow, vclose, vvolume, vtimeB, vopenB, vhighB, vlowB, vcloseB, vvolumeB, vopenF, vhighF, vlowF, vcloseF, vvolumeF)!=0) {
 		printf("_getForecast() FAILURE! Exiting...");
 		return -1;
 	};
-	//------ PRINT FORECAST FOR ALL SERIES ---------
+	//------ PRINT FORECAST FOR ALL SERIES, AND PICK SERIE FROM CURRENT CHART SYMBOL/TF ---------
+	int tradeSerie=-1;
 	for (int s=0; s<seriesCnt; s++) {
 		for (int bar=0; bar<predictionLen; bar++) {
 			printf("OHLCV Forecast, serie %d: %f|%f|%f|%f|%f", s, (vopenF[s*predictionLen+bar]<0)?0: vopenF[s*predictionLen+bar], (vhighF[s*predictionLen+bar]<0)?0:vhighF[s*predictionLen+bar], (vlowF[s*predictionLen+bar]<0)?0: vlowF[s*predictionLen+bar], (vcloseF[s*predictionLen+bar]<0)?0:vcloseF[s*predictionLen+bar], (vvolumeF[s*predictionLen+bar]<0)?0:vvolumeF[s*predictionLen+bar]);
+			if (StringCompare(serieSymbol[s], Symbol())==0 &&getTimeFrameEnum(serieTimeFrame[s])==Period()) tradeSerie=s;
 		}
 	}
-	//------ TRADE CURRENT CHART, ONLY IF IT'S AMONG THE FORECAST SERIES
+	if (tradeSerie==-1) {
+		printf("Nothing to trade in current chart.");
+		return 0;
+	}
 
 	//===============================================================================
 	return -1;
@@ -230,7 +234,7 @@ void OnTick() {
 
 	//-- load bars into arrrays
 	printf("Time0=%s . calling LoadBars()...", Time0S);
-	LoadBars();
+	//LoadBars();
 
 
 /*	//-- call Forecaster
@@ -285,34 +289,6 @@ void OnDeinit(const int reason) {
 	}
 }
 
-void LoadBars() {
-	//-- This loads bar values into Sample and Base arrays
-
-	MqlRates rates[];
-	int copied=CopyRates(NULL, 0, 1, vSampleLen+2, rates);
-	if (copied<(vSampleLen+1)) Print("Error copying price data ", GetLastError());
-	//else Print("Copied ", ArraySize(rates), " bars");
-
-	//-- base bar, needed for Delta Transformation
-	vSampleBaseValT = rates[1].time; StringConcatenate(vSampleBaseValTs, TimeToString(vSampleBaseValT, TIME_DATE), ".", TimeToString(vSampleBaseValT, TIME_MINUTES));
-	vSampleBaseValO = rates[1].open;
-	vSampleBaseValH = rates[1].high;
-	vSampleBaseValL = rates[1].low;
-	vSampleBaseValC = rates[1].close;
-	vSampleBaseValV = rates[1].real_volume;
-	//printf("Base Bar: T=%s - O=%f - H=%f - L=%f - C=%f - V=%f", vSampleBaseValTs, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC, vSampleBaseValV);
-	//-- whole sample
-	for (int i = 0; i<vSampleLen; i++) {    // (i=0 is the current bar)
-		vSampleDataT[i] = rates[i+2].time; StringConcatenate(vSampleDataTs[i], TimeToString(vSampleDataT[i], TIME_DATE), ".", TimeToString(vSampleDataT[i], TIME_MINUTES));
-		vSampleDataO[i] = rates[i+2].open;
-		vSampleDataH[i] = rates[i+2].high;
-		vSampleDataL[i] = rates[i+2].low;
-		vSampleDataC[i] = rates[i+2].close;
-		vSampleDataV[i] = rates[i+2].real_volume;
-		//printf("Bar[%d]: T=%s - O=%f - H=%f - L=%f - C=%f - V=%f", i, vSampleDataTs[i], vSampleDataO[i], vSampleDataH[i], vSampleDataL[i], vSampleDataC[i], vSampleDataV[i]);
-	}
-
-}
 int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
 
 	int scenario;
