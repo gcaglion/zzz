@@ -87,6 +87,31 @@ void sTimeSerie::transform(int valSource, int dt_) {
 	}
 	if (doDump) dump(valSource, TR);
 }
+void sTimeSerie::untransform(int valSource) {
+	int curr, prev;
+	for (int s=0; s<stepsCnt; s++) {
+		for (int f=0; f<sourceData->featuresCnt; f++) {
+			curr=s*sourceData->featuresCnt+f;
+			prev=(s-1)*sourceData->featuresCnt+f;
+			if (dt==DT_DELTA) {
+				if (s>0) {
+					if (val[valSource][TR][curr]==EMPTY_VALUE) {
+						val[valSource][BASE][curr]=EMPTY_VALUE;
+					} else {
+						val[valSource][BASE][curr]=val[valSource][TR][curr]+val[ACTUAL][BASE][prev];
+						if(val[ACTUAL][BASE][curr]==EMPTY_VALUE) val[ACTUAL][BASE][curr]=val[valSource][BASE][curr];
+					}
+				} else {
+					if (val[valSource][TR][curr]==EMPTY_VALUE) {
+						val[valSource][BASE][curr]=EMPTY_VALUE;
+					} else {
+						val[valSource][BASE][curr]=val[valSource][TR][curr]+base[f];
+					}
+				}
+			}
+		}
+	}
+}
 void sTimeSerie::scale(int valSource, int valStatus, float scaleMin_, float scaleMax_) {
 
 	for (int f=0; f<sourceData->featuresCnt; f++) {
@@ -340,28 +365,3 @@ void sTimeSerie::calcTSFs() {
 
 }
 
-void sTimeSerie::untransform(int valSource) {
-	int curr, prev;
-	for (int s=0; s<stepsCnt; s++) {
-		for (int f=0; f<sourceData->featuresCnt; f++) {
-			curr=s*sourceData->featuresCnt+f;
-			prev=(s-1)*sourceData->featuresCnt+f;
-			if (dt==DT_DELTA) {
-				if (s>0) {
-					if (val[valSource][TR][curr]==EMPTY_VALUE) {
-						val[valSource][BASE][curr]=EMPTY_VALUE;
-					} else {
-						val[valSource][BASE][curr]=val[valSource][TR][curr]+val[ACTUAL][BASE][prev];
-						val[ACTUAL][BASE][curr]=val[valSource][BASE][curr];
-					}
-				} else {
-					if (val[valSource][TR][curr]==EMPTY_VALUE) {
-						val[valSource][BASE][curr]=EMPTY_VALUE;
-					} else {
-						val[valSource][BASE][curr]=val[valSource][TR][curr]+base[f];
-					}
-				}
-			}
-		}
-	}
-}

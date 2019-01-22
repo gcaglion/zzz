@@ -4,22 +4,25 @@
 
 <Client>
 
+	<Debugger-Default>
+		Verbose 		= true
+		ScreenOutput	= true
+		FileOutput		= false
+		FileOutputPath	= C:/temp/logs
+		Timing			= true
+	</Debugger-Default>
+
 	<ParmsCombinations>
 		# TO DO (v. TesterMulti)
 	</ParmsCombinations>
 
 	saveClient	= true
 
-		<Persistor>
+	<Persistor>
 		readFrom		= OraData
 		saveToDB		= true
 		saveToFile		= false
-
-		<OraData>
-			UserName	= LogUser
-			Password	= LogPwd
-			ConnString	= Algo
-		</OraData>
+		<! LogDBconnection.xml>	
 	</Persistor>
 	
 	<MetaTrader>

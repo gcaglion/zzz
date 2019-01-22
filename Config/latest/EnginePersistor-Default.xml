@@ -3,9 +3,5 @@
 		saveToDB		= true
 		saveToFile		= false
 
-		<OraData>
-			UserName	= LogUser
-			Password	= LogPwd
-			ConnString	= Algo
-		</OraData>
+		<! LogDBconnection.xml>	
 	</Persistor>

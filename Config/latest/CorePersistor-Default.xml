@@ -6,11 +6,7 @@
 			readFrom		= OraData
 			saveToDB		= true
 			saveToFile		= false
-			<OraData>
-				UserName	= LogUser
-				Password	= LogPwd
-				ConnString	= Algo
-			</OraData>
+			<! LogDBconnection.xml>	
 			<FileData>
 				Client		= c:\temp\logs\Persistor\Client.log
 				MSE			= c:\temp\logs\Persistor\MSE.log

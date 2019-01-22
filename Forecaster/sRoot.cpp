@@ -19,9 +19,9 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		getFullPath(engineXMLfile_, engineffname);
 
 		//-- 1. load separate sCfg* for client, trainDataset, Engine
-		safespawn(clientCfg, newsname("clientCfg"), erronlydbg, clientffname);
-		safespawn(trainCfg, newsname("trainCfg"), erronlydbg, trainffname);
-		safespawn(engCfg, newsname("engineCfg"), erronlydbg, engineffname);
+		safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
+		safespawn(trainCfg, newsname("trainCfg"), defaultdbg, trainffname);
+		safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineffname);
 
 		//-- 5. create client persistor, if needed
 		bool saveClient;
