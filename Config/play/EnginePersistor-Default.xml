@@ -1,0 +1,7 @@
+	<Persistor>
+		readFrom		= OraData
+		saveToDB		= true
+		saveToFile		= false
+
+		<! LogDBconnection.xml>	
+	</Persistor>

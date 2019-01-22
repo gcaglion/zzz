@@ -2,8 +2,8 @@
 
 	TimeSeriesCount	= 1
 	<TimeSerie0>
-		HistoryLen			= 1002
-		Date0				= 2017-09-30-00:00
+		HistoryLen			= 22
+		Date0				= 2017-08-31-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= true
 		DumpPath			= c:\temp\DataDump

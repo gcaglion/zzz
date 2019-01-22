@@ -2,16 +2,16 @@
 
 	TimeSeriesCount	= 1
 	<TimeSerie0>
-		HistoryLen			= 1002
-		Date0				= 2017-09-30-00:00
+		HistoryLen			= 22
+		Date0				= 2017-08-31-00:00
 		DataTransformation	= DT_DELTA
-		Dump				= true
+		Dump				= false
 		DumpPath			= c:\temp\DataDump
 		<! FXDB-EurUsdH1.xml >
-		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+		SelectedFeatures	= FXOPEN
 	</TimeSerie0>
 
-	SampleLen = 50
+	SampleLen = 5
 	PredictionLen = 3
 	
 	BatchSamplesCount	= 1

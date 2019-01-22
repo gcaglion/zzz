@@ -35,7 +35,7 @@ struct sDataSet : sCfgObj {
 	numtype* _data[3][2];	//-- [Source][ordering]
 
 	EXPORT sDataSet(sObjParmsDef, int sourceTScnt_, sTimeSerie** sourceTS_, int* selectedTSfeaturesCnt_, int** selectedTSfeature_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, bool doDump_=false, char* dumpPath_=nullptr);
-	EXPORT sDataSet(sCfgObjParmsDef, bool inferring_);
+	EXPORT sDataSet(sCfgObjParmsDef);
 	EXPORT ~sDataSet();
 
 	EXPORT void load(int fromValSource, int fromValStatus);

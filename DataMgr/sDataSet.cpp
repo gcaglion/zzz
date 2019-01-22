@@ -23,7 +23,7 @@ sDataSet::sDataSet(sObjParmsDef, int sourceTScnt_, sTimeSerie** sourceTS_, int* 
 	setSamples(); mallocs2();
 
 }
-sDataSet::sDataSet(sCfgObjParmsDef, bool inferring_) : sCfgObj(sCfgObjParmsVal) {
+sDataSet::sDataSet(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	safespawn(shape, newsname("%s_Shape", name->base), defaultdbg, 0, 0, 0);
 
@@ -33,7 +33,7 @@ sDataSet::sDataSet(sCfgObjParmsDef, bool inferring_) : sCfgObj(sCfgObjParmsVal) 
 	safecall(cfgKey, getParm, &sourceTScnt, "TimeSeriesCount");
 	mallocs1();
 	for (int t=0; t<sourceTScnt; t++) {
-		safespawn(sourceTS[t], newsname("%s_TimeSerie%d", name->base, t), defaultdbg, cfg, (newsname("TimeSerie%d", t))->base, (inferring_) ? shape->sampleLen : 0);
+		safespawn(sourceTS[t], newsname("%s_TimeSerie%d", name->base, t), defaultdbg, cfg, (newsname("TimeSerie%d", t))->base);
 		safecall(cfgKey, getParm, &selectedTSfeature[t], (newsname("TimeSerie%d/selectedFeatures", t))->base, false, &selectedTSfeaturesCnt[t]);
 		safecall(sourceTS[t], load, ACTUAL, BASE);
 		shape->featuresCnt+=selectedTSfeaturesCnt[t];

@@ -33,7 +33,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(this, getSafePid, clientLog, &pid);
 
 		//-- 3. spawn Train DataSet and its persistor
-		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/DataSet", false);
+		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/DataSet");
 		safespawn(trainLog, newsname("TrainLogger"), defaultdbg, trainCfg, "/DataSet/Persistor");
 		//-- 4. spawn engine the standard way
 		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", trainDS->shape, pid);
@@ -108,7 +108,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safespawn(engine, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid_);
 		
 		//-- 3. spawn infer DataSet and its persistor
-		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/DataSet", true);
+		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/DataSet");
 		safespawn(inferLog, newsname("inferLogger"), defaultdbg, inferCfg, "/DataSet/Persistor");
 
 		//-- core infer cycle
@@ -156,32 +156,6 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 }
 
 //-- temp stuff
-#include "../CUDAwrapper/CUDAwrapper.h"
-
-void mallocBars(int sampleLen, int predictionLen, long** barT, double** barO, double** barH, double** barL, double** barC, double** barV, double** forecastO, double** forecastH, double** forecastL, double** forecastC, double** forecastV){
-	(*barT)=(long*)malloc(sampleLen*sizeof(long));
-	(*barO)=(double*)malloc(sampleLen*sizeof(double));
-	(*barH)=(double*)malloc(sampleLen*sizeof(double));
-	(*barL)=(double*)malloc(sampleLen*sizeof(double));
-	(*barC)=(double*)malloc(sampleLen*sizeof(double));
-	(*barV)=(double*)malloc(sampleLen*sizeof(double));
-	//--
-	(*forecastO)=(double*)malloc(predictionLen*sizeof(double));
-	(*forecastH)=(double*)malloc(predictionLen*sizeof(double));
-	(*forecastL)=(double*)malloc(predictionLen*sizeof(double));
-	(*forecastC)=(double*)malloc(predictionLen*sizeof(double));
-	(*forecastV)=(double*)malloc(predictionLen*sizeof(double));
-
-	//-- ... set barO/H/L/C/V
-	for (int i=0; i<sampleLen; i++) {
-		(*barT)[i]=(i+1)*3600;
-		(*barO)[i]=1.3200;
-		(*barH)[i]=1.3400;
-		(*barL)[i]=1.3100;
-		(*barC)[i]=1.3300;
-		(*barV)[i]=-1;
-	}
-}
 void sRoot::kaz() {
 
 	char ffname[MAX_PATH];
@@ -193,15 +167,15 @@ void sRoot::kaz() {
 
 	//-- need client config to create a client persistor
 	char* clientXMLfile="Config/master/99/Client.xml"; getFullPath(clientXMLfile, clientffname);
-	sCfg* clientCfg; safespawn(clientCfg, newsname("clientConfig"), defaultdbg, clientXMLfile);
-	sLogger* clientPersistor= new sLogger(this, newsname("clientLogger"), defaultdbg, GUIreporter, clientCfg, "/Client/Persistor");
+	sCfg* clientCfg; safespawn(clientCfg, newsname("clientConfig"), erronlydbg, clientXMLfile);
+	sLogger* clientPersistor= new sLogger(this, newsname("clientLogger"), erronlydbg, GUIreporter, clientCfg, "/Client/Persistor");
 
-	sCfg* ds1Cfg; safespawn(ds1Cfg, newsname("ds1Config"), defaultdbg, "C:/users/gcaglion/dev/zzz/Config/master/99/inferDataSet1.xml");
-	sDataSet* ds1; safespawn(ds1, newsname("ds1Config"), defaultdbg, ds1Cfg, "/DataSet", true);
-	ds1->build(ACTUAL, BASE);
-//	ds1->dump(ACTUAL, BASE);
+	sCfg* ds1Cfg; safespawn(ds1Cfg, newsname("ds1Config"), erronlydbg, "C:/users/gcaglion/dev/zzz/Config/play/ds1.xml");
+	sDataSet* ds1t; safespawn(ds1t, newsname("ds1TRAIN"), defaultdbg, ds1Cfg, "/DataSet");
+	sDataSet* ds1i; safespawn(ds1i, newsname("ds1INFER"), defaultdbg, ds1Cfg, "/DataSet");
+	ds1t->build(ACTUAL, BASE);
 
-	sTimeSerie* ts=ds1->sourceTS[0];
+	/*sTimeSerie* ts=ds1->sourceTS[0];
 
 	for (int s=0; s<(ts->stepsCnt-3); s++) {
 		for (int f=0; f<ts->sourceData->featuresCnt; f++) {
@@ -220,16 +194,7 @@ void sRoot::kaz() {
 	
 //	ts->untrDELTA(PREDICTED);
 	ts->dump(PREDICTED, BASE);
-
-	return;
-	ds1->build(ACTUAL, BASE);
-//	ds1->dump(ACTUAL, BASE);
-
-	ds1->unbuild(ACTUAL, PREDICTED, BASE);
-	for (int t=0; t<ds1->sourceTScnt; t++) ds1->sourceTS[t]->dump(PREDICTED, BASE);
-
-
-
+*/
 	return;
 /*
 	int accountId=25307435;
