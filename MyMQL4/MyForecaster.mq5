@@ -9,7 +9,7 @@
 
 #import "Forecaster.dll"
 //--
-int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool useVolume_, int dt_, bool doDump_, uchar& oEnv[], int& oSampleLen_, int &oPredictionLen_, int &oFeaturesCnt_);
+int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, int dt_, bool doDump_, uchar& oEnv[], int& oSampleLen_, int &oPredictionLen_, int &oFeaturesCnt_);
 int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[], bool& oChartTrade[]);
 int _getForecast(uchar& iEnv[], int seriesCnt_, int dt_, int& featMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 //--
@@ -21,7 +21,6 @@ int _destroyEnv(uchar& iEnv[]);
 input int EnginePid				= 8252;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/master/99/Client.xml";
 input int DataTransformation	= 1;
-input bool UseVolume			= false;
 input int  ValidationShift		= 0;
 input bool DumpData				= true;
 input bool SaveLogs				= true;
@@ -40,7 +39,6 @@ int vSampleLen=0;
 int vPredictionLen=0;
 int vValidationShift=-ValidationShift;
 int vEnginePid=EnginePid;
-int vUseVolume=UseVolume;
 int vDumpData=DumpData;
 int vDataTransformation=DataTransformation;
 //--
@@ -99,7 +97,7 @@ int OnInit() {
 	EnvS = "00000000000000000000000000000000000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
 	StringToCharArray(ClientXMLFile, vClientXMLFileS);
 	printf("Creating Environment from saved engine (pid=%d) ...", vEnginePid);
-	if (_createEnv(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vUseVolume, vDataTransformation, vDumpData, vEnvS, historyLen, predictionLen, featuresCnt)!=0) {
+	if (_createEnv(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vDataTransformation, vDumpData, vEnvS, historyLen, predictionLen, featuresCnt)!=0) {
 		printf("FAILURE: _createEnv() failed. see Forecaster logs.");
 		return -1;
 	}
@@ -214,6 +212,8 @@ int OnInit() {
 			printf("OHLCV Forecast, serie %d: %f|%f|%f|%f|%f", s, (vopenF[s*predictionLen+bar]<0)?0: vopenF[s*predictionLen+bar], (vhighF[s*predictionLen+bar]<0)?0:vhighF[s*predictionLen+bar], (vlowF[s*predictionLen+bar]<0)?0: vlowF[s*predictionLen+bar], (vcloseF[s*predictionLen+bar]<0)?0:vcloseF[s*predictionLen+bar], (vvolumeF[s*predictionLen+bar]<0)?0:vvolumeF[s*predictionLen+bar]);
 		}
 	}
+	//------ TRADE CURRENT CHART, ONLY IF IT'S AMONG THE FORECAST SERIES
+
 	//===============================================================================
 	return -1;
 	//--------------------------------------------------------------------------------------------------------
