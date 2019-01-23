@@ -592,7 +592,7 @@ void sOraData::saveEngineInfo(int pid, int engineType, int sampleLen_, int predi
 	}
 
 }
-void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, int* sourceTSCnt_, int* TSfeaturesCnt_, int** feature_, numtype** trMin_, numtype** trMax_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -620,7 +620,41 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* samp
 		}
 		if (i==0) fail("Engine pid %d not found.", pid);
 
-		//-- 1. coresCnt, coreId, coreType
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+		//-- 1. scaling parameters
+		sprintf_s(sqlS, SQL_MAXLEN, "select distinct SourceTS from EngineScalingParms where ProcessId= %d", pid);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+		int stsCnt=0, ftrCnt;
+		int STS;
+		while (((ResultSet*)rset)->next()) {
+			STS=((ResultSet*)rset)->getInt(1);
+
+			sprintf_s(nsqlS, SQL_MAXLEN, "select Feature, trMin, trMax from EngineScalingParms where Processid= %d and SourceTS= %d", pid, STS);
+			nstmt = ((Connection*)conn)->createStatement(nsqlS);
+			nrset = ((Statement*)nstmt)->executeQuery();
+			ftrCnt=0;
+			while (nrset->next()) {
+				feature_[STS][ftrCnt]=((ResultSet*)nrset)->getInt(1);
+				trMin_[STS][ftrCnt]=((ResultSet*)nrset)->getFloat(2);
+				trMax_[STS][ftrCnt]=((ResultSet*)nrset)->getFloat(3);
+				ftrCnt++;
+			}
+			TSfeaturesCnt_[stsCnt]=ftrCnt;
+			stsCnt++;
+
+			((Statement*)nstmt)->closeResultSet((ResultSet*)nrset);
+			((Connection*)conn)->terminateStatement((Statement*)nstmt);
+		}
+		if (stsCnt==0) fail("Engine Scaling Parms for Engine pid %d not found.", pid);
+		(*sourceTSCnt_)=stsCnt;
+
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+		//-- 2. coresCnt, coreId, coreType
 		sprintf_s(sqlS, SQL_MAXLEN, "select CoreId, CoreType, CoreThreadId from EngineCores where EnginePid= %d", pid);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
@@ -643,6 +677,9 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* samp
 			parentCoresCnt[i]=ni;
 
 			i++;
+
+			((Statement*)nstmt)->closeResultSet((ResultSet*)nrset);
+			((Connection*)conn)->terminateStatement((Statement*)nstmt);
 		}
 		(*coresCnt)=i;
 

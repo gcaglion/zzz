@@ -5,6 +5,7 @@
 #include "sTimeSerie.h"
 #include "../Algebra/Algebra.h"
 
+#define DATASET_MAX_SOURCETS_CNT 16
 
 //-- ordering Ids
 #define SBF	0

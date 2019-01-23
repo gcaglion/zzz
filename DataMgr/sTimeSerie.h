@@ -58,7 +58,7 @@ struct sTimeSerie : sCfgObj {
 	EXPORT ~sTimeSerie();
 
 	EXPORT void load(int valSource, int valStatus, char* date0_=nullptr);
-	EXPORT void transform(int valSource, int dt_);
+	EXPORT void transform(int valSource);
 	EXPORT void untransform(int valSource);
 	EXPORT void scale(int valSource, int valStatus, float scaleMin_, float scaleMax_);
 	EXPORT void unscale(int valSource, float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int skipFirstNsteps_);

@@ -1,5 +1,18 @@
 #include "sEngine.h"
 
+void sEngine::mallocTSinfo() {
+	TSfeaturesCnt=new int(DATASET_MAX_SOURCETS_CNT);
+	TSfeature=(int**)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(int*)); for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) TSfeature[ts]=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
+	TStrMin=(numtype**)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(numtype*)); for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) TStrMin[ts]=(numtype*)malloc(MAX_DATA_FEATURES*sizeof(numtype));
+	TStrMax=(numtype**)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(numtype*)); for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) TStrMax[ts]=(numtype*)malloc(MAX_DATA_FEATURES*sizeof(numtype));
+}
+void sEngine::freeTSinfo() {
+	for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) {
+		free(TSfeature[ts]); free(TStrMin[ts]); free(TStrMax[ts]);
+	}
+	free(TSfeature); free(TStrMin); free(TStrMax); free(TSfeaturesCnt);
+}
+
 //-- Engine stuff
 sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	
@@ -21,10 +34,12 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	int* coreParentsCnt=new int(MAX_ENGINE_CORES);
 	int** coreParent=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParent[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	int** coreParentConnType=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParentConnType[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
+	//--
+	mallocTSinfo();
 
 	//-- 3. load info from FROM persistor
 	int typeUNUSED;
-	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &typeUNUSED, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType);
+	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &typeUNUSED, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, &sourceTSCnt, TSfeaturesCnt, TSfeature, TStrMin, TStrMax);
 	//-- 2. malloc one core, one coreLayout, one coreParms and one corePersistor for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
@@ -43,6 +58,8 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 
 	//-- spawn cores
 	safecall(this, spawnCoresFromDB, loadingPid_);
+
+	//-- re-transform sourceTSs
 
 	//-- free(s)
 	for (int i=0; i<MAX_ENGINE_CORES; i++) {
@@ -72,6 +89,8 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(
 	for (int c=0; c<coresCnt; c++) {
 		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Core%d/Layout", c))->base, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt);
 	}
+	//--
+	mallocTSinfo();
 
 	//-- common to all constructors. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
 	setLayerProps();
@@ -86,6 +105,7 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(
 sEngine::~sEngine() {
 	free(core); free(coreLayout); free(coreParms);
 	free(layerCoresCnt);
+	freeTSinfo();
 }
 
 void sEngine::spawnCoresFromXML() {
@@ -295,13 +315,26 @@ void sEngine::train(int testid_, sDataSet* trainDS_) {
 
 	safecall(this, process, trainProc, testid_, trainDS_, 0);
 }
-void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_) {
+void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool reTransform) {
+
+	//-- re-transform inferDS using trMin/Max loaded
+	if (reTransform) {
+		for (int ts=0; ts<inferDS_->sourceTScnt; ts++) {
+			for (int tsf=0; tsf<inferDS_->selectedTSfeaturesCnt[ts]; tsf++) {
+				int selF=inferDS_->selectedTSfeature[ts][tsf];
+				inferDS_->sourceTS[ts]->dmin[selF]=TStrMin[ts][selF];
+				inferDS_->sourceTS[ts]->dmax[selF]=TStrMax[ts][selF];
+				inferDS_->sourceTS[ts]->transform(ACTUAL);
+			}
+		}
+	}
+	//-- call infer
 	safecall(this, process, inferProc, testid_, inferDS_, savedEnginePid_);
 
+	//-- unscale, untransform, then save results
 	sDataSet* _ds;
 	sTimeSerie* _ts;
 	int layer;
-
 	for (int c=0; c<coresCnt; c++) {
 		layer=core[c]->layout->layer;
 		_ds = core[c]->procArgs->ds;
@@ -322,6 +355,7 @@ void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_) {
 			if (_ts->doDump) _ts->dump(PREDICTED, BASE);
 		}
 	}
+
 }
 
 void sEngine::saveMSE() {

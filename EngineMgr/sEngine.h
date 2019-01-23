@@ -34,7 +34,7 @@ struct sEngine : sCfgObj {
 	EXPORT ~sEngine();
 
 	EXPORT void train(int testid_, sDataSet* trainDS_);
-	EXPORT void infer(int testid_, sDataSet* inferDS_, int savedEnginePid_);
+	EXPORT void infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool reTransform=true);
 	//--
 	EXPORT void saveMSE();
 	EXPORT void saveRun();
@@ -59,5 +59,14 @@ private:
 
 	//-- these are needed to save trmin/max for each training feature
 	sDataSet* trainDS;
+	//-- these are needed to load trmin/max for each training feature
+	int sourceTSCnt;
+	int* TSfeaturesCnt;
+	int** TSfeature;
+	numtype** TStrMin;
+	numtype** TStrMax;
+	//--
+	void mallocTSinfo();
+	void freeTSinfo();
 
 };

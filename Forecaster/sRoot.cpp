@@ -52,7 +52,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, saveInfo);
 
 		//-- do infer on training data, without reloading engine
-		safecall(engine, infer, simulationId_, trainDS, pid);
+		safecall(engine, infer, simulationId_, trainDS, pid, false);
 		//-- persist Run logs
 		safecall(engine, saveRun);
 

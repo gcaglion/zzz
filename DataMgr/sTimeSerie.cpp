@@ -47,10 +47,9 @@ void sTimeSerie::load(int valSource, int valStatus, char* date0_) {
 	//-- 1. calc TSFs
 	safecall(this, calcTSFs);
 	//-- 2. transform
-	safecall(this, transform, valSource, dt);
+	safecall(this, transform, valSource);
 }
-void sTimeSerie::transform(int valSource, int dt_) {
-	dt=(dt_==-1) ? dt : dt_;
+void sTimeSerie::transform(int valSource) {
 	int curr=0;
 	for (int s=0; s<(stepsCnt); s++) {
 		for (int f=0; f<sourceData->featuresCnt; f++) {
