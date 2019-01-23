@@ -123,16 +123,15 @@ create table CoreLoggerParms(
 );
 alter table CoreLoggerParms add constraint CoreLoggerParms_PK primary key(ProcessId, ThreadId) using index tablespace LogIdx;
 
-drop table CoreScalingParms purge;
-create table CoreScalingParms(
+drop table EngineScalingParms purge;
+create table EngineScalingParms(
 	ProcessId number,
-	ThreadId number,
-	SourceTSId number,
-	FeatureId number,
-	ScaleM number,
-	ScaleP number
+	SourceTS number,
+	Feature number,
+	trMin number,
+	trMax number
 );
-alter table CoreScalingParms add constraint CoreScalingParms_PK primary key(ProcessId, ThreadId, SourceTSId, FeatureId) using index tablespace LogIdx;
+alter table EngineScalingParms add constraint EngineScalingParms_PK primary key(ProcessId, SourceTS, Feature) using index tablespace LogIdx;
 
 drop table CoreNNparms purge;
 create table CoreNNparms(

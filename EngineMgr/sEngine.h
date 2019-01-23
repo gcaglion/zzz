@@ -56,4 +56,8 @@ private:
 	const int trainProc = 0;
 	const int inferProc = 1;
 	void process(int procid_, int testid_, sDataSet* ds_, int savedEnginePid_);
+
+	//-- these are needed to save trmin/max for each training feature
+	sDataSet* trainDS;
+
 };

@@ -289,6 +289,10 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_, int savedEnginePi
 	}
 }
 void sEngine::train(int testid_, sDataSet* trainDS_) {
+
+	//-- needed to set trmin/max for each training feature
+	trainDS=trainDS_;
+
 	safecall(this, process, trainProc, testid_, trainDS_, 0);
 }
 void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_) {
@@ -389,14 +393,32 @@ void sEngine::saveInfo() {
 		safecall(core[c]->parms, save, persistor, clientPid, coreThreadId_[c]);
 	}
 
+	//--
+	numtype** TStrMin=(numtype**)malloc(trainDS->sourceTScnt*sizeof(numtype*));
+	numtype** TStrMax=(numtype**)malloc(trainDS->sourceTScnt*sizeof(numtype*));
+	for (int ts=0; ts<trainDS->sourceTScnt; ts++) {
+		TStrMin[ts]=(numtype*)malloc(trainDS->sourceTS[ts]->sourceData->featuresCnt*sizeof(numtype));
+		TStrMax[ts]=(numtype*)malloc(trainDS->sourceTS[ts]->sourceData->featuresCnt*sizeof(numtype));
+		for (int tsf=0; tsf<trainDS->sourceTS[ts]->sourceData->featuresCnt; tsf++) {
+			TStrMin[ts][tsf]=trainDS->sourceTS[ts]->dmin[tsf];
+			TStrMax[ts][tsf]=trainDS->sourceTS[ts]->dmax[tsf];
+		}
+	}
+
 	//-- actual call
-	safecall(persistor, saveEngineInfo, clientPid, -1, shape->sampleLen, shape->predictionLen, shape->featuresCnt, coresCnt, persistor->saveToDB, persistor->saveToFile, persistor->oradb, coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_);
+	safecall(persistor, saveEngineInfo, clientPid, -1, shape->sampleLen, shape->predictionLen, shape->featuresCnt, coresCnt, persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
+		coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_, \
+		trainDS->sourceTScnt, trainDS->selectedTSfeaturesCnt, trainDS->selectedTSfeature, TStrMin, TStrMax);
 
 	//-- free temps
 	for (int c=0; c<coresCnt; c++) {
 		free(coreParent_[c]); free(parentConnType_[c]);
 	}
 	free(coreId_); free(coreType_); free(coreThreadId_); free(coreParentsCnt_); free(coreParent_); free(parentConnType_);
+	for (int ts=0; ts<trainDS->sourceTScnt; ts++) {
+		free(TStrMin[ts]); free(TStrMax[ts]);
+	}
+	free(TStrMin); free(TStrMax);
 }
 
 //-- private stuff

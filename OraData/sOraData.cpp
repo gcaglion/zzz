@@ -564,7 +564,7 @@ void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, n
 }
 
 //-- Save/Load engine info
-void sOraData::saveEngineInfo(int pid, int engineType, int sampleLen_, int predictionLen_, int featuresCnt_, int coresCnt, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+void sOraData::saveEngineInfo(int pid, int engineType, int sampleLen_, int predictionLen_, int featuresCnt_, int coresCnt, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, int sourceTSCnt_, int* TSfeaturesCnt_, int** feature_, numtype** trMin_, numtype** trMax_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -572,6 +572,13 @@ void sOraData::saveEngineInfo(int pid, int engineType, int sampleLen_, int predi
 	//-- 1. ENGINES
 	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt, SaveToDB, SaveToFile, Orausername, Orapassword, Oraconnstring) values(%d, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s')", pid, engineType, sampleLen_, predictionLen_, featuresCnt_, (saveToDB_)?1:0, (saveToFile_)?1:0, dbconn_->DBUserName, dbconn_->DBPassword, dbconn_->DBConnString);
 	safecall(this, sqlExec, sqlS);
+	//-- 1.1. ENGINES SCALING PARMS
+	for (int ts=0; ts<sourceTSCnt_; ts++) {
+		for (int tsf=0; tsf<TSfeaturesCnt_[ts]; tsf++) {
+			sprintf_s(sqlS, SQL_MAXLEN, "insert into EngineScalingParms(ProcessId, SourceTS, Feature, trMin, trMax) values(%d, %d, %d, %f, %f)", pid, ts, tsf, trMin_[ts][tsf], trMax_[ts][tsf]);
+			safecall(this, sqlExec, sqlS);
+		}
+	}
 
 	//-- 2. ENGINECORES
 	for (int c=0; c<coresCnt; c++) {

@@ -184,17 +184,17 @@ void sTimeSerie::dump(int valSource, int valStatus) {
 	fprintf(dumpFile, "\n");
 
 	if (valStatus==TR) {
-		fprintf(dumpFile, "\ntr-min:");
-		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",,,%f", dmin[f]);
-		fprintf(dumpFile, "\ntr-max:");
-		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",,,%f", dmax[f]);
+		fprintf(dumpFile, "\ntr-min:,");
+		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",%f", dmin[f]);
+		fprintf(dumpFile, "\ntr-max:,");
+		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",%f", dmax[f]);
 		fprintf(dumpFile, "\n");
 	}
 	if (valStatus==TRS) {
-		fprintf(dumpFile, "\nscaleM:");
-		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",,,%f", scaleM[f]);
-		fprintf(dumpFile, "\nscaleP:");
-		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",,,%f", scaleP[f]);
+		fprintf(dumpFile, "\nscaleM:,");
+		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",%f", scaleM[f]);
+		fprintf(dumpFile, "\nscaleP:,");
+		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",%f", scaleP[f]);
 		fprintf(dumpFile, "\n");
 
 	}

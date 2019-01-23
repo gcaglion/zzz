@@ -175,9 +175,10 @@ void sRoot::kaz() {
 	sDataSet* ds1i; safespawn(ds1i, newsname("ds1INFER"), defaultdbg, ds1Cfg, "/DataSet");
 	ds1t->build(ACTUAL, BASE);
 
-	/*sTimeSerie* ts=ds1->sourceTS[0];
+	sTimeSerie* ts=ds1t->sourceTS[0];
+	ts->dump(ACTUAL, TR);
 
-	for (int s=0; s<(ts->stepsCnt-3); s++) {
+	/*for (int s=0; s<(ts->stepsCnt-3); s++) {
 		for (int f=0; f<ts->sourceData->featuresCnt; f++) {
 			ts->val[PREDICTED][TR][s*ts->sourceData->featuresCnt+f]=EMPTY_VALUE;
 		}
