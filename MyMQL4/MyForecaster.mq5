@@ -219,10 +219,10 @@ void OnTick() {
 			int positionId=PositionSelect(Symbol());
 			positionTime=PositionGetInteger(POSITION_TIME);
 			//-- save tradeInfo
-			//if (_saveTradeInfo(vEnvS, vTicket, positionTime, vSampleDataT[vSampleLen-1], vSampleDataO[vSampleLen-1], vSampleDataH[vSampleLen-1], vSampleDataL[vSampleLen-1], vSampleDataC[vSampleLen-1], vSampleDataV[vSampleLen-1], vPredictedDataO[0], vPredictedDataH[0], vPredictedDataL[0], vPredictedDataC[0], vPredictedDataV[0], tradeScenario, tradeResult)<0) {
-			//	printf("_saveTradeInfo() failed. see Forecaster logs.");
-			//	return;
-			//}
+			if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[historyLen-1], vopen[historyLen-1], vhigh[historyLen-1], vlow[historyLen-1], vclose[historyLen-1], vvolume[historyLen-1], vopen[tradeSerie*predictionLen+0], vhigh[tradeSerie*predictionLen+0], vlow[tradeSerie*predictionLen+0], vclose[tradeSerie*predictionLen+0], vvolume[tradeSerie*predictionLen+0], tradeScenario, tradeResult)<0) {
+				printf("_saveTradeInfo() failed. see Forecaster logs.");
+				return;
+			}
 		} else {
 			vTicket=-1;
 		}
