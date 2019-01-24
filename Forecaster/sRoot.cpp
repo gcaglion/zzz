@@ -525,21 +525,25 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 		safespawn(mtTimeSerie[serie], newsname("MTtimeSerie%d", serie), defaultdbg, mtDataSrc[serie], tmpDate0, MT4engine->shape->sampleLen+MT4engine->shape->predictionLen, dt_, MT4doDump);
 		safecall(mtTimeSerie[serie], load, ACTUAL, BASE);
 	}
-	//-- featureMask_ to selectedFeature[]
+	//-- need to make a local copy of featureMask_, as it gets changed just to get selFcnt
+	int* _featureMask=(int*)malloc(seriesCnt_*sizeof(int));
+	memcpy_s(_featureMask, seriesCnt_*sizeof(int), featureMask_, seriesCnt_*sizeof(int));
+
+	//-- _featureMask to selectedFeature[]
 	int* selFcnt=(int*)malloc(seriesCnt_*sizeof(int));
 	int** selF=(int**)malloc(seriesCnt_*sizeof(int*));
 	for (int serie=0; serie<seriesCnt_; serie++) {
 		selFcnt[serie]=0;
 		selF[serie]=(int*)malloc(5*sizeof(int));
-		if (featureMask_[serie]>=10000) { selF[serie][selFcnt[serie]]=FXOPEN; selFcnt[serie]++; featureMask_[serie]-=10000; }	//-- OPEN is selected
-		if (featureMask_[serie]>=1000) { selF[serie][selFcnt[serie]]=FXHIGH; selFcnt[serie]++; featureMask_[serie]-=1000; }		//-- HIGH is selected
-		if (featureMask_[serie]>=100) { selF[serie][selFcnt[serie]]=FXLOW; selFcnt[serie]++; featureMask_[serie]-=100; }		//-- LOW is selected
-		if (featureMask_[serie]>=10) { selF[serie][selFcnt[serie]]=FXCLOSE; selFcnt[serie]++; featureMask_[serie]-=10; }		//-- CLOSE is selected
-		if (featureMask_[serie]>=1) { selF[serie][selFcnt[serie]]=FXVOLUME; selFcnt[serie]++; featureMask_[serie]-=1; }			//-- VOLUME is selected
+		if (_featureMask[serie]>=10000) { selF[serie][selFcnt[serie]]=FXOPEN; selFcnt[serie]++; _featureMask[serie]-=10000; }	//-- OPEN is selected
+		if (_featureMask[serie]>=1000) { selF[serie][selFcnt[serie]]=FXHIGH; selFcnt[serie]++; _featureMask[serie]-=1000; }		//-- HIGH is selected
+		if (_featureMask[serie]>=100) { selF[serie][selFcnt[serie]]=FXLOW; selFcnt[serie]++; _featureMask[serie]-=100; }		//-- LOW is selected
+		if (_featureMask[serie]>=10) { selF[serie][selFcnt[serie]]=FXCLOSE; selFcnt[serie]++; _featureMask[serie]-=10; }		//-- CLOSE is selected
+		if (_featureMask[serie]>=1) { selF[serie][selFcnt[serie]]=FXVOLUME; selFcnt[serie]++; _featureMask[serie]-=1; }			//-- VOLUME is selected
 		info("serie[%d] featuresCnt=%d", serie, selFcnt[serie]);
 		for (int sf=0; sf<selFcnt[serie]; sf++) info("serie[%d] feature [%d]=%d", serie, sf, selF[serie][sf]);
 	}
-		
+
 	//-- manually spawn infer dataset from timeseries, sampleLen, predictionLen
 	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, seriesCnt_, mtTimeSerie, selFcnt, selF, MT4engine->shape->sampleLen, MT4engine->shape->predictionLen, 1, MT4doDump);
 	mtDataSet->build(ACTUAL, BASE);
@@ -560,18 +564,6 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 		}
 	}
 
-/*		//-- forecast is now in the last <predictionLen> steps of oBar<>	
-		for (int serie=0; serie<seriesCnt_; serie++) {
-		for (int bar=0; bar<MT4engine->shape->predictionLen; bar++) {
-			oForecastO[serie*MT4engine->shape->predictionLen+bar]=oBarO[serie][MT4engine->shape->sampleLen+bar];
-			oForecastH[serie*MT4engine->shape->predictionLen+bar]=oBarH[serie][MT4engine->shape->sampleLen+bar];
-			oForecastL[serie*MT4engine->shape->predictionLen+bar]=oBarL[serie][MT4engine->shape->sampleLen+bar];
-			oForecastC[serie*MT4engine->shape->predictionLen+bar]=oBarC[serie][MT4engine->shape->sampleLen+bar];
-			oForecastV[serie*MT4engine->shape->predictionLen+bar]=oBarV[serie][MT4engine->shape->sampleLen+bar];
-			info("OHLCV Forecast, bar %d: %f|%f|%f|%f|%f", bar, oForecastO[serie*MT4engine->shape->predictionLen+bar], oForecastH[serie*MT4engine->shape->predictionLen+bar], oForecastL[serie*MT4engine->shape->predictionLen+bar], oForecastC[serie*MT4engine->shape->predictionLen+bar], oForecastV[serie*MT4engine->shape->predictionLen+bar]);
-		}
-	}
-*/
 	//-- cleanup
 	for (int serie=0; serie<seriesCnt_; serie++) {
 		free(oBarT[serie]); free(oBarO[serie]);	free(oBarH[serie]);	free(oBarL[serie]);	free(oBarC[serie]);	free(oBarV[serie]);	
