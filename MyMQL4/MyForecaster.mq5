@@ -18,10 +18,9 @@ int _destroyEnv(uchar& iEnv[]);
 #import
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 8252;
+input int EnginePid				= 10964;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/master/99/Client.xml";
 input int DataTransformation	= 1;
-input int  ValidationShift		= 0;
 input bool DumpData				= true;
 input bool SaveLogs				= true;
 input int  Max_Retries			= 3;
@@ -35,67 +34,51 @@ input int	 Default_Slippage	= 8;
 input int    MinProfitPIPs		= 5;
 
 //--- local variables
-int vSampleLen=0;
-int vPredictionLen=0;
-int vValidationShift=-ValidationShift;
+int vDataTransformation=DataTransformation;
 int vEnginePid=EnginePid;
 int vDumpData=DumpData;
-int vDataTransformation=DataTransformation;
-//--
-int vRectsCnt=0;
 //--
 long vTicket;
-
-//--- data variables to be passed in MTgetForecast() call
-int vSampleDataT[], vSampleBaseValT;
-string vSampleDataTs[], vSampleBaseValTs;
-double vSampleDataO[], vSampleBaseValO;
-double vSampleDataH[], vSampleBaseValH;
-double vSampleDataL[], vSampleBaseValL;
-double vSampleDataC[], vSampleBaseValC;
-double vSampleDataV[], vSampleBaseValV;
-double vPredictedDataO[], vPredictedDataH[], vPredictedDataL[], vPredictedDataC[], vPredictedDataV[];
-double vSampleBW[];
-
-//--- bars timestamps
-string vSampleTime[], vValidationTime[];
-string vSampleBaseTime, vValidationBaseTime;
 
 //--- miscellaneous variables
 string EnvS;
 uchar vEnvS[];		// Env in char* format
 uchar vClientXMLFileS[];
 
-int    vBarId;
-uchar vFirstBarT[]; uchar vLastBarT[];
-double vTradeSize=0;			// vTradeSize is global non-static. It is set by NewTrade(), and is needed by MTSaveTradeInfo()
-double vTradeTP=0, vTradeSL=0;	// these, too, are set in NewTrade()
-bool   fLog;
-uint t0, t1;						// Time counters. Used to calc elapsed
+//--------------------------------------------------------------------------
+int seriesCnt;
+int historyLen;
+int predictionLen;
+int featuresCnt;
+int featuresCntFromCfg;
+string serieSymbol[MT_MAX_SERIES_CNT];
+string serieTimeFrame[MT_MAX_SERIES_CNT];
+string serieFeatList[MT_MAX_SERIES_CNT];
+int serieFeatMask[MT_MAX_SERIES_CNT];
+bool chartTrade[MT_MAX_SERIES_CNT];
+//--
+double vopen[], vhigh[], vlow[], vclose[], vvolume[];
+int vtime[]; string vtimeS[];
+double vopenB[], vhighB[], vlowB[], vcloseB[], vvolumeB[];
+int vtimeB[]; string vtimeSB[];
+double vopenF[], vhighF[], vlowF[], vcloseF[], vvolumeF[];
+double vForecastH, vForecastL;
+//--
+MqlRates serierates[];
+//--------------------------------------------------------------------------
 
 int OnInit() {
 
-	int seriesCnt;
-	int historyLen;
-	int predictionLen;
-	int featuresCnt;
-	int featuresCntFromCfg;
-	string serieSymbol[MT_MAX_SERIES_CNT];
-	string serieTimeFrame[MT_MAX_SERIES_CNT];
-	string serieFeatList[MT_MAX_SERIES_CNT];
-	int serieFeatMask[MT_MAX_SERIES_CNT];
-	bool chartTrade[MT_MAX_SERIES_CNT];
-	//--
-	double vopen[], vhigh[], vlow[], vclose[], vvolume[];
-	int vtime[]; string vtimeS[];
-	double vopenB[], vhighB[], vlowB[], vcloseB[], vvolumeB[];
-	int vtimeB[]; string vtimeSB[];
-	double vopenF[], vhighF[], vlowF[], vcloseF[], vvolumeF[];
-	//--
-	MqlRates serierates[];
-
 	EnvS = "00000000000000000000000000000000000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
+	string sSymbolsCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+	string sTimeFramesCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+	string sFeaturesCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
+	uchar uSymbolsCSL[]; StringToCharArray(sSymbolsCSL, uSymbolsCSL);
+	uchar uTimeFramesCSL[]; StringToCharArray(sTimeFramesCSL, uTimeFramesCSL);
+	uchar uFeaturesCSL[]; StringToCharArray(sFeaturesCSL, uFeaturesCSL);
 	StringToCharArray(ClientXMLFile, vClientXMLFileS);
+
+	//--
 	printf("Creating Environment from saved engine (pid=%d) ...", vEnginePid);
 	if (_createEnv(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vDataTransformation, vDumpData, vEnvS, historyLen, predictionLen, featuresCnt)!=0) {
 		printf("FAILURE: _createEnv() failed. see Forecaster logs.");
@@ -104,13 +87,7 @@ int OnInit() {
 	EnvS=CharArrayToString(vEnvS);
 	printf("EnginePid=%d ; SampleLen/PredictionLen/FeaturesCnt=%d/%d/%d ; EnvS=%s ; ClientXMLFile=%s", EnginePid, historyLen, predictionLen, featuresCnt, EnvS, ClientXMLFile);
 
-	string sSymbolsCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-	string sTimeFramesCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-	string sFeaturesCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-	uchar uSymbolsCSL[]; StringToCharArray(sSymbolsCSL, uSymbolsCSL);
-	uchar uTimeFramesCSL[]; StringToCharArray(sTimeFramesCSL, uTimeFramesCSL);
-	uchar uFeaturesCSL[]; StringToCharArray(sFeaturesCSL, uFeaturesCSL);
-
+	//--
 	printf("Getting TimeSeries Info from Client Config...");
 	if (_getSeriesInfo(vEnvS, seriesCnt, uSymbolsCSL, uTimeFramesCSL, uFeaturesCSL, chartTrade)!=0) {
 		printf("FAILURE: _getSeriesInfo() failed. see Forecaster logs.");
@@ -170,13 +147,105 @@ int OnInit() {
 	ArrayResize(vcloseF, predictionLen*seriesCnt);
 	ArrayResize(vvolumeF, predictionLen*seriesCnt);
 
-	//========== LOAD BARS ==============   THIS GOES INTO OnTick() =========================
+	return 0;
+	
+}
+void OnTick() {
+
+	// Only do this if there's a new bar
+	static datetime Time0=0;
+	if (Time0==SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE)) return; 
+	Time0 = SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE);
+	string Time0S;
+	StringConcatenate(Time0S, TimeToString(Time0, TIME_DATE), ".", TimeToString(Time0, TIME_MINUTES));
+
+	//-- load bars into arrrays
+	printf("Time0=%s . calling LoadBars()...", Time0S);
+	if (!loadBars()) {
+		printf("loadBars() FAILURE! Exiting...");
+		//ExpertRemove();
+		return;
+	}
+
+	//------ GET FORECAST ---------
+	printf("Getting Forecast...");
+	if (_getForecast(vEnvS, seriesCnt, vDataTransformation, serieFeatMask, vtime, vopen, vhigh, vlow, vclose, vvolume, vtimeB, vopenB, vhighB, vlowB, vcloseB, vvolumeB, vopenF, vhighF, vlowF, vcloseF, vvolumeF)!=0) {
+		printf("_getForecast() FAILURE! Exiting...");
+		//ExpertRemove();
+		return;
+	};
+	//------ PRINT FORECAST FOR ALL SERIES, AND PICK SERIE FROM CURRENT CHART SYMBOL/TF ---------
+	int tradeSerie=-1;
+	for (int s=0; s<seriesCnt; s++) {
+		for (int bar=0; bar<predictionLen; bar++) {
+			//printf("OHLCV Forecast, serie %d: %f|%f|%f|%f|%f", s, (vopenF[s*predictionLen+bar]<0) ? 0 : vopenF[s*predictionLen+bar], (vhighF[s*predictionLen+bar]<0) ? 0 : vhighF[s*predictionLen+bar], (vlowF[s*predictionLen+bar]<0) ? 0 : vlowF[s*predictionLen+bar], (vcloseF[s*predictionLen+bar]<0) ? 0 : vcloseF[s*predictionLen+bar], (vvolumeF[s*predictionLen+bar]<0) ? 0 : vvolumeF[s*predictionLen+bar]);
+			if (StringCompare(serieSymbol[s], Symbol())==0&&getTimeFrameEnum(serieTimeFrame[s])==Period()) tradeSerie=s;
+		}
+	}
+	if (tradeSerie==-1) {
+		printf("Nothing to trade in current chart. Exiting...");
+		//ExpertRemove();
+		return;
+	}
+	//-- take first bar from vhighF, vlowF
+	vForecastH=vhighF[tradeSerie*predictionLen+0];
+	vForecastL=vlowF[tradeSerie*predictionLen+0];
+	//-- check for forecast consistency in first bar (H>L)
+	if (vForecastL>vForecastH) {
+		printf("Invalid Forecast: H=%f ; L=%f . Exiting...", vForecastH, vForecastL);
+		return;
+	} else {
+		printf("Using Forecast: H=%f ; L=%f", vForecastH, vForecastL);
+	}
+
+	
+	//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
+	drawForecast(vForecastH, vForecastL);
+
+	//-- define trade scenario based on current price level and forecast
+	double tradeVol=0.1;
+	double tradePrice, tradeTP, tradeSL;
+	int tradeResult; datetime positionTime;
+
+	int tradeScenario=getTradeScenario(tradePrice, tradeTP, tradeSL); printf("trade scenario=%d ; tradePrice=%5.4f ; tradeTP=%5.4f ; tradeSL=%5.4f", tradeScenario, tradePrice, tradeTP, tradeSL);
+	if (tradeScenario>=0) {
+
+		//-- do the actual trade
+		tradeResult=NewTrade(tradeScenario, tradeVol, tradePrice, tradeTP, tradeSL);
+
+		//-- if trade successful, store position ticket in shared variable
+		if (tradeResult==0) {
+			vTicket = PositionGetTicket(0);
+			int positionId=PositionSelect(Symbol());
+			positionTime=PositionGetInteger(POSITION_TIME);
+			//-- save tradeInfo
+			//if (_saveTradeInfo(vEnvS, vTicket, positionTime, vSampleDataT[vSampleLen-1], vSampleDataO[vSampleLen-1], vSampleDataH[vSampleLen-1], vSampleDataL[vSampleLen-1], vSampleDataC[vSampleLen-1], vSampleDataV[vSampleLen-1], vPredictedDataO[0], vPredictedDataH[0], vPredictedDataL[0], vPredictedDataC[0], vPredictedDataV[0], tradeScenario, tradeResult)<0) {
+			//	printf("_saveTradeInfo() failed. see Forecaster logs.");
+			//	return;
+			//}
+		} else {
+			vTicket=-1;
+		}
+	}
+	
+
+}
+void OnDeinit(const int reason) {
+	CharArrayToString(vEnvS, EnvS);
+	printf("OnDeInit() called. EnvS=%s", EnvS);
+	if (EnvS!="00000000000000000000000000000000000000000000000000000000000000000") {
+		printf("calling _destroyEnv for vEnvS=%s", EnvS);
+		_destroyEnv(vEnvS);
+	}
+}
+
+bool loadBars(){
 	int i=0;
 	ENUM_TIMEFRAMES tf;
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
 		int copied=CopyRates(serieSymbol[s], tf, 1, historyLen+2, serierates);	printf("copied[%d]=%d", s, copied);
-		if (copied!=(historyLen+2)) return -1;
+		if (copied!=(historyLen+2)) return false;
 		//-- base bar
 		vtimeB[s]=serierates[1].time+TimeGMTOffset();
 		StringConcatenate(vtimeSB[s], TimeToString(vtimeB[s], TIME_DATE), ".", TimeToString(vtimeB[s], TIME_MINUTES));
@@ -197,98 +266,10 @@ int OnInit() {
 			vvolume[i]=serierates[bar].real_volume;
 			//printf("time[%d]=%s ; OHLCV[%d]=%f|%f|%f|%f|%f", i, vtimeS[i], i, vopen[i], vhigh[i], vlow[i], vclose[i], vvolume[i]);
 			i++;
-		}		
-	}
-	//------ GET FORECAST ---------
-	printf("Getting Forecast...");
-	if (_getForecast(vEnvS, seriesCnt, vDataTransformation, serieFeatMask, vtime, vopen, vhigh, vlow, vclose, vvolume, vtimeB, vopenB, vhighB, vlowB, vcloseB, vvolumeB, vopenF, vhighF, vlowF, vcloseF, vvolumeF)!=0) {
-		printf("_getForecast() FAILURE! Exiting...");
-		return -1;
-	};
-	//------ PRINT FORECAST FOR ALL SERIES, AND PICK SERIE FROM CURRENT CHART SYMBOL/TF ---------
-	int tradeSerie=-1;
-	for (int s=0; s<seriesCnt; s++) {
-		for (int bar=0; bar<predictionLen; bar++) {
-			printf("OHLCV Forecast, serie %d: %f|%f|%f|%f|%f", s, (vopenF[s*predictionLen+bar]<0)?0: vopenF[s*predictionLen+bar], (vhighF[s*predictionLen+bar]<0)?0:vhighF[s*predictionLen+bar], (vlowF[s*predictionLen+bar]<0)?0: vlowF[s*predictionLen+bar], (vcloseF[s*predictionLen+bar]<0)?0:vcloseF[s*predictionLen+bar], (vvolumeF[s*predictionLen+bar]<0)?0:vvolumeF[s*predictionLen+bar]);
-			if (StringCompare(serieSymbol[s], Symbol())==0 &&getTimeFrameEnum(serieTimeFrame[s])==Period()) tradeSerie=s;
 		}
 	}
-	if (tradeSerie==-1) {
-		printf("Nothing to trade in current chart.");
-		return 0;
-	}
-
-	//===============================================================================
-	return -1;
-	//--------------------------------------------------------------------------------------------------------
-	
+	return true;
 }
-void OnTick() {
-
-	// Only do this if there's a new bar
-	static datetime Time0=0;
-	if (Time0==SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE)) return; 
-	Time0 = SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE);
-	string Time0S;
-	StringConcatenate(Time0S, TimeToString(Time0, TIME_DATE), ".", TimeToString(Time0, TIME_MINUTES));
-
-	//-- load bars into arrrays
-	printf("Time0=%s . calling LoadBars()...", Time0S);
-	//LoadBars();
-
-
-/*	//-- call Forecaster
-	if (_getForecast(vEnvS, vSampleDataT, vSampleDataO, vSampleDataH, vSampleDataL, vSampleDataC, vSampleDataV, vSampleBaseValT, vSampleBaseValO, vSampleBaseValH, vSampleBaseValL, vSampleBaseValC, vSampleBaseValV, vPredictedDataO, vPredictedDataH, vPredictedDataL, vPredictedDataC, vPredictedDataV)!=0) {
-		printf("_getForecast() FAILURE! Exiting...");
-		return;
-	};
-	for (int i=0; i<vPredictionLen; i++) printf("vPredictedDataH[%d]=%5.4f , vPredictedDataL[%d]=%5.4f ", i, vPredictedDataH[i], i, vPredictedDataL[i]);
-*/
-	//-- check for forecast consistency (H>L)
-	if (vPredictedDataH[0]<=vPredictedDataL[0]) {
-		printf("Invalid Forecast: H=%f ; L=%f", vPredictedDataH[0], vPredictedDataL[0]);
-		return;
-	}
-	//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
-	drawForecast(vPredictedDataH[0], vPredictedDataL[0]);
-
-	//-- define trade scenario based on current price level and forecast
-	double tradeVol=0.1;
-	double tradePrice, tradeTP, tradeSL;
-	int tradeResult; datetime positionTime;
-
-	int tradeScenario=getTradeScenario(tradePrice, tradeTP, tradeSL); printf("trade scenario=%d ; tradePrice=%5.4f ; tradeTP=%5.4f ; tradeSL=%5.4f", tradeScenario, tradePrice, tradeTP, tradeSL);
-	if (tradeScenario>=0) {
-
-		//-- do the actual trade
-		tradeResult=NewTrade(tradeScenario, tradeVol, tradePrice, tradeTP, tradeSL);
-
-		//-- if trade successful, store position ticket in shared variable
-		if (tradeResult==0) {
-			vTicket = PositionGetTicket(0);
-			int positionId=PositionSelect(Symbol());
-			positionTime=PositionGetInteger(POSITION_TIME);
-			//-- save tradeInfo
-			if (_saveTradeInfo(vEnvS, vTicket, positionTime, vSampleDataT[vSampleLen-1], vSampleDataO[vSampleLen-1], vSampleDataH[vSampleLen-1], vSampleDataL[vSampleLen-1], vSampleDataC[vSampleLen-1], vSampleDataV[vSampleLen-1], vPredictedDataO[0], vPredictedDataH[0], vPredictedDataL[0], vPredictedDataC[0], vPredictedDataV[0], tradeScenario, tradeResult)<0) {
-				printf("_saveTradeInfo() failed. see Forecaster logs.");
-				return;
-			}
-		} else {
-			vTicket=-1;
-		}
-	}
-	
-
-}
-void OnDeinit(const int reason) {
-	CharArrayToString(vEnvS, EnvS);
-	printf("OnDeInit() called. EnvS=%s", EnvS);
-	if (EnvS!="00000000000000000000000000000000000000000000000000000000000000000") {
-		printf("calling _destroyEnv for vEnvS=%s", EnvS);
-		_destroyEnv(vEnvS);
-	}
-}
-
 int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
 
 	int scenario;
@@ -299,8 +280,8 @@ int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
 	MqlTick tick;
 	if(SymbolInfoTick(Symbol(), tick)) {
 
-		double fH=vPredictedDataH[0];
-		double fL=vPredictedDataL[0];
+		double fH=vForecastH;
+		double fL=vForecastL;
 		double cH=tick.ask;
 		double cL=tick.bid;
 		double dH=fH-cH;
@@ -430,7 +411,6 @@ void drawForecast(double H, double L) {
 	//ObjectSetInteger(0, name, OBJPROP_FILL, true);
 	ObjectSetInteger(0, name, OBJPROP_HIDDEN, false);
 
-	vRectsCnt++;
 }
 
 ENUM_TIMEFRAMES getTimeFrameEnum(string tfS) {

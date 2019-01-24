@@ -619,6 +619,7 @@ void sRoot::MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeatur
 	(*oSampleLen_)=MT4engine->shape->sampleLen;
 	(*oPredictionLen_)=MT4engine->shape->predictionLen;
 	(*oFeaturesCnt_)=MT4engine->shape->featuresCnt;
+	info("Engine spawned from DB. sampleLen=%d ; predictionLen=%d ; featuresCnt=%d", MT4engine->shape->sampleLen, MT4engine->shape->predictionLen, MT4engine->shape->featuresCnt);
 	info("Environment initialized and Engine created for Account Number %d inferring from Engine pid %d using config from %s", MT4accountId, MT4enginePid, MT4clientXMLFile);
 }
 //--
