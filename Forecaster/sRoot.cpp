@@ -572,6 +572,13 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	free(oBaseBarT); free(oBaseBarO); free(oBaseBarH); free(oBaseBarL); free(oBaseBarC); free(oBaseBarV);
 	for (int serie=0; serie<seriesCnt_; serie++) free(selF[serie]);
 	free(selF); free(selFcnt);
+	free(_featureMask);
+	for (int serie=0; serie<seriesCnt_; serie++) {
+		delete mtDataSrc[serie];
+		delete mtTimeSerie[serie];
+	}
+	free(mtDataSrc); free(mtTimeSerie);
+	delete mtDataSet;
 
 }
 void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult) {
