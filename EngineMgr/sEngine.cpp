@@ -1,7 +1,7 @@
 #include "sEngine.h"
 
 void sEngine::mallocTSinfo() {
-	TSfeaturesCnt=new int(DATASET_MAX_SOURCETS_CNT);
+	TSfeaturesCnt=(int*)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(int));
 	TSfeature=(int**)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(int*)); for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) TSfeature[ts]=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
 	TStrMin=(numtype**)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(numtype*)); for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) TStrMin[ts]=(numtype*)malloc(MAX_DATA_FEATURES*sizeof(numtype));
 	TStrMax=(numtype**)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(numtype*)); for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) TStrMax[ts]=(numtype*)malloc(MAX_DATA_FEATURES*sizeof(numtype));
@@ -28,10 +28,10 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	clientPid=clientPid_;
 
 	//-- 0. mallocs
-	int* coreId=new int(MAX_ENGINE_CORES);
-	int* coreType=new int(MAX_ENGINE_CORES);
-	int* coreThreadId=new int(MAX_ENGINE_CORES);
-	int* coreParentsCnt=new int(MAX_ENGINE_CORES);
+	int* coreId=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
+	int* coreType=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
+	int* coreThreadId=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
+	int* coreParentsCnt=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	int** coreParent=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParent[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	int** coreParentConnType=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParentConnType[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	//--
@@ -320,11 +320,14 @@ void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool r
 	//-- re-transform inferDS using trMin/Max loaded
 	if (reTransform) {
 		for (int ts=0; ts<inferDS_->sourceTScnt; ts++) {
-			for (int tsf=0; tsf<inferDS_->selectedTSfeaturesCnt[ts]; tsf++) {
-				int selF=inferDS_->selectedTSfeature[ts][tsf];
-				inferDS_->sourceTS[ts]->dmin[selF]=TStrMin[ts][selF];
-				inferDS_->sourceTS[ts]->dmax[selF]=TStrMax[ts][selF];
-				inferDS_->sourceTS[ts]->transform(ACTUAL);
+			for (int tsf=0; tsf<inferDS_->sourceTS[ts]->sourceData->featuresCnt; tsf++) {
+				for (int selF=0; selF<inferDS_->selectedTSfeaturesCnt[ts]; selF++) {
+					if (inferDS_->selectedTSfeature[ts][selF]==tsf) {
+						inferDS_->sourceTS[ts]->dmin[tsf]=TStrMin[ts][selF];
+						inferDS_->sourceTS[ts]->dmax[tsf]=TStrMax[ts][selF];
+						inferDS_->sourceTS[ts]->transform(ACTUAL);
+					}
+				}
 			}
 		}
 	}
@@ -427,15 +430,15 @@ void sEngine::saveInfo() {
 		safecall(core[c]->parms, save, persistor, clientPid, coreThreadId_[c]);
 	}
 
-	//--
-	numtype** TStrMin=(numtype**)malloc(trainDS->sourceTScnt*sizeof(numtype*));
-	numtype** TStrMax=(numtype**)malloc(trainDS->sourceTScnt*sizeof(numtype*));
+	//-- save trMin/Max for every selected feature in every TS
 	for (int ts=0; ts<trainDS->sourceTScnt; ts++) {
-		TStrMin[ts]=(numtype*)malloc(trainDS->sourceTS[ts]->sourceData->featuresCnt*sizeof(numtype));
-		TStrMax[ts]=(numtype*)malloc(trainDS->sourceTS[ts]->sourceData->featuresCnt*sizeof(numtype));
 		for (int tsf=0; tsf<trainDS->sourceTS[ts]->sourceData->featuresCnt; tsf++) {
-			TStrMin[ts][tsf]=trainDS->sourceTS[ts]->dmin[tsf];
-			TStrMax[ts][tsf]=trainDS->sourceTS[ts]->dmax[tsf];
+			for (int selF=0; selF<trainDS->selectedTSfeaturesCnt[ts]; selF++) {
+				if (trainDS->selectedTSfeature[ts][selF]==tsf) {
+					TStrMin[ts][selF]=trainDS->sourceTS[ts]->dmin[tsf];
+					TStrMax[ts][selF]=trainDS->sourceTS[ts]->dmax[tsf];
+				}
+			}
 		}
 	}
 

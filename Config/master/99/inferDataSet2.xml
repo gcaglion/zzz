@@ -1,6 +1,6 @@
 <DataSet>
 
-	TimeSeriesCount	= 3
+	TimeSeriesCount	= 2
 	<TimeSerie0>
 		HistoryLen			= 102
 		Date0				= 2017-09-07-00:00

@@ -2,8 +2,8 @@
 
 	TimeSeriesCount	= 3
 	<TimeSerie0>
-		HistoryLen			= 200
-		Date0				= 2017-09-14-00:00
+		HistoryLen			= 8002
+		Date0				= 2017-08-31-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
@@ -11,8 +11,8 @@
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	</TimeSerie0>
 	<TimeSerie1>
-		HistoryLen			= 200
-		Date0				= 2017-09-14-00:00
+		HistoryLen			= 8002
+		Date0				= 2017-08-31-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
@@ -20,8 +20,8 @@
 		SelectedFeatures	= FXHIGH, FXLOW
 	</TimeSerie1>
 	<TimeSerie2>
-		HistoryLen			= 200
-		Date0				= 2017-09-14-00:00
+		HistoryLen			= 8002
+		Date0				= 2017-08-31-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
@@ -30,10 +30,10 @@
 	</TimeSerie2>
 
 	SampleLen = 50
-	PredictionLen = 1
+	PredictionLen = 3
 	
 	BatchSamplesCount	= 10
-	Dump 				= false
+	Dump 				= true
 	DumpPath			= c:\temp\DataDump
 
 	<! DataSetPersistor-Default.xml >
