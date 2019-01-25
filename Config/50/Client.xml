@@ -31,9 +31,9 @@
 			Trade				= true
 		</Chart0>
 		<Chart1>
-			Symbol				= GBPNZD
+			Symbol				= EU50-MAR19
 			TimeFrame			= H1
-			SelectedFeatures	= FXHIGH, FXLOW
+			SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 			Trade				= false
 		</Chart1>
 		<Chart2>
