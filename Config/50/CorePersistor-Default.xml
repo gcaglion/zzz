@@ -1,0 +1,22 @@
+		<Persistor>
+			saveMSE			= true
+			saveRun			= true
+			saveInternals	= false
+			saveImage		= true
+			readFrom		= OraData
+			saveToDB		= true
+			saveToFile		= false
+			<OraData>
+				UserName	= LogUser
+				Password	= LogPwd
+				ConnString	= Algo
+			</OraData>
+			<FileData>
+				Client		= c:\temp\logs\Persistor\Client.log
+				MSE			= c:\temp\logs\Persistor\MSE.log
+				Run			= c:\temp\logs\Persistor\Run.log
+				Internals	= c:\temp\logs\Persistor\Internals.log
+				Image		= c:\temp\logs\Persistor\Image.log
+			</FileData>
+		</Persistor>
+		
