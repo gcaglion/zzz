@@ -219,7 +219,7 @@ void OnTick() {
 			int positionId=PositionSelect(Symbol());
 			positionTime=PositionGetInteger(POSITION_TIME);
 			//-- save tradeInfo
-			if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[historyLen-1], vopen[historyLen-1], vhigh[historyLen-1], vlow[historyLen-1], vclose[historyLen-1], vvolume[historyLen-1], vopen[tradeSerie*predictionLen+0], vhigh[tradeSerie*predictionLen+0], vlow[tradeSerie*predictionLen+0], vclose[tradeSerie*predictionLen+0], vvolume[tradeSerie*predictionLen+0], tradeScenario, tradeResult)<0) {
+			if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[historyLen-1], vopen[historyLen-1], vhigh[historyLen-1], vlow[historyLen-1], vclose[historyLen-1], vvolume[historyLen-1], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0], tradeScenario, tradeResult)<0) {
 				printf("_saveTradeInfo() failed. see Forecaster logs.");
 				return;
 			}
@@ -415,6 +415,7 @@ void drawForecast(double H, double L) {
 
 ENUM_TIMEFRAMES getTimeFrameEnum(string tfS) {
 	if (tfS=="H1") return PERIOD_H1;
+	if (tfS=="D1") return PERIOD_D1;
 	return 0;
 }
 int CSL2Mask(string mask) {

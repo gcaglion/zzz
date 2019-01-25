@@ -1,0 +1,5 @@
+	<DBConnection>
+		UserName	= History
+		Password	= HistoryPwd
+		ConnString	= Algo
+	</DBConnection>

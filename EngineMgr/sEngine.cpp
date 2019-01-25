@@ -317,6 +317,11 @@ void sEngine::train(int testid_, sDataSet* trainDS_) {
 }
 void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool reTransform) {
 
+	//-- consistency checks: sampleLen/predictionLen/featuresCnt must be the same in inferDS and engine
+	if (inferDS_->shape->sampleLen!=shape->sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS_->shape->sampleLen, shape->sampleLen);
+	if (inferDS_->shape->predictionLen!=shape->predictionLen) fail("Infer DataSet Prediction Length (%d) differs from Engine's (%d)", inferDS_->shape->predictionLen, shape->predictionLen);
+	if (inferDS_->shape->featuresCnt!=shape->featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_->shape->featuresCnt, shape->featuresCnt);
+
 	//-- re-transform inferDS using trMin/Max loaded
 	if (reTransform) {
 		for (int ts=0; ts<inferDS_->sourceTScnt; ts++) {

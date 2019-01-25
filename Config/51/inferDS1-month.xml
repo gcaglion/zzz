@@ -1,0 +1,22 @@
+<DataSet>
+
+	TimeSeriesCount	= 1
+	<TimeSerie0>
+		HistoryLen			= 400
+		Date0				= 2018-07-30-00:00
+		DataTransformation	= DT_DELTA
+		Dump				= false
+		DumpPath			= c:\temp\DataDump
+		<! FXDB-EurUsdH1.xml >
+		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+	</TimeSerie0>
+
+	SampleLen = 50
+	PredictionLen = 3
+	
+	BatchSamplesCount	= 1
+	Dump 				= false
+	DumpPath			= c:\temp\DataDump
+
+	<! DataSetPersistor-Default.xml >
+</DataSet>
