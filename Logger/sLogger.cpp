@@ -176,7 +176,6 @@ void sLogger::saveTradeInfo(int MT4clientPid, int MT4sessionId, int MT4accountId
 	//-- this should be treated as atomic (i.e. automatic commit)
 	if (source==OraData) {
 		safecall(oradb, saveTradeInfo, MT4clientPid, MT4sessionId, MT4accountId, MT4enginePid, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult);
-		safecall(oradb, commit);
 	}
 	//if (source==FileData) .....
 }

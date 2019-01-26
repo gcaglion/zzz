@@ -229,7 +229,7 @@ EXPORT void gettimestamp(char* timeS, size_t timeSsize) {
 EXPORT void MT4time2str(long iTime, int iTimeSsize, char* oTimeS) {
 	struct tm buf;
 	time_t kaz=(time_t)iTime;
-	localtime_s(&buf, &kaz);
+	gmtime_s(&buf, &kaz);
 	strftime(oTimeS, iTimeSsize, DATE_FORMAT_C, &buf);
 }
 

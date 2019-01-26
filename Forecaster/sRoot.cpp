@@ -551,7 +551,6 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	//-- do inference (also populates datasets)
 	safecall(MT4engine, infer, MT4accountId, mtDataSet, MT4enginePid);
 
-
 	//-- forecast is now in the last <predictionLen> steps of mtTimeSerie
 	for (int serie=0; serie<seriesCnt_; serie++) {
 		for (int bar=0; bar<MT4engine->shape->predictionLen; bar++) {
@@ -621,6 +620,16 @@ void sRoot::MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeatur
 	info("Engine spawned from DB. sampleLen=%d ; predictionLen=%d ; featuresCnt=%d", MT4engine->shape->sampleLen, MT4engine->shape->predictionLen, MT4engine->shape->featuresCnt);
 	info("Environment initialized and Engine created for Account Number %d inferring from Engine pid %d using config from %s", MT4accountId, MT4enginePid, MT4clientXMLFile);
 }
+void sRoot::MT4commit(){
+	try {
+		//-- commit engine persistor to keep saveRun
+		MT4engine->commit();
+		//-- commit client to keep saveTradeInfo
+		MT4clientLog->commit();
+	}
+	catch (std::exception exc) {
+	}
+}
 //--
 extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLFile_, int savedEnginePid_, int dt_, bool doDump_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_, int* oFeaturesCnt_) {
 	static sRoot* root;
@@ -681,6 +690,13 @@ extern "C" __declspec(dllexport) int _saveTradeInfo(char* iEnvS, int iPositionTi
 		return -1;
 	}
 	return 0;
+}
+extern "C" __declspec(dllexport) void _commit(char* iEnvS) {
+	sRoot* env;
+	sscanf_s(iEnvS, "%p", &env);
+
+	env->MT4commit();
+	
 }
 extern "C" __declspec(dllexport) int _destroyEnv(char* iEnvS) {
 	sRoot* env;

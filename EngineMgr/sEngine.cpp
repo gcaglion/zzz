@@ -273,6 +273,7 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_, int savedEnginePi
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
 
+				safecall(ds_, build, ACTUAL, BASE);
 				//-- scale trdata and rebuild training DataSet for current Core
 				for(int t=0; t<ds_->sourceTScnt; t++) safecall(ds_->sourceTS[t], scale, ACTUAL, TR, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 				safecall(ds_, build, ACTUAL, TRS);
