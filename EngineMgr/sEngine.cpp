@@ -8,7 +8,9 @@ void sEngine::mallocTSinfo() {
 }
 void sEngine::freeTSinfo() {
 	for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) {
-		free(TSfeature[ts]); free(TStrMin[ts]); free(TStrMax[ts]);
+		free(TSfeature[ts]); 
+		free(TStrMin[ts]); 
+		free(TStrMax[ts]);
 	}
 	free(TSfeature); free(TStrMin); free(TStrMax); free(TSfeaturesCnt);
 }
@@ -458,10 +460,6 @@ void sEngine::saveInfo() {
 		free(coreParent_[c]); free(parentConnType_[c]);
 	}
 	free(coreId_); free(coreType_); free(coreThreadId_); free(coreParentsCnt_); free(coreParent_); free(parentConnType_);
-	for (int ts=0; ts<trainDS->sourceTScnt; ts++) {
-		free(TStrMin[ts]); free(TStrMax[ts]);
-	}
-	free(TStrMin); free(TStrMax);
 }
 
 //-- private stuff

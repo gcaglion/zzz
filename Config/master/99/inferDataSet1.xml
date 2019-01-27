@@ -3,7 +3,7 @@
 	TimeSeriesCount	= 1
 	<TimeSerie0>
 		HistoryLen			= 122
-		Date0				= 2017-08-31-00:00
+		Date0				= 2017-07-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
@@ -11,7 +11,7 @@
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	</TimeSerie0>
 	<TimeSerie1>
-		HistoryLen			= 500
+		HistoryLen			= 122
 		Date0				= 2017-09-07-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
@@ -20,7 +20,7 @@
 		SelectedFeatures	= FXHIGH, FXLOW
 	</TimeSerie1>
 	<TimeSerie2>
-		HistoryLen			= 500
+		HistoryLen			= 122
 		Date0				= 2017-09-07-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
