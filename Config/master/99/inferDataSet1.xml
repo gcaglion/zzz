@@ -1,9 +1,9 @@
 <DataSet>
 
-	TimeSeriesCount	= 1
+	TimeSeriesCount	= 2
 	<TimeSerie0>
 		HistoryLen			= 122
-		Date0				= 2017-07-30-00:00
+		Date0				= 2017-07-08-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
@@ -12,27 +12,18 @@
 	</TimeSerie0>
 	<TimeSerie1>
 		HistoryLen			= 122
-		Date0				= 2017-09-07-00:00
+		Date0				= 2017-07-08-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
-		<! FXDB-GbpNzdH1.xml >
-		SelectedFeatures	= FXHIGH, FXLOW
-	</TimeSerie1>
-	<TimeSerie2>
-		HistoryLen			= 122
-		Date0				= 2017-09-07-00:00
-		DataTransformation	= DT_DELTA
-		Dump				= false
-		DumpPath			= c:\temp\DataDump
-		<! FXDB-SpxH1.xml >
+		<! FXDB-SPXH1.xml >
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-	</TimeSerie2>
+	</TimeSerie1>
 
 	SampleLen = 50
 	PredictionLen = 3
 	
-	BatchSamplesCount	= 10
+	BatchSamplesCount	= 1
 	Dump 				= false
 	DumpPath			= c:\temp\DataDump
 
