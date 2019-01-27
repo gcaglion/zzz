@@ -1,0 +1,35 @@
+#These are ignored
+
+#Empty lines are ignored, too
+
+<Client>
+
+	<ParmsCombinations>
+		# TO DO (v. TesterMulti)
+	</ParmsCombinations>
+
+	saveClient	= true
+
+		<Persistor>
+		readFrom		= OraData
+		saveToDB		= true
+		saveToFile		= false
+
+		<OraData>
+			UserName	= LogUser
+			Password	= LogPwd
+			ConnString	= Algo
+		</OraData>
+	</Persistor>
+	
+	<MetaTrader>
+		ChartsCount 	= 1
+		<Chart0>
+			Symbol				= US500-MAR19
+			TimeFrame			= D1
+			SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+		</Chart0>
+	</MetaTrader>
+
+
+</Client>

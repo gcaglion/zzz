@@ -206,14 +206,14 @@ void OnTick() {
 
 		//-- define trade scenario based on current price level and forecast
 		double tradeVol=0.1;
-		double tradePrice, tradeTP, tradeSL;
+		double tradeTP, tradeSL;
 		int tradeResult; datetime positionTime;
 
-		int tradeScenario=getTradeScenario(tradePrice, tradeTP, tradeSL); printf("trade scenario=%d ; tradePrice=%5.4f ; tradeTP=%5.4f ; tradeSL=%5.4f", tradeScenario, tradePrice, tradeTP, tradeSL);
+		int tradeScenario=getTradeScenario(tradeTP, tradeSL); printf("trade scenario=%d ; tradeTP=%5.4f ; tradeSL=%5.4f", tradeScenario, tradeTP, tradeSL);
 		if (tradeScenario>=0) {
 
 			//-- do the actual trade
-			tradeResult=NewTrade(tradeScenario, tradeVol, tradePrice, tradeTP, tradeSL);
+			tradeResult=NewTrade(tradeScenario, tradeVol, tradeTP, tradeSL);
 
 			//-- if trade successful, store position ticket in shared variable
 			if (tradeResult==0) {
@@ -274,12 +274,13 @@ bool loadBars(){
 	}
 	return true;
 }
-int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
+int getTradeScenario(double& oTradeTP, double oTradeSL) {
 
 	int scenario;
-	double fTolerance=0.0005;
-	double riskRatio=0.5;	// 
-	double minProfit=0.0003;
+	double point=SymbolInfoDouble(Symbol(), SYMBOL_POINT);
+	double fTolerance=1*(10*point);
+	double riskRatio=0.5; 
+	double minProfit=3*(10*point);
 
 	MqlTick tick;
 	if(SymbolInfoTick(Symbol(), tick)) {
@@ -350,7 +351,7 @@ int getTradeScenario(double& oTradePrice, double& oTradeTP, double oTradeSL) {
 
 	return scenario;
 }
-int NewTrade(int cmd, double volume, double price, double TP, double SL) {
+int NewTrade(int cmd, double volume, double TP, double SL) {
 
 	CTrade trade;
 	trade.SetExpertMagicNumber(123456);
@@ -358,7 +359,7 @@ int NewTrade(int cmd, double volume, double price, double TP, double SL) {
 	trade.SetTypeFilling(ORDER_FILLING_RETURN);
 	trade.SetAsyncMode(false);
 
-	printf("NewTrade() called with cmd=%s , volume=%f , price=%5.4f , takeprofit=%5.4f , stoploss=%5.4f", ((cmd==1||cmd==3) ? "BUY" : "SELL"), volume, price, TP, SL);
+	printf("NewTrade() called with cmd=%s , volume=%f , takeprofit=%5.4f , stoploss=%5.4f", ((cmd==1||cmd==3) ? "BUY" : "SELL"), volume, TP, SL);
 	
 	//printf("First, closing existing position...");
 	trade.PositionClose(Symbol(), 10);
