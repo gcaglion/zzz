@@ -525,7 +525,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	}
 	
 	//-- 2. test run. need this to make sure all batches pass through the net with the latest weights, and training targets
-	TRstart=timeGetTime(); TRcnt++;
+/*	TRstart=timeGetTime(); TRcnt++;
 
 	Alg->Vinit(1, tse, 0, 0);
 	for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b, false);
@@ -540,7 +540,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	showEpochStats(procArgs->mseCnt-1, epoch_starttime);
 
 	TRtimeTot+=((DWORD)(timeGetTime()-TRstart));
-
+*/
 	float elapsed_tot=(float)timeGetTime()-(float)training_starttime;
 	float elapsed_avg=elapsed_tot/trainArgs->mseCnt;
 	printf("\nTraining complete. Elapsed time: %0.1f seconds. Epoch average=%0.0f ms.\n", (elapsed_tot/(float)1000), elapsed_avg);
@@ -555,7 +555,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	//VDtimeAvg=(float)VDtimeTot/VDcnt; printf("VD count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", VDcnt, (VDtimeTot/(float)1000), VDtimeAvg);
 	//VStimeAvg=(float)VStimeTot/VScnt; printf("VS count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", VScnt, (VStimeTot/(float)1000), VStimeAvg);
 	BPtimeAvg=(float)BPtimeTot/LDcnt; printf("BP count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", BPcnt, (BPtimeTot/(float)1000), BPtimeAvg);
-	TRtimeAvg=(float)TRtimeTot/LDcnt; printf("TR count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", TRcnt, (TRtimeTot/(float)1000), TRtimeAvg);
+//	TRtimeAvg=(float)TRtimeTot/LDcnt; printf("TR count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", TRcnt, (TRtimeTot/(float)1000), TRtimeAvg);
 
 
 	//-- feee neurons()

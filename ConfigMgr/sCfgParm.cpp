@@ -21,7 +21,7 @@ bool sCfgParm::getVal(int** oVal, int* oValsCnt) {
 		if (isnumber(valS[v])) {
 			oVal[0][v]=atoi(valS[v]);
 		} else {
-			safecall(this, decode, v, &oVal[0][v]);
+			safecallSilent(this, decode, v, &oVal[0][v]);
 		}
 	}
 	return true;
