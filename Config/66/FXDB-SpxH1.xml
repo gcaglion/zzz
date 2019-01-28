@@ -1,0 +1,14 @@
+<FXDB_DataSource>
+
+	Symbol				= SPX
+	TimeFrame			= H1
+	IsFilled			= false
+
+#	<! DBConnection-History.xml >
+	<DBConnection>
+		UserName	= History2
+		Password	= HistoryPwd
+		ConnString	= Algo
+	</DBConnection>
+
+</FXDB_DataSource>

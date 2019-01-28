@@ -207,7 +207,7 @@ create table TradeInfo(
 	TradeScenario number,
 	TradeResult number	
 );
-alter table TradeInfo add constraint TradeInfo_PK primary key(ClientPid, SessionId, TicketId) using index tablespace LogIdx;
+alter table TradeInfo add constraint TradeInfo_PK primary key(ClientPid, SessionId, LastBarT) using index tablespace LogIdx;
 
 drop table XMLConfigs purge;
 create table XMLConfigs(

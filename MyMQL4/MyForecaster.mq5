@@ -26,13 +26,11 @@ input bool DumpData				= true;
 input bool SaveLogs				= true;
 input int  Max_Retries			= 3;
 //-- input parameters - Trade stuff
-input double TradeSizeMin		= 0.01;
-input double TradeSizeMax		= 2.00;
-input double TradeSizeDef		= 0.30;
+input double TradeVol			= 0.1;
 input double RiskRatio			= 0.20;
 input bool   CloseOpenTrades	= true;
 input int	 Default_Slippage	= 8;
-input int    MinProfitPIPs		= 5;
+input int    MinProfitPIPs		= 3;
 
 //--- local variables
 int vDataTransformation=DataTransformation;
@@ -205,9 +203,11 @@ void OnTick() {
 		drawForecast(vForecastH, vForecastL);
 
 		//-- define trade scenario based on current price level and forecast
-		double tradeVol=0.1;
+		double tradeVol=TradeVol;
 		double tradeTP, tradeSL;
-		int tradeResult; datetime positionTime;
+		int tradeResult=-1; 
+		datetime positionTime=0;
+		vTicket=-1;
 
 		int tradeScenario=getTradeScenario(tradeTP, tradeSL); printf("trade scenario=%d ; tradeTP=%5.4f ; tradeSL=%5.4f", tradeScenario, tradeTP, tradeSL);
 		if (tradeScenario>=0) {
@@ -220,15 +220,14 @@ void OnTick() {
 				vTicket = PositionGetTicket(0);
 				int positionId=PositionSelect(Symbol());
 				positionTime=PositionGetInteger(POSITION_TIME);
-				//-- save tradeInfo
-				printf("calling _saveTradeInfo() with lastBar = %s - %f|%f|%f|%f ; forecast = %f|%f|%f|%f", vtimeS[historyLen-1], vopen[historyLen-1], vhigh[historyLen-1], vlow[historyLen-1], vclose[historyLen-1], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0]);
-				if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[historyLen-1], vopen[historyLen-1], vhigh[historyLen-1], vlow[historyLen-1], vclose[historyLen-1], vvolume[historyLen-1], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0], tradeScenario, tradeResult)<0) {
-					printf("_saveTradeInfo() failed. see Forecaster logs.");
-					return;
-				}
-			} else {
-				vTicket=-1;
 			}
+		}
+		//-- save tradeInfo, even if we do not trade
+		int idx=tradeSerie*historyLen+historyLen-1;
+		printf("calling _saveTradeInfo() with lastBar = %s - %f|%f|%f|%f ; forecast = %f|%f|%f|%f", vtimeS[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0]);
+		if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0], tradeScenario, tradeResult)<0) {
+			printf("_saveTradeInfo() failed. see Forecaster logs.");
+			return;
 		}
 		_commit(vEnvS);
 	}
@@ -267,20 +266,20 @@ bool loadBars(){
 			vhigh[i]=serierates[bar].high;
 			vlow[i]=serierates[bar].low;
 			vclose[i]=serierates[bar].close;
-			vvolume[i]=serierates[bar].real_volume;
+			vvolume[i]=serierates[bar].real_volume; if (MathAbs(vvolume[i])>10000) vvolume[i]=0;
 			//printf("time[%d]=%s ; OHLCV[%d]=%f|%f|%f|%f|%f", i, vtimeS[i], i, vopen[i], vhigh[i], vlow[i], vclose[i], vvolume[i]);
 			i++;
 		}
 	}
 	return true;
 }
-int getTradeScenario(double& oTradeTP, double oTradeSL) {
+int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 
-	int scenario;
+	int scenario=-1;
 	double point=SymbolInfoDouble(Symbol(), SYMBOL_POINT);
-	double fTolerance=1*(10*point);
-	double riskRatio=0.5; 
-	double minProfit=3*(10*point);
+	double fTolerance=0*(10*point);
+	double riskRatio=RiskRatio;
+	double minProfit=MinProfitPIPs*(10*point);
 
 	MqlTick tick;
 	if(SymbolInfoTick(Symbol(), tick)) {
@@ -371,19 +370,18 @@ int NewTrade(int cmd, double volume, double TP, double SL) {
 	double ask=SymbolInfoDouble(symbol, SYMBOL_ASK);             // current price for closing SHORT
 	double open_price;	//--- receive the current open price for LONG positions
 	
-
 	string comment;
-	bool ret;
+	bool ret=false;
 	if (cmd==1||cmd==3) {
 		//-- Buy
 		open_price=SymbolInfoDouble(symbol, SYMBOL_BID);
-		string comment=StringFormat("Buy  %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
+		comment=StringFormat("Buy  %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
 		ret=trade.Buy(volume, symbol, open_price, SL, TP, comment);
 	}
 	if (cmd==2||cmd==4) {
 		//-- Sell
 		open_price=SymbolInfoDouble(symbol, SYMBOL_ASK);
-		string comment=StringFormat("Sell %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
+		comment=StringFormat("Sell %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
 		ret=trade.Sell(volume, symbol, open_price, SL, TP, comment);
 	}
 	if (!ret) {
