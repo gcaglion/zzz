@@ -65,7 +65,7 @@ void sFileData::saveClientInfo(int pid, int simulationId, const char* clientName
 	fail("not implemented.");
 }
 //-- Save/Load core images
-void sFileData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+void sFileData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F) {
 	fail("Not implemented.");
 }
 void sFileData::saveCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
@@ -80,7 +80,7 @@ void sFileData::saveCoreSVMImage(int pid, int tid, int epoch, int Wcnt, numtype*
 void sFileData::saveCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	fail("Not implemented.");
 }
-void sFileData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+void sFileData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F) {
 	fail("Not implemented.");
 }
 void sFileData::loadCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {

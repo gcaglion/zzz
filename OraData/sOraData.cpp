@@ -280,44 +280,77 @@ void sOraData::saveClientInfo(int pid, int simulationId, const char* clientName,
 }
 
 //-- Save/Load core images
-void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
-
+void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F) {
+	ub2* intLen; ub2* floatLen;
+	int* pidArr; int* tidArr; int* epochArr; 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
 	try {
-		stmt = ((Connection*)conn)->createStatement("insert into CoreImage_NN (ProcessId, ThreadId, Epoch, WId, W) values(:P01, :P02, :P03, :P04, :P05)");
 
+		//-- 1. Weights
+		stmt = ((Connection*)conn)->createStatement("insert into CoreImage_NN_W (ProcessId, ThreadId, Epoch, WId, W) values(:P01, :P02, :P03, :P04, :P05)");
 		//-- this version uses arrayUpdate()
-		ub2* intLen = (ub2*)malloc(Wcnt*sizeof(int));
-		ub2* floatLen = (ub2*)malloc(Wcnt*sizeof(numtype));
+		intLen = (ub2*)malloc(Wcnt*sizeof(int));
+		floatLen = (ub2*)malloc(Wcnt*sizeof(numtype));
 		for (int i=0; i<Wcnt; i++) {
 			intLen[i]=sizeof(int);
 			floatLen[i]=sizeof(numtype);
 		}
-
 		//-- first, need to malloc and init arrays for constant pid and tid. Cannot use Vinit, as I don't have an Alg, here
-		int* pidArr=(int*)malloc(Wcnt*sizeof(int));
-		int* tidArr=(int*)malloc(Wcnt*sizeof(int));
-		int* epochArr=(int*)malloc(Wcnt*sizeof(int));
+		pidArr=(int*)malloc(Wcnt*sizeof(int));
+		tidArr=(int*)malloc(Wcnt*sizeof(int));
+		epochArr=(int*)malloc(Wcnt*sizeof(int));
 		int* WidArr=(int*)malloc(Wcnt*sizeof(int));
-
 		for (int i=0; i<Wcnt; i++) {
 			pidArr[i]=pid;
 			tidArr[i]=tid;
 			epochArr[i]=epoch;
 			WidArr[i]=i;
 		}
-
+		//-- set data buffers
 		((Statement*)stmt)->setDataBuffer(1, pidArr, OCCIINT, sizeof(int), intLen);
 		((Statement*)stmt)->setDataBuffer(2, tidArr, OCCIINT, sizeof(int), intLen);
 		((Statement*)stmt)->setDataBuffer(3, epochArr, OCCIINT, sizeof(int), intLen);
 		((Statement*)stmt)->setDataBuffer(4, WidArr, OCCIINT, sizeof(int), intLen);
 		((Statement*)stmt)->setDataBuffer(5, W, OCCIFLOAT, sizeof(numtype), floatLen);
-
+		//-- execute
 		((Statement*)stmt)->executeArrayUpdate(Wcnt);
-
+		//-- free(s)
 		free(WidArr); free(epochArr); free(tidArr); free(pidArr); free(intLen); free(floatLen);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+		//-- 2. Neurons
+		stmt = ((Connection*)conn)->createStatement("insert into CoreImage_NN_N (ProcessId, ThreadId, Epoch, NId, F) values(:P01, :P02, :P03, :P04, :P05)");
+		//-- this version uses arrayUpdate()
+		intLen = (ub2*)malloc(Fcnt*sizeof(int));
+		floatLen = (ub2*)malloc(Fcnt*sizeof(numtype));
+		for (int i=0; i<Fcnt; i++) {
+			intLen[i]=sizeof(int);
+			floatLen[i]=sizeof(numtype);
+		}
+		//-- first, need to malloc and init arrays for constant pid and tid. Cannot use Vinit, as I don't have an Alg, here
+		pidArr=(int*)malloc(Fcnt*sizeof(int));
+		tidArr=(int*)malloc(Fcnt*sizeof(int));
+		epochArr=(int*)malloc(Fcnt*sizeof(int));
+		int* FidArr=(int*)malloc(Fcnt*sizeof(int));
+		for (int i=0; i<Fcnt; i++) {
+			pidArr[i]=pid;
+			tidArr[i]=tid;
+			epochArr[i]=epoch;
+			FidArr[i]=i;
+		}
+		//-- set data buffers
+		((Statement*)stmt)->setDataBuffer(1, pidArr, OCCIINT, sizeof(int), intLen);
+		((Statement*)stmt)->setDataBuffer(2, tidArr, OCCIINT, sizeof(int), intLen);
+		((Statement*)stmt)->setDataBuffer(3, epochArr, OCCIINT, sizeof(int), intLen);
+		((Statement*)stmt)->setDataBuffer(4, FidArr, OCCIINT, sizeof(int), intLen);
+		((Statement*)stmt)->setDataBuffer(5, F, OCCIFLOAT, sizeof(numtype), floatLen);
+		//-- execute
+		((Statement*)stmt)->executeArrayUpdate(Fcnt);
+		//-- free(s)
+		free(FidArr); free(epochArr); free(tidArr); free(pidArr); free(intLen); free(floatLen);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
 	catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
@@ -335,7 +368,10 @@ void sOraData::saveCoreSVMImage(int pid, int tid, int epoch, int Wcnt, numtype* 
 void sOraData::saveCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	//fail("Not implemented.");
 }
-void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
+void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F) {
+
+	ub2* intLen;
+	ub2* floatLen;
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -361,40 +397,65 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 
 	//-- once we have the epoch, we load Ws for that pid, tid, epoch
 	try {
-		sprintf_s(sqlS, SQL_MAXLEN, "select WId, W from CoreImage_NN where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1,2", pid, tid, epoch);
+
+		//-- 1. Weights
+		sprintf_s(sqlS, SQL_MAXLEN, "select WId, W from CoreImage_NN_W where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1,2", pid, tid, epoch);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
-
 		//-- this version uses arrayUpdate()
-		ub2* intLen = (ub2*)malloc(Wcnt*sizeof(int));
-		ub2* floatLen = (ub2*)malloc(Wcnt*sizeof(numtype));
+		intLen = (ub2*)malloc(Wcnt*sizeof(int));
+		floatLen = (ub2*)malloc(Wcnt*sizeof(numtype));
 		int* WidArr=(int*)malloc(Wcnt*sizeof(int));
-
 		//-- first, need to malloc and init arrays for constant pid and tid. Cannot use Vinit, as I don't have an Alg, here
 		for (int i=0; i<Wcnt; i++) {
 			intLen[i]=sizeof(int);
 			floatLen[i]=sizeof(numtype);
 			WidArr[i]=i;
 		}
-
-
 		rset = ((Statement*)stmt)->executeQuery();
 		((ResultSet*)rset)->setDataBuffer(1, WidArr, OCCIINT, sizeof(int), intLen);
 		((ResultSet*)rset)->setDataBuffer(2, W, OCCIFLOAT, sizeof(numtype), floatLen);
-
+		//--
 		((ResultSet*)rset)->next(Wcnt);
 		if (((ResultSet*)rset)->status()!=ResultSet::DATA_AVAILABLE) {
 			fail("Could not find Core Image for ProcessId=%d , ThreadId=%d , Epoch=%d", pid, tid, epoch);
 		}
-
+		//-- free(s)
 		free(WidArr); free(intLen); free(floatLen);
+		//-- close result set and terminate statement before exiting
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+		//-- 2. Neurons
+		sprintf_s(sqlS, SQL_MAXLEN, "select NId, F from CoreImage_NN_N where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1,2", pid, tid, epoch);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		//-- this version uses arrayUpdate()
+		intLen = (ub2*)malloc(Fcnt*sizeof(int));
+		floatLen = (ub2*)malloc(Fcnt*sizeof(numtype));
+		int* FidArr=(int*)malloc(Fcnt*sizeof(int));
+		//-- first, need to malloc and init arrays for constant pid and tid. Cannot use Vinit, as I don't have an Alg, here
+		for (int i=0; i<Fcnt; i++) {
+			intLen[i]=sizeof(int);
+			floatLen[i]=sizeof(numtype);
+			FidArr[i]=i;
+		}
+		rset = ((Statement*)stmt)->executeQuery();
+		((ResultSet*)rset)->setDataBuffer(1, FidArr, OCCIINT, sizeof(int), intLen);
+		((ResultSet*)rset)->setDataBuffer(2, F, OCCIFLOAT, sizeof(numtype), floatLen);
+		//--
+		((ResultSet*)rset)->next(Fcnt);
+		if (((ResultSet*)rset)->status()!=ResultSet::DATA_AVAILABLE) {
+			fail("Could not find Core Image for ProcessId=%d , ThreadId=%d , Epoch=%d", pid, tid, epoch);
+		}
+		//-- free(s)
+		free(FidArr); free(intLen); free(floatLen);
+		//-- close result set and terminate statement before exiting
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
 	catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 
-	//-- close result set and terminate statement before exiting
-	((Statement*)stmt)->closeResultSet((ResultSet*)rset);
-	((Connection*)conn)->terminateStatement((Statement*)stmt);
 
 }
 void sOraData::loadCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {

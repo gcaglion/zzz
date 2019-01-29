@@ -75,9 +75,9 @@ void sLogger::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* sampl
 	//if (source==FileData) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, saveToDB_, saveToFile_, "DioPorco", coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
 }
 //-- Save/Load Core<XXX>Image
-void sLogger::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
-	if (saveToDB) safecall(oradb, saveCoreNNImage, pid, tid, epoch, Wcnt, W);
-	if (saveToFile) safecall(filedb, saveCoreNNImage, pid, tid, epoch, Wcnt, W);
+void sLogger::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F) {
+	if (saveToDB) safecall(oradb, saveCoreNNImage, pid, tid, epoch, Wcnt, W, Fcnt, F);
+	if (saveToFile) safecall(filedb, saveCoreNNImage, pid, tid, epoch, Wcnt, W, Fcnt, F);
 }
 void sLogger::saveCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	if (saveToDB) safecall(oradb, saveCoreGAImage, pid, tid, epoch, Wcnt, W);
@@ -95,9 +95,9 @@ void sLogger::saveCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* 
 	if (saveToDB) safecall(oradb, saveCoreDUMBImage, pid, tid, epoch, Wcnt, W);
 	if (saveToFile) safecall(filedb, saveCoreDUMBImage, pid, tid, epoch, Wcnt, W);
 }
-void sLogger::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
-	if (source==OraData) safecall(oradb, loadCoreNNImage, pid, tid, epoch, Wcnt, W);
-	if (source==FileData) safecall(filedb, loadCoreNNImage, pid, tid, epoch, Wcnt, W);
+void sLogger::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F) {
+	if (source==OraData) safecall(oradb, loadCoreNNImage, pid, tid, epoch, Wcnt, W, Fcnt, F);
+	if (source==FileData) safecall(filedb, loadCoreNNImage, pid, tid, epoch, Wcnt, W, Fcnt, F);
 }
 void sLogger::loadCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	if (source==OraData) safecall(oradb, loadCoreGAImage, pid, tid, epoch, Wcnt, W);
