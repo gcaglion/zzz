@@ -580,7 +580,11 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 
 	//-- 0. malloc + init neurons
 	mallocNeurons();
-	initNeurons();
+
+	if (inferArgs->loadImage) {
+		loadImage(inferArgs->npid, inferArgs->ntid, -1);
+	}
+	//initNeurons();
 
 	//-- 0.4. convert samples and targets from SBF to BFS  in inference dataset
 	inferArgs->ds->setBFS();

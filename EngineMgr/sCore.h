@@ -24,6 +24,7 @@ struct sCoreProcArgs {
 	//-- infer-specific
 	int npid;
 	int ntid;
+	bool loadImage;
 };
 
 struct sCore : sCfgObj {
