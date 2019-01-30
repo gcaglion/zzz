@@ -147,13 +147,13 @@ int OnInit() {
 	ArrayResize(vvolumeF, predictionLen*seriesCnt);
 
 	return 0;
-	
+
 }
 void OnTick() {
 
 	static bool runOnce=false;
 
-	if(!runOnce){
+	if (!runOnce) {
 		// Only do this if there's a new bar
 		static datetime Time0=0;
 		if (Time0==SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE)) return;
@@ -205,7 +205,7 @@ void OnTick() {
 		//-- define trade scenario based on current price level and forecast
 		double tradeVol=TradeVol;
 		double tradeTP, tradeSL;
-		int tradeResult=-1; 
+		int tradeResult=-1;
 		datetime positionTime=0;
 		vTicket=-1;
 
@@ -242,7 +242,7 @@ void OnDeinit(const int reason) {
 	}
 }
 
-bool loadBars(){
+bool loadBars() {
 	int i=0;
 	ENUM_TIMEFRAMES tf;
 	for (int s=0; s<seriesCnt; s++) {
@@ -282,7 +282,7 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 	double minProfit=MinProfitPIPs*(10*point);
 
 	MqlTick tick;
-	if(SymbolInfoTick(Symbol(), tick)) {
+	if (SymbolInfoTick(Symbol(), tick)) {
 
 		double fH=vForecastH;
 		double fL=vForecastL;
@@ -293,12 +293,12 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 		double expProfit, expLoss;
 
 		printf("getTradeScenario(): cH=%5.4f , cL=%5.4f , fH=%5.4f , fL=%5.4f , dH=%5.4f , dL=%5.4f", cH, cL, fH, fL, dH, dL);
-		
+
 		//-- Current price (tick.ask) is below   ForecastL => BUY (1)
 		if (cH<fL) {
-			scenario = 1; 
+			scenario = 1;
 			oTradeTP=fH-fTolerance;
-			expProfit=oTradeTP-cH; 
+			expProfit=oTradeTP-cH;
 			expLoss=expProfit*riskRatio;
 			oTradeSL=cL-expLoss;
 			printf("Scenario 1 (BUY) ; oTradeTP=%5.4f ; expProfit=%5.4f ; expLoss=%5.4f ; oTradeSL=%5.4f", oTradeTP, expProfit, expLoss, oTradeSL);
@@ -321,7 +321,7 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 		}
 
 		//-- Current price is between ForecastL and ForecastH, closer to ForecastL  => BUY (3)
-		if (cH<=fH && cL>=fL && dL<dH ) {
+		if (cH<=fH && cL>=fL && dL<dH) {
 			scenario = 3;
 			oTradeTP=fH-fTolerance;
 			expProfit=oTradeTP-cH;
@@ -358,37 +358,37 @@ int NewTrade(int cmd, double volume, double TP, double SL) {
 	trade.SetTypeFilling(ORDER_FILLING_RETURN);
 	trade.SetAsyncMode(false);
 
-	printf("NewTrade() called with cmd=%s , volume=%f , takeprofit=%5.4f , stoploss=%5.4f", ((cmd==1||cmd==3) ? "BUY" : "SELL"), volume, TP, SL);
-	
-	//printf("First, closing existing position...");
-	trade.PositionClose(Symbol(), 10);
-
 	string symbol=Symbol();
 	int    digits=(int)SymbolInfoInteger(symbol, SYMBOL_DIGITS); // number of decimal places
 	double point=SymbolInfoDouble(symbol, SYMBOL_POINT);         // point
 	double bid=SymbolInfoDouble(symbol, SYMBOL_BID);             // current price for closing LONG
 	double ask=SymbolInfoDouble(symbol, SYMBOL_ASK);             // current price for closing SHORT
 	double open_price;	//--- receive the current open price for LONG positions
-	
+
+						//printf("First, closing existing position...");
+	trade.PositionClose(Symbol(), 10);
+
 	string comment;
-	bool ret=false;
+	bool ret;
 	if (cmd==1||cmd==3) {
 		//-- Buy
 		open_price=SymbolInfoDouble(symbol, SYMBOL_BID);
-		comment=StringFormat("Buy  %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
+		string comment=StringFormat("Buy  %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
+		printf("calling trade.Buy() with open_price=%f , volume=%f , takeprofit=%5.4f , stoploss=%5.4f", open_price, volume, TP, SL);
 		ret=trade.Buy(volume, symbol, open_price, SL, TP, comment);
 	}
 	if (cmd==2||cmd==4) {
 		//-- Sell
 		open_price=SymbolInfoDouble(symbol, SYMBOL_ASK);
-		comment=StringFormat("Sell %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
+		string comment=StringFormat("Sell %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
+		printf("calling trade.Sell() with open_price=%f , volume=%f , takeprofit=%5.4f , stoploss=%5.4f", open_price, volume, TP, SL);
 		ret=trade.Sell(volume, symbol, open_price, SL, TP, comment);
 	}
 	if (!ret) {
 		//--- failure message
 		Print("Trade failed. Return code=", trade.ResultRetcode(), ". Code description: ", trade.ResultRetcodeDescription());
 		return -1;
-	} else	{
+	} else {
 		Print("Trade executed successfully. Return code=", trade.ResultRetcode(), " (", trade.ResultRetcodeDescription(), ")");
 		return 0;
 	}
@@ -404,7 +404,7 @@ void drawForecast(double H, double L) {
 	string name;
 	StringConcatenate(name, "Rectangle", TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES));
 
-//	ObjectDelete(_Symbol, name);
+	//	ObjectDelete(_Symbol, name);
 
 	//-- draw the rectangle between last bar and new bar
 	//printf("ObjectCreate(H=%f ; L=%f) returns %d", H,L,ObjectCreate(_Symbol, name, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L));
@@ -428,7 +428,7 @@ int CSL2Mask(string mask) {
 	int fcnt=StringSplit(mask, ',', selF);
 	for (int f=0; f<fcnt; f++) {
 		//printf("selF[%d]=%s", f, selF[f]);
-		if (StringCompare(selF[f],"0")==0) ret+=10000; //-- OPEN is selected
+		if (StringCompare(selF[f], "0")==0) ret+=10000; //-- OPEN is selected
 		if (StringCompare(selF[f], "1")==0) ret+=1000; //-- HIGH is selected
 		if (StringCompare(selF[f], "2")==0) ret+=100; //-- LOW is selected
 		if (StringCompare(selF[f], "3")==0) ret+=10; //-- CLOSE is selected
