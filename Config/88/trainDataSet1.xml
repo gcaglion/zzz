@@ -4,7 +4,7 @@
 	<TimeSerie0>
 		HistoryLen			= 10002
 		Date0				= 2018-06-30-00:00
-		DataTransformation	= DT_NONE
+		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
 		<! FXDB-EurUsdH1.xml >
@@ -13,7 +13,7 @@
 	<TimeSerie1>
 		HistoryLen			= 10002
 		Date0				= 2018-06-30-00:00
-		DataTransformation	= DT_NONE
+		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
 		<! FXDB-SPXH1.xml >

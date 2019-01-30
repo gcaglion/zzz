@@ -4,10 +4,5 @@
 	TimeFrame			= H1
 	IsFilled			= false
 
-#	<! DBConnection-History.xml >
-	<DBConnection>
-		UserName	= History2
-		Password	= HistoryPwd
-		ConnString	= Algo
-	</DBConnection>
+	<! DBConnection-History.xml >
 </FXDB_DataSource>

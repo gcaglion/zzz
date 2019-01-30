@@ -4,7 +4,7 @@
 	<TimeSerie0>
 		HistoryLen			= 122
 		Date0				= 2018-07-30-00:00
-		DataTransformation	= DT_NONE
+		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
 		<! FXDB-EurUsdH1.xml >
@@ -13,7 +13,7 @@
 	<TimeSerie1>
 		HistoryLen			= 122
 		Date0				= 2018-07-30-00:00
-		DataTransformation	= DT_NONE
+		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
 		<! FXDB-SPXH1.xml >
@@ -23,7 +23,7 @@
 	SampleLen = 50
 	PredictionLen = 3
 	
-	BatchSamplesCount	= 35
+	BatchSamplesCount	= 1
 	Dump 				= false
 	DumpPath			= c:\temp\DataDump
 

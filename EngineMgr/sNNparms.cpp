@@ -42,6 +42,7 @@ sNNparms::sNNparms(sCfgObjParmsDef) : sCoreParms(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &TargetMSE, "Training/TargetMSE");
 	safecall(cfgKey, getParm, &NetSaveFreq, "Training/NetSaveFrequency");
 	safecall(cfgKey, getParm, &StopOnDivergence, "Training/StopOnDivergence");
+	safecall(cfgKey, getParm, &StopOnInversion, "Training/StopOnInversion");
 	safecall(cfgKey, getParm, &BP_Algo, "Training/BP_Algo");
 
 	switch (BP_Algo) {

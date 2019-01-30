@@ -18,6 +18,7 @@ struct sNNparms : sCoreParms {
 	float TargetMSE;
 	int NetSaveFreq;
 	bool StopOnDivergence;
+	bool StopOnInversion;
 	int BP_Algo;
 	//-- training-BP_Std specific
 	float LearningRate;

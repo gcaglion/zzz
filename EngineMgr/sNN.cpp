@@ -515,8 +515,8 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 			showEpochStats(epoch, epoch_starttime);
 			//-- break if TargetMSE is reached
 			if (procArgs->mseT[epoch]<parms->TargetMSE) break;
-			//-- break on divergence
-			if ((parms->StopOnDivergence && epoch>0&&procArgs->mseT[epoch]>procArgs->mseT[epoch-1])) break;
+			//-- break on inversion
+			if ((parms->StopOnInversion && epoch>0&&procArgs->mseT[epoch]>procArgs->mseT[epoch-1])) break;
 			//-- save weights every <NetSaveFreq> epochs - TO DO!!
 			if ((epoch%parms->NetSaveFreq)==0) {}
 
