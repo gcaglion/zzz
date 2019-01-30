@@ -21,6 +21,7 @@ create table RunLog(
 	ThreadId number,
 	NetProcessId number,
 	NetThreadId number,
+	mseR number,
 	Pos number,
 	PosLabel varchar2(64),
 	SourceTSId number, 

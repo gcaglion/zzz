@@ -140,7 +140,7 @@ void sOraData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mse
 	}
 
 }
-void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, int tsid_, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted, numtype* barWidth) {
+void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int runStepsCnt, int tsid_, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted, numtype* barWidth) {
 
 	int runCnt=runStepsCnt*selectedFeaturesCnt;
 	int tsidx=0, runidx=0;
@@ -149,7 +149,7 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 	if (!isOpen) safecall(this, open);
 
 	try {
-		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, Pos, PosLabel, Feature, StepAhead, PredictedTRS, ActualTRS, ErrorTRS, PredictedTR, ActualTR, ErrorTR, Predicted, Actual, Error, BarWidth, ErrorP, SourceTSId) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15, :P16, :P17, :P18, :P19, :P20)");
+		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, mseR, Pos, PosLabel, Feature, StepAhead, PredictedTRS, ActualTRS, ErrorTRS, PredictedTR, ActualTR, ErrorTR, Predicted, Actual, Error, BarWidth, ErrorP, SourceTSId) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15, :P16, :P17, :P18, :P19, :P20, :P21)");
 		((Statement*)stmt)->setMaxIterations(runCnt);
 
 		for (int s=0; s<runStepsCnt; s++) {
@@ -161,48 +161,49 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int runStepsCnt, in
 						((Statement*)stmt)->setInt(2, tid);
 						((Statement*)stmt)->setInt(3, npid);
 						((Statement*)stmt)->setInt(4, ntid);
-						((Statement*)stmt)->setInt(5, s);
-						std::string str(posLabel[s]); ((Statement*)stmt)->setMaxParamSize(6, 64); ((Statement*)stmt)->setString(6, str);
-						((Statement*)stmt)->setInt(7, tf);
-						((Statement*)stmt)->setInt(8, 1);
+						((Statement*)stmt)->setFloat(5, mseR);
+						((Statement*)stmt)->setInt(6, s);
+						std::string str(posLabel[s]); ((Statement*)stmt)->setMaxParamSize(7, 64); ((Statement*)stmt)->setString(7, str);
+						((Statement*)stmt)->setInt(8, tf);
+						((Statement*)stmt)->setInt(9, 1);
 
 						//-- for every Actual/Predicted/Error triplet, we need to handle NULL values
 
-						((Statement*)stmt)->setFloat(10, actualTRS[tsidx]); //-- this can never be EMPTY_VALUE
+						((Statement*)stmt)->setFloat(11, actualTRS[tsidx]); //-- this can never be EMPTY_VALUE
 						if (predictedTRS[tsidx]==EMPTY_VALUE) {
-							((Statement*)stmt)->setNull(9, OCCIFLOAT);
-							((Statement*)stmt)->setNull(11, OCCIFLOAT);
-						} else {
-							((Statement*)stmt)->setFloat(9, predictedTRS[tsidx]);
-							((Statement*)stmt)->setFloat(11, fabs(actualTRS[tsidx]-predictedTRS[tsidx]));
-						}
-						//--
-						((Statement*)stmt)->setFloat(13, actualTR[tsidx]); //-- this can never be EMPTY_VALUE
-						if (predictedTR[tsidx]==EMPTY_VALUE) {
+							((Statement*)stmt)->setNull(10, OCCIFLOAT);
 							((Statement*)stmt)->setNull(12, OCCIFLOAT);
-							((Statement*)stmt)->setNull(14, OCCIFLOAT);
 						} else {
-							((Statement*)stmt)->setFloat(12, predictedTR[tsidx]);
-							((Statement*)stmt)->setFloat(14, fabs(actualTR[tsidx]-predictedTR[tsidx]));
+							((Statement*)stmt)->setFloat(10, predictedTRS[tsidx]);
+							((Statement*)stmt)->setFloat(12, fabs(actualTRS[tsidx]-predictedTRS[tsidx]));
 						}
 						//--
-						((Statement*)stmt)->setFloat(18, barWidth[s]);
-						//--
-						((Statement*)stmt)->setFloat(16, actual[tsidx]); //-- this can never be EMPTY_VALUE
-						if (predicted[tsidx]==EMPTY_VALUE) {
+						((Statement*)stmt)->setFloat(14, actualTR[tsidx]); //-- this can never be EMPTY_VALUE
+						if (predictedTR[tsidx]==EMPTY_VALUE) {
+							((Statement*)stmt)->setNull(13, OCCIFLOAT);
 							((Statement*)stmt)->setNull(15, OCCIFLOAT);
-							((Statement*)stmt)->setNull(17, OCCIFLOAT);
-							((Statement*)stmt)->setNull(19, OCCIFLOAT);
 						} else {
-							((Statement*)stmt)->setFloat(15, predicted[tsidx]);
-							((Statement*)stmt)->setFloat(17, fabs(actual[tsidx]-predicted[tsidx]));
+							((Statement*)stmt)->setFloat(13, predictedTR[tsidx]);
+							((Statement*)stmt)->setFloat(15, fabs(actualTR[tsidx]-predictedTR[tsidx]));
+						}
+						//--
+						((Statement*)stmt)->setFloat(19, barWidth[s]);
+						//--
+						((Statement*)stmt)->setFloat(17, actual[tsidx]); //-- this can never be EMPTY_VALUE
+						if (predicted[tsidx]==EMPTY_VALUE) {
+							((Statement*)stmt)->setNull(16, OCCIFLOAT);
+							((Statement*)stmt)->setNull(18, OCCIFLOAT);
+							((Statement*)stmt)->setNull(20, OCCIFLOAT);
+						} else {
+							((Statement*)stmt)->setFloat(16, predicted[tsidx]);
+							((Statement*)stmt)->setFloat(18, fabs(actual[tsidx]-predicted[tsidx]));
 							if (barWidth[s]==0) {
-								((Statement*)stmt)->setNull(19, OCCIFLOAT);
+								((Statement*)stmt)->setNull(20, OCCIFLOAT);
 							} else {
-								((Statement*)stmt)->setFloat(19, fabs(actual[tsidx]-predicted[tsidx])/barWidth[s]);
+								((Statement*)stmt)->setFloat(20, fabs(actual[tsidx]-predicted[tsidx])/barWidth[s]);
 							}
 						}
-						((Statement*)stmt)->setInt(20, tsid_);
+						((Statement*)stmt)->setInt(21, tsid_);
 
 						if (runidx<(runCnt-1)) ((Statement*)stmt)->addIteration();
 						runidx++;
