@@ -28,9 +28,6 @@ input int  Max_Retries			= 3;
 //-- input parameters - Trade stuff
 input double TradeVol			= 0.1;
 input double RiskRatio			= 0.20;
-input bool   CloseOpenTrades	= true;
-input int	 Default_Slippage	= 8;
-input int    MinProfitPIPs		= 3;
 
 //--- local variables
 int vDataTransformation=DataTransformation;
@@ -279,7 +276,6 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 	double point=SymbolInfoDouble(Symbol(), SYMBOL_POINT);
 	double fTolerance=0*(10*point);
 	double riskRatio=RiskRatio;
-	double minProfit=MinProfitPIPs*(10*point);
 
 	MqlTick tick;
 	if (SymbolInfoTick(Symbol(), tick)) {
@@ -292,19 +288,23 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 		double dL=cL-fL;
 		double expProfit, expLoss;
 
-		printf("getTradeScenario(): cH=%5.4f , cL=%5.4f , fH=%5.4f , fL=%5.4f , dH=%5.4f , dL=%5.4f", cH, cL, fH, fL, dH, dL);
+		int minDist=SymbolInfoInteger(Symbol(), SYMBOL_TRADE_STOPS_LEVEL);
+		int spread=SymbolInfoInteger(Symbol(), SYMBOL_SPREAD);
+		double point=SymbolInfoDouble(Symbol(), SYMBOL_POINT);
+
+		printf("getTradeScenario(): cH=%5.4f , cL=%5.4f , fH=%5.4f , fL=%5.4f , dH=%5.4f , dL=%5.4f, minDist=%f , spread=%f", cH, cL, fH, fL, dH, dL, minDist, spread);
 
 		//-- Current price (tick.ask) is below   ForecastL => BUY (1)
 		if (cH<fL) {
 			scenario = 1;
 			oTradeTP=fH-fTolerance;
 			expProfit=oTradeTP-cH;
+			expProfit=MathMax((minDist+spread)*point, expProfit);
+			oTradeTP=cH+expProfit;
 			expLoss=expProfit*riskRatio;
+			expLoss=MathMax((minDist+spread)*point, expLoss);
 			oTradeSL=cL-expLoss;
 			printf("Scenario 1 (BUY) ; oTradeTP=%5.4f ; expProfit=%5.4f ; expLoss=%5.4f ; oTradeSL=%5.4f", oTradeTP, expProfit, expLoss, oTradeSL);
-			if (expProfit<minProfit) {
-				printf("Profit too small. No trade."); scenario=-scenario;
-			}
 		}
 
 		//-- Current price is above   ForecastH  => SELL (2)
@@ -312,12 +312,12 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 			scenario = 2;
 			oTradeTP=fL+fTolerance;
 			expProfit=cL-oTradeTP;
+			expProfit=MathMax((minDist+spread)*point, expProfit);
+			oTradeTP=cL-expProfit;
 			expLoss=expProfit*riskRatio;
+			expLoss=MathMax((minDist+spread)*point, expLoss);
 			oTradeSL=cL+expLoss;
 			printf("Scenario 2 (SELL) ; oTradeTP=%5.4f ; expProfit=%5.4f ; expLoss=%5.4f ; oTradeSL=%5.4f", oTradeTP, expProfit, expLoss, oTradeSL);
-			if (expProfit<minProfit) {
-				printf("Profit too small. No trade."); scenario=-scenario;
-			}
 		}
 
 		//-- Current price is between ForecastL and ForecastH, closer to ForecastL  => BUY (3)
@@ -325,12 +325,12 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 			scenario = 3;
 			oTradeTP=fH-fTolerance;
 			expProfit=oTradeTP-cH;
+			expProfit=MathMax((minDist+spread)*point, expProfit);
+			oTradeTP=cH+expProfit;
 			expLoss=expProfit*riskRatio;
+			expLoss=MathMax((minDist+spread)*point, expLoss);
 			oTradeSL=cL-expLoss;
 			printf("Scenario 3 (BUY) ; oTradeTP=%5.4f ; expProfit=%5.4f ; expLoss=%5.4f ; oTradeSL=%5.4f", oTradeTP, expProfit, expLoss, oTradeSL);
-			if (expProfit<minProfit) {
-				printf("Profit too small. No trade."); scenario=-scenario;
-			}
 		}
 
 		//-- Current price is between ForecastL and ForecastH, closer to ForecastH  => SELL (4)
@@ -338,12 +338,12 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 			scenario = 4;
 			oTradeTP=fL+fTolerance;
 			expProfit=cL-oTradeTP;
+			expProfit=MathMax((minDist+spread)*point, expProfit);
+			oTradeTP=cL-expProfit;
 			expLoss=expProfit*riskRatio;
+			expLoss=MathMax((minDist+spread)*point, expLoss);
 			oTradeSL=cL+expLoss;
 			printf("Scenario 4 (SELL) ; oTradeTP=%5.4f ; expProfit=%5.4f ; expLoss=%5.4f ; oTradeSL=%5.4f", oTradeTP, expProfit, expLoss, oTradeSL);
-			if (expProfit<minProfit) {
-				printf("Profit too small. No trade."); scenario=-scenario;
-			}
 		}
 
 	}
