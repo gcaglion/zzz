@@ -116,20 +116,21 @@ void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, ch
 	}
 }
 //-- Write
-void sOraData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
+void sOraData::saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mseT, numtype* mseV) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
 	try {
-		stmt = ((Connection*)conn)->createStatement("insert into TrainLog(ProcessId, ThreadId, Epoch, MSE_T, MSE_V) values(:P01, :P02, :P03, :P04, :P05)");
+		stmt = ((Connection*)conn)->createStatement("insert into TrainLog(ProcessId, ThreadId, Epoch, Duration, MSE_T, MSE_V) values(:P01, :P02, :P03, :P04, :P05, :P06)");
 		((Statement*)stmt)->setMaxIterations(mseCnt);
 		for (int epoch=0; epoch<mseCnt; epoch++) {
 			((Statement*)stmt)->setInt(1, pid);
 			((Statement*)stmt)->setInt(2, tid);
 			((Statement*)stmt)->setInt(3, epoch);
-			((Statement*)stmt)->setFloat(4, mseT[epoch]);
-			((Statement*)stmt)->setFloat(5, mseV[epoch]);
+			((Statement*)stmt)->setInt(4, duration[epoch]);
+			((Statement*)stmt)->setFloat(5, mseT[epoch]);
+			((Statement*)stmt)->setFloat(6, mseV[epoch]);
 			if (epoch<(mseCnt-1)) ((Statement*)stmt)->addIteration();
 		}
 		((Statement*)stmt)->executeUpdate();

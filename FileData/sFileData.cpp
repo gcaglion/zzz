@@ -42,7 +42,7 @@ void sFileData::close() {
 void sFileData::getStartDates(char* StartDate, int DatesCount, char*** oDate) {
 	fail("Not implemented!");
 }
-void sFileData::saveMSE(int pid, int tid, int mseCnt, numtype* mseT, numtype* mseV) {
+void sFileData::saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mseT, numtype* mseV) {
 	fail("not implemented.");
 }
 void sFileData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int runStepsCnt, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted, numtype* barWidth_) {

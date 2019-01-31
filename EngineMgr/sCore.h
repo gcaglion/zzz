@@ -19,11 +19,12 @@ struct sCoreProcArgs {
 	int mseCnt;
 	numtype* mseT;
 	numtype* mseV;
-	numtype mseR;
 	int internalsCnt;
+	int* duration;
 	//-- infer-specific
 	int npid;
 	int ntid;
+	numtype mseR;
 };
 
 struct sCore : sCfgObj {

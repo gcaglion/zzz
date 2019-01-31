@@ -8,6 +8,7 @@ create table TrainLog(
 	ProcessId number,
 	ThreadId number,
 	Epoch number,
+	Duration number,
 	MSE_T number,
 	MSE_V number
 ) storage (initial 100m next 100m freelists 8);

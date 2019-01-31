@@ -16,14 +16,12 @@ sNN::sNN(sCfgObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sNNparms* NNparm
 	sNNcommon(NNparms_);
 }
 sNN::~sNN() {
-	//free(procArgs->mseT); free(procArgs->mseV);
 
 	free(nodesCnt);
 	free(levelFirstNode);
 	free(ctxStart);
 
 	free(weightsCnt);
-	//free(levelFirstWeight);	// 
 
 }
 
@@ -345,11 +343,11 @@ void sNN::showEpochStats(int e, DWORD eStart_) {
 	//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
 	char remainingTimeS[TIMER_ELAPSED_FORMAT_LEN];
 
-	DWORD epochms=timeGetTime()-eStart_;
-	DWORD remainingms=(parms->MaxEpochs-e)*epochms;
+	procArgs->duration[e]=timeGetTime()-eStart_;
+	DWORD remainingms=(parms->MaxEpochs-e)*procArgs->duration[e];
 	SgetElapsed(remainingms, remainingTimeS);
 	//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
-	sprintf_s(dbg->msg, DBG_MSG_MAXLEN, "\rTestId %3d, Process %6d, Thread %6d, Epoch %6d/%6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms , remaining: %s", testid, pid, tid, e, parms->MaxEpochs, procArgs->mseT[e], procArgs->mseV[e], epochms, remainingTimeS);
+	sprintf_s(dbg->msg, DBG_MSG_MAXLEN, "\rTestId %3d, Process %6d, Thread %6d, Epoch %6d/%6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms , remaining: %s", testid, pid, tid, e, parms->MaxEpochs, procArgs->mseT[e], procArgs->mseV[e], procArgs->duration[e], remainingTimeS);
 
 	if (dbg->dbgtoscreen) {
 		if (GUIreporter!=nullptr) {
@@ -365,11 +363,13 @@ void sNN::showEpochStatsG(int e, DWORD eStart_, bool success_, numtype rnorm_) {
 	//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
 	char remainingTimeS[TIMER_ELAPSED_FORMAT_LEN];
 
-	DWORD epochms=timeGetTime()-eStart_;
-	DWORD remainingms=(parms->SCGDmaxK-e)*epochms;
+	procArgs->duration[e]=timeGetTime()-eStart_;
+	DWORD remainingms=(parms->SCGDmaxK-e)*procArgs->duration[e];
 	SgetElapsed(remainingms, remainingTimeS);
+	
+
 	//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
-	sprintf_s(dbg->msg, DBG_MSG_MAXLEN, "\rTestId %3d, Process %6d, Thread %6d, Iteration %6d/%6d , rnorm=%6.10f, success=%s , duration=%d ms , remaining: %s", testid, pid, tid, e, parms->SCGDmaxK, rnorm_, (success_)?"TRUE":"FALSE", epochms, remainingTimeS);
+	sprintf_s(dbg->msg, DBG_MSG_MAXLEN, "\rTestId %3d, Process %6d, Thread %6d, Iteration %6d/%6d , rnorm=%6.10f, success=%s , duration=%d ms , remaining: %s", testid, pid, tid, e, parms->SCGDmaxK, rnorm_, (success_)?"TRUE":"FALSE", procArgs->duration[e], remainingTimeS);
 
 	if (dbg->dbgtoscreen) {
 		if (GUIreporter!=nullptr) {
@@ -456,6 +456,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	initNeurons();
 
 	//-- malloc mse[maxepochs], always host-side. We need to free them, first (see issue when running without training...)
+	trainArgs->duration=(int*)malloc(parms->MaxEpochs*sizeof(int));
 	trainArgs->mseT=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
 	trainArgs->mseV=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
 
