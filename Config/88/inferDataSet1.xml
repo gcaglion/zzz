@@ -2,22 +2,22 @@
 
 	TimeSeriesCount	= 2
 	<TimeSerie0>
-		HistoryLen			= 422
+		HistoryLen			= 122
 		Date0				= 2018-07-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
 		<! FXDB-EurUsdH1.xml >
-		SelectedFeatures	= FXOPEN
+		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	</TimeSerie0>
 	<TimeSerie1>
-		HistoryLen			= 422
+		HistoryLen			= 122
 		Date0				= 2018-07-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
-		<! FXDB-SPXH1.xml >
-		SelectedFeatures	= FXOPEN
+		<! FXDB-EtxEurH1.xml >
+		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	</TimeSerie1>
 
 	SampleLen = 5
