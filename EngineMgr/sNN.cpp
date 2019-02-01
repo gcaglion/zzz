@@ -497,6 +497,9 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 			//-- 1.0. reset epoch tse
 			Alg->Vinit(1, tse, 0, 0);
 
+			//-- save prev W
+			Alg->d2d(prevW, W, weightsCntTotal*sizeof(numtype));
+
 			//-- 1.1. train one batch at a time
 			for (b=0; b<trainSet->batchCnt; b++) {
 
@@ -523,6 +526,16 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 
 		}
 		trainArgs->mseCnt=epoch-((epoch>parms->MaxEpochs) ? 1 : 0);
+	}
+
+	if (epoch<(parms->MaxEpochs-1)) {
+		//-- early exit, caused by either Inversion or Divergence. We restore prevW into W, and recalc MSE
+		Alg->d2d(W, prevW, weightsCntTotal*sizeof(numtype));
+		Alg->Vinit(1, tse, 0, 0);
+		for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b, false);
+		Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
+		procArgs->mseT[procArgs->mseCnt-1]=tse_h/nodesCnt[outputLevel]/_batchCnt;
+		showEpochStats(procArgs->mseCnt-1, epoch_starttime);
 	}
 	
 	//-- 2. test run. need this to make sure all batches pass through the net with the latest weights, and training targets
