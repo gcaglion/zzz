@@ -29,7 +29,7 @@
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	</TimeSerie2>
 
-	SampleLen = 100
+	SampleLen = 12
 	PredictionLen = 3
 	
 	BatchSamplesCount	= 1
