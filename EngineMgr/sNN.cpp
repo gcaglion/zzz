@@ -702,7 +702,7 @@ void sNN::trainSCGD(sCoreProcArgs* procArgs) {
 			//-- dE=dE1-dE0
 			Alg->Vadd(weightsCntTotal, scgd->dE1, 1, scgd->dE0, -1, scgd->dE); Alg->Vnorm(weightsCntTotal, scgd->dE, &dEnorm);
 			//-- s=(dE)/sigma
-			Alg->Vscale(weightsCntTotal, scgd->dE, sigma, scgd->s); Alg->Vnorm(weightsCntTotal, scgd->s, &snorm);
+			Alg->Vscale(weightsCntTotal, scgd->dE, 1/sigma, scgd->s); Alg->Vnorm(weightsCntTotal, scgd->s, &snorm);
 			//-- delta=VdotV(p*s)
 			Alg->VdotV(weightsCntTotal, scgd->p, scgd->s, &delta);
 		}
