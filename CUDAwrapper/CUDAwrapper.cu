@@ -48,6 +48,10 @@ EXPORT void initCUDA() {
 	// init CUDA GPU
 	int ret=cudaSetDevice(0);
 	if (ret!=cudaSuccess) CUWfail("cudaSetDevice failed!  Error %d . Do you have a CUDA-capable GPU installed?\n", ret);
+
+//	size_t newHeapSize = 1024*1000*250;
+//	cudaDeviceSetLimit(cudaLimitMallocHeapSize, newHeapSize);
+//	printf("Adjusted heap size to be %d\n", (int)newHeapSize);
 }
 EXPORT void initCUBLAS(void* cublasH) {
 
@@ -71,6 +75,7 @@ EXPORT void initCUstreams(void* cuStream[]) {
 }
 
 EXPORT void Malloc_cu(numtype** var, int size) {
+//	printf("trying to malloc %4.2f mb on GPU.\n", (numtype)size*sizeof(numtype)/1024/1024);
 	int ret=cudaMalloc(var, size*sizeof(numtype));
 	if (ret!=cudaSuccess) CUWfail("%s() failed. Size=%d , Error %d", __func__, size, ret);
 }

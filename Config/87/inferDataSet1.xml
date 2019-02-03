@@ -1,6 +1,6 @@
 <DataSet>
 
-	TimeSeriesCount	= 3
+	TimeSeriesCount	= 1
 	<TimeSerie0>
 		HistoryLen			= 122
 		Date0				= 2018-07-30-00:00
@@ -29,7 +29,7 @@
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	</TimeSerie2>
 
-	SampleLen = 100
+	SampleLen = 200
 	PredictionLen = 3
 	
 	BatchSamplesCount	= 1

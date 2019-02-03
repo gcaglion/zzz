@@ -19,7 +19,7 @@
 				NetSaveFrequency	= 10
 				StopOnDivergence	= false
 				StopOnInversion		= true
-				BP_Algo				= BP_SCGD
+				BP_Algo				= BP_STD
 				<BP_Std>
 					LearningRate		= 0.002
 					LearningMomentum	= 0.4
