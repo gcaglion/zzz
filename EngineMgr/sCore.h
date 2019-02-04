@@ -10,6 +10,7 @@
 //-- properties in sCoreProcArgs are common across core types
 struct sCoreProcArgs {
 	//-- common across train and infer
+	std::exception_ptr excp;
 	sDataSet* ds;
 	int pid;
 	int tid;

@@ -472,7 +472,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	trainArgs->ds->setBFS();
 
 	//-- pre-load the whole dataset (samples+targets) on GPU !
-	loadWholeDataSet();
+	safecall(this, loadWholeDataSet);
 
 	//-- 1. for every epoch, train all batches with one Forward pass ( loadSamples(b)+FF()+calcErr() ), and one Backward pass (BP + calcdW + W update)
 	if (parms->BP_Algo==BP_SCGD) {
@@ -599,7 +599,7 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	inferArgs->ds->setBFS();
 
 	//-- pre-load the whole dataset (samples+targets) on GPU !
-	loadWholeDataSet();
+	safecall(this, loadWholeDataSet);
 
 	//-- 1. infer all batches with one Forward pass ( loadSamples(b)+FF()+calcErr() ). No backward pass, obviously.
 
@@ -813,10 +813,10 @@ void sNN::trainSCGD(sCoreProcArgs* procArgs) {
 }
 void sNN::loadWholeDataSet() {
 	int sampleSize=procArgs->ds->samplesCnt*procArgs->ds->shape->sampleLen*procArgs->ds->shape->featuresCnt;
-	Alg->myMalloc(&sample_d, sampleSize);
-	Alg->h2d(sample_d, procArgs->ds->sampleBFS, sampleSize*sizeof(numtype), false);
+	safecall(Alg, myMalloc, &sample_d, sampleSize);
+	safecall(Alg, h2d, sample_d, procArgs->ds->sampleBFS, (int)(sampleSize*sizeof(numtype)), false);
 
 	int targetSize=procArgs->ds->samplesCnt*procArgs->ds->shape->predictionLen*procArgs->ds->shape->featuresCnt;
-	Alg->myMalloc(&target_d, targetSize);
-	Alg->h2d(target_d, procArgs->ds->targetBFS, targetSize*sizeof(numtype), false);
+	safecall(Alg, myMalloc, &target_d, targetSize);
+	safecall(Alg, h2d, target_d, procArgs->ds->targetBFS, (int)(targetSize*sizeof(numtype)), false);
 }

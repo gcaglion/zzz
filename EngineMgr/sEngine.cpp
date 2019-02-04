@@ -233,7 +233,11 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 
 DWORD coreThreadTrain(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
-	args->core->train(args->coreProcArgs);
+	try {
+		args->core->train(args->coreProcArgs);
+	} catch (...) {
+		args->coreProcArgs->excp=current_exception();
+	}
 	return 1;
 }
 DWORD coreThreadInfer(LPVOID vargs_) {
@@ -305,6 +309,17 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_, int savedEnginePi
 		}
 		//-- we need to train all the nets in one layer, in order to have the inputs to the next layer
 		WaitForMultipleObjects(t, procH, TRUE, INFINITE);
+
+		//-- exception handling for threads
+		int ti;
+		try {
+			for (ti=0; ti<t; ti++) {
+				if (procArgs[t]->coreProcArgs->excp!=NULL) rethrow_exception(procArgs[t]->coreProcArgs->excp);
+			}
+		}
+		catch (...) {
+			fail("core[%d] %s failed.", ti, ((procid_==trainProc) ? "Training" : "Inferencing"));
+		}
 
 		//-- free(s)
 		for (t=0; t<threadsCnt; t++) free(procArgs[t]); 
