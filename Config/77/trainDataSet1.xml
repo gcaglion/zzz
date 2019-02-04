@@ -1,13 +1,13 @@
 <DataSet>
 
-	TimeSeriesCount	= 2
+	TimeSeriesCount	= 1
 	<TimeSerie0>
 		HistoryLen			= 2002
 		Date0				= 2018-06-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
-		<! FXDB-EurUsdD1.xml >
+		<! FXDB-EurUsdH1.xml >
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	</TimeSerie0>
 	<TimeSerie1>
@@ -16,7 +16,7 @@
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
-		<! FXDB-SPXD1.xml >
+		<! FXDB-SPXH1.xml >
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	</TimeSerie1>
 

@@ -1,7 +1,7 @@
 		<Persistor>
 			saveMSE			= true
 			saveRun			= true
-			saveInternals	= false
+			saveInternals	= true
 			saveImage		= true
 			readFrom		= OraData
 			saveToDB		= true

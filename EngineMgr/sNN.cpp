@@ -359,17 +359,17 @@ void sNN::showEpochStats(int e, DWORD eStart_) {
 	}
 
 }
-void sNN::showEpochStatsG(int e, DWORD eStart_, bool success_, numtype rnorm_) {
+void sNN::showEpochStatsG(int e, DWORD eStart_, bool success_, numtype Gtse_) {
 	//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
 	char remainingTimeS[TIMER_ELAPSED_FORMAT_LEN];
 
 	procArgs->duration[e]=timeGetTime()-eStart_;
 	DWORD remainingms=(parms->SCGDmaxK-e)*procArgs->duration[e];
 	SgetElapsed(remainingms, remainingTimeS);
-	
+
 
 	//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
-	sprintf_s(dbg->msg, DBG_MSG_MAXLEN, "\rTestId %3d, Process %6d, Thread %6d, Iteration %6d/%6d , rnorm=%6.10f, success=%s , duration=%d ms , remaining: %s", testid, pid, tid, e, parms->SCGDmaxK, rnorm_, (success_)?"TRUE":"FALSE", procArgs->duration[e], remainingTimeS);
+	sprintf_s(dbg->msg, DBG_MSG_MAXLEN, "\rTestId %3d, Process %6d, Thread %6d, Iteration %6d/%6d , GlobalTSE=%6.10f, success=%s , duration=%d ms , remaining: %s", testid, pid, tid, e, parms->SCGDmaxK, Gtse_, (success_) ? "TRUE " : "FALSE", procArgs->duration[e], remainingTimeS);
 
 	if (dbg->dbgtoscreen) {
 		if (GUIreporter!=nullptr) {
@@ -381,7 +381,6 @@ void sNN::showEpochStatsG(int e, DWORD eStart_, bool success_, numtype rnorm_) {
 	}
 
 }
-
 //-- local implementations of sCore virtual methods
 void sNN::setLayout(int batchSamplesCnt_) {
 	int l, nl;
@@ -727,13 +726,13 @@ void sNN::trainSCGD(sCoreProcArgs* procArgs) {
 		}
 
 		//-- 5.	Calclulate step size
+
 		//-- mu=VdotV(p*r)
 		Alg->VdotV(weightsCntTotal, scgd->p, scgd->r, &mu);
 		//-- alpha=mu/delta
 		alpha=mu/delta;
 
 		//-- 6. Calculate comparison parameter
-		//-- Gtse_old=EcalcG(W)
 		EcalcG(procArgs->ds, W, &Gtse_old);
 		//-- newW=W+alpha*p
 		Alg->Vadd(weightsCntTotal, scgd->p, alpha, W, 1, scgd->newW); Alg->Vnorm(weightsCntTotal, scgd->newW, &newWnorm);
@@ -746,6 +745,7 @@ void sNN::trainSCGD(sCoreProcArgs* procArgs) {
 		if (comp>=0) {
 			//-- w=w+alpha*p
 			Alg->Vadd(weightsCntTotal, W, 1, scgd->p, alpha, W);
+			Alg->Vnorm(weightsCntTotal, W, &Wnorm);
 			//-- prevR=r
 			Alg->Vcopy(weightsCntTotal, scgd->r, scgd->prev_r);
 			//-- r=-dEcalcG(w)
@@ -754,7 +754,7 @@ void sNN::trainSCGD(sCoreProcArgs* procArgs) {
 			success=true;
 
 			//-- 7a
-			if (k%weightsCntTotal) {
+			if ((k+1)%weightsCntTotal==0) {
 				//-- p=r
 				Alg->Vcopy(weightsCntTotal, scgd->r, scgd->p);
 			} else {
@@ -765,7 +765,7 @@ void sNN::trainSCGD(sCoreProcArgs* procArgs) {
 				//-- beta=(rnorm^2-r*prevR)/mu
 				beta=((rnorm*rnorm)-rdotprevr)/mu;
 				//-- p=r+beta*p
-				Alg->Vadd(weightsCntTotal, scgd->r, 1, scgd->p, beta, scgd->p);
+				Alg->Vadd(weightsCntTotal, scgd->r, 1, scgd->p, beta, scgd->p); Alg->Vnorm(weightsCntTotal, scgd->p, &pnorm);
 			}
 
 			//-- 7b
@@ -784,8 +784,7 @@ void sNN::trainSCGD(sCoreProcArgs* procArgs) {
 		//-- recalc rnorm
 		Alg->Vnorm(weightsCntTotal, scgd->r, &rnorm);
 		//-- display progress
-		//printf("\rProcess %6d, Thread %6d, Iteration %6d , success=%s, rnorm=%f", pid, tid, k, (success) ? "TRUE " : "FALSE", rnorm);
-		showEpochStatsG(k, kstart, success, rnorm);
+		showEpochStatsG(k, kstart, success, Gtse_new);
 		//-- save scgd->log
 		if (persistor->saveInternalsFlag) {
 			scgd->log->delta[k]=delta;
