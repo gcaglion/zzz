@@ -8,7 +8,7 @@
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
 		<! FXDB-EurUsdH1.xml >
-		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+		SelectedFeatures	= FXOPEN
 	</TimeSerie0>
 	<TimeSerie1>
 		HistoryLen			= 2002
@@ -23,7 +23,7 @@
 	SampleLen = 50
 	PredictionLen = 3
 	
-	BatchSamplesCount	= 10
+	BatchSamplesCount	= 1
 	Dump 				= false
 	DumpPath			= c:\temp\DataDump
 

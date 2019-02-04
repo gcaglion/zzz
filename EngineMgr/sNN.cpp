@@ -725,6 +725,8 @@ void sNN::trainSCGD(sCoreProcArgs* procArgs) {
 			lambda=lambdau;
 		}
 
+		if (isnan(delta)||isinf(delta)) break;
+
 		//-- 5.	Calclulate step size
 
 		//-- mu=VdotV(p*r)
