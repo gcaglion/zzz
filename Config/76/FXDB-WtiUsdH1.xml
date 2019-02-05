@@ -1,7 +1,7 @@
 <FXDB_DataSource>
 
-	Symbol				= SPX
-	TimeFrame			= D1
+	Symbol				= WTIUSD
+	TimeFrame			= H1
 	IsFilled			= false
 
 	<! DBConnection-History.xml >

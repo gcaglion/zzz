@@ -1,8 +1,8 @@
 <DataSet>
 
-	TimeSeriesCount	= 3
+	TimeSeriesCount	= 5
 	<TimeSerie0>
-		HistoryLen			= 25108
+		HistoryLen			= 25014
 		Date0				= 2018-06-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
@@ -11,7 +11,7 @@
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	</TimeSerie0>
 	<TimeSerie1>
-		HistoryLen			= 25108
+		HistoryLen			= 25014
 		Date0				= 2018-06-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
@@ -20,7 +20,7 @@
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	</TimeSerie1>
 	<TimeSerie2>
-		HistoryLen			= 25108
+		HistoryLen			= 25014
 		Date0				= 2018-06-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
@@ -28,8 +28,26 @@
 		<! FXDB-SPXH1.xml >
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	</TimeSerie2>
+	<TimeSerie3>
+		HistoryLen			= 25014
+		Date0				= 2018-06-30-00:00
+		DataTransformation	= DT_DELTA
+		Dump				= false
+		DumpPath			= c:\temp\DataDump
+		<! FXDB-XAUUSDH1.xml >
+		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+	</TimeSerie3>
+	<TimeSerie4>
+		HistoryLen			= 25014
+		Date0				= 2018-06-30-00:00
+		DataTransformation	= DT_DELTA
+		Dump				= false
+		DumpPath			= c:\temp\DataDump
+		<! FXDB-WTIUSDH1.xml >
+		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+	</TimeSerie4>
 
-	SampleLen = 6
+	SampleLen = 12
 	PredictionLen = 3
 	
 	BatchSamplesCount	= 50

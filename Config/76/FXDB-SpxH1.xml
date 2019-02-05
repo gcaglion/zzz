@@ -1,0 +1,8 @@
+<FXDB_DataSource>
+
+	Symbol				= SPX
+	TimeFrame			= H1
+	IsFilled			= false
+
+	<! DBConnection-History.xml >
+</FXDB_DataSource>

@@ -1,7 +1,7 @@
 <FXDB_DataSource>
 
-	Symbol				= EURUSD
-	TimeFrame			= D1
+	Symbol				= XAUUSD
+	TimeFrame			= H1
 	IsFilled			= false
 
 	<! DBConnection-History.xml >
