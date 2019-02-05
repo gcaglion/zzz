@@ -314,7 +314,7 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_, int savedEnginePi
 		int ti;
 		try {
 			for (ti=0; ti<t; ti++) {
-				if (procArgs[t]->coreProcArgs->excp!=NULL) rethrow_exception(procArgs[t]->coreProcArgs->excp);
+//				if (procArgs[t]->coreProcArgs->excp!=NULL) rethrow_exception(procArgs[t]->coreProcArgs->excp);
 			}
 		}
 		catch (...) {

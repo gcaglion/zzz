@@ -111,6 +111,6 @@ private:
 	void destroyWeights();
 	void loadWholeDataSet();
 
-	void trainSCGD(sCoreProcArgs* trainArgs);
+	int trainSCGD(sCoreProcArgs* trainArgs);
 };
 

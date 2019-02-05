@@ -8,20 +8,20 @@
 		</Layout>
 		<Parameters>
 			<Topology>
-				LevelRatio			= 2, 1
-				LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+				LevelRatio			= 1
+				LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
 				UseContext			= true
 				UseBias				= false
 			</Topology>
 			<Training>
-				MaxEpochs			= 50
+				MaxEpochs			= 150
 				TargetMSE			= 0.0001
 				NetSaveFrequency	= 10
 				StopOnDivergence	= false
-				StopOnInversion		= false
+				StopOnInversion		= true
 				BP_Algo				= BP_SCGD
 				<BP_Std>
-					LearningRate		= 0.01
+					LearningRate		= 0.001
 					LearningMomentum	= 0.4
 				</BP_Std>
 			</Training>
