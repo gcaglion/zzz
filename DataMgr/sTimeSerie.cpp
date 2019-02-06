@@ -91,6 +91,9 @@ void sTimeSerie::untransform(int valSource) {
 		for (int f=0; f<sourceData->featuresCnt; f++) {
 			curr=s*sourceData->featuresCnt+f;
 			prev=(s-1)*sourceData->featuresCnt+f;
+			if (dt==DT_NONE) {
+				val[valSource][BASE][curr]=val[valSource][TR][curr];
+			}
 			if (dt==DT_DELTA) {
 				if (s>0) {
 					if (val[valSource][TR][curr]==EMPTY_VALUE) {
