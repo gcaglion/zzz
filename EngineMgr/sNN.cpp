@@ -437,6 +437,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	DWORD epoch_starttime;
 	DWORD training_starttime=timeGetTime();
 	int epoch, b;
+	bool hasInverted=false, hasDiverged=false;
 
 	//-- extract training arguments from trainArgs into local variables
 	sDataSet* trainSet = trainArgs->ds;
@@ -512,37 +513,42 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 			//-- break if TargetMSE is reached
 			if (procArgs->mseT[epoch]<parms->TargetMSE) break;
 			//-- break on inversion
-			if ((parms->StopOnInversion && epoch>0&&procArgs->mseT[epoch]>procArgs->mseT[epoch-1])) break;
+			if ((parms->StopOnInversion && epoch>0&&procArgs->mseT[epoch]>procArgs->mseT[epoch-1])) {
+				hasInverted=true;
+				break;
+			}
 			//-- save weights every <NetSaveFreq> epochs - TO DO!!
 			if ((epoch%parms->NetSaveFreq)==0) {}
 
 		}
-		trainArgs->mseCnt=epoch-((epoch>parms->MaxEpochs) ? 1 : 0);
-		if (epoch<(parms->MaxEpochs-1)) {
-			//-- early exit, caused by either Inversion or Divergence. We restore prevW into W, and recalc MSE
-			Alg->d2d(W, prevW, weightsCntTotal*sizeof(numtype));
-			Alg->Vinit(1, tse, 0, 0);
-			for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b, false);
-			Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
-			procArgs->mseT[procArgs->mseCnt-1]=tse_h/nodesCnt[outputLevel]/_batchCnt;
-			showEpochStats(procArgs->mseCnt-1, epoch_starttime);
+		trainArgs->mseCnt=epoch-1;
 
-			float elapsed_tot=(float)timeGetTime()-(float)training_starttime;
-			float elapsed_avg=elapsed_tot/trainArgs->mseCnt;
-			printf("\nTraining complete. Elapsed time: %0.1f seconds. Epoch average=%0.0f ms.\n", (elapsed_tot/(float)1000), elapsed_avg);
-			LDtimeAvg=(float)LDtimeTot/LDcnt; printf("LD count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", LDcnt, (LDtimeTot/(float)1000), LDtimeAvg);
-			FFtimeAvg=(float)FFtimeTot/FFcnt; printf("FF count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FFcnt, (FFtimeTot/(float)1000), FFtimeAvg);
-			FF0timeAvg=(float)FF0timeTot/FF0cnt; printf("FF0 count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FF0cnt, (FF0timeTot/(float)1000), FF0timeAvg);
-			FF1timeAvg=(float)FF1timeTot/FF1cnt; printf("FF1 count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FF1cnt, (FF1timeTot/(float)1000), FF1timeAvg);
-			//FF1atimeAvg=(float)FF1atimeTot/FF1acnt; printf("FF1a count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FF1acnt, (FF1atimeTot/(float)1000), FF1atimeAvg);
-			//FF1btimeAvg=(float)FF1btimeTot/FF1bcnt; printf("FF1b count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FF1bcnt, (FF1btimeTot/(float)1000), FF1btimeAvg);
-			//FF2timeAvg=(float)FF2timeTot/FF2cnt; printf("FF2 count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FF2cnt, (FF2timeTot/(float)1000), FF2timeAvg);
-			CEtimeAvg=(float)CEtimeTot/CEcnt; printf("CE count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", CEcnt, (CEtimeTot/(float)1000), CEtimeAvg);
-			//VDtimeAvg=(float)VDtimeTot/VDcnt; printf("VD count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", VDcnt, (VDtimeTot/(float)1000), VDtimeAvg);
-			//VStimeAvg=(float)VStimeTot/VScnt; printf("VS count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", VScnt, (VStimeTot/(float)1000), VStimeAvg);
-			BPtimeAvg=(float)BPtimeTot/LDcnt; printf("BP count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", BPcnt, (BPtimeTot/(float)1000), BPtimeAvg);
-			//	TRtimeAvg=(float)TRtimeTot/LDcnt; printf("TR count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", TRcnt, (TRtimeTot/(float)1000), TRtimeAvg);
+		if (hasInverted) {
+			Alg->d2d(W, prevW, weightsCntTotal*sizeof(numtype));
 		}
+
+		//-- recalc MSE
+		Alg->Vinit(1, tse, 0, 0);
+		for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b, false);
+		Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
+		procArgs->mseT[procArgs->mseCnt-1]=tse_h/nodesCnt[outputLevel]/_batchCnt;
+		showEpochStats(procArgs->mseCnt-1, epoch_starttime);
+
+		float elapsed_tot=(float)timeGetTime()-(float)training_starttime;
+		float elapsed_avg=elapsed_tot/trainArgs->mseCnt;
+		printf("\nTraining complete. Elapsed time: %0.1f seconds. Epoch average=%0.0f ms.\n", (elapsed_tot/(float)1000), elapsed_avg);
+		LDtimeAvg=(float)LDtimeTot/LDcnt; printf("LD count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", LDcnt, (LDtimeTot/(float)1000), LDtimeAvg);
+		FFtimeAvg=(float)FFtimeTot/FFcnt; printf("FF count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FFcnt, (FFtimeTot/(float)1000), FFtimeAvg);
+		FF0timeAvg=(float)FF0timeTot/FF0cnt; printf("FF0 count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FF0cnt, (FF0timeTot/(float)1000), FF0timeAvg);
+		FF1timeAvg=(float)FF1timeTot/FF1cnt; printf("FF1 count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FF1cnt, (FF1timeTot/(float)1000), FF1timeAvg);
+		//FF1atimeAvg=(float)FF1atimeTot/FF1acnt; printf("FF1a count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FF1acnt, (FF1atimeTot/(float)1000), FF1atimeAvg);
+		//FF1btimeAvg=(float)FF1btimeTot/FF1bcnt; printf("FF1b count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FF1bcnt, (FF1btimeTot/(float)1000), FF1btimeAvg);
+		//FF2timeAvg=(float)FF2timeTot/FF2cnt; printf("FF2 count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FF2cnt, (FF2timeTot/(float)1000), FF2timeAvg);
+		CEtimeAvg=(float)CEtimeTot/CEcnt; printf("CE count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", CEcnt, (CEtimeTot/(float)1000), CEtimeAvg);
+		//VDtimeAvg=(float)VDtimeTot/VDcnt; printf("VD count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", VDcnt, (VDtimeTot/(float)1000), VDtimeAvg);
+		//VStimeAvg=(float)VStimeTot/VScnt; printf("VS count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", VScnt, (VStimeTot/(float)1000), VStimeAvg);
+		BPtimeAvg=(float)BPtimeTot/LDcnt; printf("BP count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", BPcnt, (BPtimeTot/(float)1000), BPtimeAvg);
+		//	TRtimeAvg=(float)TRtimeTot/LDcnt; printf("TR count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", TRcnt, (TRtimeTot/(float)1000), TRtimeAvg);
 	}
 
 	//-- feee neurons()
