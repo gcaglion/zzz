@@ -437,7 +437,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	DWORD epoch_starttime;
 	DWORD training_starttime=timeGetTime();
 	int epoch, b;
-	bool hasInverted=false, hasDiverged=false;
+	bool hasInverted=false, hasDiverged=false, hasMinimized=false;
 
 	//-- extract training arguments from trainArgs into local variables
 	sDataSet* trainSet = trainArgs->ds;
@@ -511,7 +511,10 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 			//-- 1.3. show epoch info
 			showEpochStats(epoch, epoch_starttime);
 			//-- break if TargetMSE is reached
-			if (procArgs->mseT[epoch]<parms->TargetMSE) break;
+			if (procArgs->mseT[epoch]<parms->TargetMSE) {
+				hasMinimized=true; 
+				break;
+			}
 			//-- break on inversion
 			if ((parms->StopOnInversion && epoch>0&&procArgs->mseT[epoch]>procArgs->mseT[epoch-1])) {
 				hasInverted=true;
@@ -521,18 +524,13 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 			if ((epoch%parms->NetSaveFreq)==0) {}
 
 		}
-		trainArgs->mseCnt=epoch-1;
+		procArgs->mseCnt=epoch;
 
+		//-- on inversion, restore W from previous epoch
 		if (hasInverted) {
 			Alg->d2d(W, prevW, weightsCntTotal*sizeof(numtype));
+			showEpochStats(procArgs->mseCnt-1, epoch_starttime);
 		}
-
-		//-- recalc MSE
-		Alg->Vinit(1, tse, 0, 0);
-		for (b=0; b<trainSet->batchCnt; b++) ForwardPass(trainSet, b, false);
-		Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
-		procArgs->mseT[procArgs->mseCnt-1]=tse_h/nodesCnt[outputLevel]/_batchCnt;
-		showEpochStats(procArgs->mseCnt-1, epoch_starttime);
 
 		float elapsed_tot=(float)timeGetTime()-(float)training_starttime;
 		float elapsed_avg=elapsed_tot/trainArgs->mseCnt;
