@@ -172,8 +172,6 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					NNcp->setScaleMinMax();
 					//-- 2. core
 					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], NNcp);
-					//-- 3. core image
-					safecall(NNc, loadImage, loadingPid, coreLayout[c]->tid, -1);
 					//-- 4. set parent classes
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
@@ -183,8 +181,6 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					GAcp->setScaleMinMax();
 					//-- 2. core
 					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], GAcp);
-					//-- 3. core image
-					safecall(GAc, loadImage, loadingPid, coreLayout[c]->tid, -1);
 					//-- 4. set parent classes
 					coreParms[c]=GAcp; core[c]=GAc;
 					break;
@@ -194,8 +190,6 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					SVMcp->setScaleMinMax();
 					//-- 2. core
 					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], SVMcp);
-					//-- 3. core image
-					safecall(SVMc, loadImage, loadingPid, coreLayout[c]->tid, -1);
 					//-- 4. set parent classes
 					coreParms[c]=SVMcp; core[c]=SVMc;
 					break;
@@ -205,8 +199,6 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					SOMcp->setScaleMinMax();
 					//-- 2. core
 					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], SOMcp);
-					//-- 3. core image
-					safecall(SOMc, loadImage, loadingPid, coreLayout[c]->tid, -1);
 					//-- 4. set parent classes
 					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
@@ -216,8 +208,6 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					DUMBcp->setScaleMinMax();
 					//-- 2. core
 					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], DUMBcp);
-					//-- 3. core image
-					safecall(DUMBc, loadImage, loadingPid, coreLayout[c]->tid, -1);
 					//-- 4. set parent classes
 					coreParms[c]=DUMBcp; core[c]=DUMBc;
 					break;
@@ -246,7 +236,7 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 	return 1;
 }
 
-void sEngine::process(int procid_, int testid_, sDataSet* ds_, int savedEnginePid_) {
+void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, int savedEnginePid_) {
 
 	int t;
 	int ret = 0;
@@ -288,7 +278,9 @@ void sEngine::process(int procid_, int testid_, sDataSet* ds_, int savedEnginePi
 				procArgs[t]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
 				procArgs[t]->core=core[c];
 				procArgs[t]->coreProcArgs->ds = (sDataSet*)ds_;
+				procArgs[t]->coreProcArgs->loadImage=loadImage_;
 				procArgs[t]->coreProcArgs->npid=savedEnginePid_;
+				procArgs[t]->coreProcArgs->ntid=coreLayout[c]->tid;
 
 				if (procid_==trainProc) {
 					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadTrain, &(*procArgs[t]), 0, tid[t]);
@@ -331,7 +323,7 @@ void sEngine::train(int testid_, sDataSet* trainDS_) {
 	//-- needed to set trmin/max for each training feature
 	trainDS=trainDS_;
 
-	safecall(this, process, trainProc, testid_, trainDS_, 0);
+	safecall(this, process, trainProc, false, testid_, trainDS_, 0);
 }
 void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool reTransform) {
 
@@ -355,7 +347,7 @@ void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool r
 		}
 	}
 	//-- call infer
-	safecall(this, process, inferProc, testid_, inferDS_, savedEnginePid_);
+	safecall(this, process, inferProc, reTransform, testid_, inferDS_, savedEnginePid_);
 
 	//-- unscale, untransform, then save results
 	sDataSet* _ds;

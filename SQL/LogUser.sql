@@ -62,15 +62,25 @@ create table ClientInfo(
 ) storage (initial 2M minextents 4 pctincrease 0);
 alter table ClientInfo add constraint ClientInfo_PK primary key (ProcessId, DoTraining);
 
-drop table CoreImage_NN purge;
-create table CoreImage_NN(
+drop table CoreImage_NN_W purge;
+create table CoreImage_NN_W(
 	ProcessId number,
 	ThreadId number,
 	Epoch number,
 	WId number,
 	W number
 ) storage (initial 1024M minextents 8 pctincrease 0);
-alter table CoreImage_NN add constraint CoreImage_NN_PK primary key( ProcessId, ThreadId, Epoch, WId ) using index tablespace LogIdx;
+alter table CoreImage_NN_W add constraint CoreImage_NN_W_PK primary key( ProcessId, ThreadId, Epoch, WId ) using index tablespace LogIdx;
+
+drop table CoreImage_NN_N purge;
+create table CoreImage_NN_N(
+	ProcessId number,
+	ThreadId number,
+	Epoch number,
+	NId number,
+	F number
+) storage (initial 1024M minextents 8 pctincrease 0);
+alter table CoreImage_NN_N add constraint CoreImage_NN_N_PK primary key( ProcessId, ThreadId, Epoch, NId ) using index tablespace LogIdx;
 
 drop table Engines purge;
 create table Engines(

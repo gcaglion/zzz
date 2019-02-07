@@ -31,12 +31,12 @@ struct sFileData : sCfgObj {
 	EXPORT void saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType);
 	EXPORT void loadEngineInfo(int pid, int* engineType, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, bool* saveToDB_, bool* saveToFile_, const char* dbconn_, int* coreId, int* coreType, int* coreThreadId, int* parentCoresCnt, int** parentCore, int** parentConnType);
 	//--
-	EXPORT void saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
+	EXPORT void saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F);
 	EXPORT void saveCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void saveCoreSOMImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void saveCoreSVMImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void saveCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
-	EXPORT void loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
+	EXPORT void loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F);
 	EXPORT void loadCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void loadCoreSOMImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void loadCoreSVMImage(int pid, int tid, int epoch, int Wcnt, numtype* W);

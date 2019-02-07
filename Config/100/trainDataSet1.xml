@@ -2,7 +2,7 @@
 
 	TimeSeriesCount	= 1
 	<TimeSerie0>
-		HistoryLen			= 202
+		HistoryLen			= 5002
 		Date0				= 2018-05-30-00:00
 		DataTransformation	= DT_NONE
 		Dump				= false

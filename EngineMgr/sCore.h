@@ -26,6 +26,7 @@ struct sCoreProcArgs {
 	int npid;
 	int ntid;
 	numtype mseR;
+	bool loadImage;
 };
 
 struct sCore : sCfgObj {
