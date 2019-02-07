@@ -2,19 +2,19 @@
 
 	TimeSeriesCount	= 1
 	<TimeSerie0>
-		HistoryLen			= 25014
-		Date0				= 2018-06-30-00:00
+		HistoryLen			= 202
+		Date0				= 2018-05-30-00:00
 		DataTransformation	= DT_NONE
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
-		<! FXDB-EurUsdH1.xml >
-		SelectedFeatures	= FXOPEN
+		<! FXDB-SinxH1.xml >
+		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	</TimeSerie0>
 
-	SampleLen = 12
+	SampleLen = 50
 	PredictionLen = 3
 	
-	BatchSamplesCount	= 50
+	BatchSamplesCount	= 10
 	Dump 				= true
 	DumpPath			= c:\temp\DataDump
 
