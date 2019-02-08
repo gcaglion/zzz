@@ -2,8 +2,8 @@
 
 	TimeSeriesCount	= 1
 	<TimeSerie0>
-		HistoryLen			= 15002
-		Date0				= 2018-05-30-00:00
+		HistoryLen			= 5000
+		Date0				= 2018-06-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
@@ -12,10 +12,10 @@
 	</TimeSerie0>
 
 	SampleLen = 50
-	PredictionLen = 3
+	PredictionLen = 1
 	
 	BatchSamplesCount	= 10
-	Dump 				= true
+	Dump 				= false
 	DumpPath			= c:\temp\DataDump
 
 	<! DataSetPersistor-Default.xml >

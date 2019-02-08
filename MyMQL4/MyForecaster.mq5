@@ -368,6 +368,8 @@ int NewTrade(int cmd, double volume, double TP, double SL) {
 						//printf("First, closing existing position...");
 	trade.PositionClose(Symbol(), 10);
 
+	SL=0;
+
 	string comment;
 	bool ret;
 	if (cmd==1||cmd==3) {
