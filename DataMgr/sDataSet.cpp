@@ -196,7 +196,7 @@ void sDataSet::mallocs1() {
 	dumpPath=(char*)malloc(MAX_PATH);
 }
 void sDataSet::setSamples() {
-	if (sourceTS[0]->stepsCnt<=(shape->sampleLen+shape->predictionLen)) fail("HistoryLen (%d) must be greater than (SampleLen (%d) + PredictionLen (%d) )", sourceTS[0]->stepsCnt, shape->sampleLen, shape->predictionLen);
+	if (sourceTS[0]->stepsCnt<(shape->sampleLen+shape->predictionLen)) fail("HistoryLen (%d) must be greater or equal than (SampleLen (%d) + PredictionLen (%d) )", sourceTS[0]->stepsCnt, shape->sampleLen, shape->predictionLen);
 	samplesCnt=sourceTS[0]->stepsCnt-shape->sampleLen+1;
 	/*if(hasTargets)*/ samplesCnt-=shape->predictionLen;
 	info("stepsCnt=%d ; sampleLen=%d ; predictionLen=%d ; featuresCnt=%d ; hasTargets=%s ; samplesCnt=%d", sourceTS[0]->stepsCnt, shape->sampleLen, shape->predictionLen, shape->featuresCnt, (hasTargets) ? "TRUE" : "FALSE", samplesCnt);
