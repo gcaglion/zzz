@@ -2,9 +2,9 @@
 
 	TimeSeriesCount	= 1
 	<TimeSerie0>
-		HistoryLen			= 51
-		Date0				= 2018-07-30-20:00
-		DataTransformation	= DT_DELTA
+		HistoryLen			= 400
+		Date0				= 2018-06-30-00:00
+		DataTransformation	= DT_NONE
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
 		<! FXDB-EurUsdH1.xml >
