@@ -216,14 +216,6 @@ void sDataSet::mallocs2() {
 	targetBFS=(numtype*)malloc(samplesCnt*shape->predictionLen*shape->featuresCnt*sizeof(numtype));
 	predictionBFS=(numtype*)malloc(samplesCnt*shape->predictionLen*shape->featuresCnt*sizeof(numtype));
 
-	//-- generic pointers
-	_data[SAMPLE][SBF]=sampleSBF;
-	_data[SAMPLE][BFS]=sampleBFS;
-	_data[ACTUAL][SBF]=targetSBF;
-	_data[ACTUAL][BFS]=targetBFS;
-	_data[PREDICTED][SBF]=predictionSBF;
-	_data[PREDICTED][BFS]=predictionBFS;
-
 }
 void sDataSet::frees() {
 	free(sampleSBF);
