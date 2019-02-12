@@ -1,0 +1,32 @@
+<Engine>
+	CoresCount	= 1
+	<Core0>
+		<Layout>
+			Type	= CORE_NN
+			Parents			= 
+			ParentsConnType	= 
+		</Layout>
+		<Parameters>
+			<Topology>
+				LevelRatio			= 2
+				LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+				UseContext			= false
+				UseBias				= false
+			</Topology>
+			<Training>
+				MaxEpochs			= 3000
+				TargetMSE			= 0.0001
+				NetSaveFrequency	= 10
+				StopOnDivergence	= false
+				StopOnInversion		= true
+				BP_Algo				= BP_STD
+				<BP_Std>
+					LearningRate		= 0.002
+					LearningMomentum	= 0.8
+				</BP_Std>
+			</Training>
+		</Parameters>
+		<! CorePersistor-Default.xml >
+	</Core0>
+		<! EnginePersistor-Default.xml >
+</Engine>

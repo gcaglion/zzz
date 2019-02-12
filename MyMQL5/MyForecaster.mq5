@@ -13,7 +13,7 @@ int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, int
 int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[], bool& oChartTrade[]);
 int _getForecast(uchar& iEnv[], int seriesCnt_, int dt_, int& featMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 //--
-int _saveTradeInfo(uchar& iEnv[], int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult);
+int _saveTradeInfo(uchar& iEnv[], int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit);
 void _commit(uchar& iEnv[]);
 int _destroyEnv(uchar& iEnv[]);
 #import
@@ -61,9 +61,19 @@ double vopenF[], vhighF[], vlowF[], vcloseF[], vvolumeF[];
 double vForecastH, vForecastL;
 //--
 MqlRates serierates[];
+//--
+CTrade trade;
+//--
+bool TPhit;
+bool SLhit=false;
 //--------------------------------------------------------------------------
 
 int OnInit() {
+
+	trade.SetExpertMagicNumber(123456);
+	trade.SetDeviationInPoints(10);
+	trade.SetTypeFilling(ORDER_FILLING_RETURN);
+	trade.SetAsyncMode(false);
 
 	EnvS = "00000000000000000000000000000000000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
 	string sSymbolsCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
@@ -149,6 +159,7 @@ int OnInit() {
 void OnTick() {
 
 	static bool runOnce=false;
+	static bool firstTick=true;
 
 	if (!runOnce) {
 		// Only do this if there's a new bar
@@ -157,6 +168,17 @@ void OnTick() {
 		Time0 = SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE);
 		string Time0S;
 		StringConcatenate(Time0S, TimeToString(Time0, TIME_DATE), ".", TimeToString(Time0, TIME_MINUTES));
+
+		//-- close existing position
+		printf("Closing current position...");
+		trade.PositionClose(Symbol(), 10);
+		printf("trade.PositionClose() returned %d", trade.ResultRetcode());
+		if (!firstTick&&trade.ResultRetcode()!=TRADE_RETCODE_DONE) {
+			//-- prev position has already been closed due to TP or SL
+			TPhit=true;
+		} else {
+			TPhit=false;
+		}
 
 		//-- load bars into arrrays
 		printf("Time0=%s . calling LoadBars()...", Time0S);
@@ -222,13 +244,14 @@ void OnTick() {
 		//-- save tradeInfo, even if we do not trade
 		int idx=tradeSerie*historyLen+historyLen-1;
 		printf("calling _saveTradeInfo() with lastBar = %s - %f|%f|%f|%f ; forecast = %f|%f|%f|%f", vtimeS[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0]);
-		if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0], tradeScenario, tradeResult)<0) {
+		if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0], tradeScenario, tradeResult, TPhit, SLhit)<0) {
 			printf("_saveTradeInfo() failed. see Forecaster logs.");
 			return;
 		}
 		_commit(vEnvS);
 	}
 	//runOnce=true;
+	firstTick=false;
 }
 void OnDeinit(const int reason) {
 	CharArrayToString(vEnvS, EnvS);
@@ -237,6 +260,9 @@ void OnDeinit(const int reason) {
 		printf("calling _destroyEnv for vEnvS=%s", EnvS);
 		_destroyEnv(vEnvS);
 	}
+}
+void OnTrade() {
+	printf("DioPorco!");
 }
 
 bool loadBars() {
@@ -352,21 +378,12 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 }
 int NewTrade(int cmd, double volume, double TP, double SL) {
 
-	CTrade trade;
-	trade.SetExpertMagicNumber(123456);
-	trade.SetDeviationInPoints(10);
-	trade.SetTypeFilling(ORDER_FILLING_RETURN);
-	trade.SetAsyncMode(false);
-
 	string symbol=Symbol();
 	int    digits=(int)SymbolInfoInteger(symbol, SYMBOL_DIGITS); // number of decimal places
 	double point=SymbolInfoDouble(symbol, SYMBOL_POINT);         // point
 	double bid=SymbolInfoDouble(symbol, SYMBOL_BID);             // current price for closing LONG
 	double ask=SymbolInfoDouble(symbol, SYMBOL_ASK);             // current price for closing SHORT
 	double open_price;	//--- receive the current open price for LONG positions
-
-						//printf("First, closing existing position...");
-	trade.PositionClose(Symbol(), 10);
 
 	SL=0;
 
