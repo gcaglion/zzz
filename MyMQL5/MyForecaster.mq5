@@ -170,7 +170,6 @@ void OnTick() {
 		StringConcatenate(Time0S, TimeToString(Time0, TIME_DATE), ".", TimeToString(Time0, TIME_MINUTES));
 
 		//-- close existing position
-		printf("Closing current position...");
 		trade.PositionClose(Symbol(), 10);
 		printf("trade.PositionClose() returned %d", trade.ResultRetcode());
 		if (!firstTick&&trade.ResultRetcode()!=TRADE_RETCODE_DONE) {
@@ -181,14 +180,14 @@ void OnTick() {
 		}
 
 		//-- load bars into arrrays
-		printf("Time0=%s . calling LoadBars()...", Time0S);
+		//printf("Time0=%s . calling LoadBars()...", Time0S);
 		if (!loadBars()) {
 			printf("loadBars() FAILURE! Exiting...");
 			return;
 		}
 
 		//------ GET FORECAST ---------
-		printf("Getting Forecast...");
+		//printf("Getting Forecast...");
 		if (_getForecast(vEnvS, seriesCnt, vDataTransformation, serieFeatMask, vtime, vopen, vhigh, vlow, vclose, vvolume, vtimeB, vopenB, vhighB, vlowB, vcloseB, vvolumeB, vopenF, vhighF, vlowF, vcloseF, vvolumeF)!=0) {
 			printf("_getForecast() FAILURE! Exiting...");
 			return;
@@ -217,7 +216,6 @@ void OnTick() {
 			printf("Using Forecast: H=%f ; L=%f", vForecastH, vForecastL);
 		}
 
-
 		//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
 		drawForecast(vForecastH, vForecastL);
 
@@ -232,7 +230,9 @@ void OnTick() {
 		if (tradeScenario>=0) {
 
 			//-- do the actual trade
+			printf("======================================== CALL TO NewTrade() ========================================================================================================================");
 			tradeResult=NewTrade(tradeScenario, tradeVol, tradeTP, tradeSL);
+			printf("====================================================================================================================================================================================");
 
 			//-- if trade successful, store position ticket in shared variable
 			if (tradeResult==0) {
@@ -243,7 +243,7 @@ void OnTick() {
 		}
 		//-- save tradeInfo, even if we do not trade
 		int idx=tradeSerie*historyLen+historyLen-1;
-		printf("calling _saveTradeInfo() with lastBar = %s - %f|%f|%f|%f ; forecast = %f|%f|%f|%f", vtimeS[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0]);
+		//printf("calling _saveTradeInfo() with lastBar = %s - %f|%f|%f|%f ; forecast = %f|%f|%f|%f", vtimeS[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0]);
 		if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0], tradeScenario, tradeResult, TPhit, SLhit)<0) {
 			printf("_saveTradeInfo() failed. see Forecaster logs.");
 			return;
@@ -262,7 +262,6 @@ void OnDeinit(const int reason) {
 	}
 }
 void OnTrade() {
-	printf("DioPorco!");
 }
 
 bool loadBars() {
@@ -270,7 +269,7 @@ bool loadBars() {
 	ENUM_TIMEFRAMES tf;
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
-		int copied=CopyRates(serieSymbol[s], tf, 1, historyLen+2, serierates);	printf("copied[%d]=%d", s, copied);
+		int copied=CopyRates(serieSymbol[s], tf, 1, historyLen+2, serierates);	//printf("copied[%d]=%d", s, copied);
 		if (copied!=(historyLen+2)) return false;
 		//-- base bar
 		vtimeB[s]=serierates[1].time+TimeGMTOffset();
@@ -393,14 +392,14 @@ int NewTrade(int cmd, double volume, double TP, double SL) {
 		//-- Buy
 		open_price=SymbolInfoDouble(symbol, SYMBOL_BID);
 		string comment=StringFormat("Buy  %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
-		printf("calling trade.Buy() with open_price=%f , volume=%f , takeprofit=%5.4f , stoploss=%5.4f", open_price, volume, TP, SL);
+		//printf("calling trade.Buy() with open_price=%f , volume=%f , takeprofit=%5.4f , stoploss=%5.4f", open_price, volume, TP, SL);
 		ret=trade.Buy(volume, symbol, open_price, SL, TP, comment);
 	}
 	if (cmd==2||cmd==4) {
 		//-- Sell
 		open_price=SymbolInfoDouble(symbol, SYMBOL_ASK);
 		string comment=StringFormat("Sell %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
-		printf("calling trade.Sell() with open_price=%f , volume=%f , takeprofit=%5.4f , stoploss=%5.4f", open_price, volume, TP, SL);
+		//printf("calling trade.Sell() with open_price=%f , volume=%f , takeprofit=%5.4f , stoploss=%5.4f", open_price, volume, TP, SL);
 		ret=trade.Sell(volume, symbol, open_price, SL, TP, comment);
 	}
 	if (!ret) {
@@ -408,7 +407,7 @@ int NewTrade(int cmd, double volume, double TP, double SL) {
 		Print("Trade failed. Return code=", trade.ResultRetcode(), ". Code description: ", trade.ResultRetcodeDescription());
 		return -1;
 	} else {
-		Print("Trade executed successfully. Return code=", trade.ResultRetcode(), " (", trade.ResultRetcodeDescription(), ")");
+		//Print("Trade executed successfully. Return code=", trade.ResultRetcode(), " (", trade.ResultRetcodeDescription(), ")");
 		return 0;
 	}
 }
@@ -420,18 +419,23 @@ void drawForecast(double H, double L) {
 	int copied=CopyRates(NULL, 0, 0, 2, rates);
 	if (copied<=0) Print("Error copying price data ", GetLastError());
 
-	string name;
-	StringConcatenate(name, "Rectangle", TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES));
+	string nameR, nameE;
+	//StringConcatenate(nameR, "Rectangle", TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES));
+	StringConcatenate(nameE, "Ellipse", TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES));
 
 	//	ObjectDelete(_Symbol, name);
 
 	//-- draw the rectangle between last bar and new bar
 	//printf("ObjectCreate(H=%f ; L=%f) returns %d", H,L,ObjectCreate(_Symbol, name, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L));
-	ObjectCreate(_Symbol, name, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L);
-	ObjectSetInteger(0, name, OBJPROP_COLOR, clrBlue);
-	ObjectSetInteger(0, name, OBJPROP_WIDTH, 3);
+	//ObjectCreate(_Symbol, nameR, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L);
+	ObjectCreate(_Symbol, nameE, OBJ_ELLIPSE, 0, rates[1].time, H, rates[1].time, L, rates[0].time, (H+L)/2);
+	//ObjectSetInteger(0, nameR, OBJPROP_COLOR, clrBlue);
+	ObjectSetInteger(0, nameE, OBJPROP_COLOR, clrBlue);
+	//ObjectSetInteger(0, nameR, OBJPROP_WIDTH, 3);
+	ObjectSetInteger(0, nameE, OBJPROP_WIDTH, 3);
 	//ObjectSetInteger(0, name, OBJPROP_FILL, true);
-	ObjectSetInteger(0, name, OBJPROP_HIDDEN, false);
+	//ObjectSetInteger(0, nameR, OBJPROP_HIDDEN, false);
+	ObjectSetInteger(0, nameE, OBJPROP_HIDDEN, false);
 
 }
 
