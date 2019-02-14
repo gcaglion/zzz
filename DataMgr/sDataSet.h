@@ -32,8 +32,6 @@ struct sDataSet : sCfgObj {
 	numtype* sampleBFS;		
 	numtype* targetBFS;		
 	numtype* predictionBFS;	
-	//-- array of pointers to any of the above : 
-	numtype* _data[3][2];	//-- [Source][ordering]
 
 	EXPORT sDataSet(sObjParmsDef, int sourceTScnt_, sTimeSerie** sourceTS_, int* selectedTSfeaturesCnt_, int** selectedTSfeature_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, bool doDump_=false, char* dumpPath_=nullptr);
 	EXPORT sDataSet(sCfgObjParmsDef);

@@ -313,7 +313,8 @@ void sNN::ForwardPass(sDataSet* ds, int batchId, bool inferring) {
 		CEtimeTot+=((DWORD)(timeGetTime()-CEstart));
 	}
 	//-- 4. if Inferring, save results for current batch in batchPrediction
-	if (inferring) Alg->d2h(&ds->predictionBFS[batchId*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+	//if (inferring) Alg->d2h(&ds->predictionBFS[batchId*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+	if (inferring) Alg->d2h(&ds->predictionSBF[batchId*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 
 }
 void sNN::BackwardPass(sDataSet* ds, int batchId, bool updateWeights) {
@@ -470,7 +471,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	Alg->Vinit(weightsCntTotal, dJdW, 0, 0);
 
 	//-- 0.4. convert samples and targets from SBF to BFS  in training dataset
-	trainArgs->ds->setBFS();
+	//trainArgs->ds->setBFS();
 
 	//-- pre-load the whole dataset (samples+targets) on GPU !
 	safecall(this, loadWholeDataSet);
@@ -575,7 +576,7 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	if (inferArgs->loadImage) safecall( this, loadImage, inferArgs->npid, inferArgs->ntid, -1);
 	
 	//-- 0.4. convert samples and targets from SBF to BFS  in inference dataset
-	inferArgs->ds->setBFS();
+	//inferArgs->ds->setBFS();
 
 	//-- pre-load the whole dataset (samples+targets) on GPU !
 	safecall(this, loadWholeDataSet);
@@ -590,13 +591,8 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
 	procArgs->mseR=tse_h/nodesCnt[outputLevel]/_batchCnt;
 
-	Alg->Vinit(1, tse, 0, 0);
-	for (int b=0; b<_batchCnt; b++) ForwardPass(inferSet, b, true);
-	Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
-	procArgs->mseR=tse_h/nodesCnt[outputLevel]/_batchCnt;
-
 	//-- 0.4. convert samples and targets back from BFS to SBF in inference dataset
-	inferArgs->ds->setSBF();
+	//inferArgs->ds->setSBF();
 
 	//-- feee neurons()
 	destroyNeurons();
@@ -796,11 +792,12 @@ int sNN::trainSCGD(sCoreProcArgs* procArgs) {
 	return k;
 }
 void sNN::loadWholeDataSet() {
+
 	int sampleSize=procArgs->ds->samplesCnt*procArgs->ds->shape->sampleLen*procArgs->ds->shape->featuresCnt;
 	safecall(Alg, myMalloc, &sample_d, sampleSize);
-	safecall(Alg, h2d, sample_d, procArgs->ds->sampleBFS, (int)(sampleSize*sizeof(numtype)), false);
+	safecall(Alg, h2d, sample_d, procArgs->ds->sampleSBF, (int)(sampleSize*sizeof(numtype)), false);
 
 	int targetSize=procArgs->ds->samplesCnt*procArgs->ds->shape->predictionLen*procArgs->ds->shape->featuresCnt;
 	safecall(Alg, myMalloc, &target_d, targetSize);
-	safecall(Alg, h2d, target_d, procArgs->ds->targetBFS, (int)(targetSize*sizeof(numtype)), false);
+	safecall(Alg, h2d, target_d, procArgs->ds->targetSBF, (int)(targetSize*sizeof(numtype)), false);
 }
