@@ -137,7 +137,7 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 
 }
 
-
+/*
 void sDataSet::setBFS() {
 	for (int b=0; b<batchCnt; b++) {
 		//-- populate BFS sample/target for every batch
@@ -186,7 +186,7 @@ void sDataSet::BFS2SBF(int batchId, int barCnt, numtype* fromBFS, numtype* toSBF
 	}
 
 }
-
+*/
 //-- private stuff
 void sDataSet::mallocs1() {
 	selectedTSfeaturesCnt=(int*)malloc(sourceTScnt*sizeof(int));
@@ -212,18 +212,19 @@ void sDataSet::mallocs2() {
 	targetSBF=(numtype*)malloc(samplesCnt*shape->predictionLen*shape->featuresCnt*sizeof(numtype));
 	predictionSBF=(numtype*)malloc(samplesCnt*shape->predictionLen*shape->featuresCnt*sizeof(numtype));
 	//--
-	sampleBFS=(numtype*)malloc(samplesCnt*shape->sampleLen*shape->featuresCnt*sizeof(numtype));
+/*	sampleBFS=(numtype*)malloc(samplesCnt*shape->sampleLen*shape->featuresCnt*sizeof(numtype));
 	targetBFS=(numtype*)malloc(samplesCnt*shape->predictionLen*shape->featuresCnt*sizeof(numtype));
 	predictionBFS=(numtype*)malloc(samplesCnt*shape->predictionLen*shape->featuresCnt*sizeof(numtype));
-
+*/
 }
 void sDataSet::frees() {
 	free(sampleSBF);
 	free(targetSBF);
 	free(predictionSBF);
-	free(sampleBFS);
+/*	free(sampleBFS);
 	free(targetBFS);
 	free(predictionBFS);
+*/
 }
 void sDataSet::dumpPre(int valStatus, FILE** dumpFile) {
 	int b, f, t, i;

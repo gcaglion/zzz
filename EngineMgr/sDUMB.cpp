@@ -17,24 +17,23 @@ void sDUMB::mallocLayout() {
 }
 void sDUMB::train(sCoreProcArgs* trainArgs) {
 	trainArgs->mseCnt=10;
+	//-- malloc mse[maxepochs], always host-side.
+	trainArgs->duration=(int*)malloc(trainArgs->mseCnt*sizeof(int));
+	trainArgs->mseT=(numtype*)malloc(trainArgs->mseCnt*sizeof(numtype));
+	trainArgs->mseV=(numtype*)malloc(trainArgs->mseCnt*sizeof(numtype));
+
+	for (int e=0; e<trainArgs->mseCnt; e++) {
+		trainArgs->mseT[e]=1;
+		trainArgs->mseV[e]=0;
+	}
+
 	info("DUMB training complete.");
 }
 void sDUMB::infer(sCoreProcArgs* inferArgs) {
-	fail("Not implemented.");
+	int tlen=inferArgs->ds->samplesCnt*inferArgs->ds->shape->predictionLen*inferArgs->ds->shape->featuresCnt;
+	for (int i=0; i<tlen; i++) inferArgs->ds->predictionSBF[i]=inferArgs->ds->targetSBF[i];
 }
 
-void sDUMB::singleInfer(int sampleLen_, int sampleFeaturesCnt_, int batchSamplesCnt_, numtype* singleSampleBF, numtype* singleTargetBF, numtype** singlePredictionBF) {
-
-	//-- 1. load input neurons. Need to MAKE SURE incoming array len is the same as inputcount!!!
-
-	//-- 2. forward pass
-
-	//-- 3. copy last layer neurons (on dev) to prediction (on host)
-
-	//-- 3.1. perfect core!
-	for (int i=0; i<layout->outputCnt; i++) (*singlePredictionBF)[i]=singleTargetBF[i] +fixedTRSerror;
-
-}
 void sDUMB::saveImage(int pid, int tid, int epoch) {
 	safecall(persistor, saveCoreDUMBImage, pid, tid, epoch, 0, (numtype*)nullptr);
 }

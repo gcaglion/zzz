@@ -17,7 +17,6 @@ struct sDUMB : sCore {
 	void mallocLayout();
 	void train(sCoreProcArgs* trainArgs);
 	void infer(sCoreProcArgs* inferArgs);
-	void singleInfer(int sampleLen_, int sampleFeaturesCnt_, int batchSamplesCnt_, numtype* singleSampleBF, numtype* singleTargetBF, numtype** singlePredictionBF);
 	void saveImage(int pid, int tid, int epoch);
 	void loadImage(int pid, int tid, int epoch);
 };

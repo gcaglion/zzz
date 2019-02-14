@@ -432,7 +432,7 @@ void drawForecast(double H, double L) {
 	//ObjectSetInteger(0, nameR, OBJPROP_COLOR, clrBlue);
 	ObjectSetInteger(0, nameE, OBJPROP_COLOR, clrBlue);
 	//ObjectSetInteger(0, nameR, OBJPROP_WIDTH, 3);
-	ObjectSetInteger(0, nameE, OBJPROP_WIDTH, 3);
+	ObjectSetInteger(0, nameE, OBJPROP_WIDTH, 1);
 	//ObjectSetInteger(0, name, OBJPROP_FILL, true);
 	//ObjectSetInteger(0, nameR, OBJPROP_HIDDEN, false);
 	ObjectSetInteger(0, nameE, OBJPROP_HIDDEN, false);
