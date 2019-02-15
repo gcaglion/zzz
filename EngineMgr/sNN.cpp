@@ -609,28 +609,38 @@ void sNN::saveImage(int pid, int tid, int epoch) {
 	//-- malloc clocal copy of W,F
 	numtype* hW = (numtype*)malloc(weightsCntTotal*sizeof(numtype));
 	numtype* hF = (numtype*)malloc(nodesCntTotal*sizeof(numtype));
+	numtype* ha = (numtype*)malloc(nodesCntTotal*sizeof(numtype));
+	numtype* hdF = (numtype*)malloc(nodesCntTotal*sizeof(numtype));
 	//-- get data if it's on the GPU
 	Alg->d2h(hW, W, weightsCntTotal*sizeof(numtype));
 	Alg->d2h(hF, F, nodesCntTotal*sizeof(numtype));
 	//-- call persistor to save hW
-	safecall(persistor, saveCoreNNImage, pid, tid, epoch, weightsCntTotal, hW, nodesCntTotal, hF);
+	safecall(persistor, saveCoreNNImage, pid, tid, epoch, weightsCntTotal, hW, nodesCntTotal, hF, ha, hdF);
 	//-- free local copy
 	free(hW);
 	free(hF);
+	free(ha);
+	free(hdF);
 }
 void sNN::loadImage(int pid, int tid, int epoch) {
 
 	//-- malloc clocal copy of W
 	numtype* hW = (numtype*)malloc(weightsCntTotal*sizeof(numtype));
 	numtype* hF = (numtype*)malloc(nodesCntTotal*sizeof(numtype));
+	numtype* ha = (numtype*)malloc(nodesCntTotal*sizeof(numtype));
+	numtype* hdF = (numtype*)malloc(nodesCntTotal*sizeof(numtype));
 	//-- call persistor to load hW
-	safecall(persistor, loadCoreNNImage, pid, tid, epoch, weightsCntTotal, hW, nodesCntTotal, hF);
+	safecall(persistor, loadCoreNNImage, pid, tid, epoch, weightsCntTotal, hW, nodesCntTotal, hF, ha, hdF);
 	//-- load data if it's on the GPU
 	Alg->h2d(W, hW, weightsCntTotal*sizeof(numtype));
 	Alg->h2d(F, hF, nodesCntTotal*sizeof(numtype));
+	Alg->h2d(a, ha, nodesCntTotal*sizeof(numtype));
+	Alg->h2d(dF, hdF, nodesCntTotal*sizeof(numtype));
 	//-- free local copy
 	free(hW);
 	free(hF);
+	free(ha);
+	free(hdF);
 }
 
 int sNN::trainSCGD(sCoreProcArgs* procArgs) {

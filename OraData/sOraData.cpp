@@ -282,7 +282,7 @@ void sOraData::saveClientInfo(int pid, int simulationId, const char* clientName,
 }
 
 //-- Save/Load core images
-void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F) {
+void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F, numtype* a, numtype* dF) {
 	ub2* intLen; ub2* floatLen;
 	int* pidArr; int* tidArr; int* epochArr; 
 	//-- always check this, first!
@@ -323,7 +323,7 @@ void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 
 		//-- 2. Neurons
-		stmt = ((Connection*)conn)->createStatement("insert into CoreImage_NN_N (ProcessId, ThreadId, Epoch, NId, F) values(:P01, :P02, :P03, :P04, :P05)");
+		stmt = ((Connection*)conn)->createStatement("insert into CoreImage_NN_N (ProcessId, ThreadId, Epoch, NId, F, a, dF) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07)");
 		//-- this version uses arrayUpdate()
 		intLen = (ub2*)malloc(Fcnt*sizeof(int));
 		floatLen = (ub2*)malloc(Fcnt*sizeof(numtype));
@@ -348,6 +348,8 @@ void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 		((Statement*)stmt)->setDataBuffer(3, epochArr, OCCIINT, sizeof(int), intLen);
 		((Statement*)stmt)->setDataBuffer(4, FidArr, OCCIINT, sizeof(int), intLen);
 		((Statement*)stmt)->setDataBuffer(5, F, OCCIFLOAT, sizeof(numtype), floatLen);
+		((Statement*)stmt)->setDataBuffer(6, a, OCCIFLOAT, sizeof(numtype), floatLen);
+		((Statement*)stmt)->setDataBuffer(7, dF, OCCIFLOAT, sizeof(numtype), floatLen);
 		//-- execute
 		((Statement*)stmt)->executeArrayUpdate(Fcnt);
 		//-- free(s)
@@ -370,7 +372,7 @@ void sOraData::saveCoreSVMImage(int pid, int tid, int epoch, int Wcnt, numtype* 
 void sOraData::saveCoreDUMBImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
 	//fail("Not implemented.");
 }
-void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F) {
+void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F, numtype* a, numtype* dF) {
 
 	ub2* intLen;
 	ub2* floatLen;
@@ -428,7 +430,7 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 
 		//-- 2. Neurons
-		sprintf_s(sqlS, SQL_MAXLEN, "select NId, F from CoreImage_NN_N where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1,2", pid, tid, epoch);
+		sprintf_s(sqlS, SQL_MAXLEN, "select NId, F, a, dF from CoreImage_NN_N where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1,2", pid, tid, epoch);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		//-- this version uses arrayUpdate()
 		intLen = (ub2*)malloc(Fcnt*sizeof(int));
@@ -443,6 +445,8 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 		rset = ((Statement*)stmt)->executeQuery();
 		((ResultSet*)rset)->setDataBuffer(1, FidArr, OCCIINT, sizeof(int), intLen);
 		((ResultSet*)rset)->setDataBuffer(2, F, OCCIFLOAT, sizeof(numtype), floatLen);
+		((ResultSet*)rset)->setDataBuffer(3, a, OCCIFLOAT, sizeof(numtype), floatLen);
+		((ResultSet*)rset)->setDataBuffer(4, dF, OCCIFLOAT, sizeof(numtype), floatLen);
 		//--
 		((ResultSet*)rset)->next(Fcnt);
 		if (((ResultSet*)rset)->status()!=ResultSet::DATA_AVAILABLE) {

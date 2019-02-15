@@ -78,7 +78,9 @@ create table CoreImage_NN_N(
 	ThreadId number,
 	Epoch number,
 	NId number,
-	F number
+	F number,
+	a number,
+	dF number
 ) storage (initial 1024M minextents 8 pctincrease 0);
 alter table CoreImage_NN_N add constraint CoreImage_NN_N_PK primary key( ProcessId, ThreadId, Epoch, NId ) using index tablespace LogIdx;
 
@@ -217,7 +219,9 @@ create table TradeInfo(
 	ForecastC number,
 	ForecastV number,
 	TradeScenario number,
-	TradeResult number	
+	TradeResult number,
+	TPhit number,
+	SLhit number	
 );
 alter table TradeInfo add constraint TradeInfo_PK primary key(ClientPid, SessionId, LastBarT) using index tablespace LogIdx;
 
@@ -247,32 +251,34 @@ decode(Feature,0,'OPEN',1,'HIGH',2,'LOW',3,'CLOSE',4,'VOLUME','UNKNOWN') feature
 max(posLabel) LastDate, max(pos) LastPos , avg(BarWidth) avgBarWidth, avg(Error) avgError, avg(ErrorTRS*ErrorTRS) MSE from runlog group by processId, threadId, netProcessId, netThreadId, sourceTsId, Feature;
 --
 create or replace view vXMLconfig as
-select processid, min(uHistoryLen) HistoryLen, min(uTopology) Topology, min(uMaxEpochs) MaxEpochs, avg(uMaxK) MaxK, min(uSampleLen) SampleLen, min(uDate0) Date0, min(uSymbol0) Symbol0, min(uSymbol1) Symbol1, min(uSymbol2) Symbol2, min(uTimeFrame) TimeFrame, min(uDataTransformation) DataTransformation, min(uUseCtx0) Core0UseContext, min(uTimeSeriesCount) TimeSeriesCount from (
-select processid, to_number(replace(parmval,chr(0),''),'999999') uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount from xmlconfigs where upper(parmdesc) like '%HISTORYLEN%'
+select processid, min(uHistoryLen) HistoryLen, min(uTopology) Topology, min(uMaxEpochs) MaxEpochs, avg(uMaxK) MaxK, min(uSampleLen) SampleLen, min(uDate0) Date0, min(uSymbol0) Symbol0, min(uSymbol1) Symbol1, min(uSymbol2) Symbol2, min(uTimeFrame) TimeFrame, min(uDataTransformation) DataTransformation, min(uUseCtx0) Core0UseContext, min(uTimeSeriesCount) TimeSeriesCount, min(uBatchSamplesCount) BatchSamplesCount from (
+select processid, to_number(replace(parmval,chr(0),''),'999999') uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount, NULL uBatchSamplesCount from xmlconfigs where upper(parmdesc) like '%HISTORYLEN%'
 union
-select processid, NULL uHistoryLen, substr(parmval,1,256) uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount from xmlconfigs where upper(parmdesc) like '%LEVELRATIO%'
+select processid, NULL uHistoryLen, substr(parmval,1,256) uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount, NULL uBatchSamplesCount from xmlconfigs where upper(parmdesc) like '%LEVELRATIO%'
 union
-select processid, NULL uHistoryLen, NULL uTopology, to_number(replace(parmval,chr(0),''),'99999') uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount from xmlconfigs where upper(parmdesc) like '%MAXEPOCHS%'
+select processid, NULL uHistoryLen, NULL uTopology, to_number(replace(parmval,chr(0),''),'99999') uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount, NULL uBatchSamplesCount from xmlconfigs where upper(parmdesc) like '%MAXEPOCHS%'
 union
-select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, to_number(replace(parmval,chr(0),''),'99999') uMaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount from xmlconfigs where upper(parmdesc) like '%MAXK%'
+select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, to_number(replace(parmval,chr(0),''),'99999') uMaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount, NULL uBatchSamplesCount from xmlconfigs where upper(parmdesc) like '%MAXK%'
 union
-select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, to_number(replace(parmval,chr(0),''),'99999') uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount from xmlconfigs where upper(parmdesc) like '%SAMPLELEN%'
+select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, to_number(replace(parmval,chr(0),''),'99999') uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount, NULL uBatchSamplesCount from xmlconfigs where upper(parmdesc) like '%SAMPLELEN%'
 union
-select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, substr(parmval,1,256) uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount from xmlconfigs where upper(parmdesc) like '%DATE0%'
+select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, substr(parmval,1,256) uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount, NULL uBatchSamplesCount from xmlconfigs where upper(parmdesc) like '%DATE0%'
 union
-select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, substr(parmval,1,256) uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount from xmlconfigs where upper(parmdesc) like '%TIMESERIE0%SYMBOL%'
+select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, substr(parmval,1,256) uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount, NULL uBatchSamplesCount from xmlconfigs where upper(parmdesc) like '%TIMESERIE0%SYMBOL%'
 union
-select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, substr(parmval,1,256) uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount from xmlconfigs where upper(parmdesc) like '%TIMESERIE1%SYMBOL%'
+select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, substr(parmval,1,256) uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount, NULL uBatchSamplesCount from xmlconfigs where upper(parmdesc) like '%TIMESERIE1%SYMBOL%'
 union
-select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, substr(parmval,1,256) uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount from xmlconfigs where upper(parmdesc) like '%TIMESERIE2%SYMBOL%'
+select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, substr(parmval,1,256) uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount, NULL uBatchSamplesCount from xmlconfigs where upper(parmdesc) like '%TIMESERIE2%SYMBOL%'
 union
-select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, substr(parmval,1,256) uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount from xmlconfigs where upper(parmdesc) like '%TIMEFRAME%'
+select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, substr(parmval,1,256) uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount, NULL uBatchSamplesCount from xmlconfigs where upper(parmdesc) like '%TIMEFRAME%'
 union
-select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, substr(parmval,1,256) uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount from xmlconfigs where upper(parmdesc) like '%DATATRANSFORMATION%'
+select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, substr(parmval,1,256) uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount, NULL uBatchSamplesCount from xmlconfigs where upper(parmdesc) like '%DATATRANSFORMATION%'
 union
-select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, substr(parmval,1,256) uUseCtx0, NULL uTimeSeriesCount from xmlconfigs where upper(parmdesc) like '%CORE0%USECONTEXT%'
+select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, substr(parmval,1,256) uUseCtx0, NULL uTimeSeriesCount, NULL uBatchSamplesCount from xmlconfigs where upper(parmdesc) like '%CORE0%USECONTEXT%'
 union
-select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, substr(parmval,1,256) uTimeSeriesCount from xmlconfigs where upper(parmdesc) like '%TIMESERIESCOUNT%'
+select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, substr(parmval,1,256) uTimeSeriesCount, NULL uBatchSamplesCount from xmlconfigs where upper(parmdesc) like '%TIMESERIESCOUNT%'
+union
+select processid, NULL uHistoryLen, NULL uTopology, NULL uMaxEpochs, NULL umaxK, NULL uSampleLen, NULL uDate0, NULL uSymbol0, NULL uSymbol1, NULL uSymbol2, NULL uTimeFrame, NULL uDataTransformation, NULL uUseCtx0, NULL uTimeSeriesCount, substr(parmval,1,256) uBatchSamplesCount from xmlconfigs where upper(parmdesc) like '%BATCHSAMPLESCOUNT%'
 ) 
 group by processid
 ;
