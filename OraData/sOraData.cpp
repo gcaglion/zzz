@@ -871,12 +871,12 @@ extern "C" __declspec(dllexport) int _getSavedEnginePids(const char* DBusername,
 }
 
 //-- MetaTrader stuff
-void sOraData::saveTradeInfo(int MT4clientPid, int MT4sessionId, int MT4accountId, int MT4enginePid, int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult) {
+void sOraData::saveTradeInfo(int MT4clientPid, int MT4sessionId, int MT4accountId, int MT4enginePid, int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
-	sprintf_s(sqlS, SQL_MAXLEN, "insert into TradeInfo(ClientPid, SessionId, AccountId, TicketId, EnginePid, OpenTime, LastBarT, LastBarO, LastBarH, LastBarL, LastBarC, LastBarV, ForecastO, ForecastH, ForecastL, ForecastC, ForecastV, TradeScenario, TradeResult) values(%d, %d, %d, %d, %d, to_date('%s','%s'), to_date('%s','%s'), %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %d, %d)", MT4clientPid, MT4sessionId, MT4accountId, iPositionTicket, MT4enginePid, iPositionOpenTime, DATE_FORMAT, iLastBarT, DATE_FORMAT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult);
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into TradeInfo(ClientPid, SessionId, AccountId, TicketId, EnginePid, OpenTime, LastBarT, LastBarO, LastBarH, LastBarL, LastBarC, LastBarV, ForecastO, ForecastH, ForecastL, ForecastC, ForecastV, TradeScenario, TradeResult, TPhit, SLhit) values(%d, %d, %d, %d, %d, to_date('%s','%s'), to_date('%s','%s'), %f, %f, %f, %f, %f, %f, %f, %f, %f, %f, %d, %d, %d, %d)", MT4clientPid, MT4sessionId, MT4accountId, iPositionTicket, MT4enginePid, iPositionOpenTime, DATE_FORMAT, iLastBarT, DATE_FORMAT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
 	safecall(this, sqlExec, sqlS);
 
 }

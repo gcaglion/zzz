@@ -2,7 +2,7 @@
 
 	TimeSeriesCount	= 3
 	<TimeSerie0>
-		HistoryLen			= 25005
+		HistoryLen			= 25000
 		Date0				= 2018-05-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
@@ -11,7 +11,7 @@
 		SelectedFeatures	= FXHIGH, FXLOW
 	</TimeSerie0>
 	<TimeSerie1>
-		HistoryLen			= 25005
+		HistoryLen			= 25000
 		Date0				= 2018-05-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
@@ -20,7 +20,7 @@
 		SelectedFeatures	= FXHIGH, FXLOW
 	</TimeSerie1>
 	<TimeSerie2>
-		HistoryLen			= 25005
+		HistoryLen			= 25000
 		Date0				= 2018-05-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
@@ -29,7 +29,7 @@
 		SelectedFeatures	= FXHIGH, FXLOW
 	</TimeSerie2>
 
-	SampleLen = 5
+	SampleLen = 50
 	PredictionLen = 1
 	
 	BatchSamplesCount	= 10

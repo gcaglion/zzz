@@ -217,7 +217,9 @@ create table TradeInfo(
 	ForecastC number,
 	ForecastV number,
 	TradeScenario number,
-	TradeResult number	
+	TradeResult number,
+	TPhit number,
+	SLhit number
 );
 alter table TradeInfo add constraint TradeInfo_PK primary key(ClientPid, SessionId, LastBarT) using index tablespace LogIdx;
 
