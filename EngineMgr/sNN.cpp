@@ -586,12 +586,17 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	inferStartTime=timeGetTime();
 
 	Alg->Vinit(1, tse, 0, 0);
-	for (int b=0; b<_batchCnt; b++) ForwardPass(inferSet, b, true);
-	Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
-	procArgs->mseR=tse_h/nodesCnt[outputLevel]/_batchCnt;
-
-	Alg->Vinit(1, tse, 0, 0);
-	for (int b=0; b<_batchCnt; b++) ForwardPass(inferSet, b, true);
+	for (int b=0; b<_batchCnt; b++) {
+		safecallSilent(this, loadBatchData, inferArgs->ds, b);
+		safecallSilent(this, FF);
+		safecallSilent(this, FF);
+		safecallSilent(this, FF);
+		safecallSilent(this, FF);
+		safecallSilent(this, FF);
+		safecallSilent(this, FF);
+		safecallSilent(this, Ecalc);
+		Alg->d2h(&inferArgs->ds->predictionBFS[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+	}
 	Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
 	procArgs->mseR=tse_h/nodesCnt[outputLevel]/_batchCnt;
 
