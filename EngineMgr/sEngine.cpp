@@ -303,14 +303,8 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 		WaitForMultipleObjects(t, procH, TRUE, INFINITE);
 
 		//-- exception handling for threads
-		int ti;
-		try {
-			for (ti=0; ti<t; ti++) {
-//				if (procArgs[t]->coreProcArgs->excp!=NULL) rethrow_exception(procArgs[t]->coreProcArgs->excp);
-			}
-		}
-		catch (...) {
-			fail("core[%d] %s failed.", ti, ((procid_==trainProc) ? "Training" : "Inferencing"));
+		for (int ti=0; ti<t; ti++) {
+			if (procArgs[ti]->coreProcArgs->excp!=NULL) rethrow_exception(procArgs[ti]->coreProcArgs->excp);
 		}
 
 		//-- free(s)
