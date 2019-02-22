@@ -237,7 +237,7 @@ alter table XMLConfigs add constraint XMLConfigs_PK primary key(SimulationId, Pr
 
 
 -- Views
-create or replace  view vLastMSE as select v.processId, v.threadId, t.mse_t LastMSE
+create or replace  view vLastMSE as select v.processId, v.threadId, v.LastEpoch, t.mse_t LastMSE
 from trainLog t, 
 (
 	select processid, threadid, max(epoch) LastEpoch from trainlog group by processid, threadid

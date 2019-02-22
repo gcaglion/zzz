@@ -2,7 +2,7 @@
 
 	TimeSeriesCount	= 1
 	<TimeSerie0>
-		HistoryLen			= 5000
+		HistoryLen			= 25000
 		Date0				= 2018-05-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
@@ -10,11 +10,29 @@
 		<! FXDB-EurUsdH1.xml >
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	</TimeSerie0>
+	<TimeSerie1>
+		HistoryLen			= 25000
+		Date0				= 2018-05-30-00:00
+		DataTransformation	= DT_DELTA
+		Dump				= false
+		DumpPath			= c:\temp\DataDump
+		<! FXDB-SpxH1.xml >
+		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+	</TimeSerie1>
+	<TimeSerie2>
+		HistoryLen			= 25000
+		Date0				= 2018-05-30-00:00
+		DataTransformation	= DT_DELTA
+		Dump				= false
+		DumpPath			= c:\temp\DataDump
+		<! FXDB-EtxEurH1.xml >
+		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+	</TimeSerie2>
 
-	SampleLen = 50
+	SampleLen = 100
 	PredictionLen = 1
 	
-	BatchSamplesCount	= 10
+	BatchSamplesCount	= 50
 	Dump 				= false
 	DumpPath			= c:\temp\DataDump
 

@@ -23,22 +23,17 @@
 	</Persistor>
 	
 	<MetaTrader>
-		ChartsCount 	= 3
+		ChartsCount 	= 1
 		<Chart0>
 			Symbol				= EURUSD
 			TimeFrame			= H1
-			SelectedFeatures	= FXHIGH, FXLOW
+			SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 		</Chart0>
 		<Chart1>
 			Symbol				= US500-MAR19
-			TimeFrame			= H1
-			SelectedFeatures	= FXHIGH, FXLOW
+			TimeFrame			= D1
+			SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 		</Chart1>
-		<Chart2>
-			Symbol				= EU50-MAR19
-			TimeFrame			= H1
-			SelectedFeatures	= FXHIGH, FXLOW
-		</Chart2>
 	</MetaTrader>
 
 
