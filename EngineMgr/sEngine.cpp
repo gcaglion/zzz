@@ -303,7 +303,8 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 		WaitForMultipleObjects(t, procH, TRUE, INFINITE);
 
 		//-- exception handling for threads
-		for (int ti=0; ti<t; ti++) {
+		int ti;
+		for (ti=0; ti<t; ti++) {
 			if (procArgs[ti]->coreProcArgs->excp!=NULL) rethrow_exception(procArgs[ti]->coreProcArgs->excp);
 		}
 
