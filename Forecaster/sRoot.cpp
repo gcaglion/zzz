@@ -163,7 +163,7 @@ void sRoot::kaz() {
 	int simulationId=99;
 	int pid=GetCurrentProcessId();
 	int tid=GetCurrentThreadId();
-	srand((unsigned int)time);
+	srand(timeGetTime());
 
 	//-- need client config to create a client persistor
 	char* clientXMLfile="Config/master/99/Client.xml"; getFullPath(clientXMLfile, clientffname);

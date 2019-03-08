@@ -169,7 +169,7 @@ namespace Gui3
             }
             catch (System.IO.IOException e)
             {
-
+                MessageBox.Show(e.Message);
             }
         }
         void loadEnginePids()
@@ -196,8 +196,13 @@ namespace Gui3
                 txt_DataShapeXML.ToolTip = File.ReadAllText(txt_DataShapeXML.Text.Replace("\r\n", string.Empty));
                 txt_DataSetXML.ToolTip = File.ReadAllText(txt_DataSetXML.Text.Replace("\r\n", string.Empty));
                 txt_EngineXML.ToolTip = File.ReadAllText(txt_EngineXML.Text.Replace("\r\n", string.Empty));
-            } catch (System.IO.IOException e2) {}
-            catch (System.ArgumentException argexc) { }
+            } catch (System.IO.IOException e2) {
+                MessageBox.Show(e2.Message);
+            }
+            catch (System.ArgumentException argexc)
+            {
+                MessageBox.Show(argexc.Message);
+            }
             loadEnginePids();
         }
         //--------------------------------------

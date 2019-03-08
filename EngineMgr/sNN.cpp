@@ -595,7 +595,7 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 		safecallSilent(this, FF);
 		safecallSilent(this, FF);
 		safecallSilent(this, Ecalc);
-		Alg->d2h(&inferArgs->ds->predictionBFS[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+		Alg->d2h(&inferArgs->ds->prediction[TRS][BFS][b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 	}
 	Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
 	procArgs->mseR=tse_h/nodesCnt[outputLevel]/_batchCnt;
