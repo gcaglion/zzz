@@ -8,6 +8,7 @@ struct sDS : sCfgObj {
 	int featuresCnt;
 	int patternLen;
 	int patternsCnt;
+	int batchSize;
 	numtype* pattern;
 	numtype* seqval;
 	//--
@@ -21,7 +22,7 @@ struct sDS : sCfgObj {
 	numtype* scaleP;
 
 	//-- constructor 1: build from timeserie sequence
-	EXPORT sDS(sObjParmsDef, int featuresCnt_, int stepsCnt_, numtype* sequenceBF_, int patternLen_, bool doDump_, char* dumpPath_);
+	EXPORT sDS(sObjParmsDef, int featuresCnt_, int stepsCnt_, numtype* sequenceBF_, int patternLen_, int batchSize_, bool doDump_, char* dumpPath_);
 	//-- constructor 2: build by merging existing datasets
 	EXPORT sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_);
 	//-- constructor 3: build from configuration file

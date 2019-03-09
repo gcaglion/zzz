@@ -410,11 +410,17 @@ void sRoot::kaz2() {
 	int Hfcnt=4;
 	int Ffcnt=2;
 	int sampleLen=5;
+	int bsc=20;
 
 	numtype* ts1=(numtype*)malloc(Hlen*Hfcnt*sizeof(numtype));
 	for (int i=0; i<Hlen*Hfcnt; i++) ts1[i]=(numtype)rand();
 	numtype* ts2=(numtype*)malloc(Hlen*Hfcnt*sizeof(numtype));
 	for (int i=0; i<Hlen*Hfcnt; i++) ts2[i]=(numtype)rand();
+
+	sDS* trainDSs;
+	sDS* trainDSt;
+	sDS* trainDSp;
+	sCfg* traindsCfg=new sCfg(this, newsname("traindsCfg"), defaultdbg, nullptr, "Config/10/ds0.xml");
 
 	sDS* newds[2];
 	sCfg* newdsCfg=new sCfg(this, newsname("newdsCfg"), defaultdbg, nullptr, "Config/10/ds0.xml");
@@ -424,8 +430,8 @@ void sRoot::kaz2() {
 	return;
 
 	sDS* tsDS[2];
-	tsDS[0]=new sDS(nullptr, newsname("ts0DS"), defaultdbg, nullptr, Hfcnt, Hlen, ts1, sampleLen, false, "C:/temp/DataDump"); tsDS[0]->dump();
-	tsDS[1]=new sDS(nullptr, newsname("ts1DS"), defaultdbg, nullptr, Hfcnt, Hlen, ts2, sampleLen, false, "C:/temp/DataDump"); tsDS[1]->dump();
+	tsDS[0]=new sDS(nullptr, newsname("ts0DS"), defaultdbg, nullptr, Hfcnt, Hlen, ts1, sampleLen, bsc, false, "C:/temp/DataDump"); tsDS[0]->dump();
+	tsDS[1]=new sDS(nullptr, newsname("ts1DS"), defaultdbg, nullptr, Hfcnt, Hlen, ts2, sampleLen, bsc, false, "C:/temp/DataDump"); tsDS[1]->dump();
 	sDS* ts01DS=new sDS(nullptr, newsname("ts01DS"), defaultdbg, nullptr, 2, tsDS); ts01DS->dump();
 
 
@@ -439,9 +445,9 @@ void sRoot::kaz2() {
 	numtype* prediction=(numtype*)malloc(predictionLen*Ffcnt*sizeof(numtype));
 	for (int i=0; i<predictionLen*Ffcnt; i++) prediction[i]=(numtype)rand();
 
-	sDS* historyDS=new sDS(nullptr, newsname("historyDS"), defaultdbg, nullptr, Hfcnt, Hlen, history, sampleLen, false, "C:/temp/DataDump");
-	sDS* targetDS=new sDS(nullptr, newsname("historyDS"), defaultdbg, nullptr, Ffcnt, predictionLen, prediction, Flen, false, "C:/temp/DataDump");
-	sDS* predictionDS=new sDS(nullptr, newsname("historyDS"), defaultdbg, nullptr, Ffcnt, predictionLen, prediction, Flen, false, "C:/temp/DataDump");
+	sDS* historyDS=new sDS(nullptr, newsname("historyDS"), defaultdbg, nullptr, Hfcnt, Hlen, history, sampleLen, bsc, false, "C:/temp/DataDump");
+	sDS* targetDS=new sDS(nullptr, newsname("historyDS"), defaultdbg, nullptr, Ffcnt, predictionLen, prediction, Flen, bsc, false, "C:/temp/DataDump");
+	sDS* predictionDS=new sDS(nullptr, newsname("historyDS"), defaultdbg, nullptr, Ffcnt, predictionLen, prediction, Flen, bsc, false, "C:/temp/DataDump");
 
 	historyDS->dump();
 

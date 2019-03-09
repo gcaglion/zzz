@@ -13,9 +13,10 @@ void sDS::mallocs() {
 }
 
 //-- constructor 1: build from timeserie sequence
-sDS::sDS(sObjParmsDef, int featuresCnt_, int stepsCnt_, numtype* sequenceBF_, int patternLen_, bool doDump_, char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sDS::sDS(sObjParmsDef, int featuresCnt_, int stepsCnt_, numtype* sequenceBF_, int patternLen_, int batchSize_, bool doDump_, char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	featuresCnt=featuresCnt_; patternLen=patternLen_;
 	patternsCnt=stepsCnt_-patternLen+1;
+	batchSize=batchSize_;
 
 	//-- dump settings
 	doDump=doDump_;
@@ -50,6 +51,7 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 	featuresCnt=parentDS_[0]->featuresCnt; for (int d=1; d<parentDScnt_; d++) featuresCnt+=parentDS_[d]->featuresCnt;
 	patternLen=parentDS_[0]->patternLen; 
 	patternsCnt=parentDS_[0]->patternsCnt;
+	batchSize=parentDS_[0]->batchSize;
 	doDump=parentDS_[0]->doDump;
 	strcpy_s(dumpPath, MAX_PATH, parentDS_[0]->dumpPath);
 	//-- malloc patterns,sequence and scaling info
@@ -75,6 +77,7 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 //-- constructor 3: build from configuration file
 sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
+	safecall(cfgKey, getParm, &batchSize, "BatchSize");
 	safecall(cfgKey, getParm, &patternLen, "PatternLen");
 	safecall(cfgKey, getParm, &doDump, "Dump");
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath); char* _dumpPath=&dumpPath[0];
