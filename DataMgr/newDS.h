@@ -9,6 +9,7 @@ struct sDS : sCfgObj {
 	int patternLen;
 	int patternsCnt;
 	numtype* pattern;
+	numtype* seqval;
 	//--
 	bool doDump;
 	char dumpPath[MAX_PATH];
@@ -31,7 +32,7 @@ struct sDS : sCfgObj {
 	EXPORT void scale(float scaleMin_, float scaleMax_);
 	EXPORT void unscale();
 
-	EXPORT void getSequence(numtype* oSequenceBF_);
+	EXPORT void setSequence();
 	EXPORT void dumpPre(FILE** dumpFile);
 	EXPORT void dump();
 

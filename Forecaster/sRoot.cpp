@@ -419,7 +419,8 @@ void sRoot::kaz2() {
 	sDS* newds[2];
 	sCfg* newdsCfg=new sCfg(this, newsname("newdsCfg"), defaultdbg, nullptr, "Config/10/ds0.xml");
 	newds[0]= new sDS(this, newsname("newDS0"), defaultdbg, nullptr, newdsCfg, "/DataSet");
-
+	//--
+	newds[0]->setSequence();
 	return;
 
 	sDS* tsDS[2];
@@ -444,9 +445,8 @@ void sRoot::kaz2() {
 
 	historyDS->dump();
 
-	numtype* historySeq=(numtype*)malloc(Hlen*Hfcnt*sizeof(numtype));
-	historyDS->getSequence(historySeq);
-	dumpArray(Hlen*Hfcnt, historySeq, "C:/temp/DataDump/historySeq.csv");
+	historyDS->setSequence();
+	dumpArray(Hlen*Hfcnt, historyDS->seqval, "C:/temp/DataDump/historySeq.csv");
 
 
 	historyDS->setMinMax();

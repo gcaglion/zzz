@@ -3,6 +3,8 @@
 void sDS::mallocs() {
 	//-- malloc patterns
 	pattern=(numtype*)malloc(patternsCnt*patternLen*featuresCnt*sizeof(numtype));
+	//-- malloc sequance values
+	seqval=(numtype*)malloc((patternsCnt+patternLen-1)*featuresCnt*sizeof(numtype));
 	//-- malloc scaling info
 	minVal=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	maxVal=(numtype*)malloc(featuresCnt*sizeof(numtype));
@@ -20,7 +22,7 @@ sDS::sDS(sObjParmsDef, int featuresCnt_, int stepsCnt_, numtype* sequenceBF_, in
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	if (dumpPath_!=nullptr) strcpy_s(dumpPath, MAX_PATH, dumpPath_);
 
-	//-- malloc patterns and scaling info
+	//-- malloc patterns, sequence and scaling info
 	mallocs();
 
 	//-- build patterns
@@ -50,7 +52,7 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 	patternsCnt=parentDS_[0]->patternsCnt;
 	doDump=parentDS_[0]->doDump;
 	strcpy_s(dumpPath, MAX_PATH, parentDS_[0]->dumpPath);
-	//-- malloc patterns and scaling info
+	//-- malloc patterns,sequence and scaling info
 	mallocs();
 
 	//-- build patterns
@@ -71,7 +73,6 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 
 }
 //-- constructor 3: build from configuration file
-
 sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	safecall(cfgKey, getParm, &patternLen, "PatternLen");
@@ -88,10 +89,16 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	featuresCnt=0;
 	for (int t=0; t<_srcTScnt; t++) {
 		safespawn(_srcTS[t], newsname("%s_TimeSerie%d", name->base, t), defaultdbg, cfg, (newsname("TimeSerie%d", t))->base);
+		//--... consistency checks here ...
 		_srcTSfeat[t]=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
 		safecall(cfgKey, getParm, &_srcTSfeat[t], (newsname("TimeSerie%d/selectedFeatures", t))->base, false, &_srcTSfeatCnt[t]);
 		featuresCnt+=_srcTSfeatCnt[t];
 	}
+
+	patternsCnt=_srcTS[0]->stepsCnt-patternLen+1;
+
+	//-- malloc patterns, sequence and scaling info
+	mallocs();
 
 	//-- build patterns
 	int dsidxS=0, tsidxS=0;
@@ -123,21 +130,22 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 sDS::~sDS() {
 	free(pattern);
+	free(seqval);
 	free(minVal); free(maxVal);
 	free(scaleM); free(scaleP);
 }
 
-void sDS::getSequence(numtype* oSequenceBF_) {
+void sDS::setSequence() {
 	int si=0;
 	for (int p=0; p<patternsCnt; p++) {
 		for (int f=0; f<featuresCnt; f++) {
-			oSequenceBF_[si]=pattern[p*patternLen*featuresCnt+f];
+			seqval[si]=pattern[p*patternLen*featuresCnt+f];
 			si++;
 		}
 	}
 	for (int b=1; b<patternLen; b++) {
 		for (int f=0; f<featuresCnt; f++) {
-			oSequenceBF_[si]=pattern[(patternsCnt-1)*patternLen*featuresCnt+b*featuresCnt+f];
+			seqval[si]=pattern[(patternsCnt-1)*patternLen*featuresCnt+b*featuresCnt+f];
 			si++;
 		}
 	}
