@@ -399,6 +399,62 @@ void sRoot::kaz() {
 */
 }
 
+#include "../DataMgr/newDS.h"
+void sRoot::kaz2() {
+	srand(timeGetTime());
+
+	int Hlen=30;
+	int Flen=3;
+	int predictionLen=Hlen-Flen+1;
+
+	int Hfcnt=4;
+	int Ffcnt=2;
+	int sampleLen=5;
+
+	numtype* ts1=(numtype*)malloc(Hlen*Hfcnt*sizeof(numtype));
+	for (int i=0; i<Hlen*Hfcnt; i++) ts1[i]=(numtype)rand();
+	numtype* ts2=(numtype*)malloc(Hlen*Hfcnt*sizeof(numtype));
+	for (int i=0; i<Hlen*Hfcnt; i++) ts2[i]=(numtype)rand();
+
+	sDS* newds[2];
+	sCfg* newdsCfg=new sCfg(this, newsname("newdsCfg"), defaultdbg, nullptr, "Config/10/ds01.xml");
+	newds[0]= new sDS(this, newsname("newDS0"), defaultdbg, nullptr, newdsCfg, "/DataSet");
+
+
+	sDS* tsDS[2];
+	tsDS[0]=new sDS(nullptr, newsname("ts0DS"), defaultdbg, nullptr, Hfcnt, Hlen, ts1, sampleLen, false, "C:/temp/DataDump"); tsDS[0]->dump();
+	tsDS[1]=new sDS(nullptr, newsname("ts1DS"), defaultdbg, nullptr, Hfcnt, Hlen, ts2, sampleLen, false, "C:/temp/DataDump"); tsDS[1]->dump();
+	sDS* ts01DS=new sDS(nullptr, newsname("ts01DS"), defaultdbg, nullptr, 2, tsDS); ts01DS->dump();
+
+
+	numtype* history=(numtype*)malloc(Hlen*Hfcnt*sizeof(numtype));
+	for (int i=0; i<Hlen*Hfcnt; i++) history[i]=(numtype)rand();
+	dumpArray(Hlen*Hfcnt, history, "C:/temp/DataDump/history.csv");
+
+	numtype* target=(numtype*)malloc(predictionLen*Ffcnt*sizeof(numtype));
+	for (int i=0; i<predictionLen*Ffcnt; i++) target[i]=(numtype)rand();
+
+	numtype* prediction=(numtype*)malloc(predictionLen*Ffcnt*sizeof(numtype));
+	for (int i=0; i<predictionLen*Ffcnt; i++) prediction[i]=(numtype)rand();
+
+	sDS* historyDS=new sDS(nullptr, newsname("historyDS"), defaultdbg, nullptr, Hfcnt, Hlen, history, sampleLen, false, "C:/temp/DataDump");
+	sDS* targetDS=new sDS(nullptr, newsname("historyDS"), defaultdbg, nullptr, Ffcnt, predictionLen, prediction, Flen, false, "C:/temp/DataDump");
+	sDS* predictionDS=new sDS(nullptr, newsname("historyDS"), defaultdbg, nullptr, Ffcnt, predictionLen, prediction, Flen, false, "C:/temp/DataDump");
+
+	historyDS->dump();
+
+	numtype* historySeq=(numtype*)malloc(Hlen*Hfcnt*sizeof(numtype));
+	historyDS->getSequence(historySeq);
+	dumpArray(Hlen*Hfcnt, historySeq, "C:/temp/DataDump/historySeq.csv");
+
+
+	historyDS->setMinMax();
+	historyDS->scale(-1, 1);
+	historyDS->dump();
+	historyDS->unscale();
+	historyDS->dump();
+
+}
 //-- GUI hooks
 extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
 	sRoot* root=nullptr;
@@ -523,7 +579,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 		MT4time2str(oBarT[serie][MT4engine->shape->sampleLen-1], DATE_FORMAT_LEN, tmpDate0);
 
 		safespawn(mtTimeSerie[serie], newsname("MTtimeSerie%d", serie), defaultdbg, mtDataSrc[serie], tmpDate0, MT4engine->shape->sampleLen+MT4engine->shape->predictionLen, dt_, MT4doDump);
-		safecall(mtTimeSerie[serie], load, ACTUAL, BASE);
+//		safecall(mtTimeSerie[serie], load, ACTUAL, BASE);
 	}
 	//-- need to make a local copy of featureMask_, as it gets changed just to get selFcnt
 	int* _featureMask=(int*)malloc(seriesCnt_*sizeof(int));

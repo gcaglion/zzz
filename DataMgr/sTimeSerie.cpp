@@ -16,6 +16,7 @@ sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0
 	}
 
 	mallocs2();
+	load(ACTUAL, BASE);
 }
 sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	mallocs1();
@@ -32,6 +33,8 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	mallocs2();
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
+
+	load(ACTUAL, BASE);
 }
 sTimeSerie::~sTimeSerie() {
 	frees();

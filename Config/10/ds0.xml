@@ -1,0 +1,10 @@
+<DataSet>
+
+	<! ts-EurUsdH1-5000.xml >
+	
+	PatternLen			= 10
+	
+	Dump		= true
+	DumpPath	= c:/temp/DataDump
+	
+</DataSet>
