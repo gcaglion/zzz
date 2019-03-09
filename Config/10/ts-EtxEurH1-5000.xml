@@ -4,4 +4,4 @@
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
-		<! FXDB-EurUsdH1.xml >
+		<! FXDB-EtxEurH1.xml >

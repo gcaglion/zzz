@@ -71,6 +71,7 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 
 }
 //-- constructor 3: build from configuration file
+
 sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	safecall(cfgKey, getParm, &patternLen, "PatternLen");
@@ -78,11 +79,42 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath); char* _dumpPath=&dumpPath[0];
 	safecall(cfgKey, getParm, &_dumpPath, "DumpPath", true);
 
-	sTimeSerie* srcTS;
-	safespawn(srcTS, newsname("%s_TimeSerie", name->base), defaultdbg, cfg, "TimeSerie");
-	featuresCnt=srcTS->sourceData->featuresCnt;
-	patternsCnt=srcTS->stepsCnt-patternLen+1;
+	int _srcTScnt;
+	safecall(cfgKey, getParm, &_srcTScnt, "TimeSeriesCount");
+	sTimeSerie** _srcTS=(sTimeSerie**)malloc(_srcTScnt*sizeof(sTimeSerie*));
+	int* _srcTSfeatCnt=(int*)malloc(_srcTScnt*sizeof(int));
+	int** _srcTSfeat=(int**)malloc(_srcTScnt*sizeof(int*));
 
+	featuresCnt=0;
+	for (int t=0; t<_srcTScnt; t++) {
+		safespawn(_srcTS[t], newsname("%s_TimeSerie%d", name->base, t), defaultdbg, cfg, (newsname("TimeSerie%d", t))->base);
+		_srcTSfeat[t]=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
+		safecall(cfgKey, getParm, &_srcTSfeat[t], (newsname("TimeSerie%d/selectedFeatures", t))->base, false, &_srcTSfeatCnt[t]);
+		featuresCnt+=_srcTSfeatCnt[t];
+	}
+
+	//-- build patterns
+	int dsidxS=0, tsidxS=0;
+	for (int p=0; p<patternsCnt; p++) {
+		for (int b=0; b<patternLen; b++) {
+			for (int t=0; t<_srcTScnt; t++) {
+				for (int tf=0; tf<_srcTSfeatCnt[t]; tf++) {
+					tsidxS=(p+b)*_srcTS[t]->sourceData->featuresCnt+_srcTSfeat[t][tf];
+					pattern[dsidxS] = _srcTS[t]->val[ACTUAL][BASE][tsidxS];
+					dsidxS++;
+				}
+			}
+		}
+	}
+
+	//-- free(s)
+	for (int t=0; t<_srcTScnt; t++) {
+		free(_srcTS[t]);
+		free(_srcTSfeat[t]);
+	}
+	free(_srcTS);
+	free(_srcTSfeat);
+	free(_srcTSfeatCnt);
 
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;

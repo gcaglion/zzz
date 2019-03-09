@@ -417,9 +417,10 @@ void sRoot::kaz2() {
 	for (int i=0; i<Hlen*Hfcnt; i++) ts2[i]=(numtype)rand();
 
 	sDS* newds[2];
-	sCfg* newdsCfg=new sCfg(this, newsname("newdsCfg"), defaultdbg, nullptr, "Config/10/ds01.xml");
+	sCfg* newdsCfg=new sCfg(this, newsname("newdsCfg"), defaultdbg, nullptr, "Config/10/ds0.xml");
 	newds[0]= new sDS(this, newsname("newDS0"), defaultdbg, nullptr, newdsCfg, "/DataSet");
 
+	return;
 
 	sDS* tsDS[2];
 	tsDS[0]=new sDS(nullptr, newsname("ts0DS"), defaultdbg, nullptr, Hfcnt, Hlen, ts1, sampleLen, false, "C:/temp/DataDump"); tsDS[0]->dump();
