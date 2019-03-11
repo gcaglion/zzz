@@ -118,14 +118,14 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	}
 
 	//-- free(s)
-	for (int t=0; t<_srcTScnt; t++) {
+/*	for (int t=0; t<_srcTScnt; t++) {
 		free(_srcTS[t]);
 		free(_srcTSfeat[t]);
 	}
 	free(_srcTS);
 	free(_srcTSfeat);
 	free(_srcTSfeatCnt);
-
+*/
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 }

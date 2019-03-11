@@ -152,8 +152,8 @@ void sEngine::spawnCoresFromXML() {
 					break;
 				}
 				cfg->currentKey=cfgKey;
+				core[c]->parms=coreParms[c];
 			}
-			core[c]->parms=coreParms[c];
 		}
 	}
 }
