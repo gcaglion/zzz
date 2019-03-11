@@ -434,7 +434,7 @@ void sRoot::kaz2() {
 	sEngine* eng; eng=new sEngine(this, newsname("TrainEngine"), defaultdbg, GUIreporter, engCfg, "/Engine", engShape, GetCurrentProcessId());
 
 	//-- training
-//	eng->train()
+	eng->train2(1, trainDSs, trainDSt, trainDSp);
 	return;
 
 	sDS* tsDS[2];

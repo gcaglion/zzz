@@ -2,6 +2,7 @@
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "../DataMgr/sDataSet.h"
+#include "../DataMgr/newDS.h"
 #include "sCore.h"
 #include "sCoreParms.h"
 #include "Engine_enums.h"
@@ -33,6 +34,7 @@ struct sEngine : sCfgObj {
 	EXPORT sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_);
 	EXPORT ~sEngine();
 
+	EXPORT void train2(int testid_, sDS* sampleDS_, sDS* targetDS_, sDS* predictionDS_);
 	EXPORT void train(int testid_, sDataSet* trainDS_);
 	EXPORT void infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool reTransform=true);
 	//--
