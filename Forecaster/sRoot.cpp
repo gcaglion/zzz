@@ -417,16 +417,24 @@ void sRoot::kaz2() {
 	numtype* ts2=(numtype*)malloc(Hlen*Hfcnt*sizeof(numtype));
 	for (int i=0; i<Hlen*Hfcnt; i++) ts2[i]=(numtype)rand();
 
-	sDS* trainDSs;
-	sDS* trainDSt;
-	sDS* trainDSp;
-	sCfg* traindsCfg=new sCfg(this, newsname("traindsCfg"), defaultdbg, nullptr, "Config/10/ds0.xml");
+	
+	//-- samples dataset
+	sCfg* trainDSsCfg;	safespawn(trainDSsCfg, newsname("trainSamplesCfg"), defaultdbg, "Config/10/ds0S.xml");
+	sDS* trainDSs;		safespawn(trainDSs, newsname("trainSamples"), defaultdbg, trainDSsCfg, "/DataSet");
+	//-- targets dataset
+	sCfg* trainDStCfg;	safespawn(trainDStCfg, newsname("trainTargetsCfg"), defaultdbg, "Config/10/ds0T.xml");
+	sDS* trainDSt;		safespawn(trainDSt, newsname("trainTargets"), defaultdbg, trainDStCfg, "/DataSet");
+	//-- predictions dataset - copy of targets dataset
+	sDS* trainDSp;		safespawn(trainDSp, newsname("trainPredictions"), defaultdbg, 1, &trainDSt);
+	
+	//-- engine shape (UNTIL WE NEED IT!)
+	sDataShape* engShape=new sDataShape(this, newsname("EngineShape"), defaultdbg, GUIreporter, trainDSs->patternLen, trainDSt->patternLen, trainDSs->featuresCnt);
+	//-- engine
+	sCfg* engCfg;	safespawn(engCfg, newsname("EigineCfg"), defaultdbg, "Config/10/Engine1.xml");
+	sEngine* eng; eng=new sEngine(this, newsname("TrainEngine"), defaultdbg, GUIreporter, engCfg, "/Engine", engShape, GetCurrentProcessId());
 
-	sDS* newds[2];
-	sCfg* newdsCfg=new sCfg(this, newsname("newdsCfg"), defaultdbg, nullptr, "Config/10/ds0.xml");
-	newds[0]= new sDS(this, newsname("newDS0"), defaultdbg, nullptr, newdsCfg, "/DataSet");
-	//--
-	newds[0]->setSequence();
+	//-- training
+//	eng->train()
 	return;
 
 	sDS* tsDS[2];

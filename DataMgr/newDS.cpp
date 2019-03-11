@@ -129,8 +129,7 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 }
-
-
+//-- destructor
 sDS::~sDS() {
 	free(pattern);
 	free(seqval);
