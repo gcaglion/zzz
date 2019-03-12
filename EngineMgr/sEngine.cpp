@@ -236,7 +236,7 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 	return 1;
 }
 
-void sEngine::train2(int testid_, sDS* sampleDS_, sDS* targetDS_, sDS* predictionDS_) {
+void sEngine::train2(int testid_, sDS* sampleDS_, sDS* targetDS_, sDS* predictionDS_, int batchSize_) {
 	sDS** parentDSt;
 	sDS** parentDSp;
 
@@ -272,7 +272,7 @@ void sEngine::train2(int testid_, sDS* sampleDS_, sDS* targetDS_, sDS* predictio
 
 
 }
-void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, int savedEnginePid_) {
+void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, int batchSize_, int savedEnginePid_) {
 
 	int t;
 	int ret = 0;
@@ -314,6 +314,7 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 				procArgs[t]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
 				procArgs[t]->core=core[c];
 				procArgs[t]->coreProcArgs->ds = (sDataSet*)ds_;
+				procArgs[t]->coreProcArgs->batchSize=batchSize_;
 				procArgs[t]->coreProcArgs->loadImage=loadImage_;
 				procArgs[t]->coreProcArgs->npid=savedEnginePid_;
 				procArgs[t]->coreProcArgs->ntid=coreLayout[c]->tid;
@@ -354,7 +355,7 @@ void sEngine::train(int testid_, sDataSet* trainDS_) {
 	//-- needed to set trmin/max for each training feature
 	trainDS=trainDS_;
 
-	safecall(this, process, trainProc, false, testid_, trainDS_, 0);
+	safecall(this, process, trainProc, false, testid_, trainDS_, trainDS_->batchSamplesCnt, 0);
 }
 void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool reTransform) {
 
@@ -378,7 +379,7 @@ void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool r
 		}
 	}
 	//-- call infer
-	safecall(this, process, inferProc, reTransform, testid_, inferDS_, savedEnginePid_);
+	safecall(this, process, inferProc, reTransform, testid_, inferDS_, 1, savedEnginePid_);
 
 	//-- unscale, untransform, then save results
 	sDataSet* _ds;
