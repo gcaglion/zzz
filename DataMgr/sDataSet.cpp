@@ -52,33 +52,59 @@ sDataSet::sDataSet(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 }
-sDataSet::sDataSet(sObjParmsDef, int sourceDScnt_, sDataSet** sourceDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sDataSet::sDataSet(sObjParmsDef, int parentDScnt_, sDataSet** parentDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 
-	//-- samples are built from sources' predictions
-	//-- targets are copied from sources
+	safespawn(shape, newsname("%s_Shape", name->base), defaultdbg, 0, 0, 0);
 
-	//-- calc total sourceTScnt , needed to malloc
-	sourceTScnt=0;
-	for (int ds=0; ds<sourceDScnt_; ds++) {
-		for (int ts=0; ts<sourceDS_[ds]->sourceTScnt; ts++) {
-			sourceTScnt++;
-		}
+	//-- sampleLen
+	shape->sampleLen=parentDScnt_*parentDS_[0]->shape->predictionLen;
+
+	//--the rest is taken from parentDS[0]
+	shape->predictionLen=parentDS_[0]->shape->predictionLen;
+	shape->featuresCnt=parentDS_[0]->shape->featuresCnt;
+	samplesCnt=parentDS_[0]->samplesCnt;
+	batchSamplesCnt=parentDS_[0]->batchSamplesCnt;
+	batchCnt=parentDS_[0]->batchCnt;
+	doDump=parentDS_[0]->doDump;
+	dumpPath=parentDS_[0]->dumpPath;
+
+	//-- consistency checks for all the above
+	for (int d=1; d<parentDScnt_; d++) {
+		if (parentDS_[d]->shape->predictionLen!=parentDS_[0]->shape->predictionLen) fail("parentDS[%d]->predictionLen (%d) differs from parentDS[0]->predictionLen (%d)", d, parentDS_[d]->shape->predictionLen, parentDS_[0]->shape->predictionLen);
+		if (parentDS_[d]->shape->featuresCnt!=parentDS_[0]->shape->featuresCnt) fail("parentDS[%d]->featuresCnt (%d) differs from parentDS[0]->featuresCnt (%d)", d, parentDS_[d]->shape->featuresCnt, parentDS_[0]->shape->featuresCnt);
+		if (parentDS_[d]->samplesCnt!=parentDS_[0]->samplesCnt) fail("parentDS[%d]->samplesCnt (%d) differs from parentDS[0]->samplesCnt (%d)", d, parentDS_[d]->samplesCnt, parentDS_[0]->samplesCnt);
+		if (parentDS_[d]->batchSamplesCnt!=parentDS_[0]->batchSamplesCnt) fail("parentDS[%d]->batchSamplesCnt (%d) differs from parentDS[0]->batchSamplesCnt (%d)", d, parentDS_[d]->batchSamplesCnt, parentDS_[0]->batchSamplesCnt);
+		if (parentDS_[d]->batchCnt!=parentDS_[0]->batchCnt) fail("parentDS[%d]->batchCnt (%d) differs from parentDS[0]->batchCnt (%d)", d, parentDS_[d]->batchCnt, parentDS_[0]->batchCnt);
 	}
-	mallocs1();
+	//--
 
-	//-- sourceTSs and selectedTSfeatures are added together
-	int t=0;
-	for (int ds=0; ds<sourceDScnt_; ds++) {
-		for (int ts=0; ts<sourceDS_[ds]->sourceTScnt; ts++) {
-			sourceTS[t]=sourceDS_[ds]->sourceTS[ts];
-			selectedTSfeaturesCnt[t]=sourceDS_[ds]->selectedTSfeaturesCnt[ts];
-			for (int self=0; self<selectedTSfeaturesCnt[t]; self++) {
-				selectedTSfeature[t][self]=sourceDS_[ds]->selectedTSfeature[ts][self];
+	hasTargets=true;
+
+	mallocs2();
+
+	//-- build sample SBF from parentDSs' predictionSBF
+	int sbfi=0; int i=0;
+	for (int s=0; s<samplesCnt; s++) {
+		for (int b=0; b<shape->predictionLen; b++) {
+			for (int f=0; f<shape->featuresCnt; f++) {
+				for (int d=0; d<parentDScnt_; d++) {
+					sampleSBF[i]=parentDS_[d]->predictionSBF[sbfi];
+					i++;
+				}
+				sbfi++;
 			}
-			t++;
 		}
 	}
-
+	//-- build target SBF from parentDS[0] targetSBF
+	sbfi=0; i=0;
+	for (int s=0; s<samplesCnt; s++) {
+		for (int b=0; b<shape->predictionLen; b++) {
+			for (int f=0; f<shape->featuresCnt; f++) {
+				targetSBF[i]=parentDS_[0]->targetSBF[i];
+				i++;
+			}
+		}
+	}
 }
 sDataSet::~sDataSet() {
 	frees();
