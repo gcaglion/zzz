@@ -40,6 +40,7 @@ struct sDataSet : sCfgObj {
 
 	EXPORT void build(int fromValSource, int fromValStatus);
 	EXPORT void unbuild(int fromValSource, int toValSource, int toValStatus);	//-- takes step 0 from predictionSBF, copy it into sourceTS->trsvalP
+	EXPORT void dump();
 
 	EXPORT void setBFS();
 	EXPORT void setSBF();
@@ -52,7 +53,7 @@ private:
 	void setSamples();
 	void mallocs2();
 	void frees();
-	void dumpPre(int valStatus, FILE** dumpFile);
+	void dumpPre(FILE** dumpFile);
 
 	bool doDump;
 	char* dumpPath;

@@ -85,9 +85,6 @@ sDataSet::~sDataSet() {
 }
 
 void sDataSet::build(int fromValSource, int fromValStatus) {
-	FILE* dumpFile=nullptr;
-
-	if (doDump) dumpPre(fromValStatus, &dumpFile);
 
 	int dsidxS=0;
 	int tsidxS=0;
@@ -96,18 +93,15 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 	for (int sample=0; sample<samplesCnt; sample++) {
 
 		//-- sample
-		if (doDump) fprintf(dumpFile, "%d,", sample);
 		for (int bar=0; bar<shape->sampleLen; bar++) {
 			for (int ts=0; ts<sourceTScnt; ts++) {
 				for (int tsf=0; tsf<selectedTSfeaturesCnt[ts]; tsf++) {
 					tsidxS=(sample+bar)*sourceTS[ts]->featuresCnt+selectedTSfeature[ts][tsf];
 					sampleSBF[dsidxS] = sourceTS[ts]->val[fromValSource][fromValStatus][tsidxS];
-					if (doDump) fprintf(dumpFile, "%f,", sampleSBF[dsidxS]);
 					dsidxS++;
 				}
 			}
 		}
-		if (doDump) fprintf(dumpFile, "|,");
 
 		//-- target
 		if (hasTargets) {
@@ -116,18 +110,14 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 					for (int tsf=0; tsf<selectedTSfeaturesCnt[ts]; tsf++) {
 						tsidxT=(sample+bar)*sourceTS[ts]->featuresCnt+selectedTSfeature[ts][tsf];
 						tsidxT+=sourceTS[ts]->featuresCnt*shape->sampleLen;
-
 						targetSBF[dsidxT] = sourceTS[ts]->val[fromValSource][fromValStatus][tsidxT];
-						if (doDump) fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
 						dsidxT++;
 					}
 				}
 			}
 		}
-
-		if (doDump) fprintf(dumpFile, "\n");
 	}
-	if (doDump)	fclose(dumpFile);
+
 }
 void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 	int dsidxS=0; int tsidxS=0;
@@ -159,7 +149,6 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 	}
 
 }
-
 
 void sDataSet::setBFS() {
 	for (int b=0; b<batchCnt; b++) {
@@ -249,20 +238,12 @@ void sDataSet::frees() {
 	free(predictionBFS);
 
 }
-void sDataSet::dumpPre(int valStatus, FILE** dumpFile) {
+void sDataSet::dumpPre(FILE** dumpFile) {
 	int b, f, t, i;
-
-	//-- set dumpFile name
-	char suffix1[10];
-	if (valStatus==BASE) strcpy_s(suffix1, 10, "BASE");
-	if (valStatus==TR) strcpy_s(suffix1, 10, "TR");
-	if (valStatus==TRS) strcpy_s(suffix1, 10, "TRS");
-	char suffix3[16];
-	strcpy_s(suffix3, 16, "INDIPENDENT");
 
 	//-- open dumpFile
 	char dumpFileName[MAX_PATH];
-	sprintf_s(dumpFileName, "%s/%s_%s-%s_dump_p%d_t%d_%p.csv", dumpPath, name->base, suffix1, suffix3, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(dumpFileName, "%s/%s__dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
 	if (fopen_s(dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
 	//-- print headers
@@ -297,4 +278,46 @@ void sDataSet::dumpPre(int valStatus, FILE** dumpFile) {
 	fprintf((*dumpFile), ",");
 	for (i=0; i<(shape->predictionLen*shape->featuresCnt); i++) fprintf((*dumpFile), "---------,");
 	fprintf((*dumpFile), "\n");
+}
+void sDataSet::dump() {
+
+	FILE* dumpFile=nullptr;
+	dumpPre(&dumpFile);
+
+	int dsidxS=0;
+	int tsidxS=0;
+	int dsidxT=0;
+	int tsidxT=0;
+	for (int sample=0; sample<samplesCnt; sample++) {
+
+		//-- sample
+		fprintf(dumpFile, "%d,", sample);
+		for (int bar=0; bar<shape->sampleLen; bar++) {
+			for (int ts=0; ts<sourceTScnt; ts++) {
+				for (int tsf=0; tsf<selectedTSfeaturesCnt[ts]; tsf++) {
+					tsidxS=(sample+bar)*sourceTS[ts]->featuresCnt+selectedTSfeature[ts][tsf];
+					fprintf(dumpFile, "%f,", sampleSBF[dsidxS]);
+					dsidxS++;
+				}
+			}
+		}
+		fprintf(dumpFile, "|,");
+
+		//-- target
+		if (hasTargets) {
+			for (int bar=0; bar<shape->predictionLen; bar++) {
+				for (int ts=0; ts<sourceTScnt; ts++) {
+					for (int tsf=0; tsf<selectedTSfeaturesCnt[ts]; tsf++) {
+						tsidxT=(sample+bar)*sourceTS[ts]->featuresCnt+selectedTSfeature[ts][tsf];
+						tsidxT+=sourceTS[ts]->featuresCnt*shape->sampleLen;
+						fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
+						dsidxT++;
+					}
+				}
+			}
+		}
+
+		fprintf(dumpFile, "\n");
+	}
+	fclose(dumpFile);
 }
