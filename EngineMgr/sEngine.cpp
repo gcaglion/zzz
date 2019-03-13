@@ -236,42 +236,6 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 	return 1;
 }
 
-void sEngine::train2(int testid_, sDS* sampleDS_, sDS* targetDS_, sDS* predictionDS_, int batchSize_) {
-	sDS** parentDSt;
-	sDS** parentDSp;
-
-	//-- spawn sample/target/prediction DSs for each core
-	sDS** coreDSs=(sDS**)malloc(coresCnt*sizeof(sDS*));
-	sDS** coreDSt=(sDS**)malloc(coresCnt*sizeof(sDS*));
-	sDS** coreDSp=(sDS**)malloc(coresCnt*sizeof(sDS*));
-	for (int l=0; l<layersCnt; l++) {
-		for (int c=0; c<coresCnt; c++) {
-			if (coreLayout[c]->layer==l) {
-				if (l==0) {
-					safespawn(coreDSs[c], newsname("Core_%d-%d_Samples_Dataset", l, c), defaultdbg, 1, &sampleDS_);
-					safespawn(coreDSt[c], newsname("Core_%d-%d_Targets_Dataset", l, c), defaultdbg, 1, &targetDS_);
-					safespawn(coreDSp[c], newsname("Core_%d-%d_Predictions_Dataset", l, c), defaultdbg, 1, &predictionDS_);
-				} else {
-					parentDSt=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
-					parentDSp=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
-					//--
-					for (int p=0; p<coreLayout[c]->parentsCnt; p++) {
-						parentDSt[p]=coreDSt[coreLayout[c]->parentId[p]];
-						parentDSp[p]=coreDSp[coreLayout[c]->parentId[p]];
-					}
-					safespawn(coreDSt[c], newsname("Core_%d-%d_Targets_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDSt);
-					safespawn(coreDSp[c], newsname("Core_%d-%d_Predictions_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDSp);
-					//--
-					free(parentDSt);
-					free(parentDSp);
-				}
-			}
-		}
-	}
-	//-- 
-
-
-}
 void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, int batchSize_, int savedEnginePid_) {
 
 	int t;

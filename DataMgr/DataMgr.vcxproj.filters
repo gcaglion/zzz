@@ -39,9 +39,6 @@
     <ClCompile Include="sMT4DataSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="newDS.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataSource_enums.h">
@@ -78,9 +75,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sMT4dataSource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="newDS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
