@@ -238,13 +238,34 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 
 void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, int batchSize_, int savedEnginePid_) {
 
+	//-- spawn sample/target/prediction DSs for each core
+	sDataSet** parentDS;
+	sDataSet** coreDS=(sDataSet**)malloc(coresCnt*sizeof(sDataSet*));
+	for (int l=0; l<layersCnt; l++) {
+		for (int c=0; c<coresCnt; c++) {
+			if (coreLayout[c]->layer==l) {
+				if (l==0) {
+					coreDS[c]=ds_;
+				} else {
+					parentDS=(sDataSet**)malloc(coreLayout[c]->parentsCnt*sizeof(sDataSet*));
+					//--
+					for (int p=0; p<coreLayout[c]->parentsCnt; p++) {
+						parentDS[p]=coreDS[coreLayout[c]->parentId[p]];
+					}
+					safespawn(coreDS[c], newsname("Core_%d-%d_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDS);
+					//--
+					free(parentDS);
+				}
+			}
+		}
+	}
+	//-- 
+
 	int t;
 	int ret = 0;
 	int threadsCnt;
 	HANDLE* procH;
 	sEngineProcArgs** procArgs;
-
-	HANDLE SMutex = CreateMutex(NULL, FALSE, NULL);
 
 	system("cls");
 	for (int l=0; l<layersCnt; l++) {
@@ -269,15 +290,15 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
 
-				safecall(ds_, build, ACTUAL, BASE);
 				//-- scale trdata and rebuild training DataSet for current Core
-				for(int t=0; t<ds_->sourceTScnt; t++) safecall(ds_->sourceTS[t], scale, ACTUAL, TR, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
-				safecall(ds_, build, ACTUAL, TRS);
+				for(int t=0; t<coreDS[c]->sourceTScnt; t++) safecall(coreDS[c]->sourceTS[t], scale, ACTUAL, TR, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+				safecall(coreDS[c], build, ACTUAL, TRS);
+				coreDS[c]->dump();
 
 				//-- Create Training or Infer Thread for current Core
 				procArgs[t]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
 				procArgs[t]->core=core[c];
-				procArgs[t]->coreProcArgs->ds = (sDataSet*)ds_;
+				procArgs[t]->coreProcArgs->ds = coreDS[c];
 				procArgs[t]->coreProcArgs->batchSize=batchSize_;
 				procArgs[t]->coreProcArgs->loadImage=loadImage_;
 				procArgs[t]->coreProcArgs->npid=savedEnginePid_;

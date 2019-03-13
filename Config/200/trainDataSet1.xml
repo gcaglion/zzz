@@ -2,7 +2,7 @@
 
 	TimeSeriesCount	= 1
 	<TimeSerie0>
-		HistoryLen			= 25000
+		HistoryLen			= 6000
 		Date0				= 2018-05-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
@@ -29,10 +29,10 @@
 		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 	</TimeSerie2>
 
-	SampleLen = 100
+	SampleLen = 20
 	PredictionLen = 1
 	
-	BatchSamplesCount	= 50
+	BatchSamplesCount	= 20
 	Dump 				= false
 	DumpPath			= c:\temp\DataDump
 

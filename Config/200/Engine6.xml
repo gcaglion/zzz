@@ -1,0 +1,58 @@
+<Engine>
+	CoresCount	= 6
+	<Core0>
+		<Layout>
+			Type	= CORE_NN
+			Parents			= 
+			ParentsConnType	= 
+		</Layout>
+		<! CoreParmsCommon.xml >
+		<! CorePersistor-Default.xml >
+	</Core0>
+	<Core1>
+		<Layout>
+			Type	= CORE_NN
+			Parents			= 
+			ParentsConnType	= 
+		</Layout>
+		<! CoreParmsCommon.xml >
+		<! CorePersistor-Default.xml >
+	</Core1>
+	<Core2>
+		<Layout>
+			Type			= CORE_NN
+			Parents			= Core0
+			ParentsConnType	= CONN_DENSE
+		</Layout>
+		<! CoreParmsCommon.xml >
+		<! CorePersistor-Default.xml >
+	</Core2>
+	<Core3>
+		<Layout>
+			Type			= CORE_NN
+			Parents			= Core0, Core1
+			ParentsConnType	= CONN_DENSE, CONN_DENSE
+		</Layout>
+		<! CoreParmsCommon.xml >
+		<! CorePersistor-Default.xml >
+	</Core3>
+	<Core4>
+		<Layout>
+			Type			= CORE_NN
+			Parents			= Core1
+			ParentsConnType	= CONN_DENSE
+		</Layout>
+		<! CoreParmsCommon.xml >
+		<! CorePersistor-Default.xml >
+	</Core4>
+	<Core5>
+		<Layout>
+			Type			= CORE_NN
+			Parents			= Core2, Core3, Core4
+			ParentsConnType	= CONN_DENSE, CONN_DENSE, CONN_DENSE
+		</Layout>
+		<! CoreParmsCommon.xml >
+		<! CorePersistor-Default.xml >
+	</Core5>
+	<! EnginePersistor-Default.xml >
+</Engine>
