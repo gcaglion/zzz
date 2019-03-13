@@ -47,6 +47,7 @@ struct sRoot : sCfgObj {
 
 	//-- temp stuff
 	EXPORT void kaz();
+	EXPORT void kaz2();
 
 private:
 

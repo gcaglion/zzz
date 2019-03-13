@@ -1,0 +1,7 @@
+		HistoryLen			= 5000
+		Date0				= 2018-05-30-00:00
+		DataTransformation	= DT_DELTA
+		Dump				= false
+		DumpPath			= c:\temp\DataDump
+		SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+		<! FXDB-EtxEurH1.xml >

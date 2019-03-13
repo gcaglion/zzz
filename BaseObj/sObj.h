@@ -108,7 +108,7 @@ struct sObj {
 	try{ \
 		obj_->met_(__VA_ARGS__); \
 	} catch (std::exception exc) { \
-		fail("%s FAILURE : Exception: %s", name->base, exc.what()); \
+		fail("%s->%s() FAILURE at line %d: Exception: %s", name->base, __func__, __LINE__, exc.what()); \
 	}\
 }
 

@@ -152,8 +152,8 @@ void sEngine::spawnCoresFromXML() {
 					break;
 				}
 				cfg->currentKey=cfgKey;
+				core[c]->parms=coreParms[c];
 			}
-			core[c]->parms=coreParms[c];
 		}
 	}
 }
@@ -236,7 +236,43 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 	return 1;
 }
 
-void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, int savedEnginePid_) {
+void sEngine::train2(int testid_, sDS* sampleDS_, sDS* targetDS_, sDS* predictionDS_, int batchSize_) {
+	sDS** parentDSt;
+	sDS** parentDSp;
+
+	//-- spawn sample/target/prediction DSs for each core
+	sDS** coreDSs=(sDS**)malloc(coresCnt*sizeof(sDS*));
+	sDS** coreDSt=(sDS**)malloc(coresCnt*sizeof(sDS*));
+	sDS** coreDSp=(sDS**)malloc(coresCnt*sizeof(sDS*));
+	for (int l=0; l<layersCnt; l++) {
+		for (int c=0; c<coresCnt; c++) {
+			if (coreLayout[c]->layer==l) {
+				if (l==0) {
+					safespawn(coreDSs[c], newsname("Core_%d-%d_Samples_Dataset", l, c), defaultdbg, 1, &sampleDS_);
+					safespawn(coreDSt[c], newsname("Core_%d-%d_Targets_Dataset", l, c), defaultdbg, 1, &targetDS_);
+					safespawn(coreDSp[c], newsname("Core_%d-%d_Predictions_Dataset", l, c), defaultdbg, 1, &predictionDS_);
+				} else {
+					parentDSt=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
+					parentDSp=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
+					//--
+					for (int p=0; p<coreLayout[c]->parentsCnt; p++) {
+						parentDSt[p]=coreDSt[coreLayout[c]->parentId[p]];
+						parentDSp[p]=coreDSp[coreLayout[c]->parentId[p]];
+					}
+					safespawn(coreDSt[c], newsname("Core_%d-%d_Targets_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDSt);
+					safespawn(coreDSp[c], newsname("Core_%d-%d_Predictions_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDSp);
+					//--
+					free(parentDSt);
+					free(parentDSp);
+				}
+			}
+		}
+	}
+	//-- 
+
+
+}
+void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, int batchSize_, int savedEnginePid_) {
 
 	int t;
 	int ret = 0;
@@ -278,6 +314,7 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 				procArgs[t]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
 				procArgs[t]->core=core[c];
 				procArgs[t]->coreProcArgs->ds = (sDataSet*)ds_;
+				procArgs[t]->coreProcArgs->batchSize=batchSize_;
 				procArgs[t]->coreProcArgs->loadImage=loadImage_;
 				procArgs[t]->coreProcArgs->npid=savedEnginePid_;
 				procArgs[t]->coreProcArgs->ntid=coreLayout[c]->tid;
@@ -303,7 +340,8 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 		WaitForMultipleObjects(t, procH, TRUE, INFINITE);
 
 		//-- exception handling for threads
-		for (int ti=0; ti<t; ti++) {
+		int ti;
+		for (ti=0; ti<t; ti++) {
 			if (procArgs[ti]->coreProcArgs->excp!=NULL) rethrow_exception(procArgs[ti]->coreProcArgs->excp);
 		}
 
@@ -317,7 +355,7 @@ void sEngine::train(int testid_, sDataSet* trainDS_) {
 	//-- needed to set trmin/max for each training feature
 	trainDS=trainDS_;
 
-	safecall(this, process, trainProc, false, testid_, trainDS_, 0);
+	safecall(this, process, trainProc, false, testid_, trainDS_, trainDS_->batchSamplesCnt, 0);
 }
 void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool reTransform) {
 
@@ -341,7 +379,7 @@ void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool r
 		}
 	}
 	//-- call infer
-	safecall(this, process, inferProc, reTransform, testid_, inferDS_, savedEnginePid_);
+	safecall(this, process, inferProc, reTransform, testid_, inferDS_, 1, savedEnginePid_);
 
 	//-- unscale, untransform, then save results
 	sDataSet* _ds;

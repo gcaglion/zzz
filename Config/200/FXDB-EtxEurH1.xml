@@ -1,6 +1,6 @@
 <FXDB_DataSource>
 
-	Symbol				= ETXEUR
+	Symbol				= EtxEur
 	TimeFrame			= H1
 	IsFilled			= false
 

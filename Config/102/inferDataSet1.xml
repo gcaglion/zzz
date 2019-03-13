@@ -28,7 +28,7 @@
 		SelectedFeatures	= FXHIGH, FXLOW
 	</TimeSerie2>
 
-	SampleLen = 5
+	SampleLen = 50
 	PredictionLen = 1
 	
 	BatchSamplesCount	= 1

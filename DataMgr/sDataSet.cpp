@@ -35,7 +35,7 @@ sDataSet::sDataSet(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	for (int t=0; t<sourceTScnt; t++) {
 		safespawn(sourceTS[t], newsname("%s_TimeSerie%d", name->base, t), defaultdbg, cfg, (newsname("TimeSerie%d", t))->base);
 		safecall(cfgKey, getParm, &selectedTSfeature[t], (newsname("TimeSerie%d/selectedFeatures", t))->base, false, &selectedTSfeaturesCnt[t]);
-		safecall(sourceTS[t], load, ACTUAL, BASE);
+//		safecall(sourceTS[t], load, ACTUAL, BASE);
 		shape->featuresCnt+=selectedTSfeaturesCnt[t];
 	}
 
@@ -58,9 +58,9 @@ sDataSet::~sDataSet() {
 	frees();
 }
 
-void sDataSet::load(int fromValSource, int fromValStatus) {
+/*void sDataSet::load(int fromValSource, int fromValStatus) {
 	for (int t=0; t<sourceTScnt; t++) sourceTS[t]->load(fromValSource, fromValStatus);
-}
+}*/
 void sDataSet::build(int fromValSource, int fromValStatus) {
 	FILE* dumpFile=nullptr;
 

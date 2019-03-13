@@ -429,12 +429,8 @@ void drawForecast(double H, double L) {
 	//printf("ObjectCreate(H=%f ; L=%f) returns %d", H,L,ObjectCreate(_Symbol, name, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L));
 	//ObjectCreate(_Symbol, nameR, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L);
 	ObjectCreate(_Symbol, nameE, OBJ_ELLIPSE, 0, rates[1].time, H, rates[1].time, L, rates[0].time, (H+L)/2);
-	//ObjectSetInteger(0, nameR, OBJPROP_COLOR, clrBlue);
 	ObjectSetInteger(0, nameE, OBJPROP_COLOR, clrBlue);
-	//ObjectSetInteger(0, nameR, OBJPROP_WIDTH, 3);
-	ObjectSetInteger(0, nameE, OBJPROP_WIDTH, 1);
-	//ObjectSetInteger(0, name, OBJPROP_FILL, true);
-	//ObjectSetInteger(0, nameR, OBJPROP_HIDDEN, false);
+	ObjectSetInteger(0, nameE, OBJPROP_WIDTH, 2);
 	ObjectSetInteger(0, nameE, OBJPROP_HIDDEN, false);
 
 }

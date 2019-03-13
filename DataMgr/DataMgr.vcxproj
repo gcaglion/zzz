@@ -164,6 +164,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="newDS.cpp" />
     <ClCompile Include="sDataSet.cpp" />
     <ClCompile Include="sDataShape.cpp" />
     <ClCompile Include="sDataSource.cpp" />
@@ -174,6 +175,7 @@
     <ClCompile Include="TSF.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="newDS.h" />
     <ClInclude Include="sDataShape.h" />
     <ClInclude Include="sDataSet.h" />
     <ClInclude Include="sDataSource.h" />

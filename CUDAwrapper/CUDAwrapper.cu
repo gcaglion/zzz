@@ -457,11 +457,11 @@ EXPORT bool VinitRnd_cu(int vlen, numtype* v, numtype rndmin, numtype rndmax, vo
 
 __global__ void cuTanh_ker(int vlen, numtype* in, numtype* out) {
 	int i = threadIdx.x+blockIdx.x * blockDim.x;
-	out[i] = tanhf(in[i]);
+	if (i<vlen) out[i] = tanhf(in[i]);
 }
 __global__ void cudTanh_ker(int vlen, numtype* in, numtype* out) {
 	int i = threadIdx.x+blockIdx.x * blockDim.x;
-	out[i] = 1-tanhf(in[i])*tanhf(in[i]);
+	if (i<vlen) out[i] = 1-tanhf(in[i])*tanhf(in[i]);
 }
 __global__ void ORIG_cuTanh_ker(int vlen, numtype* in, numtype* out) {
 	int i = blockIdx.x*blockDim.x+threadIdx.x;
