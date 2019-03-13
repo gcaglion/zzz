@@ -35,7 +35,6 @@ sDataSet::sDataSet(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	for (int t=0; t<sourceTScnt; t++) {
 		safespawn(sourceTS[t], newsname("%s_TimeSerie%d", name->base, t), defaultdbg, cfg, (newsname("TimeSerie%d", t))->base);
 		safecall(cfgKey, getParm, &selectedTSfeature[t], (newsname("TimeSerie%d/selectedFeatures", t))->base, false, &selectedTSfeaturesCnt[t]);
-//		safecall(sourceTS[t], load, ACTUAL, BASE);
 		shape->featuresCnt+=selectedTSfeaturesCnt[t];
 	}
 
@@ -53,7 +52,34 @@ sDataSet::sDataSet(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 }
+sDataSet::sDataSet(sObjParmsDef, int sourceDScnt_, sDataSet** sourceDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 
+	//-- samples are built from sources' predictions
+	//-- targets are copied from sources
+
+	//-- calc total sourceTScnt , needed to malloc
+	sourceTScnt=0;
+	for (int ds=0; ds<sourceDScnt_; ds++) {
+		for (int ts=0; ts<sourceDS_[ds]->sourceTScnt; ts++) {
+			sourceTScnt++;
+		}
+	}
+	mallocs1();
+
+	//-- sourceTSs and selectedTSfeatures are added together
+	int t=0;
+	for (int ds=0; ds<sourceDScnt_; ds++) {
+		for (int ts=0; ts<sourceDS_[ds]->sourceTScnt; ts++) {
+			sourceTS[t]=sourceDS_[ds]->sourceTS[ts];
+			selectedTSfeaturesCnt[t]=sourceDS_[ds]->selectedTSfeaturesCnt[ts];
+			for (int self=0; self<selectedTSfeaturesCnt[t]; self++) {
+				selectedTSfeature[t][self]=sourceDS_[ds]->selectedTSfeature[ts][self];
+			}
+			t++;
+		}
+	}
+
+}
 sDataSet::~sDataSet() {
 	frees();
 }
