@@ -506,17 +506,24 @@ void sEngine::setLayerProps() {
 		setCoreLayer(coreLayout[c]);
 		layerCoresCnt[coreLayout[c]->layer]++;
 	}
-	//-- 4. determine layersCnt, and InputCnt for each Core
+	//-- 4. determine layersCnt
 	for (l=0; l<MAX_ENGINE_LAYERS; l++) {
 		for (c=0; c<layerCoresCnt[l]; c++) {
-			if (l==0) {
-				//-- do nothing. keep core shape same as engine shape
-			} else {
-				//-- change sampleLen
-				coreLayout[c]->inputCnt=layerCoresCnt[l-1]*coreLayout[c]->outputCnt;
-			}
 		}
 		if (c==0) break;
 		layersCnt++;
+	}
+	//-- 5. determine InputCnt for each Core
+	for (c=0; c<coresCnt; c++) {
+		for (l=0; l<layersCnt; l++) {
+			if (coreLayout[c]->layer==l) {
+				if (l==0) {
+					//-- do nothing. keep core shape same as engine shape
+				} else {
+					//-- change sampleLen
+					coreLayout[c]->inputCnt=layerCoresCnt[l-1]*coreLayout[c]->outputCnt;
+				}
+			}
+		}
 	}
 }

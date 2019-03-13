@@ -2,7 +2,7 @@
 
 	TimeSeriesCount	= 1
 	<TimeSerie0>
-		HistoryLen			= 6000
+		HistoryLen			= 6002
 		Date0				= 2018-05-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
@@ -30,7 +30,7 @@
 	</TimeSerie2>
 
 	SampleLen = 20
-	PredictionLen = 1
+	PredictionLen = 3
 	
 	BatchSamplesCount	= 20
 	Dump 				= false
