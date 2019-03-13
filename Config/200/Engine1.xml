@@ -14,7 +14,7 @@
 				UseBias				= false
 			</Topology>
 			<Training>
-				MaxEpochs			= 5000
+				MaxEpochs			= 50
 				TargetMSE			= 0.0001
 				NetSaveFrequency	= 10
 				StopOnDivergence	= false
