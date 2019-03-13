@@ -37,7 +37,6 @@ struct sDataSet : sCfgObj {
 	EXPORT sDataSet(sCfgObjParmsDef);
 	EXPORT ~sDataSet();
 
-	EXPORT void load(int fromValSource, int fromValStatus);
 	EXPORT void build(int fromValSource, int fromValStatus);
 	EXPORT void unbuild(int fromValSource, int toValSource, int toValStatus);	//-- takes step 0 from predictionSBF, copy it into sourceTS->trsvalP
 

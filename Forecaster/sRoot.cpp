@@ -179,13 +179,13 @@ void sRoot::kaz() {
 	ts->dump(ACTUAL, TR);
 
 	/*for (int s=0; s<(ts->stepsCnt-3); s++) {
-		for (int f=0; f<ts->sourceData->featuresCnt; f++) {
-			ts->val[PREDICTED][TR][s*ts->sourceData->featuresCnt+f]=EMPTY_VALUE;
+		for (int f=0; f<ts->featuresCnt; f++) {
+			ts->val[PREDICTED][TR][s*ts->featuresCnt+f]=EMPTY_VALUE;
 		}
 	}
 	for (int s=(ts->stepsCnt-3); s<ts->stepsCnt; s++) { 
-		for (int f=0; f<ts->sourceData->featuresCnt; f++) {
-			ts->val[PREDICTED][TR][s*ts->sourceData->featuresCnt+f]=ts->val[ACTUAL][TR][s*ts->sourceData->featuresCnt+f]+1;
+		for (int f=0; f<ts->featuresCnt; f++) {
+			ts->val[PREDICTED][TR][s*ts->featuresCnt+f]=ts->val[ACTUAL][TR][s*ts->featuresCnt+f]+1;
 		}
 	}
 	
@@ -383,8 +383,8 @@ void sRoot::kaz() {
 	//-- Engine work... copy ACTUAL_TRS->PREDICTED_TRS, AND SKIP FIRST SAMPLE!
 	int idx;
 	for (int s=0; s<ts1->stepsCnt; s++) {
-		for (int f=0; f<ts1->sourceData->featuresCnt; f++) {
-			idx=s*ts1->sourceData->featuresCnt+f;
+		for (int f=0; f<ts1->featuresCnt; f++) {
+			idx=s*ts1->featuresCnt+f;
 			ts1->val[PREDICTED][TRS][idx]=ts1->val[ACTUAL][TRS][idx];
 		}
 	}

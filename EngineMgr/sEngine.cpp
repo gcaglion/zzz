@@ -331,7 +331,7 @@ void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool r
 	//-- re-transform inferDS using trMin/Max loaded
 	if (reTransform) {
 		for (int ts=0; ts<inferDS_->sourceTScnt; ts++) {
-			for (int tsf=0; tsf<inferDS_->sourceTS[ts]->sourceData->featuresCnt; tsf++) {
+			for (int tsf=0; tsf<inferDS_->sourceTS[ts]->featuresCnt; tsf++) {
 				for (int selF=0; selF<inferDS_->selectedTSfeaturesCnt[ts]; selF++) {
 					if (inferDS_->selectedTSfeature[ts][selF]==tsf) {
 						inferDS_->sourceTS[ts]->dmin[tsf]=TStrMin[ts][selF];
@@ -402,7 +402,7 @@ void sEngine::saveRun() {
 
 			if (core[c]->persistor->saveRunFlag) {
 				core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->mseR, \
-						runStepsCnt, t, _ts->sourceData->featuresCnt, _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t], _ds->shape->predictionLen, \
+						runStepsCnt, t, _ts->featuresCnt, _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t], _ds->shape->predictionLen, \
 						_ts->dtime, _ts->val[ACTUAL][TRS], _ts->val[PREDICTED][TRS], _ts->val[ACTUAL][TR], _ts->val[PREDICTED][TR], _ts->val[ACTUAL][BASE], _ts->val[PREDICTED][BASE], _ts->barWidth);
 			}
 		}
@@ -443,7 +443,7 @@ void sEngine::saveInfo() {
 
 	//-- save trMin/Max for every selected feature in every TS
 	for (int ts=0; ts<trainDS->sourceTScnt; ts++) {
-		for (int tsf=0; tsf<trainDS->sourceTS[ts]->sourceData->featuresCnt; tsf++) {
+		for (int tsf=0; tsf<trainDS->sourceTS[ts]->featuresCnt; tsf++) {
 			for (int selF=0; selF<trainDS->selectedTSfeaturesCnt[ts]; selF++) {
 				if (trainDS->selectedTSfeature[ts][selF]==tsf) {
 					TStrMin[ts][selF]=trainDS->sourceTS[ts]->dmin[tsf];

@@ -21,10 +21,9 @@
 
 struct sTimeSerie : sCfgObj {
 
-	sDataSource* sourceData;
-
 	char* date0;
 	int stepsCnt;
+	int featuresCnt;
 	int len;
 
 	//-- transformation 
@@ -57,7 +56,7 @@ struct sTimeSerie : sCfgObj {
 	EXPORT sTimeSerie(sCfgObjParmsDef);
 	EXPORT ~sTimeSerie();
 
-	EXPORT void load(int valSource, int valStatus, char* date0_=nullptr);
+	EXPORT void load(sDataSource* dataSrc, char* date0_=nullptr);
 	EXPORT void transform(int valSource);
 	EXPORT void untransform(int valSource);
 	EXPORT void scale(int valSource, int valStatus, float scaleMin_, float scaleMax_);
@@ -68,7 +67,7 @@ private:
 	void mallocs1();
 	void mallocs2();
 	void frees();
-	void setDataSource();
+	void setDataSource(sDataSource** dataSrc_);
 	void calcTSFs();
 };
 

@@ -5,8 +5,8 @@ sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0
 
 	strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, date0_);
 	stepsCnt=stepsCnt_;
+	featuresCnt=sourceData_->featuresCnt;
 	dt=dt_;
-	sourceData=sourceData_;
 
 	doDump=doDump_;
 	if (dumpPath_!=nullptr) {
@@ -16,7 +16,7 @@ sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0
 	}
 
 	mallocs2();
-	load(ACTUAL, BASE);
+	load(sourceData_);
 }
 sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	mallocs1();
@@ -29,33 +29,35 @@ sTimeSerie::sTimeSerie(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	safecall(cfgKey, getParm, &dumpPath, "DumpPath", true);
 	//-- 2. do stuff and spawn sub-Keys
-	safecall(this, setDataSource);
+	sDataSource* _dataSrc;
+	safecall(this, setDataSource, &_dataSrc);
+	featuresCnt=_dataSrc->featuresCnt;
 	mallocs2();
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 
-	load(ACTUAL, BASE);
+	load(_dataSrc);
 }
 sTimeSerie::~sTimeSerie() {
 	frees();
 }
 
-void sTimeSerie::load(int valSource, int valStatus, char* date0_) {
+void sTimeSerie::load(sDataSource* dataSrc, char* date0_) {
 	if (date0_!=nullptr) strcpy_s(date0, DATE_FORMAT_LEN, date0_);
-	safecall(sourceData, load, date0, stepsCnt, dtime, val[valSource][valStatus], bdtime, base, barWidth);
+	safecall(dataSrc, load, date0, stepsCnt, dtime, val[ACTUAL][BASE], bdtime, base, barWidth);
 	//-- since the actual date0 we get from query can be different from the one requested, we update it after the load
 	//strcpy_s(date0, XMLKEY_PARM_VAL_MAXLEN, dtime[stepsCnt-1]);
 	//--
-	if (doDump) dump(valSource, valStatus);
+	if (doDump) dump(ACTUAL, BASE);
 	//-- 1. calc TSFs
 	safecall(this, calcTSFs);
 	//-- 2. transform
-	safecall(this, transform, valSource);
+	safecall(this, transform, ACTUAL);
 }
 void sTimeSerie::transform(int valSource) {
 	int curr=0;
 	for (int s=0; s<(stepsCnt); s++) {
-		for (int f=0; f<sourceData->featuresCnt; f++) {
+		for (int f=0; f<featuresCnt; f++) {
 			switch (dt) {
 			case DT_NONE:
 				val[valSource][TR][curr]=val[valSource][BASE][curr];
@@ -67,7 +69,7 @@ void sTimeSerie::transform(int valSource) {
 					if (s==0) {
 						val[valSource][TR][curr]=val[valSource][BASE][curr]-base[f];
 					} else {
-						val[valSource][TR][curr]=val[valSource][BASE][curr]-val[valSource][BASE][(s-1)*sourceData->featuresCnt+f];
+						val[valSource][TR][curr]=val[valSource][BASE][curr]-val[valSource][BASE][(s-1)*featuresCnt+f];
 					}
 				}
 				break;
@@ -91,9 +93,9 @@ void sTimeSerie::transform(int valSource) {
 void sTimeSerie::untransform(int valSource) {
 	int curr, prev;
 	for (int s=0; s<stepsCnt; s++) {
-		for (int f=0; f<sourceData->featuresCnt; f++) {
-			curr=s*sourceData->featuresCnt+f;
-			prev=(s-1)*sourceData->featuresCnt+f;
+		for (int f=0; f<featuresCnt; f++) {
+			curr=s*featuresCnt+f;
+			prev=(s-1)*featuresCnt+f;
 			if (dt==DT_NONE) {
 				val[valSource][BASE][curr]=val[valSource][TR][curr];
 			}
@@ -118,17 +120,17 @@ void sTimeSerie::untransform(int valSource) {
 }
 void sTimeSerie::scale(int valSource, int valStatus, float scaleMin_, float scaleMax_) {
 
-	for (int f=0; f<sourceData->featuresCnt; f++) {
+	for (int f=0; f<featuresCnt; f++) {
 		scaleM[f] = (scaleMin_==scaleMax_) ? 1 : ((scaleMax_-scaleMin_)/(dmax[f]-dmin[f]));
 		scaleP[f] = (scaleMin_==scaleMax_) ? 0 : (scaleMax_-scaleM[f]*dmax[f]);
 	}
 
-	for (int f=0; f<sourceData->featuresCnt; f++) {
+	for (int f=0; f<featuresCnt; f++) {
 		for (int s=0; s<stepsCnt; s++) {
-			if (val[valSource][valStatus][s*sourceData->featuresCnt+f]==EMPTY_VALUE) {
-				val[valSource][TRS][s*sourceData->featuresCnt+f]=EMPTY_VALUE;
+			if (val[valSource][valStatus][s*featuresCnt+f]==EMPTY_VALUE) {
+				val[valSource][TRS][s*featuresCnt+f]=EMPTY_VALUE;
 			} else {
-				val[valSource][TRS][s*sourceData->featuresCnt+f]=val[valSource][valStatus][s*sourceData->featuresCnt+f]*scaleM[f]+scaleP[f];
+				val[valSource][TRS][s*featuresCnt+f]=val[valSource][valStatus][s*featuresCnt+f]*scaleM[f]+scaleP[f];
 			}
 		}
 	}
@@ -138,13 +140,13 @@ void sTimeSerie::scale(int valSource, int valStatus, float scaleMin_, float scal
 void sTimeSerie::unscale(int valSource, float scaleMin_, float scaleMax_, int selectedFeaturesCnt_, int* selectedFeature_, int skipFirstNsteps_) {
 
 	for (int s=0; s<stepsCnt; s++) {
-		for (int tf=0; tf<sourceData->featuresCnt; tf++) {
+		for (int tf=0; tf<featuresCnt; tf++) {
 			for (int df=0; df<selectedFeaturesCnt_; df++) {
 				if (selectedFeature_[df]==tf) {
 					if (s<skipFirstNsteps_) {
-						val[valSource][TR][s*sourceData->featuresCnt+tf]=EMPTY_VALUE;
+						val[valSource][TR][s*featuresCnt+tf]=EMPTY_VALUE;
 					} else {
-						val[valSource][TR][s*sourceData->featuresCnt+tf]=(val[valSource][TRS][s*sourceData->featuresCnt+tf]-scaleP[tf])/scaleM[tf];
+						val[valSource][TR][s*featuresCnt+tf]=(val[valSource][TRS][s*featuresCnt+tf]-scaleP[tf])/scaleM[tf];
 					}
 				}
 			}
@@ -173,33 +175,33 @@ void sTimeSerie::dump(int valSource, int valStatus) {
 	if (fopen_s(&dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
 	fprintf(dumpFile, "i, datetime");
-	for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",F%d", f);
+	for (f=0; f<featuresCnt; f++) fprintf(dumpFile, ",F%d", f);
 	fprintf(dumpFile, "\n%d,%s", -1, bdtime);
-	for (f=0; f<sourceData->featuresCnt; f++) {
+	for (f=0; f<featuresCnt; f++) {
 		fprintf(dumpFile, ",%f", base[f]);
-		//for (int ff=0; ff<(sourceData->featuresCnt-3); ff++) fprintf(dumpFile, ",");
+		//for (int ff=0; ff<(featuresCnt-3); ff++) fprintf(dumpFile, ",");
 	}
 
 	for (s=0; s<stepsCnt; s++) {
 		fprintf(dumpFile, "\n%d, %s", s, dtime[s]);
-		for (f=0; f<sourceData->featuresCnt; f++) {
-			fprintf(dumpFile, ",%f", val[valSource][valStatus][s*sourceData->featuresCnt+f]);
+		for (f=0; f<featuresCnt; f++) {
+			fprintf(dumpFile, ",%f", val[valSource][valStatus][s*featuresCnt+f]);
 		}
 	}
 	fprintf(dumpFile, "\n");
 
 	if (valStatus==TR) {
 		fprintf(dumpFile, "\ntr-min:,");
-		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",%f", dmin[f]);
+		for (f=0; f<featuresCnt; f++) fprintf(dumpFile, ",%f", dmin[f]);
 		fprintf(dumpFile, "\ntr-max:,");
-		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",%f", dmax[f]);
+		for (f=0; f<featuresCnt; f++) fprintf(dumpFile, ",%f", dmax[f]);
 		fprintf(dumpFile, "\n");
 	}
 	if (valStatus==TRS) {
 		fprintf(dumpFile, "\nscaleM:,");
-		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",%f", scaleM[f]);
+		for (f=0; f<featuresCnt; f++) fprintf(dumpFile, ",%f", scaleM[f]);
 		fprintf(dumpFile, "\nscaleP:,");
-		for (f=0; f<sourceData->featuresCnt; f++) fprintf(dumpFile, ",%f", scaleP[f]);
+		for (f=0; f<featuresCnt; f++) fprintf(dumpFile, ",%f", scaleP[f]);
 		fprintf(dumpFile, "\n");
 
 	}
@@ -214,7 +216,7 @@ void sTimeSerie::mallocs1() {
 	dumpPath=(char*)malloc(MAX_PATH);
 }
 void sTimeSerie::mallocs2() {
-	len=stepsCnt*sourceData->featuresCnt;
+	len=stepsCnt*featuresCnt;
 	dtime=(char**)malloc(len*sizeof(char*));
 	for (int i=0; i<len; i++) dtime[i]=(char*)malloc(DATE_FORMAT_LEN);
 
@@ -225,12 +227,12 @@ void sTimeSerie::mallocs2() {
 			val[source][status]=(numtype*)malloc(len*sizeof(numtype));
 		}
 	}
-	base=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
-	dmin=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
-	dmax=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
-	scaleM=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
-	scaleP=(numtype*)malloc(sourceData->featuresCnt*sizeof(numtype));
-	for (int f=0; f<sourceData->featuresCnt; f++) { dmin[f]=1e9; dmax[f]=-1e9; }
+	base=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	dmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	dmax=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	scaleM=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	scaleP=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	for (int f=0; f<featuresCnt; f++) { dmin[f]=1e9; dmax[f]=-1e9; }
 	//--
 	barWidth=(numtype*)malloc(stepsCnt*sizeof(numtype));
 
@@ -254,7 +256,7 @@ void sTimeSerie::frees() {
 	free(date0);
 	free(dumpPath);
 }
-void sTimeSerie::setDataSource() {
+void sTimeSerie::setDataSource(sDataSource** dataSrc_) {
 
 	bool found=false;
 	sFXDataSource* fxData;
@@ -266,19 +268,19 @@ void sTimeSerie::setDataSource() {
 	if (found) {
 		safecall(cfg, setKey, "../"); //-- get back;
 		safespawn(fileData, newsname("File_DataSource"), defaultdbg, cfg, "File_DataSource");
-		sourceData=fileData;
+		(*dataSrc_)=fileData;
 	} else {
 		safecall(cfg, setKey, "FXDB_DataSource", true, &found);	//-- ignore error
 		if (found) {
 			safecall(cfg, setKey, "../"); //-- get back;
 			safespawn(fxData, newsname("FXDB_DataSource"), defaultdbg, cfg, "FXDB_DataSource");
-			sourceData=fxData;
+			(*dataSrc_)=fxData;
 		} else {
 			safecall(cfg, setKey, "MT4_DataSource", true, &found);	//-- ignore error
 			if (found) {
 				safecall(cfg, setKey, "../"); //-- get back;
 				safespawn(mtData, newsname("MT_DataSource"), defaultdbg, cfg, "MT_DataSource");
-				sourceData=mtData;
+				(*dataSrc_)=mtData;
 			}
 		}
 	}
@@ -294,7 +296,7 @@ void sTimeSerie::untransform(int fromValSource, int toValSource, int sampleLen_,
 	int fromStep=sampleLen_;
 	int toStep=stepsCnt;
 
-	dataUnTransform(dt, stepsCnt, sourceData->featuresCnt, fromStep, toStep, val[fromValSource][TR], base, val[ACTUAL][BASE], val[toValSource][BASE]);
+	dataUnTransform(dt, stepsCnt, featuresCnt, fromStep, toStep, val[fromValSource][TR], base, val[ACTUAL][BASE], val[toValSource][BASE]);
 
 }
 */

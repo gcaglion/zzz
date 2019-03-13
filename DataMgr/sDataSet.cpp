@@ -58,9 +58,6 @@ sDataSet::~sDataSet() {
 	frees();
 }
 
-void sDataSet::load(int fromValSource, int fromValStatus) {
-	for (int t=0; t<sourceTScnt; t++) sourceTS[t]->load(fromValSource, fromValStatus);
-}
 void sDataSet::build(int fromValSource, int fromValStatus) {
 	FILE* dumpFile=nullptr;
 
@@ -77,7 +74,7 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 		for (int bar=0; bar<shape->sampleLen; bar++) {
 			for (int ts=0; ts<sourceTScnt; ts++) {
 				for (int tsf=0; tsf<selectedTSfeaturesCnt[ts]; tsf++) {
-					tsidxS=(sample+bar)*sourceTS[ts]->sourceData->featuresCnt+selectedTSfeature[ts][tsf];
+					tsidxS=(sample+bar)*sourceTS[ts]->featuresCnt+selectedTSfeature[ts][tsf];
 					sampleSBF[dsidxS] = sourceTS[ts]->val[fromValSource][fromValStatus][tsidxS];
 					if (doDump) fprintf(dumpFile, "%f,", sampleSBF[dsidxS]);
 					dsidxS++;
@@ -91,8 +88,8 @@ void sDataSet::build(int fromValSource, int fromValStatus) {
 			for (int bar=0; bar<shape->predictionLen; bar++) {
 				for (int ts=0; ts<sourceTScnt; ts++) {
 					for (int tsf=0; tsf<selectedTSfeaturesCnt[ts]; tsf++) {
-						tsidxT=(sample+bar)*sourceTS[ts]->sourceData->featuresCnt+selectedTSfeature[ts][tsf];
-						tsidxT+=sourceTS[ts]->sourceData->featuresCnt*shape->sampleLen;
+						tsidxT=(sample+bar)*sourceTS[ts]->featuresCnt+selectedTSfeature[ts][tsf];
+						tsidxT+=sourceTS[ts]->featuresCnt*shape->sampleLen;
 
 						targetSBF[dsidxT] = sourceTS[ts]->val[fromValSource][fromValStatus][tsidxT];
 						if (doDump) fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
@@ -114,7 +111,7 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 	for (int bar=0; bar<shape->sampleLen; bar++) {
 		for (int ts=0; ts<sourceTScnt; ts++) {
 			for (int tsf=0; tsf<selectedTSfeaturesCnt[ts]; tsf++) {
-				tsidxS=bar*sourceTS[ts]->sourceData->featuresCnt+selectedTSfeature[ts][tsf];
+				tsidxS=bar*sourceTS[ts]->featuresCnt+selectedTSfeature[ts][tsf];
 				sourceTS[ts]->val[toValSource][toValStatus][tsidxS] = EMPTY_VALUE;
 			}
 		}
@@ -125,8 +122,8 @@ void sDataSet::unbuild(int fromValSource, int toValSource, int toValStatus) {
 		for (int bar=0; bar<shape->predictionLen; bar++) {
 			for (int ts=0; ts<sourceTScnt; ts++) {
 				for (int tsf=0; tsf<selectedTSfeaturesCnt[ts]; tsf++) {
-					tsidxT=(sample+bar)*sourceTS[ts]->sourceData->featuresCnt+selectedTSfeature[ts][tsf];
-					tsidxT+=sourceTS[ts]->sourceData->featuresCnt*shape->sampleLen;
+					tsidxT=(sample+bar)*sourceTS[ts]->featuresCnt+selectedTSfeature[ts][tsf];
+					tsidxT+=sourceTS[ts]->featuresCnt*shape->sampleLen;
 
 					sourceTS[ts]->val[toValSource][toValStatus][tsidxT] = predictionSBF[dsidxT];
 					dsidxT++;
