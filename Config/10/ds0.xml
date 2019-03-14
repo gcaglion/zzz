@@ -2,5 +2,8 @@
 	TargetLen	= 3
 	
 	Dump		= true
-	DumpPath	= c:/temp/DataDump
+	DumpPath	= c:\temp\DataDump
 	
+	<TimeSerie>
+		<! ts0.xml >
+	</TimeSerie>

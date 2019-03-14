@@ -25,4 +25,9 @@ struct sDS : sCfgObj {
 	EXPORT sDS(sCfgObjParmsDef);
 	EXPORT sDS(sObjParmsDef, int fromDScnt_, sDS** fromDS_);
 	EXPORT ~sDS();
+
+	EXPORT void dump();
+
+private:
+	void dumpPre(FILE** dumpFile);
 };

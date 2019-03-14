@@ -157,12 +157,16 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 
 //-- temp stuff
 #include "../DataMgr/sTS.h"
+#include "../DataMgr/sDS.h"
 void sRoot::kaz() {
 
 	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/10/ts0.xml");
 	sTS* ts0; safespawn(ts0, newsname("ts0"), defaultdbg, tsCfg, "/");
-
 	ts0->dump();
+
+	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/10/ds0.xml");
+	sDS* ds0; safespawn(ds0, newsname("ds0"), defaultdbg, dsCfg, "/");
+	ds0->dump();
 
 	return;
 
