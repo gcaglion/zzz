@@ -1,20 +1,6 @@
-<DataSet>
-
-	TimeSeriesCount	= 3
-	<TimeSerie0>
-		<! ts-EurUsdH1-5000.xml >
-	</TimeSerie0>
-	<TimeSerie1>
-		<! ts-EtxEurH1-5000.xml >
-	</TimeSerie1>
-	<TimeSerie2>
-		<! ts-SpxH1-5000.xml >
-	</TimeSerie2>
-	
-	PatternLen	= 10
-	BatchSize	= 20
+	SampleLen	= 10
+	TargetLen	= 3
 	
 	Dump		= true
 	DumpPath	= c:/temp/DataDump
 	
-</DataSet>

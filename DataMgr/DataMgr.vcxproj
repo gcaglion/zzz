@@ -167,6 +167,7 @@
     <ClCompile Include="sDataSet.cpp" />
     <ClCompile Include="sDataShape.cpp" />
     <ClCompile Include="sDataSource.cpp" />
+    <ClCompile Include="sDS.cpp" />
     <ClCompile Include="sGenericDataSource.cpp" />
     <ClCompile Include="sFXDataSource.cpp" />
     <ClCompile Include="sMT4DataSource.cpp" />
@@ -180,6 +181,7 @@
     <ClInclude Include="sDataSource.h" />
     <ClInclude Include="DataSource_enums.h" />
     <ClInclude Include="DBConnection_enums.h" />
+    <ClInclude Include="sDS.h" />
     <ClInclude Include="sGenericDataSource.h" />
     <ClInclude Include="FileData_enums.h" />
     <ClInclude Include="sFXDataSource.h" />
