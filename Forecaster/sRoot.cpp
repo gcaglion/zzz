@@ -156,7 +156,15 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 }
 
 //-- temp stuff
+#include "../DataMgr/sTS.h"
 void sRoot::kaz() {
+
+	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/10/ts0.xml");
+	sTS* ts0; safespawn(ts0, newsname("ts0"), defaultdbg, tsCfg, "/");
+
+	ts0->dump();
+
+	return;
 
 	char ffname[MAX_PATH];
 	char* BaseDataSetXMLFile="Config/30/DataSets/base.xml"; getFullPath(BaseDataSetXMLFile, ffname);
