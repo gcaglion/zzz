@@ -22,12 +22,18 @@ struct sDS : sCfgObj {
 	numtype* targetBFS;
 	numtype* predictionBFS;
 
+	numtype* trmin;
+	numtype* trmax;
+	numtype* scaleM;
+	numtype* scaleP;
+
 	EXPORT sDS(sCfgObjParmsDef);
 	EXPORT sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_);
 	EXPORT ~sDS();
 
 	EXPORT void dump();
 	EXPORT void scale(float scaleMin_, float scaleMax_);
+	EXPORT void unscale();
 
 private:
 	void dumpPre(FILE** dumpFile);

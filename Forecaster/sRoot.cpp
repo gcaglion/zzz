@@ -163,11 +163,15 @@ void sRoot::kaz() {
 	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/10/ts0.xml");
 	sTS* tsActual; safespawn(tsActual, newsname("tsActual"), defaultdbg, tsCfg, "/");
 	tsActual->dump();
-	tsActual->untransform();
-	tsActual->dump();
+//	tsActual->untransform();
+//	tsActual->dump();
 
 	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/10/ds0.xml");
 	sDS* ds0; safespawn(ds0, newsname("ds0"), defaultdbg, dsCfg, "/");
+	ds0->dump();
+	ds0->scale(-1, 1);
+	ds0->dump();
+	ds0->unscale();
 	ds0->dump();
 
 	return;
