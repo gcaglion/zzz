@@ -231,6 +231,7 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int b
 	int threadsCnt;
 	HANDLE* procH;
 	sEngineProcArgs** procArgs;
+	int lsl0=0;
 
 	system("cls");
 	for (int l=0; l<layersCnt; l++) {
@@ -250,7 +251,8 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int b
 		}	
 		//--
 
-		gotoxy(0, 2+l+((l>0) ? layerCoresCnt[l-1] : 0));  printf("Process %6d, %s Layer %d\n", clientPid, ((procid_==trainProc)?"Training":"Inferencing"), l);
+		if (l>0) lsl0+=layerCoresCnt[l-1]+1;
+		gotoxy(0, lsl0);  printf("Process %6d, %s Layer %d\n", clientPid, ((procid_==trainProc)?"Training":"Inferencing"), l);
 		t=0;
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
@@ -274,7 +276,7 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int b
 				if(coreDS[c]->doDump) coreDS[c]->dump();
 
 				//-- Create Training or Infer Thread for current Core
-				procArgs[t]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
+				procArgs[t]->coreProcArgs->screenLine = lsl0+1+t;
 				procArgs[t]->core=core[c];
 				procArgs[t]->coreProcArgs->ds = coreDS[c];
 				procArgs[t]->coreProcArgs->batchSize=batchSize_;

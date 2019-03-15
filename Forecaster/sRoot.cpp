@@ -174,7 +174,7 @@ void sRoot::kaz() {
 	sDS* ds[2]; ds[0]=ds0; ds[1]=ds1;
 	sDS* ds2; safespawn(ds2, newsname("ds2"), defaultdbg, 2, ds);
 	ds2->dump();
-	return;
+//	return;
 //	ds0->scale(-1, 1);
 //	ds0->dump();
 //	ds0->unscale();
