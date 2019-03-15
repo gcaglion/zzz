@@ -169,10 +169,12 @@ void sRoot::kaz() {
 	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/10/ds0.xml");
 	sDS* ds0; safespawn(ds0, newsname("ds0"), defaultdbg, dsCfg, "/");
 	ds0->dump();
-	ds0->scale(-1, 1);
-	ds0->dump();
-	ds0->unscale();
-	ds0->dump();
+//	ds0->scale(-1, 1);
+//	ds0->dump();
+//	ds0->unscale();
+//	ds0->dump();
+	ds0->getSeq(TARGET, tsActual->val);
+	tsActual->dump();
 
 	return;
 

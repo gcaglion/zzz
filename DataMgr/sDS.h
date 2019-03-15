@@ -3,6 +3,9 @@
 #include "../ConfigMgr/sCfgObj.h"
 #include "sTS.h"
 
+#define TARGET 0
+#define PREDICTION 1
+
 struct sDS : sCfgObj {
 
 	int sampleLen;
@@ -34,6 +37,7 @@ struct sDS : sCfgObj {
 	EXPORT void dump();
 	EXPORT void scale(float scaleMin_, float scaleMax_);
 	EXPORT void unscale();
+	EXPORT void getSeq(int trg_vs_prd, numtype* oVal);
 
 private:
 	void dumpPre(FILE** dumpFile);

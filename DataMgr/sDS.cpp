@@ -231,3 +231,28 @@ void sDS::unscale() {
 		}
 	}
 }
+
+void sDS::getSeq(int trg_vs_prd, numtype* oVal) {
+	int si=0, ti=0;
+	for (int s=0; s<samplesCnt; s++) {
+		for (int f=0; f<featuresCnt; f++) {
+			si=s*sampleLen*featuresCnt+f;
+			ti=s*featuresCnt+f;
+			oVal[ti]=sampleSBF[si];
+		}
+	}
+	for (int b=1; b<sampleLen; b++) {
+		for (int f=0; f<featuresCnt; f++) {
+			si=(samplesCnt-1)*sampleLen*featuresCnt+b*featuresCnt+f;
+			ti=(samplesCnt-1+b)*featuresCnt+f;
+			oVal[ti]=sampleSBF[si];
+		}
+	}
+	for (int b=0; b<targetLen; b++) {
+		for (int f=0; f<featuresCnt; f++) {
+			si=(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f;
+			ti=(samplesCnt-1+sampleLen+b)*featuresCnt+f;
+			oVal[ti]=(trg_vs_prd==TARGET) ? targetSBF[si] : predictionSBF[si];
+		}
+	}
+}
