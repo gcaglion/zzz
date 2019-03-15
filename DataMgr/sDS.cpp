@@ -57,6 +57,58 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	cfg->currentKey=bkpKey;
 }
+sDS::sDS(sObjParmsDef, sDS* copyFromDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+
+	sampleLen=copyFromDS_->sampleLen;
+	targetLen=copyFromDS_->targetLen;
+	featuresCnt=copyFromDS_->featuresCnt;
+	samplesCnt=copyFromDS_->samplesCnt;
+	doDump=copyFromDS_->doDump;
+	strcpy_s(dumpPath, MAX_PATH, copyFromDS_->dumpPath);
+
+	//-- mallocs
+	sampleSBF=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	targetSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	predictionSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	sampleBFS=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	targetBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	predictionBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	scaleM=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	scaleP=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	trmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	trmax=(numtype*)malloc(featuresCnt*sizeof(numtype));
+
+	//-- copy sample SBF from original DS
+	int sbfi=0; int i=0;
+	for (int s=0; s<samplesCnt; s++) {
+		for (int b=0; b<targetLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				sampleSBF[i]=copyFromDS_->sampleSBF[sbfi];
+				i++;
+				sbfi++;
+			}
+		}
+	}
+	//-- build target SBF from parentDS[0] targetSBF
+	sbfi=0; i=0;
+	for (int s=0; s<samplesCnt; s++) {
+		for (int b=0; b<targetLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				targetSBF[i]=copyFromDS_->targetSBF[i];
+				i++;
+			}
+		}
+	}
+
+	//-- copy trmin/max from ts
+	int f=0;
+	for (int df=0; df<featuresCnt; df++) {
+		trmin[f]=copyFromDS_->trmin[df];
+		trmax[f]=copyFromDS_->trmax[df];
+		f++;
+	}
+}
+
 sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 
 	//-- sampleLen
@@ -126,7 +178,7 @@ sDS::~sDS(){
 	free(sampleSBF); free(targetSBF); free(predictionSBF);
 	free(sampleBFS); free(targetBFS); free(predictionBFS);
 	free(scaleM); free(scaleP);
-	free(trmin); free(trmax);
+//	free(trmin); free(trmax);
 }
 
 void sDS::dump() {
@@ -151,6 +203,17 @@ void sDS::dump() {
 				tsidxT=(sample+bar)*featuresCnt+f;
 				tsidxT+=featuresCnt*sampleLen;
 				fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
+				dsidxT++;
+			}
+		}
+		fprintf(dumpFile, "|,");
+		//-- prediction
+		dsidxT=0;
+		for (int bar=0; bar<targetLen; bar++) {
+			for (int f=0; f<featuresCnt; f++) {
+				tsidxT=(sample+bar)*featuresCnt+f;
+				tsidxT+=featuresCnt*sampleLen;
+				fprintf(dumpFile, "%f,", predictionSBF[dsidxT]);
 				dsidxT++;
 			}
 		}
@@ -253,6 +316,66 @@ void sDS::getSeq(int trg_vs_prd, numtype* oVal) {
 			si=(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f;
 			ti=(samplesCnt-1+sampleLen+b)*featuresCnt+f;
 			oVal[ti]=(trg_vs_prd==TARGET) ? targetSBF[si] : predictionSBF[si];
+		}
+	}
+}
+
+void sDS::setBFS(int batchCnt, int batchSize) {
+	for (int b=0; b<batchCnt; b++) {
+		//-- populate BFS sample/target for every batch
+		SBF2BFS(batchSize, b, sampleLen, sampleSBF, sampleBFS);
+		SBF2BFS(batchSize, b, targetLen, targetSBF, targetBFS);
+	}
+}
+void sDS::setSBF(int batchCnt, int batchSize) {
+	for (int b=0; b<batchCnt; b++) {
+		//-- populate SBF predictionfor every batch
+		BFS2SBF(batchSize, b, targetLen, predictionBFS, predictionSBF);
+	}
+}
+void sDS::SBF2BFS(int batchSamplesCnt, int batchId, int barCnt, numtype* fromSBF, numtype* toBFS) {
+	int S=batchSamplesCnt;
+	int F=featuresCnt;
+	int B=barCnt;
+	int idx;
+	int idx0=batchId*B*F*S;
+	int i=idx0;
+	for (int bar=0; bar<B; bar++) {												// i1=bar	l1=B
+		for (int f=0; f<F; f++) {										// i2=f		l2=F
+			for (int s=0; s<S; s++) {										// i3=s		l3=S
+				idx=idx0+s*F*B+bar*F+f;
+				toBFS[i]=fromSBF[idx];
+				i++;
+			}
+		}
+	}
+}
+void sDS::BFS2SBF(int batchSamplesCnt, int batchId, int barCnt, numtype* fromBFS, numtype* toSBF) {
+	int S=batchSamplesCnt;
+	int F=featuresCnt;
+	int B=barCnt;
+	int idx;
+	int idx0=batchId*B*F*S;
+	int i=idx0;
+	for (int s=0; s<S; s++) {												// i1=s		l1=S
+		for (int bar=0; bar<B; bar++) {											// i2=bar	l1=B
+			for (int f=0; f<F; f++) {									// i3=f		l3=F
+				idx=idx0+bar*F*S+f*S+s;
+				toSBF[i]=fromBFS[idx];
+				i++;
+			}
+		}
+	}
+
+}
+
+void sDS::target2prediction() {
+	int i=0;
+	for (int s=0; s<samplesCnt; s++) {
+		for (int b=0; b<targetLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				predictionSBF[i]=targetSBF[i];
+			}
 		}
 	}
 }

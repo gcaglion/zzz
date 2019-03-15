@@ -1,7 +1,8 @@
 #pragma once
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
-#include "../DataMgr/sDataSet.h"
+#include "../DataMgr/sDS.h"
+#include "../DataMgr/sDataShape.h"
 #include "sCore.h"
 #include "sCoreParms.h"
 #include "Engine_enums.h"
@@ -33,8 +34,8 @@ struct sEngine : sCfgObj {
 	EXPORT sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_);
 	EXPORT ~sEngine();
 
-	EXPORT void train(int testid_, sDataSet* trainDS_);
-	EXPORT void infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool reTransform=true);
+	EXPORT void train(int testid_, sDS* trainDS_, int batchSize_);
+	EXPORT void infer(int testid_, sDS* inferDS_, int batchSize_, int savedEnginePid_, bool reTransform=true);
 	//--
 	EXPORT void saveMSE();
 	EXPORT void saveRun();
@@ -55,18 +56,15 @@ private:
 	void setLayerProps();
 	const int trainProc = 0;
 	const int inferProc = 1;
-	void process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, int batchSize_, int savedEnginePid_);
+	void process(int procid_, bool loadImage_, int testid_, sDS* ds_, int batchSize_, int savedEnginePid_);
 
 	//-- these are needed to save trmin/max for each training feature
-	sDataSet* trainDS;
+	sDS* trainDS;
 	//-- these are needed to load trmin/max for each training feature
 	int sourceTSCnt;
 	int* TSfeaturesCnt;
 	int** TSfeature;
 	numtype** TStrMin;
 	numtype** TStrMax;
-	//--
-	void mallocTSinfo();
-	void freeTSinfo();
 
 };

@@ -1,7 +1,8 @@
 #pragma once
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
-#include "../DataMgr/sDataSet.h"
+#include "../Algebra/Algebra.h"
+#include "../DataMgr/sDS.h"
 #include "sCoreLayout.h"
 #include "sCoreParms.h"
 #include "sCoreLogger.h"
@@ -11,7 +12,8 @@
 struct sCoreProcArgs {
 	//-- common across train and infer
 	std::exception_ptr excp;
-	sDataSet* ds;
+	sDS* ds;
+	int batchCnt;
 	int batchSize;
 	int pid;
 	int tid;
@@ -31,9 +33,6 @@ struct sCoreProcArgs {
 };
 
 struct sCore : sCfgObj {
-
-	int _batchCnt;
-	int _batchSize;
 
 	sCoreParms* parms;
 	sCoreLayout* layout;

@@ -41,7 +41,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- training cycle core
 		timer->start();
 		//-- do training (also populates datasets)
-		safecall(engine, train, simulationId_, trainDS);
+//		safecall(engine, train, simulationId_, trainDS, 10);
 
 		//-- persist MSE logs
 		safecall(engine, saveMSE);
@@ -52,7 +52,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, saveInfo);
 
 		//-- do infer on training data, without reloading engine
-		safecall(engine, infer, simulationId_, trainDS, pid, false);
+//		safecall(engine, infer, simulationId_, trainDS, pid, false);
 		//-- persist Run logs
 		safecall(engine, saveRun);
 
@@ -114,7 +114,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- core infer cycle
 		timer->start();
 		//-- do inference (also populates datasets)
-		safecall(engine, infer, simulationId_, inferDS, savedEnginePid_);
+//		safecall(engine, infer, simulationId_, inferDS, 1, savedEnginePid_);
 		//-- persist Run logs
 		safecall(engine, saveRun);
 		//-- ommit engine persistor data
@@ -162,19 +162,33 @@ void sRoot::kaz() {
 
 	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/10/ts0.xml");
 	sTS* tsActual; safespawn(tsActual, newsname("tsActual"), defaultdbg, tsCfg, "/");
-	tsActual->dump();
+	//tsActual->dump();
 //	tsActual->untransform();
 //	tsActual->dump();
 
 	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/10/ds0.xml");
 	sDS* ds0; safespawn(ds0, newsname("ds0"), defaultdbg, dsCfg, "/");
-	ds0->dump();
+	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
+	ds0->target2prediction(); ds1->target2prediction();
+	ds0->dump(); ds1->dump();
+	sDS* ds[2]; ds[0]=ds0; ds[1]=ds1;
+	sDS* ds2; safespawn(ds2, newsname("ds2"), defaultdbg, 2, ds);
+	ds2->dump();
+	return;
 //	ds0->scale(-1, 1);
 //	ds0->dump();
 //	ds0->unscale();
 //	ds0->dump();
-	ds0->getSeq(TARGET, tsActual->val);
-	tsActual->dump();
+//	ds0->getSeq(TARGET, tsActual->val);
+//	tsActual->dump();
+
+	//--
+	sDataShape* engshape; safespawn(engshape, newsname("EngineShape"), defaultdbg, ds0->sampleLen, ds0->targetLen, ds0->featuresCnt);
+	//--
+	sCfg* engCfg; safespawn(engCfg, newsname("engCfg"), defaultdbg, "Config/10/Engine1.xml");
+	int engpid=GetCurrentProcessId();
+	sEngine* eng1; safespawn(eng1, newsname("SixCoresEngine"), defaultdbg, engCfg, "/Engine", engshape, engpid);
+	eng1->train(1, ds0, 20);
 
 	return;
 
@@ -569,7 +583,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	mtDataSet->build(ACTUAL, BASE);
 	
 	//-- do inference (also populates datasets)
-	safecall(MT4engine, infer, MT4accountId, mtDataSet, MT4enginePid);
+//	safecall(MT4engine, infer, MT4accountId, mtDataSet, 1, MT4enginePid);
 
 	//-- forecast is now in the last <predictionLen> steps of mtTimeSerie
 	for (int serie=0; serie<seriesCnt_; serie++) {

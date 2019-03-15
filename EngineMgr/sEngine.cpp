@@ -1,20 +1,5 @@
 #include "sEngine.h"
 
-void sEngine::mallocTSinfo() {
-	TSfeaturesCnt=(int*)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(int));
-	TSfeature=(int**)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(int*)); for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) TSfeature[ts]=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
-	TStrMin=(numtype**)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(numtype*)); for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) TStrMin[ts]=(numtype*)malloc(MAX_DATA_FEATURES*sizeof(numtype));
-	TStrMax=(numtype**)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(numtype*)); for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) TStrMax[ts]=(numtype*)malloc(MAX_DATA_FEATURES*sizeof(numtype));
-}
-void sEngine::freeTSinfo() {
-	for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) {
-		free(TSfeature[ts]); 
-		free(TStrMin[ts]); 
-		free(TStrMax[ts]);
-	}
-	free(TSfeature); free(TStrMin); free(TStrMax); free(TSfeaturesCnt);
-}
-
 //-- Engine stuff
 sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	
@@ -37,7 +22,7 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	int** coreParent=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParent[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	int** coreParentConnType=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParentConnType[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	//--
-	mallocTSinfo();
+//	mallocTSinfo();
 
 	//-- 3. load info from FROM persistor
 	int typeUNUSED;
@@ -92,7 +77,7 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(
 		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Core%d/Layout", c))->base, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt);
 	}
 	//--
-	mallocTSinfo();
+//	mallocTSinfo();
 
 	//-- common to all constructors. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
 	setLayerProps();
@@ -107,7 +92,7 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(
 sEngine::~sEngine() {
 	free(core); free(coreLayout); free(coreParms);
 	free(layerCoresCnt);
-	freeTSinfo();
+//	freeTSinfo();
 }
 
 void sEngine::spawnCoresFromXML() {
@@ -236,30 +221,10 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 	return 1;
 }
 
-void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, int batchSize_, int savedEnginePid_) {
+void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int batchSize_, int savedEnginePid_) {
 
-	//-- spawn sample/target/prediction DSs for each core
-	sDataSet** parentDS;
-	sDataSet** coreDS=(sDataSet**)malloc(coresCnt*sizeof(sDataSet*));
-	for (int l=0; l<layersCnt; l++) {
-		for (int c=0; c<coresCnt; c++) {
-			if (coreLayout[c]->layer==l) {
-				if (l==0) {
-					coreDS[c]=ds_;
-				} else {
-					parentDS=(sDataSet**)malloc(coreLayout[c]->parentsCnt*sizeof(sDataSet*));
-					//--
-					for (int p=0; p<coreLayout[c]->parentsCnt; p++) {
-						parentDS[p]=coreDS[coreLayout[c]->parentId[p]];
-					}
-					safespawn(coreDS[c], newsname("Core_%d-%d_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDS);
-					//--
-					free(parentDS);
-				}
-			}
-		}
-	}
-	//-- 
+	sDS** parentDS;
+	sDS** coreDS=(sDS**)malloc(coresCnt*sizeof(sDS*));
 
 	int t;
 	int ret = 0;
@@ -274,7 +239,7 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 		
 		//-- initialize layer-level structures
 		procArgs=(sEngineProcArgs**)malloc(threadsCnt*sizeof(sEngineProcArgs*));
-		//ds = (void**)malloc(threadsCnt*sizeof(sDataSet*));	
+		//ds = (void**)malloc(threadsCnt*sizeof(sDS*));	
 		procH = (HANDLE*)malloc(threadsCnt*sizeof(HANDLE));
 		DWORD* kaz = (DWORD*)malloc(threadsCnt*sizeof(DWORD));
 		LPDWORD* tid = (LPDWORD*)malloc(threadsCnt*sizeof(LPDWORD)); 
@@ -290,10 +255,23 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
 
+
+				//-- create dataset for core
+				if (l==0) {
+					safespawn(coreDS[c], newsname("Core_%d-%d_Dataset", l, c), defaultdbg, ds_);
+				} else {
+					parentDS=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
+					for (int p=0; p<coreLayout[c]->parentsCnt; p++)	parentDS[p]=coreDS[coreLayout[c]->parentId[p]];
+					safespawn(coreDS[c], newsname("Core_%d-%d_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDS);
+					if (coreDS[c]->doDump) coreDS[c]->dump();
+					//--
+					free(parentDS);
+				}
+
+
 				//-- scale trdata and rebuild training DataSet for current Core
-				for(int t=0; t<coreDS[c]->sourceTScnt; t++) safecall(coreDS[c]->sourceTS[t], scale, ACTUAL, TR, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
-				safecall(coreDS[c], build, ACTUAL, TRS);
-				coreDS[c]->dump();
+				safecall(coreDS[c], scale, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+				if(coreDS[c]->doDump) coreDS[c]->dump();
 
 				//-- Create Training or Infer Thread for current Core
 				procArgs[t]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
@@ -335,22 +313,22 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 		free(procArgs); free(procH); free(kaz); free(tid);
 	}
 }
-void sEngine::train(int testid_, sDataSet* trainDS_) {
+void sEngine::train(int testid_, sDS* trainDS_, int batchSize_) {
 
 	//-- needed to set trmin/max for each training feature
 	trainDS=trainDS_;
 
-	safecall(this, process, trainProc, false, testid_, trainDS_, trainDS_->batchSamplesCnt, 0);
+	safecall(this, process, trainProc, false, testid_, trainDS_, batchSize_, 0);
 }
-void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool reTransform) {
+void sEngine::infer(int testid_, sDS* inferDS_, int batchSize_, int savedEnginePid_, bool reTransform) {
 
 	//-- consistency checks: sampleLen/predictionLen/featuresCnt must be the same in inferDS and engine
-	if (inferDS_->shape->sampleLen!=shape->sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS_->shape->sampleLen, shape->sampleLen);
-	if (inferDS_->shape->predictionLen!=shape->predictionLen) fail("Infer DataSet Prediction Length (%d) differs from Engine's (%d)", inferDS_->shape->predictionLen, shape->predictionLen);
-	if (inferDS_->shape->featuresCnt!=shape->featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_->shape->featuresCnt, shape->featuresCnt);
+	if (inferDS_->sampleLen!=shape->sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS_->sampleLen, shape->sampleLen);
+	if (inferDS_->targetLen!=shape->predictionLen) fail("Infer DataSet Prediction Length (%d) differs from Engine's (%d)", inferDS_->targetLen, shape->predictionLen);
+	if (inferDS_->featuresCnt!=shape->featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_->featuresCnt, shape->featuresCnt);
 
 	//-- re-transform inferDS using trMin/Max loaded
-	if (reTransform) {
+/*	if (reTransform) {
 		for (int ts=0; ts<inferDS_->sourceTScnt; ts++) {
 			for (int tsf=0; tsf<inferDS_->sourceTS[ts]->featuresCnt; tsf++) {
 				for (int selF=0; selF<inferDS_->selectedTSfeaturesCnt[ts]; selF++) {
@@ -363,11 +341,12 @@ void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool r
 			}
 		}
 	}
+	*/
 	//-- call infer
 	safecall(this, process, inferProc, reTransform, testid_, inferDS_, 1, savedEnginePid_);
 
 	//-- unscale, untransform, then save results
-	sDataSet* _ds;
+/*	sDS* _ds;
 	sTimeSerie* _ts;
 	int layer;
 	for (int c=0; c<coresCnt; c++) {
@@ -390,7 +369,7 @@ void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool r
 			if (_ts->doDump) _ts->dump(PREDICTED, BASE);
 		}
 	}
-
+*/
 }
 
 void sEngine::saveMSE() {
@@ -406,7 +385,7 @@ void sEngine::saveCoreImages(int epoch) {
 }
 void sEngine::saveRun() {
 
-	sDataSet* _ds;
+/*	sDS* _ds;
 	sTimeSerie* _ts;
 	int layer;
 	int runStepsCnt;
@@ -428,6 +407,7 @@ void sEngine::saveRun() {
 			}
 		}
 	}
+	*/
 }
 void sEngine::commit() {
 	for (int c=0; c<coresCnt; c++) {
@@ -463,7 +443,7 @@ void sEngine::saveInfo() {
 	}
 
 	//-- save trMin/Max for every selected feature in every TS
-	for (int ts=0; ts<trainDS->sourceTScnt; ts++) {
+/*	for (int ts=0; ts<trainDS->sourceTScnt; ts++) {
 		for (int tsf=0; tsf<trainDS->sourceTS[ts]->featuresCnt; tsf++) {
 			for (int selF=0; selF<trainDS->selectedTSfeaturesCnt[ts]; selF++) {
 				if (trainDS->selectedTSfeature[ts][selF]==tsf) {
@@ -478,7 +458,7 @@ void sEngine::saveInfo() {
 	safecall(persistor, saveEngineInfo, clientPid, -1, shape->sampleLen, shape->predictionLen, shape->featuresCnt, coresCnt, persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
 		coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_, \
 		trainDS->sourceTScnt, trainDS->selectedTSfeaturesCnt, trainDS->selectedTSfeature, TStrMin, TStrMax);
-
+*/
 	//-- free temps
 	for (int c=0; c<coresCnt; c++) {
 		free(coreParent_[c]); free(parentConnType_[c]);

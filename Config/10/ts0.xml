@@ -1,12 +1,12 @@
-HistoryLen			= 30
+HistoryLen			= 3042
 Date0				= 2018-05-30-00:00
 DataTransformation	= DT_DELTA
 Dump				= false
 DumpPath			= c:\temp\DataDump
-DataSourcesCount		= 1
+DataSourcesCount		= 3
 <DataSource0>
 	<! FXDB-EurUsdH1.xml >
-	SelectedFeatures = FXOPEN
+	SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
 </DataSource0>
 <DataSource1>
 	<! FXDB-SpxH1.xml >
