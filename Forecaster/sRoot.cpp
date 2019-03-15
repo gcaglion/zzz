@@ -169,11 +169,11 @@ void sRoot::kaz() {
 	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/10/ds0.xml");
 	sDS* ds0; safespawn(ds0, newsname("ds0"), defaultdbg, dsCfg, "/");
 	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
-	ds0->target2prediction(); ds1->target2prediction();
-	ds0->dump(); ds1->dump();
-	sDS* ds[2]; ds[0]=ds0; ds[1]=ds1;
-	sDS* ds2; safespawn(ds2, newsname("ds2"), defaultdbg, 2, ds);
-	ds2->dump();
+//	ds0->target2prediction(); ds1->target2prediction();
+//	ds0->dump(); ds1->dump();
+//	sDS* ds[2]; ds[0]=ds0; ds[1]=ds1;
+//	sDS* ds2; safespawn(ds2, newsname("ds2"), defaultdbg, 2, ds);
+//	ds2->dump();
 //	return;
 //	ds0->scale(-1, 1);
 //	ds0->dump();

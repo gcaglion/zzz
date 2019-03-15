@@ -210,6 +210,7 @@ DWORD coreThreadTrain(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
 	try {
 		args->core->train(args->coreProcArgs);
+		args->core->infer(args->coreProcArgs);
 	} catch (...) {
 		args->coreProcArgs->excp=current_exception();
 	}
@@ -217,7 +218,12 @@ DWORD coreThreadTrain(LPVOID vargs_) {
 }
 DWORD coreThreadInfer(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
-	args->core->infer(args->coreProcArgs);
+	try {
+		args->core->infer(args->coreProcArgs);
+	}
+	catch (...) {
+		args->coreProcArgs->excp=current_exception();
+	}
 	return 1;
 }
 
@@ -265,7 +271,6 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int b
 					parentDS=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
 					for (int p=0; p<coreLayout[c]->parentsCnt; p++)	parentDS[p]=coreDS[coreLayout[c]->parentId[p]];
 					safespawn(coreDS[c], newsname("Core_%d-%d_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDS);
-					if (coreDS[c]->doDump) coreDS[c]->dump();
 					//--
 					free(parentDS);
 				}
