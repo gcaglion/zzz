@@ -185,13 +185,12 @@ void sDS::dump() {
 	FILE* dumpFile=nullptr;
 	dumpPre(&dumpFile);
 
-	int dsidxS=0, tsidxS=0, dsidxT=0, tsidxT=0;
+	int dsidxS=0, dsidxT=0, dsidxP=0;
 	for (int sample=0; sample<samplesCnt; sample++) {
 		//-- sample
 		fprintf(dumpFile, "%d,", sample);
 		for (int bar=0; bar<sampleLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
-				tsidxS=(sample+bar)*featuresCnt+f;
 				fprintf(dumpFile, "%f,", sampleSBF[dsidxS]);
 				dsidxS++;
 			}
@@ -200,21 +199,16 @@ void sDS::dump() {
 		//-- target
 		for (int bar=0; bar<targetLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
-				tsidxT=(sample+bar)*featuresCnt+f;
-				tsidxT+=featuresCnt*sampleLen;
 				fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
 				dsidxT++;
 			}
 		}
 		fprintf(dumpFile, "|,");
 		//-- prediction
-		dsidxT=0;
 		for (int bar=0; bar<targetLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
-				tsidxT=(sample+bar)*featuresCnt+f;
-				tsidxT+=featuresCnt*sampleLen;
-				fprintf(dumpFile, "%f,", predictionSBF[dsidxT]);
-				dsidxT++;
+				fprintf(dumpFile, "%f,", predictionSBF[dsidxP]);
+				dsidxP++;
 			}
 		}
 		fprintf(dumpFile, "\n");
@@ -375,6 +369,7 @@ void sDS::target2prediction() {
 		for (int b=0; b<targetLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
 				predictionSBF[i]=targetSBF[i];
+				i++;
 			}
 		}
 	}
