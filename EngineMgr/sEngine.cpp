@@ -240,6 +240,7 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int b
 	int lsl0=0;
 
 	system("cls");
+
 	for (int l=0; l<layersCnt; l++) {
 		
 		threadsCnt=layerCoresCnt[l];
@@ -267,6 +268,7 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int b
 				//-- create dataset for core
 				if (l==0) {
 					safespawn(coreDS[c], newsname("Core_%d-%d_Dataset", l, c), defaultdbg, ds_);
+					safecall(coreDS[c], scale, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 				} else {
 					parentDS=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
 					for (int p=0; p<coreLayout[c]->parentsCnt; p++)	parentDS[p]=coreDS[coreLayout[c]->parentId[p]];
@@ -274,20 +276,23 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int b
 					//--
 					free(parentDS);
 				}
-
-
-				//-- scale trdata and rebuild training DataSet for current Core
-				safecall(coreDS[c], scale, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 				if(coreDS[c]->doDump) coreDS[c]->dump();
 
 				//-- Create Training or Infer Thread for current Core
 				procArgs[t]->coreProcArgs->screenLine = lsl0+1+t;
 				procArgs[t]->core=core[c];
 				procArgs[t]->coreProcArgs->ds = coreDS[c];
-				procArgs[t]->coreProcArgs->batchSize=batchSize_;
 				procArgs[t]->coreProcArgs->loadImage=loadImage_;
 				procArgs[t]->coreProcArgs->npid=savedEnginePid_;
 				procArgs[t]->coreProcArgs->ntid=coreLayout[c]->tid;
+
+				//-- set batchCnt
+				procArgs[t]->coreProcArgs->batchSize=batchSize_;
+				if ((procArgs[t]->coreProcArgs->ds->samplesCnt%batchSize_)!=0) {
+					fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", procArgs[t]->coreProcArgs->ds->samplesCnt, batchSize_)
+				} else {
+					procArgs[t]->coreProcArgs->batchCnt = procArgs[t]->coreProcArgs->ds->samplesCnt/batchSize_;
+				}
 
 				if (procid_==trainProc) {
 					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadTrain, &(*procArgs[t]), 0, tid[t]);

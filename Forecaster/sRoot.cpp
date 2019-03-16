@@ -168,7 +168,7 @@ void sRoot::kaz() {
 
 	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/10/ds0.xml");
 	sDS* ds0; safespawn(ds0, newsname("ds0"), defaultdbg, dsCfg, "/");
-	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
+//	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
 //	ds0->target2prediction(); ds1->target2prediction();
 //	ds0->dump(); ds1->dump();
 //	sDS* ds[2]; ds[0]=ds0; ds[1]=ds1;
@@ -188,7 +188,7 @@ void sRoot::kaz() {
 	sCfg* engCfg; safespawn(engCfg, newsname("engCfg"), defaultdbg, "Config/10/Engine1.xml");
 	int engpid=GetCurrentProcessId();
 	sEngine* eng1; safespawn(eng1, newsname("SixCoresEngine"), defaultdbg, engCfg, "/Engine", engshape, engpid);
-	eng1->train(1, ds0, 20);
+	eng1->train(1, ds0, 10);
 
 	return;
 

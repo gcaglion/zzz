@@ -443,8 +443,6 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	tid=trainArgs->tid;
 	testid=trainArgs->testid;
 
-	//-- set private procArgs->batchCnt and procArgs->batchSize for the network from dataset
-	procArgs->batchCnt=(int)floor(trainArgs->ds->samplesCnt/trainArgs->batchSize);
 	//-- set Layout. This should not change weightsCnt[] at all, just nodesCnt[]
 	setLayout(trainArgs->batchSize);
 

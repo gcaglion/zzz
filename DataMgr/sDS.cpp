@@ -78,7 +78,10 @@ sDS::sDS(sObjParmsDef, sDS* copyFromDS_) : sCfgObj(sObjParmsVal, nullptr, nullpt
 	trmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	trmax=(numtype*)malloc(featuresCnt*sizeof(numtype));
 
-	//-- copy sample SBF from original DS
+	memcpy_s(sampleSBF, samplesCnt*sampleLen*featuresCnt*sizeof(numtype), copyFromDS_->sampleSBF, samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	memcpy_s(targetSBF, samplesCnt*targetLen*featuresCnt*sizeof(numtype), copyFromDS_->targetSBF, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+
+	/*	//-- copy sample SBF from original DS
 	int sbfi=0; int i=0;
 	for (int s=0; s<samplesCnt; s++) {
 		for (int b=0; b<targetLen; b++) {
@@ -99,7 +102,7 @@ sDS::sDS(sObjParmsDef, sDS* copyFromDS_) : sCfgObj(sObjParmsVal, nullptr, nullpt
 			}
 		}
 	}
-
+*/
 	//-- copy trmin/max from ts
 	int f=0;
 	for (int df=0; df<featuresCnt; df++) {

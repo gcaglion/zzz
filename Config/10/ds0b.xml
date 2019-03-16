@@ -1,20 +1,20 @@
-	SampleLen	= 50
+	SampleLen	= 10
 	TargetLen	= 3
 	
-	Dump		= false
+	Dump		= true
 	DumpPath	= c:\temp\DataDump
 	
 	<TimeSerie>
-		HistoryLen			= 10002
+		HistoryLen			= 30
 		Date0				= 2018-05-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
 
-		DataSourcesCount		= 3
+		DataSourcesCount		= 1
 		<DataSource0>
 			<! FXDB-EurUsdH1.xml >
-			SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
+			SelectedFeatures = FXOPEN
 		</DataSource0>
 		<DataSource1>
 			<! FXDB-SpxH1.xml >
