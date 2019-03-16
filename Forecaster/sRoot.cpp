@@ -188,7 +188,7 @@ void sRoot::kaz() {
 	sCfg* engCfg; safespawn(engCfg, newsname("engCfg"), defaultdbg, "Config/10/Engine1.xml");
 	int engpid=GetCurrentProcessId();
 	sEngine* eng1; safespawn(eng1, newsname("SixCoresEngine"), defaultdbg, engCfg, "/Engine", engshape, engpid);
-	eng1->train(1, ds0, 10);
+	eng1->train(1, ds0);
 
 	return;
 

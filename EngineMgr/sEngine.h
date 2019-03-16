@@ -34,8 +34,8 @@ struct sEngine : sCfgObj {
 	EXPORT sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_);
 	EXPORT ~sEngine();
 
-	EXPORT void train(int testid_, sDS* trainDS_, int batchSize_);
-	EXPORT void infer(int testid_, sDS* inferDS_, int batchSize_, int savedEnginePid_, bool reTransform=true);
+	EXPORT void train(int testid_, sDS* trainDS_);
+	EXPORT void infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTransform=true);
 	//--
 	EXPORT void saveMSE();
 	EXPORT void saveRun();
@@ -56,7 +56,7 @@ private:
 	void setLayerProps();
 	const int trainProc = 0;
 	const int inferProc = 1;
-	void process(int procid_, bool loadImage_, int testid_, sDS* ds_, int batchSize_, int savedEnginePid_);
+	void process(int procid_, bool loadImage_, int testid_, sDS* ds_, int savedEnginePid_);
 
 	//-- these are needed to save trmin/max for each training feature
 	sDS* trainDS;

@@ -4,13 +4,9 @@
 
 <Client>
 
-	<ParmsCombinations>
-		# TO DO (v. TesterMulti)
-	</ParmsCombinations>
-
 	saveClient	= true
 
-		<Persistor>
+	<Persistor>
 		readFrom		= OraData
 		saveToDB		= true
 		saveToFile		= false
@@ -21,7 +17,7 @@
 			ConnString	= Algo
 		</OraData>
 	</Persistor>
-	
+
 	<MetaTrader>
 		ChartsCount 	= 1
 		<Chart0>

@@ -4,6 +4,7 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	safecall(cfgKey, getParm, &sampleLen, "SampleLen");
 	safecall(cfgKey, getParm, &targetLen, "TargetLen");
+	safecall(cfgKey, getParm, &batchSize, "BatchSize");
 	//--
 	safecall(cfgKey, getParm, &doDump, "Dump");
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
@@ -63,6 +64,7 @@ sDS::sDS(sObjParmsDef, sDS* copyFromDS_) : sCfgObj(sObjParmsVal, nullptr, nullpt
 	targetLen=copyFromDS_->targetLen;
 	featuresCnt=copyFromDS_->featuresCnt;
 	samplesCnt=copyFromDS_->samplesCnt;
+	batchSize=copyFromDS_->batchSize;
 	doDump=copyFromDS_->doDump;
 	strcpy_s(dumpPath, MAX_PATH, copyFromDS_->dumpPath);
 
@@ -111,7 +113,6 @@ sDS::sDS(sObjParmsDef, sDS* copyFromDS_) : sCfgObj(sObjParmsVal, nullptr, nullpt
 		f++;
 	}
 }
-
 sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 
 	//-- sampleLen
@@ -121,6 +122,7 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 	targetLen=parentDS_[0]->targetLen;
 	featuresCnt=parentDS_[0]->featuresCnt;
 	samplesCnt=parentDS_[0]->samplesCnt;
+	batchSize=parentDS_[0]->batchSize;
 	doDump=parentDS_[0]->doDump;
 	strcpy_s(dumpPath, MAX_PATH, parentDS_[0]->dumpPath);
 

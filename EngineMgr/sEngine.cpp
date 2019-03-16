@@ -227,7 +227,7 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 	return 1;
 }
 
-void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int batchSize_, int savedEnginePid_) {
+void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int savedEnginePid_) {
 
 	sDS** parentDS;
 	sDS** coreDS=(sDS**)malloc(coresCnt*sizeof(sDS*));
@@ -287,11 +287,11 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int b
 				procArgs[t]->coreProcArgs->ntid=coreLayout[c]->tid;
 
 				//-- set batchCnt
-				procArgs[t]->coreProcArgs->batchSize=batchSize_;
-				if ((procArgs[t]->coreProcArgs->ds->samplesCnt%batchSize_)!=0) {
-					fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", procArgs[t]->coreProcArgs->ds->samplesCnt, batchSize_)
+				procArgs[t]->coreProcArgs->batchSize=procArgs[t]->coreProcArgs->ds->batchSize;
+				if ((procArgs[t]->coreProcArgs->ds->samplesCnt%procArgs[t]->coreProcArgs->ds->batchSize)!=0) {
+					fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", procArgs[t]->coreProcArgs->ds->samplesCnt, procArgs[t]->coreProcArgs->ds->batchSize)
 				} else {
-					procArgs[t]->coreProcArgs->batchCnt = procArgs[t]->coreProcArgs->ds->samplesCnt/batchSize_;
+					procArgs[t]->coreProcArgs->batchCnt = procArgs[t]->coreProcArgs->ds->samplesCnt/procArgs[t]->coreProcArgs->ds->batchSize;
 				}
 
 				if (procid_==trainProc) {
@@ -325,14 +325,14 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int b
 		free(procArgs); free(procH); free(kaz); free(tid);
 	}
 }
-void sEngine::train(int testid_, sDS* trainDS_, int batchSize_) {
+void sEngine::train(int testid_, sDS* trainDS_) {
 
 	//-- needed to set trmin/max for each training feature
 	trainDS=trainDS_;
 
-	safecall(this, process, trainProc, false, testid_, trainDS_, batchSize_, 0);
+	safecall(this, process, trainProc, false, testid_, trainDS_, 0);
 }
-void sEngine::infer(int testid_, sDS* inferDS_, int batchSize_, int savedEnginePid_, bool reTransform) {
+void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTransform) {
 
 	//-- consistency checks: sampleLen/predictionLen/featuresCnt must be the same in inferDS and engine
 	if (inferDS_->sampleLen!=shape->sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS_->sampleLen, shape->sampleLen);
@@ -353,9 +353,9 @@ void sEngine::infer(int testid_, sDS* inferDS_, int batchSize_, int savedEngineP
 			}
 		}
 	}
-	*/
+*/	
 	//-- call infer
-	safecall(this, process, inferProc, reTransform, testid_, inferDS_, 1, savedEnginePid_);
+	safecall(this, process, inferProc, reTransform, testid_, inferDS_, savedEnginePid_);
 
 	//-- unscale, untransform, then save results
 /*	sDS* _ds;

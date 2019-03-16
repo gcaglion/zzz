@@ -12,6 +12,7 @@ struct sDS : sCfgObj {
 	int targetLen;
 	int featuresCnt;
 	int samplesCnt;
+	int batchSize;
 
 	bool doDump;
 	char dumpPath[MAX_PATH];
