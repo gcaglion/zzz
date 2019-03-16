@@ -162,15 +162,16 @@ void sRoot::kaz() {
 
 	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/10/ts0.xml");
 	sTS* tsActual; safespawn(tsActual, newsname("tsActual"), defaultdbg, tsCfg, "/");
-	//tsActual->dump();
+	tsActual->dump();
 //	tsActual->untransform();
 //	tsActual->dump();
 
-	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/10/ds0.xml");
+	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/10/ds0b.xml");
 	sDS* ds0; safespawn(ds0, newsname("ds0"), defaultdbg, dsCfg, "/");
 //	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
 //	ds0->target2prediction(); ds1->target2prediction();
-//	ds0->dump(); ds1->dump();
+	ds0->dump(); 
+//	ds1->dump();
 //	sDS* ds[2]; ds[0]=ds0; ds[1]=ds1;
 //	sDS* ds2; safespawn(ds2, newsname("ds2"), defaultdbg, 2, ds);
 //	ds2->dump();
@@ -179,8 +180,12 @@ void sRoot::kaz() {
 //	ds0->dump();
 //	ds0->unscale();
 //	ds0->dump();
-//	ds0->getSeq(TARGET, tsActual->val);
-//	tsActual->dump();
+
+//	int seqLen=ds0->samplesCnt+ds0->sampleLen+ds0->targetLen-1;
+//	numtype* trgSeq=(numtype*)malloc(seqLen*sizeof(numtype));
+//	ds0->getSeq(TARGET, trgSeq);
+//	dumpArrayH(seqLen, trgSeq, "C:/temp/dataDump/trgSeq.csv");
+//	return;
 
 	//--
 	sDataShape* engshape; safespawn(engshape, newsname("EngineShape"), defaultdbg, ds0->sampleLen, ds0->targetLen, ds0->featuresCnt);
@@ -189,6 +194,7 @@ void sRoot::kaz() {
 	int engpid=GetCurrentProcessId();
 	sEngine* eng1; safespawn(eng1, newsname("SixCoresEngine"), defaultdbg, engCfg, "/Engine", engshape, engpid);
 	eng1->train(1, ds0);
+	eng1->infer(1, ds0, engpid, false);
 
 	return;
 

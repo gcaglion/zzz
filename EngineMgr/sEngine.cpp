@@ -210,7 +210,7 @@ DWORD coreThreadTrain(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
 	try {
 		args->core->train(args->coreProcArgs);
-		args->core->infer(args->coreProcArgs);
+		//args->core->infer(args->coreProcArgs);
 	} catch (...) {
 		args->coreProcArgs->excp=current_exception();
 	}
@@ -247,7 +247,6 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int s
 		
 		//-- initialize layer-level structures
 		procArgs=(sEngineProcArgs**)malloc(threadsCnt*sizeof(sEngineProcArgs*));
-		//ds = (void**)malloc(threadsCnt*sizeof(sDS*));	
 		procH = (HANDLE*)malloc(threadsCnt*sizeof(HANDLE));
 		DWORD* kaz = (DWORD*)malloc(threadsCnt*sizeof(DWORD));
 		LPDWORD* tid = (LPDWORD*)malloc(threadsCnt*sizeof(LPDWORD)); 
@@ -356,6 +355,23 @@ void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTran
 */	
 	//-- call infer
 	safecall(this, process, inferProc, reTransform, testid_, inferDS_, savedEnginePid_);
+
+	sDS* _ds;
+	int seqLen;
+	numtype* trgSeq; numtype* prdSeq;
+	int c=0;	//for (int c=0; c<coresCnt; c++) {
+		_ds=core[c]->procArgs->ds;
+		_ds->unscale();
+		seqLen =_ds->samplesCnt+_ds->sampleLen+_ds->targetLen-1;
+		trgSeq=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		prdSeq=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		_ds->getSeq(TARGET, trgSeq);
+		_ds->getSeq(PREDICTION, prdSeq);
+		dumpArrayH(seqLen, trgSeq, "C:/temp/dataDump/trgSeq.csv");
+		dumpArrayH(seqLen, prdSeq, "C:/temp/dataDump/prdSeq.csv");
+
+		free(trgSeq); free(prdSeq);
+	//}
 
 	//-- unscale, untransform, then save results
 /*	sDS* _ds;

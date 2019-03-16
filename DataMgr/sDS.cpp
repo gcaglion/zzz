@@ -12,6 +12,7 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &_dumpPath, "DumpPath", true);
 	//--
 	sTS* _ts; safespawn(_ts, newsname("%s_TimeSerie", name->base), defaultdbg, cfg, "TimeSerie");
+	if (_ts->doDump) _ts->dump();
 
 	featuresCnt=_ts->featuresCnt;
 	samplesCnt=_ts->stepsCnt-sampleLen-targetLen+1;
@@ -296,25 +297,28 @@ void sDS::unscale() {
 
 void sDS::getSeq(int trg_vs_prd, numtype* oVal) {
 	int si=0, ti=0;
+
+	for (int b=0; b<sampleLen; b++) {
+		for (int f=0; f<featuresCnt; f++) {
+			si=b*featuresCnt+f;
+			oVal[ti]=sampleSBF[si];
+			ti++;
+		}
+	}
+	
 	for (int s=0; s<samplesCnt; s++) {
 		for (int f=0; f<featuresCnt; f++) {
-			si=s*sampleLen*featuresCnt+f;
-			ti=s*featuresCnt+f;
-			oVal[ti]=sampleSBF[si];
+			si=s*targetLen*featuresCnt+f;
+			oVal[ti]=(trg_vs_prd==TARGET) ? targetSBF[si] : predictionSBF[si];
+			ti++;
 		}
 	}
-	for (int b=1; b<sampleLen; b++) {
-		for (int f=0; f<featuresCnt; f++) {
-			si=(samplesCnt-1)*sampleLen*featuresCnt+b*featuresCnt+f;
-			ti=(samplesCnt-1+b)*featuresCnt+f;
-			oVal[ti]=sampleSBF[si];
-		}
-	}
-	for (int b=0; b<targetLen; b++) {
+
+	for (int b=1; b<targetLen; b++) {
 		for (int f=0; f<featuresCnt; f++) {
 			si=(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f;
-			ti=(samplesCnt-1+sampleLen+b)*featuresCnt+f;
 			oVal[ti]=(trg_vs_prd==TARGET) ? targetSBF[si] : predictionSBF[si];
+			ti++;
 		}
 	}
 }
