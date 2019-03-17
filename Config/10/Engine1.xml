@@ -1,5 +1,5 @@
 <Engine>
-	CoresCount	= 6
+	CoresCount	= 1
 	<Core0>
 		<Layout>
 			Type	= CORE_NN

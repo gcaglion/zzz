@@ -1,8 +1,8 @@
 	SampleLen	= 10
 	TargetLen	= 3
-	BatchSize	= 1
+	BatchSize	= 10
 	
-	Dump		= true
+	Dump		= false
 	DumpPath	= c:\temp\DataDump
 	
 	<TimeSerie>

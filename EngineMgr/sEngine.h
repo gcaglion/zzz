@@ -60,11 +60,7 @@ private:
 
 	//-- these are needed to save trmin/max for each training feature
 	sDS* trainDS;
-	//-- these are needed to load trmin/max for each training feature
-	int sourceTSCnt;
-	int* TSfeaturesCnt;
-	int** TSfeature;
-	numtype** TStrMin;
-	numtype** TStrMax;
+	numtype* DStrMin; numtype* DStrMax;
+
 
 };

@@ -1,5 +1,13 @@
-		HistoryLen			= 1002
-		Date0				= 2018-05-30-00:00
+	SampleLen	= 10
+	TargetLen	= 3
+	BatchSize	= 10
+	
+	Dump		= false
+	DumpPath	= c:\temp\DataDump
+	
+	<TimeSerie>
+		HistoryLen			= 52
+		Date0				= 2018-06-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
@@ -17,3 +25,4 @@
 			<! FXDB-EtxEurH1.xml >
 			SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
 		</DataSource2>
+	</TimeSerie>

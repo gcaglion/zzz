@@ -141,107 +141,43 @@ void sOraData::saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mse
 	}
 
 }
-void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int runStepsCnt, int tsid_, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted, numtype* barWidth) {
+void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int runStepsCnt, int featuresCnt_, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actualBASE, numtype* predictedBASE) {
 
-	int runCnt=runStepsCnt*selectedFeaturesCnt;
-	int tsidx=0, runidx=0;
+	int runCnt=runStepsCnt*featuresCnt_;
+	int runidx=0;
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
 	try {
-		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, mseR, Pos, PosLabel, Feature, StepAhead, PredictedTRS, ActualTRS, ErrorTRS, PredictedTR, ActualTR, ErrorTR, Predicted, Actual, Error, BarWidth, ErrorP, SourceTSId) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15, :P16, :P17, :P18, :P19, :P20, :P21)");
+		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, mseR, Pos, PosLabel, Feature, ActualTRS, PredictedTRS, ErrorTRS, ActualTR, PredictedTR, ErrorTR, ActualBASE, PredictedBASE, ErrorBASE) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15, :P16, :P17)");
 		((Statement*)stmt)->setMaxIterations(runCnt);
+		for (int step=0; step<runStepsCnt; step++) {
+			for (int f=0; f<featuresCnt_; f++) {
+				((Statement*)stmt)->setInt(1, pid);
+				((Statement*)stmt)->setInt(2, tid);
+				((Statement*)stmt)->setInt(3, npid);
+				((Statement*)stmt)->setInt(4, ntid);
+				((Statement*)stmt)->setFloat(5, mseR);
+				((Statement*)stmt)->setInt(6, step);
+				std::string str(posLabel[step]); ((Statement*)stmt)->setMaxParamSize(7, 64); ((Statement*)stmt)->setString(7, str);
+				((Statement*)stmt)->setInt(8, f);
+				((Statement*)stmt)->setFloat(9, actualTRS[step*featuresCnt_+f]);
+				((Statement*)stmt)->setFloat(10, predictedTRS[step*featuresCnt_+f]);
+				((Statement*)stmt)->setFloat(11, fabs(actualTRS[step*featuresCnt_+f]-predictedTRS[step*featuresCnt_+f]));
+				((Statement*)stmt)->setFloat(12, actualTR[step*featuresCnt_+f]);
+				((Statement*)stmt)->setFloat(13, predictedTR[step*featuresCnt_+f]);
+				((Statement*)stmt)->setFloat(14, fabs(actualTR[step*featuresCnt_+f]-predictedTR[step*featuresCnt_+f]));
+				((Statement*)stmt)->setFloat(15, actualBASE[step*featuresCnt_+f]);
+				((Statement*)stmt)->setFloat(16, predictedBASE[step*featuresCnt_+f]);
+				((Statement*)stmt)->setFloat(17, fabs(actualBASE[step*featuresCnt_+f]-predictedBASE[step*featuresCnt_+f]));
 
-		for (int s=0; s<runStepsCnt; s++) {
-			for (int df=0; df<selectedFeaturesCnt; df++) {
-				for (int tf=0; tf<tsFeaturesCnt_; tf++) {
-					if (selectedFeature[df]==tf) {
-						tsidx = s*tsFeaturesCnt_+tf;
-						((Statement*)stmt)->setInt(1, pid);
-						((Statement*)stmt)->setInt(2, tid);
-						((Statement*)stmt)->setInt(3, npid);
-						((Statement*)stmt)->setInt(4, ntid);
-						((Statement*)stmt)->setFloat(5, mseR);
-						((Statement*)stmt)->setInt(6, s);
-						std::string str(posLabel[s]); ((Statement*)stmt)->setMaxParamSize(7, 64); ((Statement*)stmt)->setString(7, str);
-						((Statement*)stmt)->setInt(8, tf);
-						((Statement*)stmt)->setInt(9, 1);
-
-						//-- for every Actual/Predicted/Error triplet, we need to handle NULL values
-
-						((Statement*)stmt)->setFloat(11, actualTRS[tsidx]); //-- this can never be EMPTY_VALUE
-						if (predictedTRS[tsidx]==EMPTY_VALUE) {
-							((Statement*)stmt)->setNull(10, OCCIFLOAT);
-							((Statement*)stmt)->setNull(12, OCCIFLOAT);
-						} else {
-							((Statement*)stmt)->setFloat(10, predictedTRS[tsidx]);
-							((Statement*)stmt)->setFloat(12, fabs(actualTRS[tsidx]-predictedTRS[tsidx]));
-						}
-						//--
-						((Statement*)stmt)->setFloat(14, actualTR[tsidx]); //-- this can never be EMPTY_VALUE
-						if (predictedTR[tsidx]==EMPTY_VALUE) {
-							((Statement*)stmt)->setNull(13, OCCIFLOAT);
-							((Statement*)stmt)->setNull(15, OCCIFLOAT);
-						} else {
-							((Statement*)stmt)->setFloat(13, predictedTR[tsidx]);
-							((Statement*)stmt)->setFloat(15, fabs(actualTR[tsidx]-predictedTR[tsidx]));
-						}
-						//--
-						((Statement*)stmt)->setFloat(19, barWidth[s]);
-						//--
-						((Statement*)stmt)->setFloat(17, actual[tsidx]); //-- this can never be EMPTY_VALUE
-						if (predicted[tsidx]==EMPTY_VALUE) {
-							((Statement*)stmt)->setNull(16, OCCIFLOAT);
-							((Statement*)stmt)->setNull(18, OCCIFLOAT);
-							((Statement*)stmt)->setNull(20, OCCIFLOAT);
-						} else {
-							((Statement*)stmt)->setFloat(16, predicted[tsidx]);
-							((Statement*)stmt)->setFloat(18, fabs(actual[tsidx]-predicted[tsidx]));
-							if (barWidth[s]==0) {
-								((Statement*)stmt)->setNull(20, OCCIFLOAT);
-							} else {
-								((Statement*)stmt)->setFloat(20, fabs(actual[tsidx]-predicted[tsidx])/barWidth[s]);
-							}
-						}
-						((Statement*)stmt)->setInt(21, tsid_);
-
-						if (runidx<(runCnt-1)) ((Statement*)stmt)->addIteration();
-						runidx++;
-					}
-				}
+				if (runidx<(runCnt-1)) ((Statement*)stmt)->addIteration();
+				runidx++;
 			}
 		}
 		((Statement*)stmt)->executeUpdate();
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
-/*
-		//-- insert spacers (one for every feature)
-		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, Pos, PosLabel, Feature, StepAhead, PredictedTRS, ActualTRS, ErrorTRS, PredictedTR, ActualTR, ErrorTR, Predicted, Actual, Error) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15, :P16, :P17)");
-		((Statement*)stmt)->setMaxIterations(selectedFeaturesCnt);
-		for (int f=0; f<selectedFeaturesCnt; f++) {
-			((Statement*)stmt)->setInt(1, pid);
-			((Statement*)stmt)->setInt(2, tid);
-			((Statement*)stmt)->setInt(3, npid);
-			((Statement*)stmt)->setInt(4, ntid);
-			((Statement*)stmt)->setFloat(5, runStepsCnt-predictionLen-0.5f);
-			((Statement*)stmt)->setMaxParamSize(6, 64); ((Statement*)stmt)->setNull(6, OCCISTRING);
-			((Statement*)stmt)->setInt(7, selectedFeature[f]);
-			((Statement*)stmt)->setInt(8, 1);
-			((Statement*)stmt)->setNull(9, OCCIFLOAT);
-			((Statement*)stmt)->setNull(10, OCCIFLOAT);
-			((Statement*)stmt)->setNull(11, OCCIFLOAT);
-			((Statement*)stmt)->setNull(12, OCCIFLOAT);
-			((Statement*)stmt)->setNull(13, OCCIFLOAT);
-			((Statement*)stmt)->setNull(14, OCCIFLOAT);
-			((Statement*)stmt)->setNull(15, OCCIFLOAT);
-			((Statement*)stmt)->setNull(16, OCCIFLOAT);
-			((Statement*)stmt)->setNull(17, OCCIFLOAT);
-			if (f<(selectedFeaturesCnt-1))((Statement*)stmt)->addIteration();
-		}
-		((Statement*)stmt)->executeUpdate();
-		((Connection*)conn)->terminateStatement((Statement*)stmt);
-*/
-
 	}
 	catch (SQLException ex) {
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
@@ -627,20 +563,18 @@ void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, n
 }
 
 //-- Save/Load engine info
-void sOraData::saveEngineInfo(int pid, int engineType, int sampleLen_, int predictionLen_, int featuresCnt_, int coresCnt, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, int sourceTSCnt_, int* TSfeaturesCnt_, int** feature_, numtype** trMin_, numtype** trMax_) {
+void sOraData::saveEngineInfo(int pid, int sampleLen_, int predictionLen_, int featuresCnt_, int coresCnt, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
 	//-- 1. ENGINES
-	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt, SaveToDB, SaveToFile, Orausername, Orapassword, Oraconnstring) values(%d, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s')", pid, engineType, sampleLen_, predictionLen_, featuresCnt_, (saveToDB_)?1:0, (saveToFile_)?1:0, dbconn_->DBUserName, dbconn_->DBPassword, dbconn_->DBConnString);
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, DataSampleLen, DataPredictionLen, DataFeaturesCnt, SaveToDB, SaveToFile, Orausername, Orapassword, Oraconnstring) values(%d, %d, %d, %d, %d, %d, '%s', '%s', '%s')", pid, sampleLen_, predictionLen_, featuresCnt_, (saveToDB_)?1:0, (saveToFile_)?1:0, dbconn_->DBUserName, dbconn_->DBPassword, dbconn_->DBConnString);
 	safecall(this, sqlExec, sqlS);
 	//-- 1.1. ENGINES SCALING PARMS
-	for (int ts=0; ts<sourceTSCnt_; ts++) {
-		for (int tsf=0; tsf<TSfeaturesCnt_[ts]; tsf++) {
-			sprintf_s(sqlS, SQL_MAXLEN, "insert into EngineScalingParms(ProcessId, SourceTS, Feature, trMin, trMax) values(%d, %d, %d, %f, %f)", pid, ts, tsf, trMin_[ts][tsf], trMax_[ts][tsf]);
-			safecall(this, sqlExec, sqlS);
-		}
+	for (int f=0; f<featuresCnt_; f++) {
+		sprintf_s(sqlS, SQL_MAXLEN, "insert into EngineScalingParms(ProcessId, Feature, trMin, trMax) values(%d, %d, %f, %f)", pid, f, trMin_[f], trMax_[f]);
+		safecall(this, sqlExec, sqlS);
 	}
 
 	//-- 2. ENGINECORES
@@ -655,7 +589,7 @@ void sOraData::saveEngineInfo(int pid, int engineType, int sampleLen_, int predi
 	}
 
 }
-void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, int* sourceTSCnt_, int* TSfeaturesCnt_, int** feature_, numtype** trMin_, numtype** trMax_) {
+void sOraData::loadEngineInfo(int pid, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -665,20 +599,19 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* samp
 
 	try {
 		//-- 0. engine type, data shape and persistor
-		sprintf_s(sqlS, SQL_MAXLEN, "select EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt, saveToDB, saveToFile, OraUserName, OraPassword, OraConnstring from Engines where ProcessId= %d", pid);
+		sprintf_s(sqlS, SQL_MAXLEN, "select DataSampleLen, DataPredictionLen, DataFeaturesCnt, saveToDB, saveToFile, OraUserName, OraPassword, OraConnstring from Engines where ProcessId= %d", pid);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 		int i=0;
 		while (((ResultSet*)rset)->next()) {
-			(*engineType)=((ResultSet*)rset)->getInt(1);
-			(*sampleLen_)=((ResultSet*)rset)->getInt(2);
-			(*predictionLen_)=((ResultSet*)rset)->getInt(3);
-			(*featuresCnt_)=((ResultSet*)rset)->getInt(4);
-			(*saveToDB_)=(((ResultSet*)rset)->getInt(5)==1);
-			(*saveToFile_)=(((ResultSet*)rset)->getInt(6)==1);
-			strcpy_s(dbconn_->DBUserName, DBUSERNAME_MAXLEN, ((ResultSet*)rset)->getString(7).c_str());
-			strcpy_s(dbconn_->DBPassword, DBPASSWORD_MAXLEN, ((ResultSet*)rset)->getString(8).c_str());
-			strcpy_s(dbconn_->DBConnString, DBCONNSTRING_MAXLEN, ((ResultSet*)rset)->getString(9).c_str());
+			(*sampleLen_)=((ResultSet*)rset)->getInt(1);
+			(*predictionLen_)=((ResultSet*)rset)->getInt(2);
+			(*featuresCnt_)=((ResultSet*)rset)->getInt(3);
+			(*saveToDB_)=(((ResultSet*)rset)->getInt(4)==1);
+			(*saveToFile_)=(((ResultSet*)rset)->getInt(5)==1);
+			strcpy_s(dbconn_->DBUserName, DBUSERNAME_MAXLEN, ((ResultSet*)rset)->getString(6).c_str());
+			strcpy_s(dbconn_->DBPassword, DBPASSWORD_MAXLEN, ((ResultSet*)rset)->getString(7).c_str());
+			strcpy_s(dbconn_->DBConnString, DBCONNSTRING_MAXLEN, ((ResultSet*)rset)->getString(8).c_str());
 			i++;
 		}
 		if (i==0) fail("Engine pid %d not found.", pid);
@@ -687,32 +620,17 @@ void sOraData::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* samp
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 
 		//-- 1. scaling parameters
-		sprintf_s(sqlS, SQL_MAXLEN, "select distinct SourceTS from EngineScalingParms where ProcessId= %d", pid);
-		stmt = ((Connection*)conn)->createStatement(sqlS);
-		rset = ((Statement*)stmt)->executeQuery();
-		int stsCnt=0, ftrCnt;
-		int STS;
-		while (((ResultSet*)rset)->next()) {
-			STS=((ResultSet*)rset)->getInt(1);
-
-			sprintf_s(nsqlS, SQL_MAXLEN, "select Feature, trMin, trMax from EngineScalingParms where Processid= %d and SourceTS= %d", pid, STS);
-			nstmt = ((Connection*)conn)->createStatement(nsqlS);
-			nrset = ((Statement*)nstmt)->executeQuery();
-			ftrCnt=0;
-			while (nrset->next()) {
-				feature_[STS][ftrCnt]=((ResultSet*)nrset)->getInt(1);
-				trMin_[STS][ftrCnt]=((ResultSet*)nrset)->getFloat(2);
-				trMax_[STS][ftrCnt]=((ResultSet*)nrset)->getFloat(3);
+			sprintf_s(sqlS, SQL_MAXLEN, "select trMin, trMax from EngineScalingParms where Processid= %d", pid);
+			stmt = ((Connection*)conn)->createStatement(sqlS);
+			rset = ((Statement*)stmt)->executeQuery();
+			int ftrCnt=0;
+			while (((ResultSet*)rset)->next()) {
+				trMin_[ftrCnt]=((ResultSet*)rset)->getFloat(1);
+				trMax_[ftrCnt]=((ResultSet*)rset)->getFloat(2);
 				ftrCnt++;
 			}
-			TSfeaturesCnt_[stsCnt]=ftrCnt;
-			stsCnt++;
 
-			((Statement*)nstmt)->closeResultSet((ResultSet*)nrset);
-			((Connection*)conn)->terminateStatement((Statement*)nstmt);
-		}
-		if (stsCnt==0) fail("Engine Scaling Parms for Engine pid %d not found.", pid);
-		(*sourceTSCnt_)=stsCnt;
+		if (ftrCnt==0) fail("Engine Scaling Parms for Engine pid %d not found.", pid);
 
 		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
 		((Connection*)conn)->terminateStatement((Statement*)stmt);

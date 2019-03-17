@@ -25,22 +25,18 @@ create table RunLog(
 	mseR number,
 	Pos number,
 	PosLabel varchar2(64),
-	SourceTSId number, 
 	Feature number,
-	StepAhead number,
 	ActualTRS number,
 	PredictedTRS number,
 	ErrorTRS number,
 	ActualTR number,
 	PredictedTR number,
 	ErrorTR number,
-	Actual number,
-	Predicted number,
-	Error number,
-	BarWidth number,
-	ErrorP number
+	ActualBASE number,
+	PredictedBASE number,
+	ErrorBASE number
 ) storage (initial 1024M minextents 8 pctincrease 0);
-alter table RunLog add constraint RunLog_PK primary key( ProcessId, ThreadId, Pos, SourceTSId, Feature, StepAhead ) using index tablespace LogIdx;
+alter table RunLog add constraint RunLog_PK primary key( ProcessId, ThreadId, Pos, Feature ) using index tablespace LogIdx;
 
 drop table ClientInfo purge;
 create table ClientInfo(
@@ -85,7 +81,6 @@ alter table CoreImage_NN_N add constraint CoreImage_NN_N_PK primary key( Process
 drop table Engines purge;
 create table Engines(
 	ProcessId number,
-	EngineType number,
 	-- DataShapeInfo
 	DataSampleLen number,
 	DataPredictionLen number,
@@ -138,12 +133,11 @@ alter table CoreLoggerParms add constraint CoreLoggerParms_PK primary key(Proces
 drop table EngineScalingParms purge;
 create table EngineScalingParms(
 	ProcessId number,
-	SourceTS number,
 	Feature number,
 	trMin number,
 	trMax number
 );
-alter table EngineScalingParms add constraint EngineScalingParms_PK primary key(ProcessId, SourceTS, Feature) using index tablespace LogIdx;
+alter table EngineScalingParms add constraint EngineScalingParms_PK primary key(ProcessId, Feature) using index tablespace LogIdx;
 
 drop table CoreNNparms purge;
 create table CoreNNparms(

@@ -28,6 +28,9 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	scaleP=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	trmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	trmax=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	seqBase=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	int stepsCnt=samplesCnt+sampleLen+targetLen-1;
+	seqLabel=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) seqLabel[i]=(char*)malloc(DATE_FORMAT_LEN);
 
 	//-- build samples/targets
 	int dsidxS=0, tsidxS=0, dsidxT=0, tsidxT=0;
@@ -51,10 +54,13 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 		}
 	}
 
-	//-- copy trmin/max from ts
+	//-- copy info from ts
+	for (int i=0; i<stepsCnt; i++) strcpy_s(seqLabel[i], DATE_FORMAT_LEN, _ts->timestamp[i]);
+	seqDT=_ts->dt;
 	for (int f=0; f<featuresCnt; f++) {
 		trmin[f]=_ts->TRmin[f];
 		trmax[f]=_ts->TRmax[f];
+		seqBase[f]=_ts->valB[f];
 	}
 
 	cfg->currentKey=bkpKey;
@@ -80,37 +86,22 @@ sDS::sDS(sObjParmsDef, sDS* copyFromDS_) : sCfgObj(sObjParmsVal, nullptr, nullpt
 	scaleP=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	trmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	trmax=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	seqBase=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	int stepsCnt=samplesCnt+sampleLen+targetLen-1;
+	seqLabel=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) seqLabel[i]=(char*)malloc(DATE_FORMAT_LEN);
 
+	//-- copy sample SBF from original DS
 	memcpy_s(sampleSBF, samplesCnt*sampleLen*featuresCnt*sizeof(numtype), copyFromDS_->sampleSBF, samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
 	memcpy_s(targetSBF, samplesCnt*targetLen*featuresCnt*sizeof(numtype), copyFromDS_->targetSBF, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
 
-	/*	//-- copy sample SBF from original DS
-	int sbfi=0; int i=0;
-	for (int s=0; s<samplesCnt; s++) {
-		for (int b=0; b<targetLen; b++) {
-			for (int f=0; f<featuresCnt; f++) {
-				sampleSBF[i]=copyFromDS_->sampleSBF[sbfi];
-				i++;
-				sbfi++;
-			}
-		}
-	}
-	//-- build target SBF from parentDS[0] targetSBF
-	sbfi=0; i=0;
-	for (int s=0; s<samplesCnt; s++) {
-		for (int b=0; b<targetLen; b++) {
-			for (int f=0; f<featuresCnt; f++) {
-				targetSBF[i]=copyFromDS_->targetSBF[i];
-				i++;
-			}
-		}
-	}
-*/
-	//-- copy trmin/max from ts
+	//-- copy ts info from original ds
+	for (int i=0; i<stepsCnt; i++) strcpy_s(seqLabel[i], DATE_FORMAT_LEN, copyFromDS_->seqLabel[i]);
+	seqDT=copyFromDS_->seqDT;
 	int f=0;
 	for (int df=0; df<featuresCnt; df++) {
 		trmin[f]=copyFromDS_->trmin[df];
 		trmax[f]=copyFromDS_->trmax[df];
+		seqBase[f]=copyFromDS_->seqBase[df];
 		f++;
 	}
 }
@@ -124,6 +115,7 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 	featuresCnt=parentDS_[0]->featuresCnt;
 	samplesCnt=parentDS_[0]->samplesCnt;
 	batchSize=parentDS_[0]->batchSize;
+	seqDT=parentDS_[0]->seqDT;
 	doDump=parentDS_[0]->doDump;
 	strcpy_s(dumpPath, MAX_PATH, parentDS_[0]->dumpPath);
 
@@ -132,6 +124,7 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 		if (parentDS_[d]->targetLen!=parentDS_[0]->targetLen) fail("parentDS[%d]->targetLen (%d) differs from parentDS[0]->targetLen (%d)", d, parentDS_[d]->targetLen, parentDS_[0]->targetLen);
 		if (parentDS_[d]->featuresCnt!=parentDS_[0]->featuresCnt) fail("parentDS[%d]->featuresCnt (%d) differs from parentDS[0]->featuresCnt (%d)", d, parentDS_[d]->featuresCnt, parentDS_[0]->featuresCnt);
 		if (parentDS_[d]->samplesCnt!=parentDS_[0]->samplesCnt) fail("parentDS[%d]->samplesCnt (%d) differs from parentDS[0]->samplesCnt (%d)", d, parentDS_[d]->samplesCnt, parentDS_[0]->samplesCnt);
+		if (parentDS_[d]->seqDT!=parentDS_[0]->seqDT) fail("parentDS[%d]->seqDT (%d) differs from parentDS[0]->seqDT (%d)", d, parentDS_[d]->seqDT, parentDS_[0]->seqDT);
 	}
 
 	//-- mallocs
@@ -145,6 +138,9 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 	scaleP=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	trmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	trmax=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	seqBase=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	int stepsCnt=samplesCnt+sampleLen+targetLen-1;
+	seqLabel=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) seqLabel[i]=(char*)malloc(DATE_FORMAT_LEN);
 
 	//-- build sample SBF from parentDSs' predictionSBF
 	int sbfi=0; int i=0;
@@ -170,12 +166,14 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 		}
 	}
 
-	//-- copy trmin/max from ts
+	//-- copy ts info from parentDS[]
+	for (int i=0; i<stepsCnt; i++) strcpy_s(seqLabel[i], DATE_FORMAT_LEN, parentDS_[0]->seqLabel[i]);
 	int f=0;
 	for (int d=0; d<parentDScnt_; d++) {
 		for (int df=0; df<parentDS_[d]->featuresCnt; df++) {
 			trmin[f]=parentDS_[d]->trmin[df];
 			trmax[f]=parentDS_[d]->trmax[df];
+			seqBase[f]=parentDS_[d]->seqBase[f];
 			f++;
 		}
 	}
@@ -184,7 +182,10 @@ sDS::~sDS(){
 	free(sampleSBF); free(targetSBF); free(predictionSBF);
 	free(sampleBFS); free(targetBFS); free(predictionBFS);
 	free(scaleM); free(scaleP);
-//	free(trmin); free(trmax);
+	free(trmin); free(trmax);
+	free(seqBase);
+	for (int i=0; i<(samplesCnt+sampleLen+targetLen-1); i++) free(seqLabel[i]);
+	free(seqLabel);
 }
 
 void sDS::dump() {
@@ -290,6 +291,27 @@ void sDS::unscale() {
 				targetSBF[ti]=(targetSBF[ti]-scaleP[f])/scaleM[f];
 				predictionSBF[ti]=(predictionSBF[ti]-scaleP[f])/scaleM[f];
 				ti++;
+			}
+		}
+	}
+}
+void sDS::untransformSeq(numtype* iTRval, numtype* oBASEval) {
+	int curr, prev;
+	int stepsCnt=samplesCnt+sampleLen+targetLen-1;
+	for (int s=0; s<stepsCnt; s++) {
+		for (int f=0; f<featuresCnt; f++) {
+			curr=s*featuresCnt+f;
+			prev=(s-1)*featuresCnt+f;
+			if (seqDT==DT_NONE) {
+				oBASEval[curr]=iTRval[curr];
+			}
+			if (seqDT==DT_DELTA) {
+				if (s>0) {
+					oBASEval[curr]=iTRval[curr]+oBASEval[prev];
+					if (oBASEval[curr]==EMPTY_VALUE) oBASEval[curr]=oBASEval[curr];
+				} else {
+					oBASEval[curr]=iTRval[curr]+seqBase[f];
+				}
 			}
 		}
 	}
