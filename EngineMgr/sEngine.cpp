@@ -210,7 +210,7 @@ DWORD coreThreadTrain(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
 	try {
 		args->core->train(args->coreProcArgs);
-		//args->core->infer(args->coreProcArgs);
+		args->core->infer(args->coreProcArgs);
 	} catch (...) {
 		args->coreProcArgs->excp=current_exception();
 	}
@@ -358,20 +358,19 @@ void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTran
 
 	sDS* _ds;
 	int seqLen;
-	numtype* trgSeq; numtype* prdSeq;
-	int c=0;	//for (int c=0; c<coresCnt; c++) {
+	numtype** trgSeq=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	numtype** prdSeq=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	for (int c=0; c<coresCnt; c++) {
 		_ds=core[c]->procArgs->ds;
 		_ds->unscale();
 		seqLen =_ds->samplesCnt+_ds->sampleLen+_ds->targetLen-1;
-		trgSeq=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
-		prdSeq=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
-		_ds->getSeq(TARGET, trgSeq);
-		_ds->getSeq(PREDICTION, prdSeq);
-		dumpArrayH(seqLen, trgSeq, "C:/temp/dataDump/trgSeq.csv");
-		dumpArrayH(seqLen, prdSeq, "C:/temp/dataDump/prdSeq.csv");
-
-		free(trgSeq); free(prdSeq);
-	//}
+		trgSeq[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		prdSeq[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		_ds->getSeq(TARGET, trgSeq[c]);
+		_ds->getSeq(PREDICTION, prdSeq[c]);
+		dumpArrayH(seqLen, trgSeq[c], (newsname("C:/temp/dataDump/trgSeq%d.csv", c))->base);
+		dumpArrayH(seqLen, prdSeq[c], (newsname("C:/temp/dataDump/prdSeq%d.csv", c))->base);
+	}
 
 	//-- unscale, untransform, then save results
 /*	sDS* _ds;
