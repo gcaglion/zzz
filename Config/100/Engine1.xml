@@ -21,7 +21,7 @@
 				StopOnInversion		= false
 				BP_Algo				= BP_STD
 				<BP_Std>
-					LearningRate		= 0.000001
+					LearningRate		= 0.0001
 					LearningMomentum	= 0.5
 				</BP_Std>
 			</Training>

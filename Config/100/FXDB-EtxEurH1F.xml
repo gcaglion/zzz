@@ -1,0 +1,8 @@
+<FXDB_DataSource>
+
+	Symbol				= ETXEUR
+	TimeFrame			= H1
+	IsFilled			= true
+
+	<! DBConnection-History.xml >
+</FXDB_DataSource>
