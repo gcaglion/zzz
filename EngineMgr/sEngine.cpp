@@ -22,11 +22,10 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	int** coreParent=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParent[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	int** coreParentConnType=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParentConnType[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	//--
-//	mallocTSinfo();
-
+	DStrMin=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
+	DStrMax=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
 	//-- 3. load info from FROM persistor
-	int typeUNUSED;
-	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &typeUNUSED, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, &sourceTSCnt, TSfeaturesCnt, TSfeature, TStrMin, TStrMax);
+	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, DStrMin, DStrMax);
 	//-- 2. malloc one core, one coreLayout, one coreParms and one corePersistor for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
@@ -92,7 +91,7 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(
 sEngine::~sEngine() {
 	free(core); free(coreLayout); free(coreParms);
 	free(layerCoresCnt);
-//	freeTSinfo();
+//	free(DStrMin); free(DStrMax);
 }
 
 void sEngine::spawnCoresFromXML() {
@@ -339,64 +338,52 @@ void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTran
 	if (inferDS_->featuresCnt!=shape->featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_->featuresCnt, shape->featuresCnt);
 
 	//-- re-transform inferDS using trMin/Max loaded
-/*	if (reTransform) {
-		for (int ts=0; ts<inferDS_->sourceTScnt; ts++) {
-			for (int tsf=0; tsf<inferDS_->sourceTS[ts]->featuresCnt; tsf++) {
-				for (int selF=0; selF<inferDS_->selectedTSfeaturesCnt[ts]; selF++) {
-					if (inferDS_->selectedTSfeature[ts][selF]==tsf) {
-						inferDS_->sourceTS[ts]->dmin[tsf]=TStrMin[ts][selF];
-						inferDS_->sourceTS[ts]->dmax[tsf]=TStrMax[ts][selF];
-						inferDS_->sourceTS[ts]->transform(ACTUAL);
-					}
-				}
-			}
+	if (reTransform) {
+		for (int f=0; f<inferDS_->featuresCnt; f++) {
+			inferDS_->trmin[f]=DStrMin[f];
+			inferDS_->trmax[f]=DStrMax[f];
 		}
 	}
-*/	
+
 	//-- call infer
 	safecall(this, process, inferProc, reTransform, testid_, inferDS_, savedEnginePid_);
 
+	//-- get predicted/target sequences (TR) for all cores
 	sDS* _ds;
-	int seqLen;
-	numtype** trgSeq=(numtype**)malloc(coresCnt*sizeof(numtype*));
-	numtype** prdSeq=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	int* seqLen=(int*)malloc(coresCnt*sizeof(int));
+	char*** seqLabel=(char***)malloc(coresCnt*sizeof(int));
+	numtype** trgSeqBASE=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	numtype** prdSeqBASE=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	numtype** trgSeqTR=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	numtype** prdSeqTR=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	numtype** trgSeqTRS=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	numtype** prdSeqTRS=(numtype**)malloc(coresCnt*sizeof(numtype*));
 	for (int c=0; c<coresCnt; c++) {
 		_ds=core[c]->procArgs->ds;
+		seqLen[c] =_ds->samplesCnt+_ds->sampleLen+_ds->targetLen-1;
+		seqLabel[c]=(char**)malloc(seqLen[c]*sizeof(char*)); for (int i=0; i<seqLen[c]; i++) seqLabel[c][i]=(char*)malloc(DATE_FORMAT_LEN);
+		trgSeqBASE[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
+		prdSeqBASE[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
+		trgSeqTR[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
+		prdSeqTR[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
+		trgSeqTRS[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
+		prdSeqTRS[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
+		_ds->getSeq(TARGET, trgSeqTRS[c]);
+		_ds->getSeq(PREDICTION, prdSeqTRS[c]);
 		_ds->unscale();
-		seqLen =_ds->samplesCnt+_ds->sampleLen+_ds->targetLen-1;
-		trgSeq[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
-		prdSeq[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
-		_ds->getSeq(TARGET, trgSeq[c]);
-		_ds->getSeq(PREDICTION, prdSeq[c]);
-		dumpArrayH(seqLen, trgSeq[c], (newsname("C:/temp/dataDump/trgSeq%d.csv", c))->base);
-		dumpArrayH(seqLen, prdSeq[c], (newsname("C:/temp/dataDump/prdSeq%d.csv", c))->base);
-	}
+		_ds->getSeq(TARGET, trgSeqTR[c]);
+		_ds->getSeq(PREDICTION, prdSeqTR[c]);
+		_ds->untransformSeq(trgSeqTR[c], trgSeqBASE[c]);
+		_ds->untransformSeq(prdSeqTR[c], prdSeqBASE[c]);
 
-	//-- unscale, untransform, then save results
-/*	sDS* _ds;
-	sTimeSerie* _ts;
-	int layer;
-	for (int c=0; c<coresCnt; c++) {
-		layer=core[c]->layout->layer;
-		_ds = core[c]->procArgs->ds;
-
-		for (int t=0; t<_ds->sourceTScnt; t++) {
-			_ts = _ds->sourceTS[t];
-
-			//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
-			safecall(_ds, unbuild, PREDICTED, PREDICTED, TRS);
-			if (_ts->doDump) _ts->dump(PREDICTED, TRS);
-
-			//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
-			safecall(_ts, unscale, PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t], _ds->shape->sampleLen);
-			if (_ts->doDump) _ts->dump(PREDICTED, TR);
-
-			//-- 5. sourceTS->untransform into valP
-			safecall(_ts, untransform, PREDICTED);
-			if (_ts->doDump) _ts->dump(PREDICTED, BASE);
+		if (core[c]->persistor->saveRunFlag) {
+			core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->mseR, \
+				seqLen[c], _ds->featuresCnt, seqLabel[c], trgSeqTRS[c], prdSeqTRS[c], trgSeqTR[c], prdSeqTR[c], trgSeqBASE[c], prdSeqBASE[c]
+			);
 		}
+
 	}
-*/
+
 }
 
 void sEngine::saveMSE() {
@@ -469,23 +456,11 @@ void sEngine::saveInfo() {
 		safecall(core[c]->parms, save, persistor, clientPid, coreThreadId_[c]);
 	}
 
-	//-- save trMin/Max for every selected feature in every TS
-/*	for (int ts=0; ts<trainDS->sourceTScnt; ts++) {
-		for (int tsf=0; tsf<trainDS->sourceTS[ts]->featuresCnt; tsf++) {
-			for (int selF=0; selF<trainDS->selectedTSfeaturesCnt[ts]; selF++) {
-				if (trainDS->selectedTSfeature[ts][selF]==tsf) {
-					TStrMin[ts][selF]=trainDS->sourceTS[ts]->dmin[tsf];
-					TStrMax[ts][selF]=trainDS->sourceTS[ts]->dmax[tsf];
-				}
-			}
-		}
-	}
-
-	//-- actual call
-	safecall(persistor, saveEngineInfo, clientPid, -1, shape->sampleLen, shape->predictionLen, shape->featuresCnt, coresCnt, persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
+	persistor->saveEngineInfo(clientPid, shape->sampleLen, shape->predictionLen, shape->featuresCnt, coresCnt, persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
 		coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_, \
-		trainDS->sourceTScnt, trainDS->selectedTSfeaturesCnt, trainDS->selectedTSfeature, TStrMin, TStrMax);
-*/
+		trainDS->trmin, trainDS->trmax
+	);
+
 	//-- free temps
 	for (int c=0; c<coresCnt; c++) {
 		free(coreParent_[c]); free(parentConnType_[c]);

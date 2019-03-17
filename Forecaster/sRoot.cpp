@@ -168,9 +168,21 @@ void sRoot::kaz() {
 
 	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/10/ds0b.xml");
 	sDS* ds0; safespawn(ds0, newsname("ds0"), defaultdbg, dsCfg, "/");
-//	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
+
+	sCfg* dsiCfg; safespawn(dsiCfg, newsname("dsiCfg"), defaultdbg, "Config/10/ds0i.xml");
+	sDS* ds0i; safespawn(ds0i, newsname("ds0i"), defaultdbg, dsiCfg, "/");
+
+	sCfg* clientCfg; safespawn(clientCfg, newsname("ClientCfg"), defaultdbg, "Config/10/Client.xml");
+	sLogger* clientLog;
+	bool saveClient;
+	safecall(clientCfg, setKey, "/Client");
+	safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
+	safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
+
+
+	//	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
 //	ds0->target2prediction(); ds1->target2prediction();
-	ds0->dump(); 
+//	ds0->dump(); 
 //	ds1->dump();
 //	sDS* ds[2]; ds[0]=ds0; ds[1]=ds1;
 //	sDS* ds2; safespawn(ds2, newsname("ds2"), defaultdbg, 2, ds);
@@ -194,7 +206,17 @@ void sRoot::kaz() {
 	int engpid=GetCurrentProcessId();
 	sEngine* eng1; safespawn(eng1, newsname("SixCoresEngine"), defaultdbg, engCfg, "/Engine", engshape, engpid);
 	eng1->train(1, ds0);
+	eng1->saveCoreImages();
+	eng1->saveCoreLoggers();
+	eng1->saveInfo();
 	eng1->infer(1, ds0, engpid, false);
+	eng1->commit();
+	delete eng1;
+
+	safespawn(eng1, newsname("Engine"), defaultdbg, clientLog, pid, engpid);
+
+	eng1->infer(1, ds0i, engpid, true);
+	eng1->commit();
 
 	return;
 
@@ -207,7 +229,7 @@ void sRoot::kaz() {
 
 	//-- need client config to create a client persistor
 	char* clientXMLfile="Config/master/99/Client.xml"; getFullPath(clientXMLfile, clientffname);
-	sCfg* clientCfg; safespawn(clientCfg, newsname("clientConfig"), erronlydbg, clientXMLfile);
+	safespawn(clientCfg, newsname("clientConfig"), erronlydbg, clientXMLfile);
 	sLogger* clientPersistor= new sLogger(this, newsname("clientLogger"), erronlydbg, GUIreporter, clientCfg, "/Client/Persistor");
 
 	sCfg* ds1Cfg; safespawn(ds1Cfg, newsname("ds1Config"), erronlydbg, "C:/users/gcaglion/dev/zzz/Config/play/ds1.xml");
