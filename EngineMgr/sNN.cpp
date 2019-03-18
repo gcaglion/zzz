@@ -596,7 +596,7 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	inferArgs->ds->setSBF(procArgs->batchCnt, procArgs->batchSize);
 
 	//-- feee neurons()
-	destroyNeurons();
+	//destroyNeurons();
 
 }
 

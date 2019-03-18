@@ -368,6 +368,8 @@ void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTran
 		prdSeqTR[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
 		trgSeqTRS[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
 		prdSeqTRS[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
+		//--
+		for (int i=0; i<seqLen[c]; i++) strcpy_s(seqLabel[c][i], DATE_FORMAT_LEN, _ds->seqLabel[i]);
 		_ds->getSeq(TARGET, trgSeqTRS[c]);
 		_ds->getSeq(PREDICTION, prdSeqTRS[c]);
 		_ds->unscale();
