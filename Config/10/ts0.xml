@@ -1,4 +1,4 @@
-		HistoryLen			= 1002
+		HistoryLen			= 10002
 		Date0				= 2018-05-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false

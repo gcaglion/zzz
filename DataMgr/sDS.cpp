@@ -308,7 +308,6 @@ void sDS::untransformSeq(numtype* iTRval, numtype* oBASEval) {
 			if (seqDT==DT_DELTA) {
 				if (s>0) {
 					oBASEval[curr]=iTRval[curr]+oBASEval[prev];
-					if (oBASEval[curr]==EMPTY_VALUE) oBASEval[curr]=oBASEval[curr];
 				} else {
 					oBASEval[curr]=iTRval[curr]+seqBase[f];
 				}

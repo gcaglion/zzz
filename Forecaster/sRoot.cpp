@@ -206,6 +206,7 @@ void sRoot::kaz() {
 	int engpid=GetCurrentProcessId();
 	sEngine* eng1; safespawn(eng1, newsname("SixCoresEngine"), defaultdbg, engCfg, "/Engine", engshape, engpid);
 	eng1->train(1, ds0);
+	eng1->saveMSE();
 	eng1->saveCoreImages();
 	eng1->saveCoreLoggers();
 	eng1->saveInfo();
