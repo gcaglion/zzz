@@ -2,7 +2,6 @@
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "../DataMgr/sDS.h"
-#include "../DataMgr/sDataShape.h"
 #include "sCore.h"
 #include "sCoreParms.h"
 #include "Engine_enums.h"
@@ -24,14 +23,17 @@ struct sEngine : sCfgObj {
 	sAlgebra* Alg;
 	sLogger* persistor;
 
-	sDataShape* shape;
+	int sampleLen;
+	int targetLen;
+	int featuresCnt;
+
 	sCore** core;
 	sCoreLayout** coreLayout;
 	sCoreParms** coreParms;
 	sCoreLogger** corePersistor;
 
 	EXPORT sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_);
-	EXPORT sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_);
+	EXPORT sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int clientPid_);
 	EXPORT ~sEngine();
 
 	EXPORT void train(int testid_, sDS* trainDS_);
