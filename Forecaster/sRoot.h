@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../DataMgr/sDS.h"
+#include "../DataMgr/sTimeSerie.h"
 #include "../DataMgr/sDataSet.h"
 #include "../DataMgr/sDataShape.h"
 #include "../DataMgr/sFXDataSource.h"
@@ -72,8 +74,8 @@ private:
 	char engineffname[MAX_PATH];
 	char endtimeS[TIMER_ELAPSED_FORMAT_LEN];
 	sCfg* clientCfg; sCfg* trainCfg; sCfg* inferCfg; sCfg* engCfg;
-	sDataSet* trainDS; sLogger* trainLog;
-	sDataSet* inferDS; sLogger* inferLog;
+	sDS* trainDS; sLogger* trainLog;
+	sDS* inferDS; sLogger* inferLog;
 	sEngine* engine;
 	sLogger* clientLog;
 

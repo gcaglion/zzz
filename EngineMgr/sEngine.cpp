@@ -6,7 +6,6 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
 	safespawn(Alg, newsname("%s_Algebra", name->base), defaultdbg);
 
-	safespawn(shape, newsname("%s_DataShape", name->base), defaultdbg, 0, 0, 0);
 	sOraData* persistorDB;
 	safespawn(persistorDB, newsname("%s_Logger_DB", name->base), defaultdbg,"","","");
 	safespawn(persistor, newsname("%s_Logger", name->base), defaultdbg, persistorDB);
@@ -25,7 +24,7 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	DStrMin=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
 	DStrMax=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
 	//-- 3. load info from FROM persistor
-	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, DStrMin, DStrMax);
+	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &coresCnt, &sampleLen, &targetLen, &featuresCnt, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, DStrMin, DStrMax);
 	//-- 2. malloc one core, one coreLayout, one coreParms and one corePersistor for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
@@ -36,7 +35,7 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	for (int c=0; c<coresCnt; c++) {
 		//corePersistor[c]=new sCoreLogger(this, newsname("CorePersistor%d", c), defaultdbg, GUIreporter, persistor, loadingPid_, coreThreadId[c]);
 		safespawn(corePersistor[c], newsname("CorePersistor%d", c), defaultdbg, persistor, loadingPid_, coreThreadId[c]);
-		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt, coreType[c], coreParentsCnt[c], coreParent[c], coreParentConnType[c], coreThreadId[c]);
+		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, sampleLen*featuresCnt, targetLen*featuresCnt, coreType[c], coreParentsCnt[c], coreParent[c], coreParentConnType[c], coreThreadId[c]);
 	}
 
 	//-- common to all constructors. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
@@ -53,9 +52,10 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	}
 	free(coreParent); free(coreParentConnType); free(coreParentsCnt); free(coreType); free(coreThreadId); free(coreId);
 }
-sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(sCfgObjParmsVal) {
+sEngine::sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int clientPid_) : sCfgObj(sCfgObjParmsVal) {
 
-	shape=shape_;
+	sampleLen=sampleLen_; targetLen=targetLen_; featuresCnt=featuresCnt_;
+
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
 	clientPid=clientPid_;
 
@@ -73,7 +73,7 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(
 	coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
 	//-- 2. for each Core, create layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
 	for (int c=0; c<coresCnt; c++) {
-		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Core%d/Layout", c))->base, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt);
+		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Core%d/Layout", c))->base, sampleLen*featuresCnt, targetLen*featuresCnt);
 	}
 	//--
 //	mallocTSinfo();
@@ -332,10 +332,10 @@ void sEngine::train(int testid_, sDS* trainDS_) {
 }
 void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTransform) {
 
-	//-- consistency checks: sampleLen/predictionLen/featuresCnt must be the same in inferDS and engine
-	if (inferDS_->sampleLen!=shape->sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS_->sampleLen, shape->sampleLen);
-	if (inferDS_->targetLen!=shape->predictionLen) fail("Infer DataSet Prediction Length (%d) differs from Engine's (%d)", inferDS_->targetLen, shape->predictionLen);
-	if (inferDS_->featuresCnt!=shape->featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_->featuresCnt, shape->featuresCnt);
+	//-- consistency checks: sampleLen/targetLen/featuresCnt must be the same in inferDS and engine
+	if (inferDS_->sampleLen!=sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS_->sampleLen, sampleLen);
+	if (inferDS_->targetLen!=targetLen) fail("Infer DataSet Prediction Length (%d) differs from Engine's (%d)", inferDS_->targetLen, targetLen);
+	if (inferDS_->featuresCnt!=featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_->featuresCnt, featuresCnt);
 
 	//-- re-transform inferDS using trMin/Max loaded
 	if (reTransform) {
@@ -414,11 +414,11 @@ void sEngine::saveRun() {
 			_ts = _ds->sourceTS[t];
 
 			//-- persist into runLog
-			runStepsCnt= _ds->samplesCnt + _ds->shape->sampleLen + _ds->shape->predictionLen -1;
+			runStepsCnt= _ds->samplesCnt + _ds->sampleLen + _ds->targetLen -1;
 
 			if (core[c]->persistor->saveRunFlag) {
 				core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->mseR, \
-						runStepsCnt, t, _ts->featuresCnt, _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t], _ds->shape->predictionLen, \
+						runStepsCnt, t, _ts->featuresCnt, _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t], _ds->targetLen, \
 						_ts->dtime, _ts->val[ACTUAL][TRS], _ts->val[PREDICTED][TRS], _ts->val[ACTUAL][TR], _ts->val[PREDICTED][TR], _ts->val[ACTUAL][BASE], _ts->val[PREDICTED][BASE], _ts->barWidth);
 			}
 		}
@@ -458,7 +458,7 @@ void sEngine::saveInfo() {
 		safecall(core[c]->parms, save, persistor, clientPid, coreThreadId_[c]);
 	}
 
-	persistor->saveEngineInfo(clientPid, shape->sampleLen, shape->predictionLen, shape->featuresCnt, coresCnt, persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
+	persistor->saveEngineInfo(clientPid, sampleLen, targetLen, featuresCnt, coresCnt, persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
 		coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_, \
 		trainDS->trmin, trainDS->trmax
 	);

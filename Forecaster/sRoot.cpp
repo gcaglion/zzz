@@ -33,15 +33,15 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(this, getSafePid, clientLog, &pid);
 
 		//-- 3. spawn Train DataSet and its persistor
-		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/DataSet");
-		safespawn(trainLog, newsname("TrainLogger"), defaultdbg, trainCfg, "/DataSet/Persistor");
+		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/");
+		safespawn(trainLog, newsname("TrainLogger"), defaultdbg, trainCfg, "/Persistor");
 		//-- 4. spawn engine the standard way
-		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", trainDS->shape, pid);
+		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", trainDS->sampleLen, trainDS->targetLen, trainDS->featuresCnt, pid);
 
 		//-- training cycle core
 		timer->start();
 		//-- do training (also populates datasets)
-//		safecall(engine, train, simulationId_, trainDS, 10);
+		safecall(engine, train, simulationId_, trainDS);
 
 		//-- persist MSE logs
 		safecall(engine, saveMSE);
@@ -60,7 +60,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainDS->sourceTS[0]->date0, "", "", true, false, clientffname, "", trainffname, engineffname);
+		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainDS->seqLabel[0], "", "", true, false, clientffname, "", trainffname, engineffname);
 		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, trainCfg);
@@ -108,20 +108,20 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safespawn(engine, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid_);
 		
 		//-- 3. spawn infer DataSet and its persistor
-		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/DataSet");
-		safespawn(inferLog, newsname("inferLogger"), defaultdbg, inferCfg, "/DataSet/Persistor");
+		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/");
+		safespawn(inferLog, newsname("inferLogger"), defaultdbg, inferCfg, "/Persistor");
 
 		//-- core infer cycle
 		timer->start();
 		//-- do inference (also populates datasets)
-//		safecall(engine, infer, simulationId_, inferDS, 1, savedEnginePid_);
+		safecall(engine, infer, simulationId_, inferDS, savedEnginePid_);
 		//-- persist Run logs
 		safecall(engine, saveRun);
 		//-- ommit engine persistor data
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferDS->sourceTS[0]->date0, "", false, true, clientffname, "", inferffname, "");
+		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferDS->seqLabel[0], "", false, true, clientffname, "", inferffname, "");
 		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, inferCfg);
@@ -200,11 +200,9 @@ void sRoot::kaz() {
 //	return;
 
 	//--
-	sDataShape* engshape; safespawn(engshape, newsname("EngineShape"), defaultdbg, ds0->sampleLen, ds0->targetLen, ds0->featuresCnt);
-	//--
 	sCfg* engCfg; safespawn(engCfg, newsname("engCfg"), defaultdbg, "Config/10/Engine1.xml");
 	int engpid=GetCurrentProcessId();
-	sEngine* eng1; safespawn(eng1, newsname("SixCoresEngine"), defaultdbg, engCfg, "/Engine", engshape, engpid);
+	sEngine* eng1; safespawn(eng1, newsname("SixCoresEngine"), defaultdbg, engCfg, "/Engine", ds0->sampleLen, ds0->targetLen, ds0->featuresCnt, engpid);
 	eng1->train(1, ds0);
 	eng1->saveMSE();
 	eng1->saveCoreImages();
@@ -221,7 +219,7 @@ void sRoot::kaz() {
 
 	return;
 
-	char ffname[MAX_PATH];
+/*	char ffname[MAX_PATH];
 	char* BaseDataSetXMLFile="Config/30/DataSets/base.xml"; getFullPath(BaseDataSetXMLFile, ffname);
 	int simulationId=99;
 	int pid=GetCurrentProcessId();
@@ -240,7 +238,7 @@ void sRoot::kaz() {
 
 	sTimeSerie* ts=ds1t->sourceTS[0];
 	ts->dump(ACTUAL, TR);
-
+*/
 	/*for (int s=0; s<(ts->stepsCnt-3); s++) {
 		for (int f=0; f<ts->featuresCnt; f++) {
 			ts->val[PREDICTED][TR][s*ts->featuresCnt+f]=EMPTY_VALUE;
@@ -498,7 +496,7 @@ void sRoot::getSeriesInfo(int* oSeriesCnt_, char* oSymbolsCSL_, char* oTimeFrame
 	char tmpTF[XMLKEY_PARM_VAL_MAXLEN]; char tmpTFList[XMLKEY_PARM_VAL_MAXLEN]="";
 	char* tmpC;
 
-	int tmpFeaturesCnt; int tmpFeature[MAX_DATA_FEATURES]; char tmpFeatureS[XMLKEY_PARM_VAL_MAXLEN]; char tmpFeaturesList[XMLKEY_PARM_VAL_MAXLEN]="";
+	int tmpFeaturesCnt; int tmpFeature[MAX_TS_FEATURES]; char tmpFeatureS[XMLKEY_PARM_VAL_MAXLEN]; char tmpFeaturesList[XMLKEY_PARM_VAL_MAXLEN]="";
 	int* tmpFeatureP=&tmpFeature[0];
 
 	safecall(MT4clientCfg->currentKey, getParm, oSeriesCnt_, "MetaTrader/ChartsCount");
@@ -552,13 +550,13 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 
 		info("oBaseBar: %s %f,%f,%f,%f,%f", bartime, oBaseBarO[serie], oBaseBarH[serie], oBaseBarL[serie], oBaseBarC[serie], oBaseBarV[serie]);
 		//--
-		oBarT[serie]=(long*)malloc((MT4engine->shape->sampleLen+MT4engine->shape->predictionLen)*sizeof(long)); 
-		oBarO[serie]=(double*)malloc((MT4engine->shape->sampleLen+MT4engine->shape->predictionLen)*sizeof(double));
-		oBarH[serie]=(double*)malloc((MT4engine->shape->sampleLen+MT4engine->shape->predictionLen)*sizeof(double));
-		oBarL[serie]=(double*)malloc((MT4engine->shape->sampleLen+MT4engine->shape->predictionLen)*sizeof(double));
-		oBarC[serie]=(double*)malloc((MT4engine->shape->sampleLen+MT4engine->shape->predictionLen)*sizeof(double));
-		oBarV[serie]=(double*)malloc((MT4engine->shape->sampleLen+MT4engine->shape->predictionLen)*sizeof(double));
-		for (int bar=0; bar<MT4engine->shape->sampleLen; bar++) {
+		oBarT[serie]=(long*)malloc((MT4engine->sampleLen+MT4engine->targetLen)*sizeof(long)); 
+		oBarO[serie]=(double*)malloc((MT4engine->sampleLen+MT4engine->targetLen)*sizeof(double));
+		oBarH[serie]=(double*)malloc((MT4engine->sampleLen+MT4engine->targetLen)*sizeof(double));
+		oBarL[serie]=(double*)malloc((MT4engine->sampleLen+MT4engine->targetLen)*sizeof(double));
+		oBarC[serie]=(double*)malloc((MT4engine->sampleLen+MT4engine->targetLen)*sizeof(double));
+		oBarV[serie]=(double*)malloc((MT4engine->sampleLen+MT4engine->targetLen)*sizeof(double));
+		for (int bar=0; bar<MT4engine->sampleLen; bar++) {
 			oBarT[serie][bar]=iBarT[i]; MT4time2str(oBarT[serie][bar], DATE_FORMAT_LEN, bartime);
 			oBarO[serie][bar]=iBarO[i];
 			oBarH[serie][bar]=iBarH[i];
@@ -568,7 +566,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 			info("Bar[%d]: %s %f,%f,%f,%f,%f", bar, bartime, oBarO[serie][bar], oBarH[serie][bar], oBarL[serie][bar], oBarC[serie][bar], oBarV[serie][bar]);
 			i++;
 		}
-		for (int bar=MT4engine->shape->sampleLen; bar<(MT4engine->shape->sampleLen+MT4engine->shape->predictionLen); bar++) {
+		for (int bar=MT4engine->sampleLen; bar<(MT4engine->sampleLen+MT4engine->targetLen); bar++) {
 			oBarO[serie][bar]=EMPTY_VALUE;
 			oBarH[serie][bar]=EMPTY_VALUE;
 			oBarL[serie][bar]=EMPTY_VALUE;
@@ -582,10 +580,10 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	char tmpDate0[DATE_FORMAT_LEN];
 	for (int serie=0; serie<seriesCnt_; serie++) {
 
-		safespawn(mtDataSrc[serie], newsname("MT4DataSource"), defaultdbg, MT4engine->shape->sampleLen, MT4engine->shape->predictionLen, oBarT[serie], oBarO[serie], oBarH[serie], oBarL[serie], oBarC[serie], oBarV[serie], oBaseBarT[serie], oBaseBarO[serie], oBaseBarH[serie], oBaseBarL[serie], oBaseBarC[serie], oBaseBarV[serie]);
-		MT4time2str(oBarT[serie][MT4engine->shape->sampleLen-1], DATE_FORMAT_LEN, tmpDate0);
+		safespawn(mtDataSrc[serie], newsname("MT4DataSource"), defaultdbg, MT4engine->sampleLen, MT4engine->targetLen, oBarT[serie], oBarO[serie], oBarH[serie], oBarL[serie], oBarC[serie], oBarV[serie], oBaseBarT[serie], oBaseBarO[serie], oBaseBarH[serie], oBaseBarL[serie], oBaseBarC[serie], oBaseBarV[serie]);
+		MT4time2str(oBarT[serie][MT4engine->sampleLen-1], DATE_FORMAT_LEN, tmpDate0);
 
-		safespawn(mtTimeSerie[serie], newsname("MTtimeSerie%d", serie), defaultdbg, mtDataSrc[serie], tmpDate0, MT4engine->shape->sampleLen+MT4engine->shape->predictionLen, dt_, MT4doDump);
+		safespawn(mtTimeSerie[serie], newsname("MTtimeSerie%d", serie), defaultdbg, mtDataSrc[serie], tmpDate0, MT4engine->sampleLen+MT4engine->targetLen, dt_, MT4doDump);
 //		safecall(mtTimeSerie[serie], load, ACTUAL, BASE);
 	}
 	//-- need to make a local copy of featureMask_, as it gets changed just to get selFcnt
@@ -608,7 +606,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	}
 
 	//-- manually spawn infer dataset from timeseries, sampleLen, predictionLen
-	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, seriesCnt_, mtTimeSerie, selFcnt, selF, MT4engine->shape->sampleLen, MT4engine->shape->predictionLen, 1, MT4doDump);
+	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, seriesCnt_, mtTimeSerie, selFcnt, selF, MT4engine->sampleLen, MT4engine->targetLen, 1, MT4doDump);
 	mtDataSet->build(ACTUAL, BASE);
 	
 	//-- do inference (also populates datasets)
@@ -616,13 +614,13 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 
 	//-- forecast is now in the last <predictionLen> steps of mtTimeSerie
 	for (int serie=0; serie<seriesCnt_; serie++) {
-		for (int bar=0; bar<MT4engine->shape->predictionLen; bar++) {
-			oForecastO[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->shape->sampleLen+bar)*FXDATA_FEATURESCNT+FXOPEN];
-			oForecastH[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->shape->sampleLen+bar)*FXDATA_FEATURESCNT+FXHIGH];
-			oForecastL[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->shape->sampleLen+bar)*FXDATA_FEATURESCNT+FXLOW];
-			oForecastC[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->shape->sampleLen+bar)*FXDATA_FEATURESCNT+FXCLOSE];
-			oForecastV[serie*MT4engine->shape->predictionLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->shape->sampleLen+bar)*FXDATA_FEATURESCNT+FXVOLUME];
-			info("OHLCV Forecast, serie %d , bar %d: %f|%f|%f|%f|%f", serie, bar, oForecastO[serie*MT4engine->shape->predictionLen+bar], oForecastH[serie*MT4engine->shape->predictionLen+bar], oForecastL[serie*MT4engine->shape->predictionLen+bar], oForecastC[serie*MT4engine->shape->predictionLen+bar], oForecastV[serie*MT4engine->shape->predictionLen+bar]);
+		for (int bar=0; bar<MT4engine->targetLen; bar++) {
+			oForecastO[serie*MT4engine->targetLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->sampleLen+bar)*FXDATA_FEATURESCNT+FXOPEN];
+			oForecastH[serie*MT4engine->targetLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->sampleLen+bar)*FXDATA_FEATURESCNT+FXHIGH];
+			oForecastL[serie*MT4engine->targetLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->sampleLen+bar)*FXDATA_FEATURESCNT+FXLOW];
+			oForecastC[serie*MT4engine->targetLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->sampleLen+bar)*FXDATA_FEATURESCNT+FXCLOSE];
+			oForecastV[serie*MT4engine->targetLen+bar]=mtTimeSerie[serie]->val[PREDICTED][BASE][(MT4engine->sampleLen+bar)*FXDATA_FEATURESCNT+FXVOLUME];
+			info("OHLCV Forecast, serie %d , bar %d: %f|%f|%f|%f|%f", serie, bar, oForecastO[serie*MT4engine->targetLen+bar], oForecastH[serie*MT4engine->targetLen+bar], oForecastL[serie*MT4engine->targetLen+bar], oForecastC[serie*MT4engine->targetLen+bar], oForecastV[serie*MT4engine->targetLen+bar]);
 		}
 	}
 
@@ -677,10 +675,10 @@ void sRoot::MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeatur
 	//-- spawn engine from savedEnginePid_ with pid
 	safespawn(MT4engine, newsname("Engine"), defaultdbg, MT4clientLog, MT4clientPid, MT4enginePid);
 	
-	(*oSampleLen_)=MT4engine->shape->sampleLen;
-	(*oPredictionLen_)=MT4engine->shape->predictionLen;
-	(*oFeaturesCnt_)=MT4engine->shape->featuresCnt;
-	info("Engine spawned from DB. sampleLen=%d ; predictionLen=%d ; featuresCnt=%d", MT4engine->shape->sampleLen, MT4engine->shape->predictionLen, MT4engine->shape->featuresCnt);
+	(*oSampleLen_)=MT4engine->sampleLen;
+	(*oPredictionLen_)=MT4engine->targetLen;
+	(*oFeaturesCnt_)=MT4engine->featuresCnt;
+	info("Engine spawned from DB. sampleLen=%d ; targetLen=%d ; featuresCnt=%d", MT4engine->sampleLen, MT4engine->targetLen, MT4engine->featuresCnt);
 	info("Environment initialized and Engine created for Account Number %d inferring from Engine pid %d using config from %s", MT4accountId, MT4enginePid, MT4clientXMLFile);
 }
 void sRoot::MT4commit(){
