@@ -40,8 +40,7 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	mallocTSinfo();
 
 	//-- 3. load info from FROM persistor
-	int typeUNUSED;
-	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &typeUNUSED, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, &sourceTSCnt, TSfeaturesCnt, TSfeature, TStrMin, TStrMax);
+	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, &WNNdecompLevel, &WNNwaveletType, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, &sourceTSCnt, TSfeaturesCnt, TSfeature, TStrMin, TStrMax);
 	//-- 2. malloc one core, one coreLayout, one coreParms and one corePersistor for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
@@ -81,16 +80,47 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(
 	//-- engine-level persistor
 	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
 
-	//-- 0. coresCnt
-	safecall(cfgKey, getParm, &coresCnt, "CoresCount");
+	//-- engine type
+	safecall(cfgKey, getParm, &type, "Type");
+
+	//-- cores count
+	WNNdecompLevel=-1; WNNwaveletType=-1;
+	switch (type) {
+	case ENGINE_WNN:
+		safecall(cfgKey, getParm, &WNNdecompLevel, "DecompLevel");
+		safecall(cfgKey, getParm, &WNNwaveletType, "WaveletType");
+		coresCnt=WNNdecompLevel+2;
+		break;
+	case ENGINE_XIE:
+		coresCnt=3;
+		break;
+	case ENGINE_CUSTOM:
+		safecall(cfgKey, getParm, &coresCnt, "CoresCount");
+		break;
+	default:
+		fail("Invalid Engine Type");
+	}
+
 	//-- 1. malloc one core, one coreLayout and one coreParms for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
 	coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
+
 	//-- 2. for each Core, create layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
-	for (int c=0; c<coresCnt; c++) {
-		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Core%d/Layout", c))->base, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt);
+	switch (type) {
+	case ENGINE_WNN:
+		break;
+	case ENGINE_XIE:
+		break;
+	case ENGINE_CUSTOM:
+		for (int c=0; c<coresCnt; c++) {
+			safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Core%d/Layout", c))->base, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt);
+		}
+		break;
+	default:
+		fail("Invalid Engine Type");
 	}
+
 	//--
 	mallocTSinfo();
 
@@ -475,7 +505,10 @@ void sEngine::saveInfo() {
 	}
 
 	//-- actual call
-	safecall(persistor, saveEngineInfo, clientPid, -1, shape->sampleLen, shape->predictionLen, shape->featuresCnt, coresCnt, persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
+	safecall(persistor, saveEngineInfo, clientPid, type, coresCnt, \
+		shape->sampleLen, shape->predictionLen, shape->featuresCnt, \
+		WNNdecompLevel, WNNwaveletType, \
+		persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
 		coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_, \
 		trainDS->sourceTScnt, trainDS->selectedTSfeaturesCnt, trainDS->selectedTSfeature, TStrMin, TStrMax);
 
