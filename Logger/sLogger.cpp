@@ -61,17 +61,17 @@ void sLogger::saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mseT
 	if (saveToDB) safecall(oradb, saveMSE, pid, tid, mseCnt, duration, mseT, mseV);
 	if (saveToFile) safecall(filedb, saveMSE, pid, tid, mseCnt, duration, mseT, mseV);
 }
-void sLogger::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int runStepsCnt, int featuresCnt_, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actualBASE, numtype* predictedBASE) {
-	if (saveToDB) safecall(oradb, saveRun, pid, tid, npid, ntid, mseR, runStepsCnt, featuresCnt_, posLabel, actualTRS, predictedTRS, actualTR, predictedTR, actualBASE, predictedBASE);
-	//if (saveToFile) safecall(filedb, saveRun, pid, tid, npid, ntid, mseR, runStepsCnt, tsFeaturesCnt_, selectedFeaturesCnt, selectedFeature, predictionLen, posLabel, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted, barWidth_);
+void sLogger::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int runStepsCnt, int tsid_, int tsFeaturesCnt_, int selectedFeaturesCnt, int* selectedFeature, int predictionLen, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actual, numtype* predicted, numtype* barWidth_) {
+	if (saveToDB) safecall(oradb, saveRun, pid, tid, npid, ntid, mseR, runStepsCnt, tsid_, tsFeaturesCnt_, selectedFeaturesCnt, selectedFeature, predictionLen, posLabel, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted, barWidth_);
+	if (saveToFile) safecall(filedb, saveRun, pid, tid, npid, ntid, mseR, runStepsCnt, tsFeaturesCnt_, selectedFeaturesCnt, selectedFeature, predictionLen, posLabel, actualTRS, predictedTRS, actualTR, predictedTR, actual, predicted, barWidth_);
 }
 //--
-void sLogger::saveEngineInfo(int pid, int sampleLen_, int predictionLen_, int featuresCnt_, int coresCnt, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_) {
-	if (saveToDB) safecall(oradb, saveEngineInfo, pid, sampleLen_, predictionLen_, featuresCnt_, coresCnt, saveToDB_, saveToFile_, dbconn_, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType, trMin_, trMax_);
+void sLogger::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, int WNNdecompLevel_, int WNNwaveletType_, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, int sourceTSCnt_, int* TSfeaturesCnt_, int** feature_, numtype** trMin_, numtype** trMax_) {
+	if (saveToDB) safecall(oradb, saveEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, WNNdecompLevel_, WNNwaveletType_, saveToDB_, saveToFile_, dbconn_, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType, sourceTSCnt_, TSfeaturesCnt_, feature_, trMin_, trMax_);
 	//if (saveToFile) safecall(filedb, saveEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType);
 }
-void sLogger::loadEngineInfo(int pid, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_) {
-	if (source==OraData) safecall(oradb, loadEngineInfo, pid, coresCnt, sampleLen_, predictionLen_, featuresCnt_, saveToDB_, saveToFile_, dbconn_, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType, trMin_, trMax_);
+void sLogger::loadEngineInfo(int pid, int* engineType, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* WNNdecompLevel_, int* WNNwaveletType_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* coreThreadId, int* parentCoresCnt, int** parentCore, int** parentConnType, int* sourceTSCnt_, int* TSfeaturesCnt_, int** feature_, numtype** trMin_, numtype** trMax_) {
+	if (source==OraData) safecall(oradb, loadEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, WNNdecompLevel_, WNNwaveletType_, saveToDB_, saveToFile_, dbconn_, coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType, sourceTSCnt_, TSfeaturesCnt_, feature_, trMin_, trMax_);
 	//if (source==FileData) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, saveToDB_, saveToFile_, "DioPorco", coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
 }
 //-- Save/Load Core<XXX>Image
