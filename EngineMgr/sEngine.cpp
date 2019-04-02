@@ -1,5 +1,5 @@
 #include "sEngine.h"
-#include <vld.h>
+//#include <vld.h>
 
 void sEngine::mallocTSinfo() {
 	TSfeaturesCnt=(int*)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(int));
@@ -357,7 +357,6 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 
 		//-- free(s)
 		free(procH); free(kaz); free(tid);
-
 	}
 }
 void sEngine::train(int testid_, sDataSet* trainDS_) {

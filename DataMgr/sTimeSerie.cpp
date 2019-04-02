@@ -1,4 +1,5 @@
 #include "sTimeSerie.h"
+//#include <vld.h>
 
 sTimeSerie::sTimeSerie(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 	mallocs1();
@@ -222,7 +223,7 @@ void sTimeSerie::mallocs2() {
 
 	val=(numtype***)malloc(2*sizeof(numtype**));
 	for (int source=0; source<2; source++) {
-		val[source]=(numtype**)malloc(2*sizeof(numtype*));
+		val[source]=(numtype**)malloc(3*sizeof(numtype*));
 		for (int status=0; status<3; status++) {
 			val[source][status]=(numtype*)malloc(len*sizeof(numtype));
 		}
@@ -245,7 +246,7 @@ void sTimeSerie::frees() {
 		for (int status=0; status<3; status++) {
 			free(val[source][status]);
 		}
-		//free(val[source]);
+		free(val[source]);
 	}
 	free(val);
 	free(barWidth);

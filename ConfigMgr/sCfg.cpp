@@ -1,4 +1,5 @@
 #include "sCfg.h"
+//#include <vld.h>
 
 sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName_, int currDepth_, int overridesCnt, char** overrideName, char** overrideValS) : sObj(sObjParmsVal) {
 	currDepth=currDepth_;

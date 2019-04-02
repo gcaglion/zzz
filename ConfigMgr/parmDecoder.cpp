@@ -15,6 +15,8 @@
 #include "../EngineMgr/sSOMenums.h"
 #include "../Wavelib/wavelet2d_enums.h"
 
+//#include <vld.h>
+
 #define optionLookup(option, e) { \
 	if (_stricmp(valS[elementId], #option)==0) { \
 		(*oVal)=option; \

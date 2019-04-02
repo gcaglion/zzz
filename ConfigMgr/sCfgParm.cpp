@@ -1,4 +1,5 @@
 #include "sCfgParm.h"
+//#include <vld.h>
 
 sCfgParm::sCfgParm(sObjParmsDef, char* parmName_, char* parmValS_) : sObj(sObjParmsVal) {
 	strcpy_s(valcsl, XMLKEY_PARM_VAL_MAXCNT*XMLKEY_PARM_VAL_MAXLEN, parmValS_);

@@ -1,4 +1,5 @@
 #include "sCfgLine.h"
+//#include <vld.h>
 
 sCfgLine::sCfgLine(sObjParmsDef, char* rawLine_, int overridesCnt, char** overrideName, char** overrideValS) : sObj(sObjParmsVal) {
 

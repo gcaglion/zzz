@@ -1,4 +1,5 @@
 #include "sCfgObj.h"
+//#include <vld.h>
 
 sCfgObj::sCfgObj(sCfgObjParmsDef) : sObj(sObjParmsVal) {
 

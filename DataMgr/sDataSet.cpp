@@ -1,4 +1,5 @@
 #include "sDataSet.h"
+//#include <vld.h>
 
 sDataSet::sDataSet(sObjParmsDef, int sourceTScnt_, sTimeSerie** sourceTS_, int* selectedTSfeaturesCnt_, int** selectedTSfeature_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, bool doDump_, char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 
@@ -256,6 +257,11 @@ void sDataSet::mallocs2() {
 
 }
 void sDataSet::frees() {
+	for (int t=0; t<sourceTScnt; t++) free(selectedTSfeature[t]); 
+	free(selectedTSfeature); free(selectedTSfeaturesCnt);
+	free(dumpPath);
+	free(sourceTS);
+
 	free(sampleSBF);
 	free(targetSBF);
 	free(predictionSBF);

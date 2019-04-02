@@ -1,4 +1,5 @@
 #include "sCfgKey.h"
+//#include <vld.h>
 
 sCfgKey::sCfgKey(sObjParmsDef, int linesCnt_, sCfgLine** cfgLine_, int startLine_) : sObj(sObjParmsVal) {
 
@@ -46,7 +47,8 @@ sCfgKey::sCfgKey(sObjParmsDef, int linesCnt_, sCfgLine** cfgLine_, int startLine
 	}
 
 }
-sCfgKey::~sCfgKey(){}
+sCfgKey::~sCfgKey(){
+}
 
 void sCfgKey::setDbg() {
 
