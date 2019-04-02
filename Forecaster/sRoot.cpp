@@ -1,6 +1,6 @@
 
 #include "sRoot.h"
-//#include <vld.h>
+#include <vld.h>
 
 //-- constructor / destructor
 sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname("RootObj"), defaultdbg, progressReporter, nullptr, nullptr) {
