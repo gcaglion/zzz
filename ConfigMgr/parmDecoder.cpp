@@ -13,7 +13,7 @@
 #include "../EngineMgr/sGAenums.h"
 #include "../EngineMgr/sSVMenums.h"
 #include "../EngineMgr/sSOMenums.h"
-
+#include "../Wavelib/wavelet2d_enums.h"
 
 #define optionLookup(option, e) { \
 	if (_stricmp(valS[elementId], #option)==0) { \
@@ -68,6 +68,49 @@ void sCfgParm::decode(int elementId, int* oVal) {
 	optionLookup(ENGINE_XIE, elementId);
 	optionLookup(ENGINE_WNN, elementId);
 	optionLookup(ENGINE_CUSTOM, elementId);
+	optionLookup(WNN_HAAR, elementId);
+	optionLookup(WNN_DB1, elementId);
+	optionLookup(WNN_DB2, elementId);
+	optionLookup(WNN_DB3, elementId);
+	optionLookup(WNN_DB4, elementId);
+	optionLookup(WNN_DB5, elementId);
+	optionLookup(WNN_DB6, elementId);
+	optionLookup(WNN_DB7, elementId);
+	optionLookup(WNN_DB8, elementId);
+	optionLookup(WNN_DB9, elementId);
+	optionLookup(WNN_DB10, elementId);
+	optionLookup(WNN_DB11, elementId);
+	optionLookup(WNN_DB12, elementId);
+	optionLookup(WNN_BIOR11, elementId);
+	optionLookup(WNN_BIOR13, elementId);
+	optionLookup(WNN_BIOR15, elementId);
+	optionLookup(WNN_BIOR22, elementId);
+	optionLookup(WNN_BIOR24, elementId);
+	optionLookup(WNN_BIOR26, elementId);
+	optionLookup(WNN_BIOR28, elementId);
+	optionLookup(WNN_BIOR31, elementId);
+	optionLookup(WNN_BIOR33, elementId);
+	optionLookup(WNN_BIOR35, elementId);
+	optionLookup(WNN_BIOR37, elementId);
+	optionLookup(WNN_BIOR39, elementId);
+	optionLookup(WNN_BIOR44, elementId);
+	optionLookup(WNN_BIOR55, elementId);
+	optionLookup(WNN_BIOR68, elementId);
+	optionLookup(WNN_COIF1, elementId);
+	optionLookup(WNN_COIF2, elementId);
+	optionLookup(WNN_COIF3, elementId);
+	optionLookup(WNN_COIF4, elementId);
+	optionLookup(WNN_COIF5, elementId);
+	optionLookup(WNN_SYM2, elementId);
+	optionLookup(WNN_SYM3, elementId);
+	optionLookup(WNN_SYM4, elementId);
+	optionLookup(WNN_SYM5, elementId);
+	optionLookup(WNN_SYM6, elementId);
+	optionLookup(WNN_SYM7, elementId);
+	optionLookup(WNN_SYM8, elementId);
+	optionLookup(WNN_SYM9, elementId);
+	optionLookup(WNN_SYM10, elementId);
+
 	//-- Core enums
 	optionLookup(CORE_NN, elementId);
 	optionLookup(CORE_GA, elementId);

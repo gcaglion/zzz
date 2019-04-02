@@ -234,6 +234,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="wavelet2d.h" />
+    <ClInclude Include="wavelet2d_enums.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
