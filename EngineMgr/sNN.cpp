@@ -20,9 +20,8 @@ sNN::~sNN() {
 	free(nodesCnt);
 	free(levelFirstNode);
 	free(ctxStart);
-
 	free(weightsCnt);
-
+	free(levelFirstWeight);
 }
 
 void sNN::setCommonLayout() {
@@ -414,9 +413,13 @@ void sNN::setLayout(int batchSamplesCnt_) {
 	//-- 0.4. set first node and first weight for each layer
 	for (l=0; l<parms->levelsCnt; l++) {
 		levelFirstNode[l]=0;
-		levelFirstWeight[l]=0;
 		for (int ll=0; ll<l; ll++) {
 			levelFirstNode[l]+=nodesCnt[ll];
+		}
+	}
+	for (l=0; l<outputLevel; l++) {
+		levelFirstWeight[l]=0;
+		for (int ll=0; ll<l; ll++) {
 			levelFirstWeight[l]+=weightsCnt[ll];
 		}
 	}

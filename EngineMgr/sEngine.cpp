@@ -1,4 +1,5 @@
 #include "sEngine.h"
+#include <vld.h>
 
 void sEngine::mallocTSinfo() {
 	TSfeaturesCnt=(int*)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(int));
@@ -46,6 +47,7 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
 	coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
 	corePersistor=(sCoreLogger**)malloc(coresCnt*sizeof(sCoreLogger*));
+	procArgs=(sEngineProcArgs**)malloc(coresCnt*sizeof(sEngineProcArgs*)); for (int c=0; c<coresCnt; c++) procArgs[c]= new sEngineProcArgs();
 
 	//-- for each Core, create corePersistor from DB (coreLoggerParms), using loadingPid_ and coreThreadId[]. Also, get layout info, and set base coreLayout properties  (type, desc, connType, outputCnt).
 	for (int c=0; c<coresCnt; c++) {
@@ -105,6 +107,7 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
 	coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
+	procArgs=(sEngineProcArgs**)malloc(coresCnt*sizeof(sEngineProcArgs*)); for (int c=0; c<coresCnt; c++) procArgs[c]= new sEngineProcArgs();
 
 	//-- 2. for each Core, create layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
 	for (int c=0; c<coresCnt; c++) {
@@ -125,9 +128,16 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(
 
 }
 sEngine::~sEngine() {
-	free(core); free(coreLayout); free(coreParms);
 	free(layerCoresCnt);
 	freeTSinfo();
+	cleanup();
+}
+void sEngine::cleanup() {
+	for (int c=0; c<coresCnt; c++) delete procArgs[c];
+	free(procArgs);
+	free(core);
+	free(coreLayout);
+	free(coreParms);
 }
 
 void sEngine::spawnCoresFromXML() {
@@ -285,7 +295,6 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 	int ret = 0;
 	int threadsCnt;
 	HANDLE* procH;
-	sEngineProcArgs** procArgs;
 
 	system("cls");
 	for (int l=0; l<layersCnt; l++) {
@@ -293,21 +302,17 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 		threadsCnt=layerCoresCnt[l];
 		
 		//-- initialize layer-level structures
-		procArgs=(sEngineProcArgs**)malloc(threadsCnt*sizeof(sEngineProcArgs*));
-		//ds = (void**)malloc(threadsCnt*sizeof(sDataSet*));	
 		procH = (HANDLE*)malloc(threadsCnt*sizeof(HANDLE));
 		DWORD* kaz = (DWORD*)malloc(threadsCnt*sizeof(DWORD));
 		LPDWORD* tid = (LPDWORD*)malloc(threadsCnt*sizeof(LPDWORD)); 
+		for (t=0; t<threadsCnt; t++) tid[t] = &kaz[t];		
 		//--
-		for (t=0; t<threadsCnt; t++) {
-			procArgs[t]=new sEngineProcArgs();
-			tid[t] = &kaz[t];
-		}	
-		//--
+
 
 		gotoxy(0, 2+l+((l>0) ? layerCoresCnt[l-1] : 0));  printf("Process %6d, %s Layer %d\n", clientPid, ((procid_==trainProc)?"Training":"Inferencing"), l);
 		t=0;
 		for (int c=0; c<coresCnt; c++) {
+
 			if (core[c]->layout->layer==l) {
 
 				//-- scale trdata and rebuild training DataSet for current Core
@@ -316,27 +321,27 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 				coreDS[c]->dump();
 
 				//-- Create Training or Infer Thread for current Core
-				procArgs[t]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
-				procArgs[t]->core=core[c];
-				procArgs[t]->coreProcArgs->ds = coreDS[c];
-				procArgs[t]->coreProcArgs->batchSize=batchSize_;
-				procArgs[t]->coreProcArgs->loadImage=loadImage_;
-				procArgs[t]->coreProcArgs->npid=savedEnginePid_;
-				procArgs[t]->coreProcArgs->ntid=coreLayout[c]->tid;
+				procArgs[c]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
+				procArgs[c]->core=core[c];
+				procArgs[c]->coreProcArgs->ds = coreDS[c];
+				procArgs[c]->coreProcArgs->batchSize=batchSize_;
+				procArgs[c]->coreProcArgs->loadImage=loadImage_;
+				procArgs[c]->coreProcArgs->npid=savedEnginePid_;
+				procArgs[c]->coreProcArgs->ntid=coreLayout[c]->tid;
 
 				if (procid_==trainProc) {
-					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadTrain, &(*procArgs[t]), 0, tid[t]);
+					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadTrain, &(*procArgs[c]), 0, tid[t]);
 				} else {
-					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadInfer, &(*procArgs[t]), 0, tid[t]);
+					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadInfer, &(*procArgs[c]), 0, tid[t]);
 				}
 
 				//-- Store Engine Handler
-				procArgs[t]->coreProcArgs->pid = clientPid;
-				procArgs[t]->coreProcArgs->tid=(*tid[t]);
-				procArgs[t]->coreProcArgs->testid=testid_;
+				procArgs[c]->coreProcArgs->pid = clientPid;
+				procArgs[c]->coreProcArgs->tid=(*tid[t]);
+				procArgs[c]->coreProcArgs->testid=testid_;
 
 				//-- associate Training Args to current core
-				core[c]->procArgs=procArgs[t]->coreProcArgs;
+				core[c]->procArgs=procArgs[c]->coreProcArgs;
 
 				t++;
 			}
@@ -351,8 +356,8 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 		}
 
 		//-- free(s)
-		for (t=0; t<threadsCnt; t++) free(procArgs[t]); 
-		free(procArgs); free(procH); free(kaz); free(tid);
+		free(procH); free(kaz); free(tid);
+
 	}
 }
 void sEngine::train(int testid_, sDataSet* trainDS_) {
@@ -416,6 +421,9 @@ void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool r
 void sEngine::saveMSE() {
 	for (int c=0; c<coresCnt; c++) {
 		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->duration, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
+		free(core[c]->procArgs->mseT);
+		free(core[c]->procArgs->mseV);
+		free(core[c]->procArgs->duration);
 	}
 }
 void sEngine::saveCoreLoggers() {

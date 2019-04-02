@@ -33,10 +33,12 @@ struct sEngine : sCfgObj {
 	sCoreLayout** coreLayout;
 	sCoreParms** coreParms;
 	sCoreLogger** corePersistor;
+	sEngineProcArgs** procArgs;
 
 	EXPORT sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_);
 	EXPORT sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_);
 	EXPORT ~sEngine();
+	EXPORT void cleanup();
 
 	EXPORT void train(int testid_, sDataSet* trainDS_);
 	EXPORT void infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool reTransform=true);
