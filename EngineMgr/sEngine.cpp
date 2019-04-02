@@ -107,18 +107,8 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(
 	coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
 
 	//-- 2. for each Core, create layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
-	switch (type) {
-	case ENGINE_WNN:
-		break;
-	case ENGINE_XIE:
-		break;
-	case ENGINE_CUSTOM:
-		for (int c=0; c<coresCnt; c++) {
-			safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Core%d/Layout", c))->base, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt);
-		}
-		break;
-	default:
-		fail("Invalid Engine Type");
+	for (int c=0; c<coresCnt; c++) {
+		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Core%d/Layout", c))->base, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt);
 	}
 
 	//--
