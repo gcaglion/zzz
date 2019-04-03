@@ -27,6 +27,7 @@ struct sTS : sCfgObj {
 	char dumpPath[MAX_PATH];
 
 	EXPORT sTS(sCfgObjParmsDef);
+	EXPORT sTS(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, bool doDump_, const char* dumpPath_);
 	EXPORT ~sTS();
 
 	EXPORT void untransform();

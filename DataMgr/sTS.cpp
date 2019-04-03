@@ -1,5 +1,45 @@
 #include "sTS.h"
 
+sTS::sTS(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+
+	int dsrcCnt=1;
+	sDataSource** dsrc=(sDataSource**)malloc(dsrcCnt*sizeof(sDataSource*));
+	featuresCnt=sourceData_->featuresCnt;
+	stepsCnt=stepsCnt_;
+	dt=dt_;
+
+	timestamp=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) timestamp[i]=(char*)malloc(DATE_FORMAT_LEN);
+	val=(numtype*)malloc(stepsCnt*featuresCnt*sizeof(numtype));
+	valTR=(numtype*)malloc(stepsCnt*featuresCnt*sizeof(numtype));
+	timestampB=(char*)malloc(DATE_FORMAT_LEN);
+	valB=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	TRmin=(numtype*)malloc(featuresCnt*sizeof(numtype)); for (int f=0; f<featuresCnt; f++) TRmin[f]=1e9;
+	TRmax=(numtype*)malloc(featuresCnt*sizeof(numtype)); for (int f=0; f<featuresCnt; f++) TRmax[f]=-1e9;
+
+	doDump=doDump_;
+	if (dumpPath_!=nullptr) {
+		strcpy_s(dumpPath, MAX_PATH, dumpPath_);
+	} else {
+		strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
+	}
+
+	//-- load all data sources
+	char** tmptime=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) tmptime[i]=(char*)malloc(DATE_FORMAT_LEN);
+	numtype** tmpval=(numtype**)malloc(dsrcCnt*sizeof(numtype*));
+	char* tmptimeB=(char*)malloc(DATE_FORMAT_LEN);
+	numtype** tmpvalB=(numtype**)malloc(dsrcCnt*sizeof(numtype*));
+	numtype** tmpbw=(numtype**)malloc(dsrcCnt*sizeof(numtype*));
+
+	for (int d=0; d<dsrcCnt; d++) {
+		tmpval[d]=(numtype*)malloc(stepsCnt*dsrc[d]->featuresCnt*sizeof(numtype));
+		tmpvalB[d]=(numtype*)malloc(dsrc[d]->featuresCnt*sizeof(numtype));
+		tmpbw[d]=(numtype*)malloc(stepsCnt*dsrc[d]->featuresCnt*sizeof(numtype));
+		safecall(sourceData_, load, date0_, stepsCnt, tmptime, tmpval[d], tmptimeB, tmpvalB[d], tmpbw[d]);	//-- tmptime is loaded from last ts
+	}
+
+	//==== INCOMPLETE !!! ===
+}
+
 sTS::sTS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &stepsCnt, "HistoryLen");
 	safecall(cfgKey, getParm, &dt, "DataTransformation");

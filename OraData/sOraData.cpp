@@ -49,7 +49,7 @@ void sOraData::commit() {
 	if (conn!=nullptr) ((Connection*)conn)->commit();
 }
 //-- Read
-void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar, numtype* oBarWidth) {
+void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, const char* date0_, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar, numtype* oBarWidth) {
 	int i;
 
 	//-- always check this, first!

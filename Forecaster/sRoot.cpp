@@ -608,6 +608,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	//-- manually spawn infer dataset from timeseries, sampleLen, predictionLen
 	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, seriesCnt_, mtTimeSerie, selFcnt, selF, MT4engine->sampleLen, MT4engine->targetLen, 1, MT4doDump);
 	mtDataSet->build(ACTUAL, BASE);
+	mtDataSet->dump();
 	
 	//-- do inference (also populates datasets)
 //	safecall(MT4engine, infer, MT4accountId, mtDataSet, 1, MT4enginePid);
