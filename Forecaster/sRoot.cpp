@@ -1,6 +1,6 @@
 
 #include "sRoot.h"
-//#include <vld.h>
+#include <vld.h>
 
 //-- constructor / destructor
 sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname("RootObj"), defaultdbg, progressReporter, nullptr, nullptr) {
@@ -160,6 +160,16 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 #include "../DataMgr/sDS.h"
 void sRoot::kaz() {
 
+	sCfg* clientCfg; safespawn(clientCfg, newsname("ClientCfg"), defaultdbg, "Config/10/Client.xml");
+	sLogger* clientLog;
+	bool saveClient;
+	safecall(clientCfg, setKey, "/Client");
+	//clientCfg->setKey("/Client");
+	//safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
+	//safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
+
+	return;
+
 	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/10/ts0.xml");
 	sTS* tsActual; safespawn(tsActual, newsname("tsActual"), defaultdbg, tsCfg, "/");
 	tsActual->dump();
@@ -171,13 +181,6 @@ void sRoot::kaz() {
 
 	sCfg* dsiCfg; safespawn(dsiCfg, newsname("dsiCfg"), defaultdbg, "Config/10/ds0i.xml");
 	sDS* ds0i; safespawn(ds0i, newsname("ds0i"), defaultdbg, dsiCfg, "/");
-
-	sCfg* clientCfg; safespawn(clientCfg, newsname("ClientCfg"), defaultdbg, "Config/10/Client.xml");
-	sLogger* clientLog;
-	bool saveClient;
-	safecall(clientCfg, setKey, "/Client");
-	safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
-	safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
 
 
 	//	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
