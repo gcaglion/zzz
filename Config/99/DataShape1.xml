@@ -1,5 +1,0 @@
-<DataShape>
-	SampleLen		= 50
-	PredictionLen	= 1
-	FeaturesCount	= 4
-</DataShape>
