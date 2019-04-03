@@ -66,6 +66,7 @@ struct sObj {
 
 #define safespawn(childVar_, childSname_, childDbg_, ...) _spawn(__func__, &childVar_, childSname_, childDbg_, __VA_ARGS__);
 #define safecall(obj_, met_, ...){ \
+	if (cmdSvard!=nullptr) delete cmdSvard; \
 	cmdSvard=new svard(__VA_ARGS__); \
 	sprintf_s(cmd, CmdMaxLen, "%s->%s(%s)", obj_->name->base, Quote(met_), cmdSvard->fullval); \
 	try{ \
