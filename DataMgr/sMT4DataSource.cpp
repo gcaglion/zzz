@@ -46,7 +46,7 @@ sMT4DataSource::~sMT4DataSource(){
 	free(bartime);
 }
 
-void sMT4DataSource::load(char* pDate0, int pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar, numtype* oBarWidth) {
+void sMT4DataSource::load(const char* pDate0, int pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar, numtype* oBarWidth) {
 	
 	for(int b=0; b<historyLen; b++) strcpy_s(oBarTime[b], DATE_FORMAT_LEN, bartime[b]);
 	memcpy_s(oBarData, historyLen*FXDATA_FEATURESCNT*sizeof(numtype), sample, historyLen*FXDATA_FEATURESCNT*sizeof(numtype));

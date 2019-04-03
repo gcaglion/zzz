@@ -1,4 +1,8 @@
 <Engine>
+	<Debugger>
+		FileOutput = true
+	</Debugger>
+	
 	CoresCount	= 1
 	<Core0>
 		<Layout>
