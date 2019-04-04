@@ -1,5 +1,7 @@
 #pragma once
 #include "../common.h"
+#include <string>
+using namespace std;
 
 #define PARMS_MAXCNT	32
 #define PARM_MASK_LEN	8
@@ -16,6 +18,7 @@ struct svard {
 	long*   pvalP[PARMS_MAXCNT];
 	char fullval[PARMS_MAXCNT*PARM_VAL_MAXLEN];
 
+	void select(string a) { { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "\"%s\", "); } }
 	void select(const char* a) { if (a!=nullptr) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "\"%s\", "); } }
 	void select(char* a) { if (a!=nullptr) { plen=strlen(a); strcpy_s(pmask[pcnt], PARM_MASK_LEN, "\"%s\", "); } }
 	void select(int a) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "%d, "); }

@@ -3,6 +3,8 @@
 #include "../common.h"
 #include "../Utils/Utils.h"
 #include "ObjDefs.h"
+#include <string.h>
+using namespace std;
 
 struct sName {
 	char base[ObjNameMaxLen];
@@ -18,3 +20,4 @@ struct sName {
 #define newsname(nameMask_, ...) new sName(nameMask_, __VA_ARGS__)
 
 
+EXPORT string strBuild(const char* mask_, ...);

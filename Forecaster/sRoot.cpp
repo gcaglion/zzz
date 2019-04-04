@@ -3,7 +3,7 @@
 //#include <vld.h>
 
 //-- constructor / destructor
-sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname("RootObj"), defaultdbg, progressReporter, nullptr, nullptr) {
+sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname("RootObj"), defaultdbg, progressReporter, nullptr, "") {
 	pid=GetCurrentProcessId();
 	GUIreporter=progressReporter;
 }
@@ -157,6 +157,8 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 
 //-- temp stuff
 void sRoot::kaz() {
+
+	string s=strBuild("kaz%d", 1);
 
 	char ffname[MAX_PATH];
 	char* BaseDataSetXMLFile="Config/30/DataSets/base.xml"; getFullPath(BaseDataSetXMLFile, ffname);
@@ -440,11 +442,10 @@ void sRoot::getSeriesInfo(int* oSeriesCnt_, char* oSymbolsCSL_, char* oTimeFrame
 
 	safecall(MT4clientCfg->currentKey, getParm, oSeriesCnt_, "MetaTrader/ChartsCount");
 	for (int s=0; s<(*oSeriesCnt_); s++) {
-		tmpC=&tmpSymbol[0]; safecall(MT4clientCfg->currentKey, getParm, &tmpC, (newsname("MetaTrader/Chart%d/Symbol", s))->base);
-		tmpC=&tmpTF[0]; safecall(MT4clientCfg->currentKey, getParm, &tmpC, (newsname("MetaTrader/Chart%d/TimeFrame", s))->base);
-		//safecall(MT4clientCfg->currentKey, getParm, &oChartTrade_[s], (newsname("MetaTrader/Chart%d/Trade", s))->base);
+		tmpC=&tmpSymbol[0]; safecall(MT4clientCfg->currentKey, getParm, &tmpC, strBuild("MetaTrader/Chart%d/Symbol", s).c_str());
+		tmpC=&tmpTF[0]; safecall(MT4clientCfg->currentKey, getParm, &tmpC, strBuild("MetaTrader/Chart%d/TimeFrame", s).c_str());
 		oChartTrade_[s]=true;
-		safecall(MT4clientCfg->currentKey, getParm, &tmpFeatureP, (newsname("MetaTrader/Chart%d/SelectedFeatures", s))->base, false, &tmpFeaturesCnt);
+		safecall(MT4clientCfg->currentKey, getParm, &tmpFeatureP, strBuild("MetaTrader/Chart%d/SelectedFeatures", s).c_str(), false, &tmpFeaturesCnt);
 		//-- build symbol and TF CSLs
 		strcat_s(tmpSymbolList, XMLKEY_PARM_VAL_MAXLEN, tmpSymbol); if (s<((*oSeriesCnt_)-1)) strcat_s(tmpSymbolList, XMLKEY_PARM_VAL_MAXLEN, "|");
 		strcat_s(tmpTFList, XMLKEY_PARM_VAL_MAXLEN, tmpTF); if (s<((*oSeriesCnt_)-1)) strcat_s(tmpTFList, XMLKEY_PARM_VAL_MAXLEN, "|");

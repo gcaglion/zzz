@@ -44,13 +44,13 @@ sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName_, int currDepth_, int overr
 sCfg::~sCfg() {
 }
 
-void sCfg::setKey(const char* keyDesc_, bool ignoreError, bool* oKeyFound_) {
+void sCfg::setKey(string keyDesc_, bool ignoreError, bool* oKeyFound_) {
 
 	
 	sObj* keyObj=nullptr;
 
 	//-- handle modifiers
-	setActualKeyDesc(keyDesc_);
+	setActualKeyDesc(keyDesc_.c_str());
 
 	//-- call sObj findChild on actual relative path
 	findChild(keyDesc, &keyObj);

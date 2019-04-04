@@ -111,7 +111,7 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(
 
 	//-- 2. for each Core, create layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
 	for (int c=0; c<coresCnt; c++) {
-		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Core%d/Layout", c))->base, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt);
+		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, strBuild("Core%d/Layout", c), shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt);
 	}
 
 	//--
@@ -148,31 +148,31 @@ void sEngine::spawnCoresFromXML() {
 			if (coreLayout[c]->layer==l) {
 				switch (coreLayout[c]->type) {
 				case CORE_NN:
-					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
+					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					NNcp->setScaleMinMax();
 					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", Alg, coreLayout[c], NNcp);
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
-					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
+					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					GAcp->setScaleMinMax();
 					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, "../", Alg, coreLayout[c], GAcp);
 					coreParms[c]=GAcp; core[c]=GAc;
 					break;
 				case CORE_SVM:
-					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
+					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					SVMcp->setScaleMinMax();
 					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, "../", Alg, coreLayout[c], SVMcp);
 					coreParms[c]=SVMcp; core[c]=SVMc;
 					break;
 				case CORE_SOM:
-					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
+					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					SOMcp->setScaleMinMax();
 					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, "../", Alg, coreLayout[c], SOMcp);
 					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
 				case CORE_DUMB:
-					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
+					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					DUMBcp->setScaleMinMax();
 					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, cfg, "../", Alg, coreLayout[c], DUMBcp);
 					coreParms[c]=DUMBcp; core[c]=DUMBc;
