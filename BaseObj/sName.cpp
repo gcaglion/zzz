@@ -24,3 +24,13 @@ void sName::update(int objDepth_, sName* parentSname_) {
 	strcat_s(full, ObjMaxDepth*ObjNameMaxLen, base);
 
 }
+
+EXPORT string strBuild(const char* mask_, ...) {
+	char buf[ObjNameMaxLen];
+	va_list va_args;
+	va_start(va_args, mask_);
+	vsprintf_s(buf, ObjNameMaxLen, mask_, va_args);
+	va_end(va_args);
+	std::string ret=buf;
+	return ret;
+}
