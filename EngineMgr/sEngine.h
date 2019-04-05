@@ -16,11 +16,6 @@
 
 struct sEngine : sCfgObj {
 
-	int type;
-
-	int WNNdecompLevel;
-	int WNNwaveletType;
-
 	int coresCnt;
 	int layersCnt=0;
 	int* layerCoresCnt;

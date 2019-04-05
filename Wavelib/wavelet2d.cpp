@@ -40,54 +40,8 @@
 #include "fftw3.h"
 using namespace std;
 
-string wtypeDesc(int wtype) {
-	switch (wtype) {
-	case WNN_HAAR: return "haar";
-	case WNN_DB1: return "db1";
-	case WNN_DB2: return "db2";
-	case WNN_DB3: return "db3";
-	case WNN_DB4: return "db4";
-	case WNN_DB5: return "db5";
-	case WNN_DB6: return "db6";
-	case WNN_DB7: return "db7";
-	case WNN_DB8: return "db8";
-	case WNN_DB9: return "db9";
-	case WNN_DB10: return "db10";
-	case WNN_DB11: return "db11";
-	case WNN_DB12: return "db12";
-	case WNN_BIOR11: return "bior 1.1";
-	case WNN_BIOR13: return "bior 1.3";
-	case WNN_BIOR15: return "bior 1.5";
-	case WNN_BIOR22: return "bior 2.2";
-	case WNN_BIOR24: return "bior 2.4";
-	case WNN_BIOR26: return "bior 2.6";
-	case WNN_BIOR28: return "bior 2.8";
-	case WNN_BIOR31: return "bior 3.1";
-	case WNN_BIOR33: return "bior 3.3";
-	case WNN_BIOR35: return "bior 3.5";
-	case WNN_BIOR37: return "bior 3.7";
-	case WNN_BIOR39: return "bior 3.9";
-	case WNN_BIOR44: return "bior 4.4";
-	case WNN_BIOR55: return "bior 5.5";
-	case WNN_BIOR68: return "bior 6.8";
-	case WNN_COIF1: return "coif1";
-	case WNN_COIF2: return "coif2";
-	case WNN_COIF3: return "coif3";
-	case WNN_COIF4: return "coif4";
-	case WNN_COIF5: return "coif5";
-	case WNN_SYM2: return "sym2";
-	case WNN_SYM3: return "sym3";
-	case WNN_SYM4: return "sym4";
-	case WNN_SYM5: return "sym5";
-	case WNN_SYM6: return "sym6";
-	case WNN_SYM7: return "sym7";
-	case WNN_SYM8: return "sym8";
-	case WNN_SYM9: return "sym9";
-	case WNN_SYM10: return "sym10";
-	}
-}
 
-void WaweletDecomp(int pTSlen, double* pTS, int pDecompLevel, int pWaweletType, double* oLFA, double** oHFD) {
+void WaweletDecomp(int pTSlen, double* pTS, int pDecompLevel, char* pWaweletType, double* oLFA, double** oHFD) {
 	int i, n;
 	std::vector<double> SWTin; std::vector<double> SWTout;
 
@@ -95,7 +49,7 @@ void WaweletDecomp(int pTSlen, double* pTS, int pDecompLevel, int pWaweletType, 
 	SWTin.clear(); SWTout.clear();
 	P2V(pTSlen, pTS, SWTin);
 	//-- 1.2. Then, call swt on TS_TRS[d]
-	swt(SWTin, pDecompLevel, wtypeDesc(pWaweletType), SWTout, pTSlen);
+	swt(SWTin, pDecompLevel, pWaweletType, SWTout, pTSlen);
 
 	//-- 1.3. Then, parse output vectors into LFA and HFD[DecompLevel]
 	//--- 1.3.1 First, A[] into LFA[]
