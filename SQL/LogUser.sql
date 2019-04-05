@@ -85,9 +85,6 @@ create table Engines(
 	DataSampleLen number,
 	DataPredictionLen number,
 	DataFeaturesCnt number,
-	-- WNN info
-	WNNdecompLevel number,
-	WNNwaveletType number,
 	-- Persistor Info
 	readFrom number,
 	saveToDB number,

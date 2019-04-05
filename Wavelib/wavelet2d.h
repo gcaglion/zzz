@@ -1,7 +1,6 @@
 #ifndef WAVELET2D_H
 #define WAVELET2D_H
 #include "../Utils/Utils.h"
-#include "wavelet2d_enums.h"
 #include <vector>
 #include <complex>
 using namespace std;

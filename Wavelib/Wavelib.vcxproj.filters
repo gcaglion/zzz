@@ -23,8 +23,5 @@
     <ClInclude Include="wavelet2d.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="wavelet2d_enums.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>
