@@ -1,6 +1,6 @@
 #include "sCoreLayout.h"
 
-sCoreLayout::sCoreLayout(sObjParmsDef, int inputCnt_, int outputCnt_, int type_, int parentsCnt, int* parentId_, int* parentConnType_, int tid_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sCoreLayout::sCoreLayout(sObjParmsDef, int inputCnt_, int outputCnt_, int type_, int parentsCnt, int* parentId_, int* parentConnType_, int tid_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	inputCnt=inputCnt_; outputCnt=outputCnt_;
 	tid=(tid_==0) ? GetCurrentThreadId() : tid_;
 	//-- 0. mallocs

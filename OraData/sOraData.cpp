@@ -2,7 +2,7 @@
 #include "sOraDBcommon.h"
 #include <iostream>
 
-sOraData::sOraData(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sOraData::sOraData(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	//-- 1. get Parameters
 	strcpy_s(DBUserName, DBUSERNAME_MAXLEN, DBUserName_);
 	strcpy_s(DBPassword, DBPASSWORD_MAXLEN, DBPassword_);
