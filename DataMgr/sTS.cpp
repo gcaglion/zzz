@@ -1,8 +1,9 @@
 #include "sTS.h"
+//#include <vld.h>
 
 sTS::sTS(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 
-	int dsrcCnt=1;
+/*	int dsrcCnt=1;
 	sDataSource** dsrc=(sDataSource**)malloc(dsrcCnt*sizeof(sDataSource*));
 	featuresCnt=sourceData_->featuresCnt;
 	stepsCnt=stepsCnt_;
@@ -36,7 +37,7 @@ sTS::sTS(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCn
 		tmpbw[d]=(numtype*)malloc(stepsCnt*dsrc[d]->featuresCnt*sizeof(numtype));
 		safecall(sourceData_, load, date0_, stepsCnt, tmptime, tmpval[d], tmptimeB, tmpvalB[d], tmpbw[d]);	//-- tmptime is loaded from last ts
 	}
-
+*/
 	//==== INCOMPLETE !!! ===
 }
 
@@ -60,7 +61,7 @@ sTS::sTS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	featuresCnt=0;
 	for (int d=0; d<dsrcCnt; d++) {
 		selF[d]=(int*)malloc(MAX_TS_FEATURES*sizeof(int));
-		safecall(cfg, setKey, (newsname("DataSource%d", d))->base);
+		safecall(cfg, setKey, strBuild("DataSource%d", d).c_str());
 		setDataSource(&dsrc[d]);
 		safecall(cfg->currentKey, getParm, &selF[d], "SelectedFeatures", false, &selFcnt[d]);
 		safecall(cfg, setKey, "../");
@@ -162,11 +163,16 @@ sTS::sTS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	for (int i=0; i<stepsCnt; i++) free(tmptime[i]); 
 	free(tmptime); free(tmptimeB);
 
+	free(dsrc);
+
 }
 sTS::~sTS() {
+	for (int i=0; i<stepsCnt; i++) free(timestamp[i]); 
+	free(timestamp); free(timestampB);
 	free(val);
 	free(valTR);
 	free(TRmin); free(TRmax);
+	free(valB);
 }
 
 void sTS::setDataSource(sDataSource** dataSrc_) {

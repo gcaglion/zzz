@@ -1,4 +1,5 @@
 #include "sDS.h"
+#include <vld.h>
 
 sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
