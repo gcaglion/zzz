@@ -73,4 +73,7 @@ struct sEngineProcArgs {
 	sEngineProcArgs() {
 		coreProcArgs = new sCoreProcArgs();
 	}
+	~sEngineProcArgs() {
+		delete coreProcArgs;
+	}
 };

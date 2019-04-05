@@ -253,7 +253,6 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int savedEnginePid_) {
 
 	sDS** parentDS;
-	sDS** coreDS=(sDS**)malloc(coresCnt*sizeof(sDS*));
 
 	int t;
 	int ret = 0;
@@ -283,21 +282,21 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int s
 
 				//-- create dataset for core
 				if (l==0) {
-					safespawn(coreDS[c], newsname("Core_%d-%d_Dataset", l, c), defaultdbg, ds_);
-					safecall(coreDS[c], scale, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+					safespawn(procArgs[c]->coreProcArgs->ds, newsname("Core_%d-%d_Dataset", l, c), defaultdbg, ds_);
+					safecall(procArgs[c]->coreProcArgs->ds, scale, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 				} else {
 					parentDS=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
-					for (int p=0; p<coreLayout[c]->parentsCnt; p++)	parentDS[p]=coreDS[coreLayout[c]->parentId[p]];
-					safespawn(coreDS[c], newsname("Core_%d-%d_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDS);
+					for (int p=0; p<coreLayout[c]->parentsCnt; p++)	parentDS[p]=procArgs[coreLayout[c]->parentId[p]]->coreProcArgs->ds;
+					safespawn(procArgs[c]->coreProcArgs->ds, newsname("Core_%d-%d_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDS);
 					//--
 					free(parentDS);
 				}
-				if(coreDS[c]->doDump) coreDS[c]->dump();
+				if(procArgs[c]->coreProcArgs->ds->doDump) procArgs[c]->coreProcArgs->ds->dump();
 
 				//-- Create Training or Infer Thread for current Core
 				procArgs[c]->coreProcArgs->screenLine = lsl0+1+t;
 				procArgs[c]->core=core[c];
-				procArgs[c]->coreProcArgs->ds = coreDS[c];
+				//procArgs[c]->coreProcArgs->ds = coreDS[c];
 				procArgs[c]->coreProcArgs->loadImage=loadImage_;
 				procArgs[c]->coreProcArgs->npid=savedEnginePid_;
 				procArgs[c]->coreProcArgs->ntid=coreLayout[c]->tid;
@@ -408,6 +407,9 @@ void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTran
 void sEngine::saveMSE() {
 	for (int c=0; c<coresCnt; c++) {
 		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->duration, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
+		free(core[c]->procArgs->mseT);
+		free(core[c]->procArgs->mseV);
+		free(core[c]->procArgs->duration);
 	}
 }
 void sEngine::saveCoreLoggers() {
