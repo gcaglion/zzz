@@ -9,7 +9,7 @@ void sNN::sNNcommon(sNNparms* NNparms_) {
 	//-- weights can be set now, as they are not affected by batchSampleCnt
 	createWeights();
 }
-sNN::sNN(sObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sObjParmsVal, nullptr, nullptr, Alg_, layout_, persistor_) {
+sNN::sNN(sObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sObjParmsVal, nullptr, "", Alg_, layout_, persistor_) {
 	sNNcommon(NNparms_);
 }
 sNN::sNN(sCfgObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, Alg_, layout_) {

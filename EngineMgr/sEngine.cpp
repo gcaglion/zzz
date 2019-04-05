@@ -2,7 +2,7 @@
 //#include <vld.h>
 
 //-- Engine stuff
-sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	
 	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
 	safespawn(Alg, newsname("%s_Algebra", name->base), defaultdbg);
