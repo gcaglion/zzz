@@ -1,5 +1,5 @@
 #include "sDS.h"
-#include <vld.h>
+//#include <vld.h>
 
 sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
@@ -106,7 +106,7 @@ sDS::sDS(sObjParmsDef, sDS* copyFromDS_) : sCfgObj(sObjParmsVal, nullptr, "") {
 		f++;
 	}
 }
-sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal, nullptr, "") {
 
 	//-- sampleLen
 	sampleLen=parentDScnt_*parentDS_[0]->targetLen;
