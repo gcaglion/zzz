@@ -65,7 +65,7 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	cfg->currentKey=bkpKey;
 }
-sDS::sDS(sObjParmsDef, sDS* copyFromDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sDS::sDS(sObjParmsDef, sDS* copyFromDS_) : sCfgObj(sObjParmsVal, nullptr, "") {
 
 	sampleLen=copyFromDS_->sampleLen;
 	targetLen=copyFromDS_->targetLen;

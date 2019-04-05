@@ -81,10 +81,14 @@ alter table CoreImage_NN_N add constraint CoreImage_NN_N_PK primary key( Process
 drop table Engines purge;
 create table Engines(
 	ProcessId number,
+	EngineType number,
 	-- DataShapeInfo
 	DataSampleLen number,
 	DataPredictionLen number,
 	DataFeaturesCnt number,
+	-- WNN info
+	WNNdecompLevel number,
+	WNNwaveletType number,
 	-- Persistor Info
 	readFrom number,
 	saveToDB number,

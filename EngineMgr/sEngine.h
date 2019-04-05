@@ -16,6 +16,11 @@
 
 struct sEngine : sCfgObj {
 
+	int type;
+
+	int WNNdecompLevel;
+	int WNNwaveletType;
+
 	int coresCnt;
 	int layersCnt=0;
 	int* layerCoresCnt;
@@ -31,6 +36,7 @@ struct sEngine : sCfgObj {
 	sCoreLayout** coreLayout;
 	sCoreParms** coreParms;
 	sCoreLogger** corePersistor;
+	sEngineProcArgs** procArgs;
 
 	EXPORT sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_);
 	EXPORT sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int clientPid_);

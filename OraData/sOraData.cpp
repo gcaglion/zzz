@@ -563,13 +563,13 @@ void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, n
 }
 
 //-- Save/Load engine info
-void sOraData::saveEngineInfo(int pid, int sampleLen_, int predictionLen_, int featuresCnt_, int coresCnt, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_) {
+void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, int WNNdecompLevel_, int WNNwaveletType_, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
 	//-- 1. ENGINES
-	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, DataSampleLen, DataPredictionLen, DataFeaturesCnt, SaveToDB, SaveToFile, Orausername, Orapassword, Oraconnstring) values(%d, %d, %d, %d, %d, %d, '%s', '%s', '%s')", pid, sampleLen_, predictionLen_, featuresCnt_, (saveToDB_)?1:0, (saveToFile_)?1:0, dbconn_->DBUserName, dbconn_->DBPassword, dbconn_->DBConnString);
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt, WNNdecompLevel, WNNwaveletType, SaveToDB, SaveToFile, Orausername, Orapassword, Oraconnstring) values(%d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', '%s')", pid, engineType, sampleLen_, predictionLen_, featuresCnt_, WNNdecompLevel_, WNNwaveletType_, (saveToDB_) ? 1 : 0, (saveToFile_) ? 1 : 0, dbconn_->DBUserName, dbconn_->DBPassword, dbconn_->DBConnString);
 	safecall(this, sqlExec, sqlS);
 	//-- 1.1. ENGINES SCALING PARMS
 	for (int f=0; f<featuresCnt_; f++) {
@@ -589,7 +589,7 @@ void sOraData::saveEngineInfo(int pid, int sampleLen_, int predictionLen_, int f
 	}
 
 }
-void sOraData::loadEngineInfo(int pid, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_) {
+void sOraData::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* WNNdecompLevel_, int* WNNwaveletType_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -599,19 +599,22 @@ void sOraData::loadEngineInfo(int pid, int* coresCnt, int* sampleLen_, int* pred
 
 	try {
 		//-- 0. engine type, data shape and persistor
-		sprintf_s(sqlS, SQL_MAXLEN, "select DataSampleLen, DataPredictionLen, DataFeaturesCnt, saveToDB, saveToFile, OraUserName, OraPassword, OraConnstring from Engines where ProcessId= %d", pid);
+		sprintf_s(sqlS, SQL_MAXLEN, "select EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt, WNNdecompLevel, WNNwaveletType, saveToDB, saveToFile, OraUserName, OraPassword, OraConnstring from Engines where ProcessId= %d", pid);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 		int i=0;
 		while (((ResultSet*)rset)->next()) {
-			(*sampleLen_)=((ResultSet*)rset)->getInt(1);
-			(*predictionLen_)=((ResultSet*)rset)->getInt(2);
-			(*featuresCnt_)=((ResultSet*)rset)->getInt(3);
-			(*saveToDB_)=(((ResultSet*)rset)->getInt(4)==1);
-			(*saveToFile_)=(((ResultSet*)rset)->getInt(5)==1);
-			strcpy_s(dbconn_->DBUserName, DBUSERNAME_MAXLEN, ((ResultSet*)rset)->getString(6).c_str());
-			strcpy_s(dbconn_->DBPassword, DBPASSWORD_MAXLEN, ((ResultSet*)rset)->getString(7).c_str());
-			strcpy_s(dbconn_->DBConnString, DBCONNSTRING_MAXLEN, ((ResultSet*)rset)->getString(8).c_str());
+			(*engineType_)=((ResultSet*)rset)->getInt(1);
+			(*sampleLen_)=((ResultSet*)rset)->getInt(2);
+			(*predictionLen_)=((ResultSet*)rset)->getInt(3);
+			(*featuresCnt_)=((ResultSet*)rset)->getInt(4);
+			(*WNNdecompLevel_)=((ResultSet*)rset)->getInt(5);
+			(*WNNwaveletType_)=((ResultSet*)rset)->getInt(6);
+			(*saveToDB_)=(((ResultSet*)rset)->getInt(7)==1);
+			(*saveToFile_)=(((ResultSet*)rset)->getInt(8)==1);
+			strcpy_s(dbconn_->DBUserName, DBUSERNAME_MAXLEN, ((ResultSet*)rset)->getString(9).c_str());
+			strcpy_s(dbconn_->DBPassword, DBPASSWORD_MAXLEN, ((ResultSet*)rset)->getString(10).c_str());
+			strcpy_s(dbconn_->DBConnString, DBCONNSTRING_MAXLEN, ((ResultSet*)rset)->getString(11).c_str());
 			i++;
 		}
 		if (i==0) fail("Engine pid %d not found.", pid);

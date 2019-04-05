@@ -8,7 +8,7 @@ sCfgObj::sCfgObj(sCfgObjParmsDef) : sObj(sObjParmsVal) {
 		//-- 0. backup cfg currentKey into Object bkpKey
 		bkpKey=cfg->currentKey;
 		//-- 1. set cfg currentKey
-		safecall(cfg, setKey, keyDesc_);
+		safecall(cfg, setKey, keyDesc_.c_str());
 		//-- 2. set Object cfgKey
 		cfgKey=cfg->currentKey;
 
