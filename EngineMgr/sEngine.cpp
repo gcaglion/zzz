@@ -1,5 +1,5 @@
 #include "sEngine.h"
-#include <vld.h>
+//#include <vld.h>
 
 //-- Engine stuff
 sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
