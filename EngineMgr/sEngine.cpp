@@ -1,4 +1,5 @@
 #include "sEngine.h"
+#include <vld.h>
 
 //-- Engine stuff
 sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
@@ -24,12 +25,13 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	DStrMin=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
 	DStrMax=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
 	//-- 3. load info from FROM persistor
-	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &coresCnt, &sampleLen, &targetLen, &featuresCnt, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, DStrMin, DStrMax);
+	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &sampleLen, &targetLen, &featuresCnt, &WNNdecompLevel, &WNNwaveletType, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, DStrMin, DStrMax);
 	//-- 2. malloc one core, one coreLayout, one coreParms and one corePersistor for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
 	coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
 	corePersistor=(sCoreLogger**)malloc(coresCnt*sizeof(sCoreLogger*));
+	procArgs=(sEngineProcArgs**)malloc(coresCnt*sizeof(sEngineProcArgs*)); for (int c=0; c<coresCnt; c++) procArgs[c]= new sEngineProcArgs();
 
 	//-- for each Core, create corePersistor from DB (coreLoggerParms), using loadingPid_ and coreThreadId[]. Also, get layout info, and set base coreLayout properties  (type, desc, connType, outputCnt).
 	for (int c=0; c<coresCnt; c++) {
@@ -65,15 +67,36 @@ sEngine::sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCn
 	//-- engine-level persistor
 	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
 
-	//-- 0. coresCnt
-	safecall(cfgKey, getParm, &coresCnt, "CoresCount");
+	//-- engine type
+	safecall(cfgKey, getParm, &type, "Type");
+
+	//-- cores count
+	WNNdecompLevel=-1; WNNwaveletType=-1;
+	switch (type) {
+	case ENGINE_WNN:
+		safecall(cfgKey, getParm, &WNNdecompLevel, "DecompLevel");
+		safecall(cfgKey, getParm, &WNNwaveletType, "WaveletType");
+		coresCnt=WNNdecompLevel+2;
+		break;
+	case ENGINE_XIE:
+		coresCnt=3;
+		break;
+	case ENGINE_CUSTOM:
+		safecall(cfgKey, getParm, &coresCnt, "CoresCount");
+		break;
+	default:
+		fail("Invalid Engine Type");
+	}
+
 	//-- 1. malloc one core, one coreLayout and one coreParms for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
 	coreParms=(sCoreParms**)malloc(coresCnt*sizeof(sCoreParms*));
+	procArgs=(sEngineProcArgs**)malloc(coresCnt*sizeof(sEngineProcArgs*)); for (int c=0; c<coresCnt; c++) procArgs[c]= new sEngineProcArgs();
+
 	//-- 2. for each Core, create layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
 	for (int c=0; c<coresCnt; c++) {
-		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, (newsname("Core%d/Layout", c))->base, sampleLen*featuresCnt, targetLen*featuresCnt);
+		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, strBuild("Core%d/Layout", c), sampleLen*featuresCnt, targetLen*featuresCnt);
 	}
 	//--
 //	mallocTSinfo();
@@ -89,9 +112,10 @@ sEngine::sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCn
 
 }
 sEngine::~sEngine() {
+	for (int c=0; c<coresCnt; c++) delete procArgs[c];
+	free(procArgs);
 	free(core); free(coreLayout); free(coreParms);
 	free(layerCoresCnt);
-//	free(DStrMin); free(DStrMax);
 }
 
 void sEngine::spawnCoresFromXML() {
@@ -102,31 +126,31 @@ void sEngine::spawnCoresFromXML() {
 			if (coreLayout[c]->layer==l) {
 				switch (coreLayout[c]->type) {
 				case CORE_NN:
-					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
+					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					NNcp->setScaleMinMax();
 					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", Alg, coreLayout[c], NNcp);
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
-					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
+					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					GAcp->setScaleMinMax();
 					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, "../", Alg, coreLayout[c], GAcp);
 					coreParms[c]=GAcp; core[c]=GAc;
 					break;
 				case CORE_SVM:
-					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
+					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					SVMcp->setScaleMinMax();
 					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, "../", Alg, coreLayout[c], SVMcp);
 					coreParms[c]=SVMcp; core[c]=SVMc;
 					break;
 				case CORE_SOM:
-					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
+					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					SOMcp->setScaleMinMax();
 					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, "../", Alg, coreLayout[c], SOMcp);
 					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
 				case CORE_DUMB:
-					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, cfg, (newsname("Core%d/Parameters", c))->base);
+					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					DUMBcp->setScaleMinMax();
 					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, cfg, "../", Alg, coreLayout[c], DUMBcp);
 					coreParms[c]=DUMBcp; core[c]=DUMBc;
@@ -235,7 +259,6 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int s
 	int ret = 0;
 	int threadsCnt;
 	HANDLE* procH;
-	sEngineProcArgs** procArgs;
 	int lsl0=0;
 
 	system("cls");
@@ -245,15 +268,10 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int s
 		threadsCnt=layerCoresCnt[l];
 		
 		//-- initialize layer-level structures
-		procArgs=(sEngineProcArgs**)malloc(threadsCnt*sizeof(sEngineProcArgs*));
 		procH = (HANDLE*)malloc(threadsCnt*sizeof(HANDLE));
 		DWORD* kaz = (DWORD*)malloc(threadsCnt*sizeof(DWORD));
 		LPDWORD* tid = (LPDWORD*)malloc(threadsCnt*sizeof(LPDWORD)); 
-		//--
-		for (t=0; t<threadsCnt; t++) {
-			procArgs[t]=new sEngineProcArgs();
-			tid[t] = &kaz[t];
-		}	
+		for (t=0; t<threadsCnt; t++) tid[t] = &kaz[t];
 		//--
 
 		if (l>0) lsl0+=layerCoresCnt[l-1]+1;
@@ -277,34 +295,34 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int s
 				if(coreDS[c]->doDump) coreDS[c]->dump();
 
 				//-- Create Training or Infer Thread for current Core
-				procArgs[t]->coreProcArgs->screenLine = lsl0+1+t;
-				procArgs[t]->core=core[c];
-				procArgs[t]->coreProcArgs->ds = coreDS[c];
-				procArgs[t]->coreProcArgs->loadImage=loadImage_;
-				procArgs[t]->coreProcArgs->npid=savedEnginePid_;
-				procArgs[t]->coreProcArgs->ntid=coreLayout[c]->tid;
+				procArgs[c]->coreProcArgs->screenLine = lsl0+1+t;
+				procArgs[c]->core=core[c];
+				procArgs[c]->coreProcArgs->ds = coreDS[c];
+				procArgs[c]->coreProcArgs->loadImage=loadImage_;
+				procArgs[c]->coreProcArgs->npid=savedEnginePid_;
+				procArgs[c]->coreProcArgs->ntid=coreLayout[c]->tid;
 
 				//-- set batchCnt
-				procArgs[t]->coreProcArgs->batchSize=procArgs[t]->coreProcArgs->ds->batchSize;
-				if ((procArgs[t]->coreProcArgs->ds->samplesCnt%procArgs[t]->coreProcArgs->ds->batchSize)!=0) {
-					fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", procArgs[t]->coreProcArgs->ds->samplesCnt, procArgs[t]->coreProcArgs->ds->batchSize)
+				procArgs[c]->coreProcArgs->batchSize=procArgs[c]->coreProcArgs->ds->batchSize;
+				if ((procArgs[c]->coreProcArgs->ds->samplesCnt%procArgs[c]->coreProcArgs->ds->batchSize)!=0) {
+					fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", procArgs[c]->coreProcArgs->ds->samplesCnt, procArgs[c]->coreProcArgs->ds->batchSize)
 				} else {
-					procArgs[t]->coreProcArgs->batchCnt = procArgs[t]->coreProcArgs->ds->samplesCnt/procArgs[t]->coreProcArgs->ds->batchSize;
+					procArgs[c]->coreProcArgs->batchCnt = procArgs[c]->coreProcArgs->ds->samplesCnt/procArgs[c]->coreProcArgs->ds->batchSize;
 				}
 
 				if (procid_==trainProc) {
-					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadTrain, &(*procArgs[t]), 0, tid[t]);
+					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadTrain, &(*procArgs[c]), 0, tid[t]);
 				} else {
-					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadInfer, &(*procArgs[t]), 0, tid[t]);
+					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadInfer, &(*procArgs[c]), 0, tid[t]);
 				}
 
 				//-- Store Engine Handler
-				procArgs[t]->coreProcArgs->pid = clientPid;
-				procArgs[t]->coreProcArgs->tid=(*tid[t]);
-				procArgs[t]->coreProcArgs->testid=testid_;
+				procArgs[c]->coreProcArgs->pid = clientPid;
+				procArgs[c]->coreProcArgs->tid=(*tid[t]);
+				procArgs[c]->coreProcArgs->testid=testid_;
 
 				//-- associate Training Args to current core
-				core[c]->procArgs=procArgs[t]->coreProcArgs;
+				core[c]->procArgs=procArgs[c]->coreProcArgs;
 
 				t++;
 			}
@@ -319,8 +337,7 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int s
 		}
 
 		//-- free(s)
-		for (t=0; t<threadsCnt; t++) free(procArgs[t]); 
-		free(procArgs); free(procH); free(kaz); free(tid);
+		free(procH); free(kaz); free(tid);
 	}
 }
 void sEngine::train(int testid_, sDS* trainDS_) {
@@ -458,7 +475,11 @@ void sEngine::saveInfo() {
 		safecall(core[c]->parms, save, persistor, clientPid, coreThreadId_[c]);
 	}
 
-	persistor->saveEngineInfo(clientPid, sampleLen, targetLen, featuresCnt, coresCnt, persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
+	safecall(persistor, saveEngineInfo, \
+		clientPid, type, coresCnt, \
+		sampleLen, targetLen, featuresCnt, \
+		WNNdecompLevel, WNNwaveletType, \
+		persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
 		coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_, \
 		trainDS->trmin, trainDS->trmax
 	);

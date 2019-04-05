@@ -3,7 +3,7 @@
 #include "../BaseObj/sObj.h"
 #include "sCfg.h"
 
-#define sCfgObjParmsDef sObjParmsDef, sCfg* cfg_, const char* keyDesc_
+#define sCfgObjParmsDef sObjParmsDef, sCfg* cfg_, string keyDesc_
 #define sCfgObjParmsVal sObjParmsVal, cfg_, keyDesc_
 
 struct sCfgObj : sObj {
