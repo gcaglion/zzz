@@ -1,20 +1,20 @@
 #include "sLogger.h"
 
-sLogger::sLogger(sObjParmsDef, int readFrom_, bool saveToDB_, bool saveToFile_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sLogger::sLogger(sObjParmsDef, int readFrom_, bool saveToDB_, bool saveToFile_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	source=readFrom_; saveToDB=saveToDB_;
 	saveToFile=saveToFile_;
 }
-sLogger::sLogger(sObjParmsDef, sOraData* oradb_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sLogger::sLogger(sObjParmsDef, sOraData* oradb_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	source=OraData;
 	saveToDB=true; oradb=oradb_;
 	saveToFile=false;
 }
-sLogger::sLogger(sObjParmsDef, sFileData* filedb_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sLogger::sLogger(sObjParmsDef, sFileData* filedb_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	source=FileData;
 	saveToDB=false;
 	saveToFile=true; filedb=filedb_;
 }
-sLogger::sLogger(sObjParmsDef, int readFrom_, sOraData* oradb_, sFileData* filedb_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sLogger::sLogger(sObjParmsDef, int readFrom_, sOraData* oradb_, sFileData* filedb_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	source=readFrom_; 
 	saveToDB=true; oradb=oradb_;
 	saveToFile=true; filedb=filedb_;

@@ -1,6 +1,6 @@
 #include "sMT4Data.h"
 
-sMT4Data::sMT4Data(sObjParmsDef, int openMode_, bool autoOpen_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sMT4Data::sMT4Data(sObjParmsDef, int openMode_, bool autoOpen_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	mallocs();
 
 	if (autoOpen_) open(openMode_);

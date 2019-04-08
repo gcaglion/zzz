@@ -1,7 +1,7 @@
 #include "sDataSet.h"
-#include <vld.h>
+//#include <vld.h>
 
-sDataSet::sDataSet(sObjParmsDef, int sourceTScnt_, sTimeSerie** sourceTS_, int* selectedTSfeaturesCnt_, int** selectedTSfeature_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, bool doDump_, char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sDataSet::sDataSet(sObjParmsDef, int sourceTScnt_, sTimeSerie** sourceTS_, int* selectedTSfeaturesCnt_, int** selectedTSfeature_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, bool doDump_, char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, "") {
 
 	safespawn(shape, newsname("%s_Shape", name->base), defaultdbg, 0, 0, 0);
 	sourceTScnt=sourceTScnt_; 
@@ -53,7 +53,7 @@ sDataSet::sDataSet(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 }
-sDataSet::sDataSet(sObjParmsDef, int parentDScnt_, sDataSet** parentDS_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sDataSet::sDataSet(sObjParmsDef, int parentDScnt_, sDataSet** parentDS_) : sCfgObj(sObjParmsVal, nullptr, "") {
 
 	safespawn(shape, newsname("%s_Shape", name->base), defaultdbg, 0, 0, 0);
 

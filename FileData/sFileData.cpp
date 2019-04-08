@@ -1,13 +1,13 @@
 #include "sFileData.h"
 
-sFileData::sFileData(sObjParmsDef, int openMode_, bool autoOpen_, int filesCnt_, char** fileFullName_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sFileData::sFileData(sObjParmsDef, int openMode_, bool autoOpen_, int filesCnt_, char** fileFullName_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	filesCnt=filesCnt_;
 	mallocs();
 	for (int f=0; f<filesCnt; f++) strcpy_s(fileFullName[f], MAX_PATH, fileFullName_[f]);
 
 	if (autoOpen_) open(openMode_);
 }
-sFileData::sFileData(sObjParmsDef, int openMode_, bool autoOpen_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {}
+sFileData::sFileData(sObjParmsDef, int openMode_, bool autoOpen_) : sCfgObj(sObjParmsVal, nullptr, "") {}
 sFileData::sFileData(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {}
 sFileData::~sFileData() {
 
