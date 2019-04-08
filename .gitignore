@@ -4,7 +4,6 @@
 # User-specific files
 *.idb
 *.suo
-*.user
 *.userosscache
 *.sln.docstates
 
