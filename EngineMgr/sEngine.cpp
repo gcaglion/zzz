@@ -377,6 +377,7 @@ void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTran
 	for (int c=0; c<coresCnt; c++) {
 		_ds=core[c]->procArgs->ds;
 		seqLen[c] =_ds->samplesCnt+_ds->sampleLen+_ds->targetLen-1;
+		//-- mallocs
 		seqLabel[c]=(char**)malloc(seqLen[c]*sizeof(char*)); for (int i=0; i<seqLen[c]; i++) seqLabel[c][i]=(char*)malloc(DATE_FORMAT_LEN);
 		trgSeqBASE[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
 		prdSeqBASE[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
@@ -400,8 +401,24 @@ void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTran
 			);
 		}
 
+		//-- frees
+		for (int i=0; i<seqLen[c]; i++) free(seqLabel[c][i]); 
+		free(seqLabel[c]);
+		free(trgSeqBASE[c]);
+		free(prdSeqBASE[c]);
+		free(trgSeqTR[c]);
+		free(prdSeqTR[c]);
+		free(trgSeqTRS[c]);
+		free(prdSeqTRS[c]);
 	}
-
+/*	free(seqLabel);
+	free(trgSeqBASE);
+	free(prdSeqBASE);
+	free(trgSeqTR);
+	free(prdSeqTR);
+	free(trgSeqTRS);
+	free(prdSeqTRS);
+*/
 }
 
 void sEngine::saveMSE() {
