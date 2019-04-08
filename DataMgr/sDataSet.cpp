@@ -1,5 +1,5 @@
 #include "sDataSet.h"
-//#include <vld.h>
+#include <vld.h>
 
 sDataSet::sDataSet(sObjParmsDef, int sourceTScnt_, sTimeSerie** sourceTS_, int* selectedTSfeaturesCnt_, int** selectedTSfeature_, int sampleLen_, int predictionLen_, int batchSamplesCnt_, bool doDump_, char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
 
@@ -34,8 +34,8 @@ sDataSet::sDataSet(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &sourceTScnt, "TimeSeriesCount");
 	mallocs1();
 	for (int t=0; t<sourceTScnt; t++) {
-		safespawn(sourceTS[t], newsname("%s_TimeSerie%d", name->base, t), defaultdbg, cfg, (newsname("TimeSerie%d", t))->base);
-		safecall(cfgKey, getParm, &selectedTSfeature[t], (newsname("TimeSerie%d/selectedFeatures", t))->base, false, &selectedTSfeaturesCnt[t]);
+		safespawn(sourceTS[t], newsname("%s_TimeSerie%d", name->base, t), defaultdbg, cfg, strBuild("TimeSerie%d", t));
+		safecall(cfgKey, getParm, &selectedTSfeature[t], strBuild("TimeSerie%d/selectedFeatures", t).c_str(), false, &selectedTSfeaturesCnt[t]);
 		shape->featuresCnt+=selectedTSfeaturesCnt[t];
 	}
 

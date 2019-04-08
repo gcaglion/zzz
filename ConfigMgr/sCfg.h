@@ -17,7 +17,7 @@ struct sCfg : sObj {
 	EXPORT sCfg(sObjParmsDef, const char* cfgFileFullName_, int currDepth_=0, int overridesCnt=0, char** overrideName=nullptr, char** overrideValS=nullptr);
 	EXPORT ~sCfg();
 
-	EXPORT void setKey(const char* keyDesc_, bool ignoreError=false, bool* oKeyFound_=nullptr);
+	EXPORT void setKey(string keyDesc_, bool ignoreError=false, bool* oKeyFound_=nullptr);
 
 private:
 	int currDepth;
