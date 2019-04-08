@@ -1,5 +1,5 @@
 #include "sNN.h"
-#include <vld.h>
+//#include <vld.h>
 
 void sNN::sNNcommon(sNNparms* NNparms_) {
 	parms=NNparms_;

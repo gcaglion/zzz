@@ -4,7 +4,7 @@
     <LocalDebuggerEnvironment>PATH=$(ORACLE_HOME1)\oci\lib\msvc\vc14;$(ORACLE_HOME1)\bin;$(CUDA_PATH)\bin;C:\Program Files (x86)\Visual Leak Detector\bin\$(Platform)
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>Infer 333 Config/Client.xml Config/inferDS1.xml 6536</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>Train 1 Config/Client.xml Config/trainDS1.xml Config/Engine1.xml</LocalDebuggerCommandArguments>
     <LocalDebuggerWorkingDirectory>$(SolutionDir)</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
 </Project>

@@ -402,7 +402,7 @@ void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTran
 		}
 
 		//-- frees
-		for (int i=0; i<seqLen[c]; i++) free(seqLabel[c][i]); 
+		for (int i=0; i<seqLen[c]; i++) free(seqLabel[c][i]);		
 		free(seqLabel[c]);
 		free(trgSeqBASE[c]);
 		free(prdSeqBASE[c]);
@@ -411,14 +411,15 @@ void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTran
 		free(trgSeqTRS[c]);
 		free(prdSeqTRS[c]);
 	}
-/*	free(seqLabel);
+	//free(seqLabel);
+	free(seqLen);
 	free(trgSeqBASE);
 	free(prdSeqBASE);
 	free(trgSeqTR);
 	free(prdSeqTR);
 	free(trgSeqTRS);
 	free(prdSeqTRS);
-*/
+
 }
 
 void sEngine::saveMSE() {
