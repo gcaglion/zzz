@@ -347,14 +347,23 @@ void sEngine::train(int testid_, sDS* trainDS_) {
 
 
 	if (type==ENGINE_WNN) {
-		//-- malloc separate datasets
+		//-- malloc separate timeseries and datasets
+		sTS** trTS=(sTS**)malloc((WNNdecompLevel+1)*sizeof(sTS*));
 		sDS** trDS=(sDS**)malloc((WNNdecompLevel+1)*sizeof(sDS*));
 		//-- malloc one sequence per dataset
 		numtype** trSeq=(numtype**)malloc((WNNdecompLevel+1)*sizeof(numtype*));
 		for(int i=0; i<(WNNdecompLevel+1); i++) trSeq[i]=(numtype*)malloc((trainDS->sampleLen+trainDS->targetLen)*trainDS->featuresCnt*sizeof(numtype));
 		//-- get original sequence
-		trainDS->getSeq(TARGET, trSeq[0]);
+		numtype* origSeq=(numtype*)malloc((trainDS->samplesCnt+trainDS->sampleLen+trainDS->targetLen-1)*trainDS->featuresCnt*sizeof(numtype));
+		trainDS->getSeq(TARGET, origSeq);
+
 		//-- do the FFT transform
+		WaweletDecomp(trainDS->samplesCnt+trainDS->sampleLen+trainDS->targetLen-1, origSeq, WNNdecompLevel, WNNwaveletType, trSeq[WNNdecompLevel], trSeq);
+		//-- build trTS[] and trDS[] from trSeq[]
+		for (int i=0; i<(WNNdecompLevel+1); i++) {
+			trTS[i] = new sTS(this, newsname("trTS_%d", i), defaultdbg, GUIreporter, trainDS->sampleLen+trainDS->targetLen, trainDS->featuresCnt, trainDS->seqDT, trainDS->seqLabel, trSeq[i], "0000000000", trainDS->seqBase, trainDS->doDump, trainDS->dumpPath);
+			//trDS[i] = new sDS()
+		}
 
 	} else {
 		safecall(this, process, trainProc, false, testid_, &trainDS_, 0);

@@ -160,18 +160,22 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 #include "../DataMgr/sDS.h"
 void sRoot::kaz() {
 
-	sCfg* clientCfg; safespawn(clientCfg, newsname("ClientCfg"), defaultdbg, "Config/10/Client.xml");
+	/*sCfg* clientCfg; safespawn(clientCfg, newsname("ClientCfg"), defaultdbg, "Config/10/Client.xml");
 	sLogger* clientLog;
 	bool saveClient;
 	safecall(clientCfg, setKey, "/Client");
+	*/
 	//clientCfg->setKey("/Client");
 	//safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
 	//safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
 
-	return;
 
-	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/10/ts0.xml");
+	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/ts0.xml");
 	sTS* tsActual; safespawn(tsActual, newsname("tsActual"), defaultdbg, tsCfg, "/");
+	tsActual->FFTcalc(4, WNN_HAAR);
+
+
+	return;
 	tsActual->dump();
 //	tsActual->untransform();
 //	tsActual->dump();

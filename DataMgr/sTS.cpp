@@ -1,14 +1,7 @@
 #include "sTS.h"
 //#include <vld.h>
 
-sTS::sTS(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCnt_, int dt_, bool doDump_, const char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
-
-/*	int dsrcCnt=1;
-	sDataSource** dsrc=(sDataSource**)malloc(dsrcCnt*sizeof(sDataSource*));
-	featuresCnt=sourceData_->featuresCnt;
-	stepsCnt=stepsCnt_;
-	dt=dt_;
-
+void sTS::mallocs1(){
 	timestamp=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) timestamp[i]=(char*)malloc(DATE_FORMAT_LEN);
 	val=(numtype*)malloc(stepsCnt*featuresCnt*sizeof(numtype));
 	valTR=(numtype*)malloc(stepsCnt*featuresCnt*sizeof(numtype));
@@ -16,29 +9,16 @@ sTS::sTS(sObjParmsDef, sDataSource* sourceData_, const char* date0_, int stepsCn
 	valB=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	TRmin=(numtype*)malloc(featuresCnt*sizeof(numtype)); for (int f=0; f<featuresCnt; f++) TRmin[f]=1e9;
 	TRmax=(numtype*)malloc(featuresCnt*sizeof(numtype)); for (int f=0; f<featuresCnt; f++) TRmax[f]=-1e9;
+}
 
-	doDump=doDump_;
-	if (dumpPath_!=nullptr) {
-		strcpy_s(dumpPath, MAX_PATH, dumpPath_);
-	} else {
-		strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
-	}
+sTS::sTS(sObjParmsDef, int stepsCnt_, int featuresCnt_, int dt_, char** timestamp_, numtype* val_, char* timestampB_, numtype* valB_, bool doDump_, char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, "") {
+	stepsCnt=stepsCnt_; featuresCnt=featuresCnt_; dt=dt_; doDump=doDump_;
+	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath); if (dumpPath_!=nullptr) strcpy_s(dumpPath, MAX_PATH, dumpPath_);
 
-	//-- load all data sources
-	char** tmptime=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) tmptime[i]=(char*)malloc(DATE_FORMAT_LEN);
-	numtype** tmpval=(numtype**)malloc(dsrcCnt*sizeof(numtype*));
-	char* tmptimeB=(char*)malloc(DATE_FORMAT_LEN);
-	numtype** tmpvalB=(numtype**)malloc(dsrcCnt*sizeof(numtype*));
-	numtype** tmpbw=(numtype**)malloc(dsrcCnt*sizeof(numtype*));
+	timestamp=timestamp_; val=val_;
+	timestampB=timestampB_; valB=valB_;
 
-	for (int d=0; d<dsrcCnt; d++) {
-		tmpval[d]=(numtype*)malloc(stepsCnt*dsrc[d]->featuresCnt*sizeof(numtype));
-		tmpvalB[d]=(numtype*)malloc(dsrc[d]->featuresCnt*sizeof(numtype));
-		tmpbw[d]=(numtype*)malloc(stepsCnt*dsrc[d]->featuresCnt*sizeof(numtype));
-		safecall(sourceData_, load, date0_, stepsCnt, tmptime, tmpval[d], tmptimeB, tmpvalB[d], tmpbw[d]);	//-- tmptime is loaded from last ts
-	}
-*/
-	//==== INCOMPLETE !!! ===
+	transform();
 }
 
 sTS::sTS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
@@ -68,13 +48,7 @@ sTS::sTS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 		featuresCnt+=selFcnt[d];
 	}
 
-	timestamp=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) timestamp[i]=(char*)malloc(DATE_FORMAT_LEN);
-	val=(numtype*)malloc(stepsCnt*featuresCnt*sizeof(numtype));
-	valTR=(numtype*)malloc(stepsCnt*featuresCnt*sizeof(numtype));
-	timestampB=(char*)malloc(DATE_FORMAT_LEN);
-	valB=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	TRmin=(numtype*)malloc(featuresCnt*sizeof(numtype)); for (int f=0; f<featuresCnt; f++) TRmin[f]=1e9;
-	TRmax=(numtype*)malloc(featuresCnt*sizeof(numtype)); for (int f=0; f<featuresCnt; f++) TRmax[f]=-1e9;
+	mallocs1();
 
 	//-- load all data sources
 	char** tmptime=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) tmptime[i]=(char*)malloc(DATE_FORMAT_LEN);
@@ -118,40 +92,7 @@ sTS::sTS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	strcpy_s(timestampB, DATE_FORMAT_LEN, tmptimeB);
 
 	//-- transform
-	int curr=0;
-	for (int s=0; s<(stepsCnt); s++) {
-		for (int f=0; f<featuresCnt; f++) {
-			switch (dt) {
-			case DT_NONE:
-				valTR[curr]=val[curr];
-				break;
-			case DT_DELTA:
-				if (val[curr]==EMPTY_VALUE) {
-					valTR[curr]=EMPTY_VALUE;
-				} else {
-					if (s==0) {
-						valTR[curr]=val[curr]-valB[f];
-					} else {
-						valTR[curr]=val[curr]-val[(s-1)*featuresCnt+f];
-					}
-				}
-				break;
-			case DT_LOG:
-				break;
-			case DT_DELTALOG:
-				break;
-			default:
-				break;
-			}
-
-			//-- min/max calc
-			if (valTR[curr]!=EMPTY_VALUE&&valTR[curr]<TRmin[f]) TRmin[f]=valTR[curr];
-			if (valTR[curr]!=EMPTY_VALUE&&valTR[curr]>TRmax[f]) TRmax[f]=valTR[curr];
-
-			curr++;
-		}
-	}
-
+	transform();
 
 	//-- free temps
 	for (int d=0; d<dsrcCnt; d++) {
@@ -243,6 +184,41 @@ void sTS::dump() {
 
 }
 
+void sTS::transform() {
+	int curr=0;
+	for (int s=0; s<(stepsCnt); s++) {
+		for (int f=0; f<featuresCnt; f++) {
+			switch (dt) {
+			case DT_NONE:
+				valTR[curr]=val[curr];
+				break;
+			case DT_DELTA:
+				if (val[curr]==EMPTY_VALUE) {
+					valTR[curr]=EMPTY_VALUE;
+				} else {
+					if (s==0) {
+						valTR[curr]=val[curr]-valB[f];
+					} else {
+						valTR[curr]=val[curr]-val[(s-1)*featuresCnt+f];
+					}
+				}
+				break;
+			case DT_LOG:
+				break;
+			case DT_DELTALOG:
+				break;
+			default:
+				break;
+			}
+
+			//-- min/max calc
+			if (valTR[curr]!=EMPTY_VALUE&&valTR[curr]<TRmin[f]) TRmin[f]=valTR[curr];
+			if (valTR[curr]!=EMPTY_VALUE&&valTR[curr]>TRmax[f]) TRmax[f]=valTR[curr];
+
+			curr++;
+		}
+	}
+}
 void sTS::untransform() {
 	int curr, prev;
 	for (int s=0; s<stepsCnt; s++) {
@@ -270,4 +246,24 @@ void sTS::untransform() {
 			}
 		}
 	}
+}
+void sTS::FFTcalc(int decompLevel_, int waveletType_) {
+	//-- mallocs lfa/hfd
+	lfa=(numtype**)malloc(featuresCnt*sizeof(numtype*));
+	for (int f=0; f<featuresCnt; f++) lfa[f]=(numtype*)malloc(stepsCnt*sizeof(numtype));
+	//--
+	hfd=(numtype***)malloc(featuresCnt*sizeof(numtype**));
+	for (int f=0; f<featuresCnt; f++) {
+		hfd[f]=(numtype**)malloc(decompLevel_*sizeof(numtype*));
+		for (int l=0; l<decompLevel_; l++) hfd[f][l]=(numtype*)malloc(stepsCnt*sizeof(numtype));
+	}
+	//-- extract single features from valTR
+	numtype* tmpf=(numtype*)malloc(stepsCnt*sizeof(numtype));
+	for (int f=0; f<featuresCnt; f++) {
+		for (int s=0; s<stepsCnt; s++) {
+			tmpf[s]=valTR[s*featuresCnt+f];
+		}
+		WaweletDecomp(stepsCnt, tmpf, decompLevel_, waveletType_, lfa[f], hfd[f]);
+	}
+	free(tmpf);
 }

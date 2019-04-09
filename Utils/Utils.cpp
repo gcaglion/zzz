@@ -3,11 +3,11 @@
 
 #include "Utils.h"
 
-EXPORT void P2V(int Len, double* P, std::vector<double> &V) {
-	for (int i = 0; i < Len; i++) V.push_back(P[i]);
+EXPORT void P2V(int Len, numtype* P, std::vector<double> &V) {
+	for (int i = 0; i < Len; i++) V.push_back((double)P[i]);
 }
-EXPORT void V2P(int Len, double* P, std::vector<double> &V) {
-	for (int i = 0; i < Len; i++) P[i] = V[i];
+EXPORT void V2P(int Len, numtype* P, std::vector<double> &V) {
+	for (int i = 0; i < Len; i++) P[i] = (numtype)V[i];
 }
 
 
