@@ -64,7 +64,7 @@ private:
 	void setLayerProps();
 	const int trainProc = 0;
 	const int inferProc = 1;
-	void process(int procid_, bool loadImage_, int testid_, sDS* ds_, int savedEnginePid_);
+	void process(int procid_, bool loadImage_, int testid_, sDS** ds_, int savedEnginePid_);
 
 	//-- these are needed to save trmin/max for each training feature
 	sDS* trainDS;
