@@ -266,4 +266,21 @@ void sTS::FFTcalc(int decompLevel_, int waveletType_) {
 		WaweletDecomp(stepsCnt, tmpf, decompLevel_, waveletType_, lfa[f], hfd[f]);
 	}
 	free(tmpf);
+
+	valFFT = (numtype**)malloc((decompLevel_+1)*sizeof(numtype*)); 
+	int i;
+	for (int l=0; l<(decompLevel_+1); l++) {
+		valFFT[l]=(numtype*)malloc(stepsCnt*featuresCnt*sizeof(numtype));
+		i=0;
+		for (int f=0; f<featuresCnt; f++) {
+			for (int s=0; s<stepsCnt; s++) {
+				if (l>0) {
+					valFFT[l][i]=hfd[f][l-1][s];
+				} else {
+					valFFT[l][i]=lfa[f][s];
+				}
+				i++;
+			}
+		}
+	}
 }

@@ -1,6 +1,6 @@
 <Engine>
 	Type		= ENGINE_WNN
-	DecompLevel	= 2
+	DecompLevel	= 4
 	WaveletType	= WNN_HAAR
 	
 	<Core0>

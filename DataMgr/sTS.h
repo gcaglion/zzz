@@ -5,7 +5,9 @@
 #include "sGenericDataSource.h"
 #include "sMT4DataSource.h"
 #include "TimeSerie_enums.h"
+#undef fail
 #include "../Wavelib/wavelet2d.h"
+#include "../BaseObj/sDbgMacros.h"
 
 #define MAX_TS_FEATURES 128
 
@@ -23,6 +25,7 @@ struct sTS : sCfgObj {
 
 	numtype** lfa;	//-- [feature]
 	numtype*** hfd;	//-- [feature][decomplevel]
+	numtype** valFFT;
 
 	numtype* TRmin;
 	numtype* TRmax;
