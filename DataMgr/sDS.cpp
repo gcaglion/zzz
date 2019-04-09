@@ -1,6 +1,65 @@
 #include "sDS.h"
 //#include <vld.h>
 
+void sDS::mallocs1() {
+	sampleSBF=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	targetSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	predictionSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	sampleBFS=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	targetBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	predictionBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	scaleM=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	scaleP=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	trmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	trmax=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	seqBase=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	int stepsCnt=samplesCnt+sampleLen+targetLen-1;
+	seqLabel=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) seqLabel[i]=(char*)malloc(DATE_FORMAT_LEN);
+}
+void sDS::buildFromTS(sTS* ts_) {
+	//-- build samples/targets
+	int dsidxS=0, tsidxS=0, dsidxT=0, tsidxT=0;
+	for (int sample=0; sample<samplesCnt; sample++) {
+		//-- sample
+		for (int bar=0; bar<sampleLen; bar++) {
+			for (int f=0; f<featuresCnt; f++) {
+				tsidxS=(sample+bar)*featuresCnt+f;
+				sampleSBF[dsidxS] = ts_->valTR[tsidxS];
+				dsidxS++;
+			}
+		}
+		//-- target
+		for (int bar=0; bar<targetLen; bar++) {
+			for (int f=0; f<featuresCnt; f++) {
+				tsidxT=(sample+bar)*featuresCnt+f;
+				tsidxT+=featuresCnt*sampleLen;
+				targetSBF[dsidxT] = ts_->valTR[tsidxT];
+				dsidxT++;
+			}
+		}
+	}
+
+	//-- copy info from ts
+	int stepsCnt=samplesCnt+sampleLen+targetLen-1;
+	for (int i=0; i<stepsCnt; i++) strcpy_s(seqLabel[i], DATE_FORMAT_LEN, ts_->timestamp[i]);
+	seqDT=ts_->dt;
+	for (int f=0; f<featuresCnt; f++) {
+		trmin[f]=ts_->TRmin[f];
+		trmax[f]=ts_->TRmax[f];
+		seqBase[f]=ts_->valB[f];
+	}
+}
+
+sDS::sDS(sObjParmsDef, sTS* fromTS_, int sampleLen_, int targetLen_, int batchSize_) : sCfgObj(sObjParmsVal, nullptr, "") {
+	sampleLen=sampleLen_; targetLen=targetLen_; batchSize=batchSize_;
+	featuresCnt=fromTS_->featuresCnt;
+	samplesCnt=fromTS_->stepsCnt-sampleLen-targetLen+1;
+	doDump=fromTS_->doDump; strcpy_s(dumpPath, MAX_PATH, fromTS_->dumpPath);
+
+	mallocs1();
+
+	buildFromTS(fromTS_);
+}
 sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	safecall(cfgKey, getParm, &sampleLen, "SampleLen");
@@ -18,51 +77,9 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	featuresCnt=_ts->featuresCnt;
 	samplesCnt=_ts->stepsCnt-sampleLen-targetLen+1;
 
-	//-- mallocs
-	sampleSBF=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
-	targetSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	predictionSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	sampleBFS=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
-	targetBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	predictionBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	scaleM=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	scaleP=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	trmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	trmax=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	seqBase=(numtype*)malloc(featuresCnt*sizeof(numtype));
-	int stepsCnt=samplesCnt+sampleLen+targetLen-1;
-	seqLabel=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) seqLabel[i]=(char*)malloc(DATE_FORMAT_LEN);
+	mallocs1();
 
-	//-- build samples/targets
-	int dsidxS=0, tsidxS=0, dsidxT=0, tsidxT=0;
-	for (int sample=0; sample<samplesCnt; sample++) {
-		//-- sample
-		for (int bar=0; bar<sampleLen; bar++) {
-			for (int f=0; f<featuresCnt; f++) {
-				tsidxS=(sample+bar)*featuresCnt+f;
-				sampleSBF[dsidxS] = _ts->valTR[tsidxS];
-				dsidxS++;
-			}
-		}
-		//-- target
-		for (int bar=0; bar<targetLen; bar++) {
-			for (int f=0; f<featuresCnt; f++) {
-				tsidxT=(sample+bar)*featuresCnt+f;
-				tsidxT+=featuresCnt*sampleLen;
-				targetSBF[dsidxT] = _ts->valTR[tsidxT];
-				dsidxT++;
-			}
-		}
-	}
-
-	//-- copy info from ts
-	for (int i=0; i<stepsCnt; i++) strcpy_s(seqLabel[i], DATE_FORMAT_LEN, _ts->timestamp[i]);
-	seqDT=_ts->dt;
-	for (int f=0; f<featuresCnt; f++) {
-		trmin[f]=_ts->TRmin[f];
-		trmax[f]=_ts->TRmax[f];
-		seqBase[f]=_ts->valB[f];
-	}
+	buildFromTS(_ts);
 
 	cfg->currentKey=bkpKey;
 }

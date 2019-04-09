@@ -5,8 +5,8 @@
 #include <vector>
 using namespace std;
 
-EXPORT void P2V(int Len, double* P, std::vector<double> &V);
-EXPORT void V2P(int Len, double* P, std::vector<double> &V);
+EXPORT void P2V(int Len, numtype* P, std::vector<double> &V);
+EXPORT void V2P(int Len, numtype* P, std::vector<double> &V);
 
 EXPORT int MyRndInt(int rmin, int rmax);
 EXPORT bool getFullPath(const char* iName, char* oName, char* startPath=nullptr);

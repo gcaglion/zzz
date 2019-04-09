@@ -84,10 +84,11 @@ string wtypeDesc(int wtype) {
 	case WNN_SYM8: return "sym8";
 	case WNN_SYM9: return "sym9";
 	case WNN_SYM10: return "sym10";
+	default: return "UNKNOWN";
 	}
 }
 
-void WaweletDecomp(int pTSlen, double* pTS, int pDecompLevel, int pWaweletType, double* oLFA, double** oHFD) {
+EXPORT void WaweletDecomp(int pTSlen, numtype* pTS, int pDecompLevel, int pWaweletType, numtype* oLFA, numtype** oHFD) {
 	int i, n;
 	std::vector<double> SWTin; std::vector<double> SWTout;
 
@@ -99,10 +100,10 @@ void WaweletDecomp(int pTSlen, double* pTS, int pDecompLevel, int pWaweletType, 
 
 	//-- 1.3. Then, parse output vectors into LFA and HFD[DecompLevel]
 	//--- 1.3.1 First, A[] into LFA[]
-	for (i = 0; i < pTSlen; i++) oLFA[i] = SWTout[i];
+	for (i = 0; i < pTSlen; i++) oLFA[i] = (numtype)SWTout[i];
 	//--- 1.3.2 Then,  D[j] into HFD[j]
 	for (n = 0; n < pDecompLevel; n++) {
-		for (i = 0; i < pTSlen; i++) oHFD[n][i] = SWTout[pTSlen*(n+1)+i];
+		for (i = 0; i < pTSlen; i++) oHFD[n][i] = (numtype) SWTout[pTSlen*(n+1)+i];
 	}
 }
 
