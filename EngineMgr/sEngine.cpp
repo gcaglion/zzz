@@ -250,7 +250,7 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 	return 1;
 }
 
-void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int savedEnginePid_) {
+void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int savedEnginePid_) {
 
 	sDS** parentDS;
 
@@ -282,7 +282,7 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS* ds_, int s
 
 				//-- create dataset for core
 				if (l==0) {
-					safespawn(procArgs[c]->coreProcArgs->ds, newsname("Core_%d-%d_Dataset", l, c), defaultdbg, ds_);
+					safespawn(procArgs[c]->coreProcArgs->ds, newsname("Core_%d-%d_Dataset", l, c), defaultdbg, (type==ENGINE_WNN)?ds_[c]:ds_[0]);
 					safecall(procArgs[c]->coreProcArgs->ds, scale, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 				} else {
 					parentDS=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
@@ -344,7 +344,21 @@ void sEngine::train(int testid_, sDS* trainDS_) {
 	//-- needed to set trmin/max for each training feature
 	trainDS=trainDS_;
 
-	safecall(this, process, trainProc, false, testid_, trainDS_, 0);
+
+
+	if (type==ENGINE_WNN) {
+		//-- malloc separate datasets
+		sDS** trDS=(sDS**)malloc((WNNdecompLevel+1)*sizeof(sDS*));
+		//-- malloc one sequence per dataset
+		numtype** trSeq=(numtype**)malloc((WNNdecompLevel+1)*sizeof(numtype*));
+		for(int i=0; i<(WNNdecompLevel+1); i++) trSeq[i]=(numtype*)malloc((trainDS->sampleLen+trainDS->targetLen)*trainDS->featuresCnt*sizeof(numtype));
+		//-- get original sequence
+		trainDS->getSeq(TARGET, trSeq[0]);
+		//-- do the FFT transform
+
+	} else {
+		safecall(this, process, trainProc, false, testid_, &trainDS_, 0);
+	}
 }
 void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTransform) {
 
@@ -362,7 +376,11 @@ void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTran
 	}
 
 	//-- call infer
-	safecall(this, process, inferProc, reTransform, testid_, inferDS_, savedEnginePid_);
+	if (type=ENGINE_WNN) {
+
+	} else {
+		safecall(this, process, inferProc, reTransform, testid_, &inferDS_, savedEnginePid_);
+	}
 
 	//-- get predicted/target sequences (TR) for all cores
 	sDS* _ds;
