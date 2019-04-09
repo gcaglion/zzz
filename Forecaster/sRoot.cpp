@@ -32,16 +32,20 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- check for possible duplicate pid in db (through client persistor), and change it
 		safecall(this, getSafePid, clientLog, &pid);
 
-		//-- 3. spawn Train DataSet and its persistor
-		safespawn(trainDS, newsname("TrainDataSet"), defaultdbg, trainCfg, "/");
-		safespawn(trainLog, newsname("TrainLogger"), defaultdbg, trainCfg, "/Persistor");
+		int _trainSampleLen, _trainTargetLen, _trainBatchSize; 
+		safecall(trainCfg->currentKey, getParm, &_trainSampleLen, "SampleLen");
+		safecall(trainCfg->currentKey, getParm, &_trainTargetLen, "TargetLen");
+		safecall(trainCfg->currentKey, getParm, &_trainBatchSize, "BatchSize");
+
+		sTS* trainTS; safespawn(trainTS, newsname("trainTimeSerie"), defaultdbg, trainCfg, "/TimeSerie");
+
 		//-- 4. spawn engine the standard way
-		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", trainDS->sampleLen, trainDS->targetLen, trainDS->featuresCnt, pid);
+		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", _trainSampleLen, _trainTargetLen, trainTS->featuresCnt, pid);
 
 		//-- training cycle core
 		timer->start();
 		//-- do training (also populates datasets)
-		safecall(engine, train, simulationId_, trainDS);
+		safecall(engine, train, simulationId_, trainTS, _trainSampleLen, _trainTargetLen, _trainBatchSize);
 
 		//-- persist MSE logs
 		safecall(engine, saveMSE);
@@ -207,7 +211,7 @@ void sRoot::kaz() {
 //	return;
 
 	//--
-	sCfg* engCfg; safespawn(engCfg, newsname("engCfg"), defaultdbg, "Config/10/Engine1.xml");
+/*	sCfg* engCfg; safespawn(engCfg, newsname("engCfg"), defaultdbg, "Config/10/Engine1.xml");
 	int engpid=GetCurrentProcessId();
 	sEngine* eng1; safespawn(eng1, newsname("SixCoresEngine"), defaultdbg, engCfg, "/Engine", ds0->sampleLen, ds0->targetLen, ds0->featuresCnt, engpid);
 	eng1->train(1, ds0);
@@ -223,7 +227,7 @@ void sRoot::kaz() {
 
 	eng1->infer(1, ds0i, engpid, true);
 	eng1->commit();
-
+*/
 	return;
 
 /*	char ffname[MAX_PATH];

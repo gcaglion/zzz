@@ -10,7 +10,6 @@
 #include "sSVM.h"
 #include "sSOM.h"
 #include "sDUMB.h"
-#include "../Wavelib/wavelet2d.h"
 
 #define MAX_ENGINE_LAYERS	8
 #define MAX_ENGINE_CORES	32
@@ -43,7 +42,7 @@ struct sEngine : sCfgObj {
 	EXPORT sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int clientPid_);
 	EXPORT ~sEngine();
 
-	EXPORT void train(int testid_, sDS* trainDS_);
+	EXPORT void train(int testid_, sTS* trainTS_, int sampleLen, int targetLen_, int batchSize_);
 	EXPORT void infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTransform=true);
 	//--
 	EXPORT void saveMSE();
