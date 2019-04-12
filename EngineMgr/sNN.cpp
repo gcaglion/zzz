@@ -799,7 +799,7 @@ int sNN::trainSCGD(sCoreProcArgs* procArgs) {
 void sNN::loadWholeDataSet() {
 	int sampleSize=procArgs->ds->samplesCnt*procArgs->ds->sampleLen*procArgs->ds->featuresCnt;
 	safecall(Alg, myMalloc, &sample_d, sampleSize);
-	safecall(Alg, h2d, sample_d, procArgs->ds->sampleBFS, (int)(sampleSize*sizeof(numtype)), false);
+	safecall(Alg, h2d, sample_d, procArgs->ds->sampleBFS, (int)(sampleSize*sizeof(numtype)), true);
 
 	int targetSize=procArgs->ds->samplesCnt*procArgs->ds->targetLen*procArgs->ds->featuresCnt;
 	safecall(Alg, myMalloc, &target_d, targetSize);

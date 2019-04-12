@@ -54,9 +54,12 @@ sTS::sTS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	mallocs1();
 
 	//-- load all data sources
-	char** tmptime=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) tmptime[i]=(char*)malloc(DATE_FORMAT_LEN);
+	char** tmptime=(char**)malloc(stepsCnt*sizeof(char*)); 
+	for (int i=0; i<stepsCnt; i++) {
+		tmptime[i]=(char*)malloc(DATE_FORMAT_LEN); tmptime[i][0]='\0';
+	}
 	numtype** tmpval=(numtype**)malloc(dsrcCnt*sizeof(numtype*));
-	char* tmptimeB=(char*)malloc(DATE_FORMAT_LEN);
+	char* tmptimeB=(char*)malloc(DATE_FORMAT_LEN); tmptimeB[0]='\0';
 	numtype** tmpvalB=(numtype**)malloc(dsrcCnt*sizeof(numtype*));
 	numtype** tmpbw=(numtype**)malloc(dsrcCnt*sizeof(numtype*));
 

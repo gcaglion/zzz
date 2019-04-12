@@ -199,13 +199,12 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 
 	//-- copy ts info from parentDS[]
 	for (int i=0; i<stepsCnt; i++) strcpy_s(seqLabel[i], DATE_FORMAT_LEN, parentDS_[0]->seqLabel[i]);
-	int f=0;
-	for (int d=0; d<parentDScnt_; d++) {
-		for (int df=0; df<parentDS_[d]->featuresCnt; df++) {
-			trmin[f]=parentDS_[d]->trmin[df];
-			trmax[f]=parentDS_[d]->trmax[df];
-			seqBase[f]=parentDS_[d]->seqBase[f];
-			f++;
+	for (int f=0; f<parentDS_[0]->featuresCnt; f++) {
+		seqBase[f]=parentDS_[0]->seqBase[f];
+		trmin[f]=1e9; trmax[f]=-1e9;
+		for (int d=0; d<parentDScnt_; d++) {
+			if (parentDS_[d]->trmin[f]<trmin[f]) trmin[f]=parentDS_[d]->trmin[f];
+			if (parentDS_[d]->trmax[f]>trmax[f]) trmax[f]=parentDS_[d]->trmax[f];
 		}
 	}
 }

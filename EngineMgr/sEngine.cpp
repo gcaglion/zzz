@@ -234,10 +234,10 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 DWORD coreThreadTrain(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
 	try {
-		//args->core->Alg->createGPUThread();
+		args->core->Alg->createGPUThread();
 		args->core->train(args->coreProcArgs);
 		args->core->infer(args->coreProcArgs);
-		//args->core->Alg->destroyGPUThread();
+		args->core->Alg->destroyGPUThread();
 	} catch (...) {
 		args->coreProcArgs->excp=current_exception();
 	}
@@ -246,9 +246,9 @@ DWORD coreThreadTrain(LPVOID vargs_) {
 DWORD coreThreadInfer(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
 	try {
-		//args->core->Alg->createGPUThread();
+		args->core->Alg->createGPUThread();
 		args->core->infer(args->coreProcArgs);
-		//args->core->Alg->destroyGPUThread();
+		args->core->Alg->destroyGPUThread();
 	}
 	catch (...) {
 		args->coreProcArgs->excp=current_exception();
@@ -279,8 +279,6 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 		for (t=0; t<threadsCnt; t++) tid[t] = &kaz[t];
 		//--
 
-		Alg->syncGPUThread();
-
 		if (l>0) lsl0+=layerCoresCnt[l-1]+1;
 		gotoxy(0, lsl0);  printf("Process %6d, %s Layer %d\n", clientPid, ((procid_==trainProc)?"Training":"Inferencing"), l);
 		t=0;
@@ -295,6 +293,7 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 				} else {
 					parentDS=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
 					for (int p=0; p<coreLayout[c]->parentsCnt; p++)	parentDS[p]=procArgs[coreLayout[c]->parentId[p]]->coreProcArgs->ds;
+
 					safespawn(procArgs[c]->coreProcArgs->ds, newsname("Core_%d-%d_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDS);
 					//--
 					free(parentDS);
