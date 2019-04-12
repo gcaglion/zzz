@@ -317,7 +317,8 @@ EXPORT void CUWd2h_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStr
 
 //-- read/write mem<->file
 EXPORT bool dumpArrayH(int vlen, numtype* v, const char* fname) {
-	FILE* f=fopen(fname, "w");
+	
+	FILE* f; fopen_s(&f, fname, "w");
 	if (f==nullptr) return false;
 	for (int i=0; i<vlen; i++) fprintf(f, "%f\n", v[i]);
 	fclose(f);

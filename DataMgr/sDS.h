@@ -37,7 +37,7 @@ struct sDS : sCfgObj {
 	EXPORT sDS(sCfgObjParmsDef);
 	EXPORT sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_);
 	EXPORT sDS(sObjParmsDef, sDS* copyFromDS_);
-	EXPORT sDS(sObjParmsDef, sTS* fromTS_, int sampleLen_, int targetLen_, int batchSize_);
+	EXPORT sDS(sObjParmsDef, sTS* fromTS_, int WNNsrc_, int sampleLen_, int targetLen_, int batchSize_);
 	EXPORT ~sDS();
 
 	EXPORT void dump();
@@ -55,5 +55,5 @@ private:
 	void BFS2SBF(int batchSamplesCnt, int batchId, int barCnt, numtype* fromBFS, numtype* toSBF);
 	void dumpPre(FILE** dumpFile);
 	void mallocs1();
-	void buildFromTS(sTS* ts_);
+	void buildFromTS(sTS* ts_, int WNNsrc_);
 };

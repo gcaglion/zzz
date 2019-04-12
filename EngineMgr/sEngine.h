@@ -43,14 +43,11 @@ struct sEngine : sCfgObj {
 	EXPORT ~sEngine();
 
 	EXPORT void train(int testid_, sTS* trainTS_, int sampleLen, int targetLen_, int batchSize_);
-	EXPORT void infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTransform=true);
+	EXPORT void infer(int testid_, sTS* inferTS_, int sampleLen_, int targetLen_, int batchSize_, int savedEnginePid_, bool reTransform=true);
 	//--
-	EXPORT void saveMSE();
 	EXPORT void saveRun();
-	EXPORT void saveCoreImages(int epoch=-1);
-	EXPORT void saveCoreLoggers();
 	//--
-	EXPORT void saveInfo();
+	EXPORT void saveInfo(numtype* trmin_, numtype* trmax_);
 	//--
 	EXPORT void commit();
 
@@ -67,7 +64,7 @@ private:
 	void process(int procid_, bool loadImage_, int testid_, sDS** ds_, int savedEnginePid_);
 
 	//-- these are needed to save trmin/max for each training feature
-	sDS* trainDS;
+	//sDS* trainDS;
 	numtype* DStrMin; numtype* DStrMax;
 
 

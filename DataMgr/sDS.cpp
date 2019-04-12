@@ -16,7 +16,7 @@ void sDS::mallocs1() {
 	int stepsCnt=samplesCnt+sampleLen+targetLen-1;
 	seqLabel=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) seqLabel[i]=(char*)malloc(DATE_FORMAT_LEN);
 }
-void sDS::buildFromTS(sTS* ts_) {
+void sDS::buildFromTS(sTS* ts_, int WNNsrc_) {
 	//-- build samples/targets
 	int dsidxS=0, tsidxS=0, dsidxT=0, tsidxT=0;
 	for (int sample=0; sample<samplesCnt; sample++) {
@@ -24,7 +24,11 @@ void sDS::buildFromTS(sTS* ts_) {
 		for (int bar=0; bar<sampleLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
 				tsidxS=(sample+bar)*featuresCnt+f;
-				sampleSBF[dsidxS] = ts_->valTR[tsidxS];
+				if (WNNsrc_==0) {
+					sampleSBF[dsidxS] = ts_->valTR[tsidxS];
+				} else {
+					sampleSBF[dsidxS] = ts_->valFFT[WNNsrc_-1][tsidxS];
+				}
 				dsidxS++;
 			}
 		}
@@ -33,7 +37,11 @@ void sDS::buildFromTS(sTS* ts_) {
 			for (int f=0; f<featuresCnt; f++) {
 				tsidxT=(sample+bar)*featuresCnt+f;
 				tsidxT+=featuresCnt*sampleLen;
-				targetSBF[dsidxT] = ts_->valTR[tsidxT];
+				if (WNNsrc_==0) {
+					targetSBF[dsidxT] = ts_->valTR[tsidxT];
+				} else {
+					targetSBF[dsidxT] = ts_->valFFT[WNNsrc_-1][tsidxT];
+				}
 				dsidxT++;
 			}
 		}
@@ -50,7 +58,7 @@ void sDS::buildFromTS(sTS* ts_) {
 	}
 }
 
-sDS::sDS(sObjParmsDef, sTS* fromTS_, int sampleLen_, int targetLen_, int batchSize_) : sCfgObj(sObjParmsVal, nullptr, "") {
+sDS::sDS(sObjParmsDef, sTS* fromTS_, int WNNsrc_, int sampleLen_, int targetLen_, int batchSize_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	sampleLen=sampleLen_; targetLen=targetLen_; batchSize=batchSize_;
 	featuresCnt=fromTS_->featuresCnt;
 	samplesCnt=fromTS_->stepsCnt-sampleLen-targetLen+1;
@@ -58,7 +66,7 @@ sDS::sDS(sObjParmsDef, sTS* fromTS_, int sampleLen_, int targetLen_, int batchSi
 
 	mallocs1();
 
-	buildFromTS(fromTS_);
+	buildFromTS(fromTS_, WNNsrc_);
 }
 sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
@@ -79,7 +87,7 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	mallocs1();
 
-	buildFromTS(_ts);
+	buildFromTS(_ts, 0);
 
 	cfg->currentKey=bkpKey;
 }

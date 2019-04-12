@@ -44,19 +44,13 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 
 		//-- training cycle core
 		timer->start();
+
 		//-- do training (also populates datasets)
 		safecall(engine, train, simulationId_, trainTS, _trainSampleLen, _trainTargetLen, _trainBatchSize);
 
-		//-- persist MSE logs
-		safecall(engine, saveMSE);
-		//-- persist Core logs
-		safecall(engine, saveCoreImages);
-		safecall(engine, saveCoreLoggers);
-		//-- persist Engine Info
-		safecall(engine, saveInfo);
-
 		//-- do infer on training data, without reloading engine
-		safecall(engine, infer, simulationId_, trainDS, pid, false);
+		safecall(engine, infer, simulationId_, trainTS, _trainSampleLen, _trainTargetLen, _trainBatchSize, pid, false);
+
 		//-- persist Run logs
 		safecall(engine, saveRun);
 
@@ -64,7 +58,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainDS->seqLabel[0], "", "", true, false, clientffname, "", trainffname, engineffname);
+		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0], "", "", true, false, clientffname, "", trainffname, engineffname);
 		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, trainCfg);
@@ -74,8 +68,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 
 		//-- cleanup
 		delete engine;
-		delete trainLog;
-		delete trainDS;
+		delete trainTS;
 		delete clientLog;
 		delete engCfg;
 		delete trainCfg;
@@ -108,24 +101,27 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- check for possible duplicate pid in db (through client persistor), and change it
 		safecall(this, getSafePid, clientLog, &pid);
 
+		int _inferSampleLen, _inferTargetLen, _inferBatchSize;
+		safecall(inferCfg->currentKey, getParm, &_inferSampleLen, "SampleLen");
+		safecall(inferCfg->currentKey, getParm, &_inferTargetLen, "TargetLen");
+		safecall(inferCfg->currentKey, getParm, &_inferBatchSize, "BatchSize");
+
+		sTS* inferTS; safespawn(inferTS, newsname("inferTimeSerie"), defaultdbg, inferCfg, "/TimeSerie");
+
 		//-- spawn engine from savedEnginePid_ with pid
 		safespawn(engine, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid_);
 		
-		//-- 3. spawn infer DataSet and its persistor
-		safespawn(inferDS, newsname("inferDataSet"), defaultdbg, inferCfg, "/");
-		safespawn(inferLog, newsname("inferLogger"), defaultdbg, inferCfg, "/Persistor");
-
 		//-- core infer cycle
 		timer->start();
+
 		//-- do inference (also populates datasets)
-		safecall(engine, infer, simulationId_, inferDS, savedEnginePid_);
-		//-- persist Run logs
-		safecall(engine, saveRun);
-		//-- ommit engine persistor data
+		safecall(engine, infer, simulationId_, inferTS, _inferSampleLen, _inferTargetLen, _inferBatchSize, savedEnginePid_);
+
+		//-- commit engine persistor data
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferDS->seqLabel[0], "", false, true, clientffname, "", inferffname, "");
+		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[0], "", false, true, clientffname, "", inferffname, "");
 		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, inferCfg);
@@ -133,8 +129,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(clientLog, commit);
 
 		//-- cleanup
-		delete inferLog;
-		delete inferDS;
+		delete inferTS;
 		delete engine;
 		delete clientLog;
 		delete clientCfg;

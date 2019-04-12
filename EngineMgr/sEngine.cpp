@@ -282,7 +282,7 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 
 				//-- create dataset for core
 				if (l==0) {
-					safespawn(procArgs[c]->coreProcArgs->ds, newsname("Core_%d-%d_Dataset", l, c), defaultdbg, (type==ENGINE_WNN)?ds_[c]:ds_[0]);
+					procArgs[c]->coreProcArgs->ds=ds_[c];
 					safecall(procArgs[c]->coreProcArgs->ds, scale, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 				} else {
 					parentDS=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
@@ -341,44 +341,70 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 }
 void sEngine::train(int testid_, sTS* trainTS_, int sampleLen_, int targetLen_, int batchSize_) {
 
+	sDS** trainDS=(sDS**)malloc((WNNdecompLevel+2)*sizeof(sDS*));
+	safespawn(trainDS[0], newsname("trainDataSet_Base"), defaultdbg, trainTS_, 0, sampleLen_, targetLen_, batchSize_);
+
 	if (type==ENGINE_WNN) {
 		//-- run FFT on timeserie
 		safecall(trainTS_, FFTcalc, WNNdecompLevel, WNNwaveletType);
+		//-- build LFA dataset
+		safespawn(trainDS[1], newsname("trainDataSet_LFA"), defaultdbg, trainTS_, 1, sampleLen_, targetLen_, batchSize_);
+		//-- build HFD datasets
+		for(int l=0; l<WNNdecompLevel; l++) safespawn(trainDS[2+l], newsname("trainDataSet_HFD%d", l), defaultdbg, trainTS_, 2+l, sampleLen_, targetLen_, batchSize_);
+	}
+	
+	safecall(this, process, trainProc, false, testid_, trainDS, 0);
 
+	//-- persistors
+	safecall(this, saveInfo, trainDS[0]->trmin, trainDS[0]->trmax);
+	for (int c=0; c<coresCnt; c++) {
+		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->duration, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
+		safecall(core[c]->persistor, save, persistor, core[c]->procArgs->pid, core[c]->procArgs->tid);
+		if (core[c]->persistor->saveImageFlag) safecall(core[c], saveImage, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt-1);
+		free(core[c]->procArgs->mseT);
+		free(core[c]->procArgs->mseV);
+		free(core[c]->procArgs->duration);
 	}
 
-	//-- needed to set trmin/max for each training feature
-	safespawn(trainDS, newsname("trainDataSet"), defaultdbg, trainTS_, sampleLen_, targetLen_, batchSize_);
-
-	safecall(this, process, trainProc, false, testid_, &trainDS, 0);
-
+	for(int l=0; l<(WNNdecompLevel+2); l++) delete trainDS[l];
+	free(trainDS);
 }
-void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTransform) {
+void sEngine::infer(int testid_, sTS* inferTS_, int sampleLen_, int targetLen_, int batchSize_, int savedEnginePid_, bool reTransform) {
+
+	sDS** inferDS=(sDS**)malloc((WNNdecompLevel+2)*sizeof(sDS*));
+	safespawn(inferDS[0], newsname("inferDataSet_Base"), defaultdbg, inferTS_, 0, sampleLen_, targetLen_, batchSize_);
+
+	if (type==ENGINE_WNN) {
+		//-- run FFT on timeserie
+		safecall(inferTS_, FFTcalc, WNNdecompLevel, WNNwaveletType);
+		//-- build LFA dataset
+		safespawn(inferDS[1], newsname("inferDataSet_LFA"), defaultdbg, inferTS_, 1, sampleLen_, targetLen_, batchSize_);
+		//-- build HFD datasets
+		for (int l=0; l<WNNdecompLevel; l++) safespawn(inferDS[2+l], newsname("inferDataSet_HFD%d", l), defaultdbg, inferTS_, 2+l, sampleLen_, targetLen_, batchSize_);
+	}
 
 	//-- consistency checks: sampleLen/targetLen/featuresCnt must be the same in inferDS and engine
-	if (inferDS_->sampleLen!=sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS_->sampleLen, sampleLen);
-	if (inferDS_->targetLen!=targetLen) fail("Infer DataSet Prediction Length (%d) differs from Engine's (%d)", inferDS_->targetLen, targetLen);
-	if (inferDS_->featuresCnt!=featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_->featuresCnt, featuresCnt);
+	if (inferDS[0]->sampleLen!=sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS[0]->sampleLen, sampleLen);
+	if (inferDS[0]->targetLen!=targetLen) fail("Infer DataSet Prediction Length (%d) differs from Engine's (%d)", inferDS[0]->targetLen, targetLen);
+	if (inferDS[0]->featuresCnt!=featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS[0]->featuresCnt, featuresCnt);
 
 	//-- re-transform inferDS using trMin/Max loaded
 	if (reTransform) {
-		for (int f=0; f<inferDS_->featuresCnt; f++) {
-			inferDS_->trmin[f]=DStrMin[f];
-			inferDS_->trmax[f]=DStrMax[f];
+		for (int d=0; d<(WNNdecompLevel+2); d++) {
+			for (int f=0; f<inferDS[d]->featuresCnt; f++) {
+				inferDS[d]->trmin[f]=DStrMin[f];
+				inferDS[d]->trmax[f]=DStrMax[f];
+			}
 		}
 	}
 
 	//-- call infer
-	if (type=ENGINE_WNN) {
+	safecall(this, process, inferProc, reTransform, testid_, inferDS, savedEnginePid_);
 
-	} else {
-		safecall(this, process, inferProc, reTransform, testid_, &inferDS_, savedEnginePid_);
-	}
-
-	//-- get predicted/target sequences (TR) for all cores
+	//-- get predicted/target sequences (TR) for all cores, and saveRun
 	sDS* _ds;
 	int* seqLen=(int*)malloc(coresCnt*sizeof(int));
-	char*** seqLabel=(char***)malloc(coresCnt*sizeof(int));
+	char*** seqLabel=(char***)malloc(coresCnt*sizeof(char**));
 	numtype** trgSeqBASE=(numtype**)malloc(coresCnt*sizeof(numtype*));
 	numtype** prdSeqBASE=(numtype**)malloc(coresCnt*sizeof(numtype*));
 	numtype** trgSeqTR=(numtype**)malloc(coresCnt*sizeof(numtype*));
@@ -422,7 +448,7 @@ void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTran
 		free(trgSeqTRS[c]);
 		free(prdSeqTRS[c]);
 	}
-	//free(seqLabel);
+	free(seqLabel);
 	free(seqLen);
 	free(trgSeqBASE);
 	free(prdSeqBASE);
@@ -430,23 +456,12 @@ void sEngine::infer(int testid_, sDS* inferDS_, int savedEnginePid_, bool reTran
 	free(prdSeqTR);
 	free(trgSeqTRS);
 	free(prdSeqTRS);
+	//--
+	for (int l=0; l<(WNNdecompLevel+2); l++) delete inferDS[l];
+	free(inferDS);
 
 }
 
-void sEngine::saveMSE() {
-	for (int c=0; c<coresCnt; c++) {
-		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->duration, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
-		free(core[c]->procArgs->mseT);
-		free(core[c]->procArgs->mseV);
-		free(core[c]->procArgs->duration);
-	}
-}
-void sEngine::saveCoreLoggers() {
-	for (int c=0; c<coresCnt; c++) safecall(core[c]->persistor, save, persistor, core[c]->procArgs->pid, core[c]->procArgs->tid);
-}
-void sEngine::saveCoreImages(int epoch) {
-	for (int c=0; c<coresCnt; c++) if (core[c]->persistor->saveImageFlag) safecall(core[c], saveImage, core[c]->procArgs->pid, core[c]->procArgs->tid, (epoch==-1)? core[c]->procArgs->mseCnt-1:epoch);
-}
 void sEngine::saveRun() {
 
 /*	sDS* _ds;
@@ -480,7 +495,7 @@ void sEngine::commit() {
 	safecall(this->persistor, commit);
 }
 
-void sEngine::saveInfo() {
+void sEngine::saveInfo(numtype* trmin_, numtype* trmax_) {
 
 	//-- malloc temps
 	int* coreId_=(int*)malloc(coresCnt*sizeof(int));
@@ -512,7 +527,7 @@ void sEngine::saveInfo() {
 		WNNdecompLevel, WNNwaveletType, \
 		persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
 		coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_, \
-		trainDS->trmin, trainDS->trmax
+		trmin_, trmax_
 	);
 
 	//-- free temps
