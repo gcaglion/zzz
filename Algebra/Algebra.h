@@ -37,8 +37,9 @@ struct sAlgebra : public sObj {
 	//-- class methods
 
 	//-- multi-threading
-	EXPORT void createGPUThread(DWORD* ctxH);
-	EXPORT void destroyGPUThread(DWORD ctxH);
+	EXPORT void createGPUThread();
+	EXPORT void destroyGPUThread();
+	EXPORT void syncGPUThread();
 
 	//-- memory initializatin
 	EXPORT void myMalloc(numtype** var, int size);

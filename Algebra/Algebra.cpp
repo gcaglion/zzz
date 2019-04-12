@@ -23,14 +23,19 @@ sAlgebra::~sAlgebra() {
 //-- class methods
 
 //-- multi-threading
-void sAlgebra::createGPUThread(DWORD* ctxH) {
+void sAlgebra::createGPUThread() {
 #ifdef USE_GPU
-	createGPUcontext(ctxH);
+	createGPUcontext();
 #endif
 }
-void sAlgebra::destroyGPUThread(DWORD ctxH) {
+void sAlgebra::destroyGPUThread() {
 #ifdef USE_GPU
-	destroyGPUcontext(&ctxH);
+	destroyGPUcontext();
+#endif
+}
+void sAlgebra::syncGPUThread() {
+#ifdef USE_GPU
+	syncGPUcontext();
 #endif
 }
 

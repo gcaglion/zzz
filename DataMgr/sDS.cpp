@@ -1,5 +1,5 @@
 #include "sDS.h"
-#include <vld.h>
+//#include <vld.h>
 
 void sDS::mallocs1() {
 	sampleSBF=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));

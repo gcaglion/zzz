@@ -10,7 +10,7 @@ void usage() {
 	system("pause");
 }
 int main(int argc, char* argv[]) {
-	BOOL f = HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
+	//BOOL f = HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
 	//-- 1. create root object. root constructor does everything else
 	sRoot* root=nullptr;
 	try {

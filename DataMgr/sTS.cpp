@@ -1,5 +1,5 @@
 #include "sTS.h"
-#include <vld.h>
+//#include <vld.h>
 
 void sTS::mallocs1(){
 	timestamp=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) timestamp[i]=(char*)malloc(DATE_FORMAT_LEN);

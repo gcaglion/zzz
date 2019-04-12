@@ -1,5 +1,5 @@
 #include "sEngine.h"
-#include <vld.h>
+//#include <vld.h>
 
 //-- Engine stuff
 sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_) : sCfgObj(sObjParmsVal, nullptr, "") {
@@ -234,10 +234,10 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 DWORD coreThreadTrain(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
 	try {
-		args->core->Alg->createGPUThread(&args->coreProcArgs->cuCtx);
+		//args->core->Alg->createGPUThread();
 		args->core->train(args->coreProcArgs);
 		args->core->infer(args->coreProcArgs);
-//		args->core->Alg->destroyGPUThread(args->coreProcArgs->cuCtx);
+		//args->core->Alg->destroyGPUThread();
 	} catch (...) {
 		args->coreProcArgs->excp=current_exception();
 	}
@@ -246,9 +246,9 @@ DWORD coreThreadTrain(LPVOID vargs_) {
 DWORD coreThreadInfer(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
 	try {
-		args->core->Alg->createGPUThread(&args->coreProcArgs->cuCtx);
+		//args->core->Alg->createGPUThread();
 		args->core->infer(args->coreProcArgs);
-//		args->core->Alg->destroyGPUThread(args->coreProcArgs->cuCtx);
+		//args->core->Alg->destroyGPUThread();
 	}
 	catch (...) {
 		args->coreProcArgs->excp=current_exception();
@@ -278,6 +278,8 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 		LPDWORD* tid = (LPDWORD*)malloc(threadsCnt*sizeof(LPDWORD));
 		for (t=0; t<threadsCnt; t++) tid[t] = &kaz[t];
 		//--
+
+		Alg->syncGPUThread();
 
 		if (l>0) lsl0+=layerCoresCnt[l-1]+1;
 		gotoxy(0, lsl0);  printf("Process %6d, %s Layer %d\n", clientPid, ((procid_==trainProc)?"Training":"Inferencing"), l);
@@ -371,7 +373,6 @@ void sEngine::train(int testid_, sTS* trainTS_, int sampleLen_, int targetLen_, 
 		free(core[c]->procArgs->duration);
 	}
 	
-	//for(int l=0; l<(WNNdecompLevel+2); l++) delete trainDS[l];
 	free(trainDS);
 }
 void sEngine::infer(int testid_, sTS* inferTS_, int sampleLen_, int targetLen_, int batchSize_, int savedEnginePid_, bool reTransform) {
@@ -462,9 +463,6 @@ void sEngine::infer(int testid_, sTS* inferTS_, int sampleLen_, int targetLen_, 
 	free(trgSeqTRS);
 	free(prdSeqTRS);
 	
-
-	//--
-	//for (int l=0; l<(WNNdecompLevel+2); l++) delete inferDS[l];
 	free(inferDS);
 
 }
