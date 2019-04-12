@@ -234,8 +234,10 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 DWORD coreThreadTrain(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
 	try {
+		args->core->Alg->createGPUThread(&args->coreProcArgs->cuCtx);
 		args->core->train(args->coreProcArgs);
 		args->core->infer(args->coreProcArgs);
+//		args->core->Alg->destroyGPUThread(args->coreProcArgs->cuCtx);
 	} catch (...) {
 		args->coreProcArgs->excp=current_exception();
 	}
@@ -244,7 +246,9 @@ DWORD coreThreadTrain(LPVOID vargs_) {
 DWORD coreThreadInfer(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
 	try {
+		args->core->Alg->createGPUThread(&args->coreProcArgs->cuCtx);
 		args->core->infer(args->coreProcArgs);
+//		args->core->Alg->destroyGPUThread(args->coreProcArgs->cuCtx);
 	}
 	catch (...) {
 		args->coreProcArgs->excp=current_exception();
@@ -271,7 +275,7 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 		//-- initialize layer-level structures
 		procH = (HANDLE*)malloc(threadsCnt*sizeof(HANDLE));
 		DWORD* kaz = (DWORD*)malloc(threadsCnt*sizeof(DWORD));
-		LPDWORD* tid = (LPDWORD*)malloc(threadsCnt*sizeof(LPDWORD)); 
+		LPDWORD* tid = (LPDWORD*)malloc(threadsCnt*sizeof(LPDWORD));
 		for (t=0; t<threadsCnt; t++) tid[t] = &kaz[t];
 		//--
 

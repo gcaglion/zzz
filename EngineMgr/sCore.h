@@ -12,6 +12,7 @@
 struct sCoreProcArgs {
 	//-- common across train and infer
 	std::exception_ptr excp;
+	DWORD cuCtx;
 	sDS* ds;
 	int batchCnt;
 	int batchSize;

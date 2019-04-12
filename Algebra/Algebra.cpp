@@ -5,9 +5,8 @@ sAlgebra::sAlgebra(sObjParmsDef) : sObj(sObjParmsVal) {
 
 	//-- init CUDA/BLAS
 	cublasH=new void*;
-	cuRandH=new void*;
+	cuRandH=new void*;	
 	for (int i=0; i<MAX_STREAMS; i++) cuStream[i]=new void*;
-
 #ifdef USE_GPU
 	CUWsafecall(initCUDA);
 	CUWsafecall(initCUBLAS, cublasH);
@@ -22,6 +21,18 @@ sAlgebra::~sAlgebra() {
 	delete cuRandH;
 }
 //-- class methods
+
+//-- multi-threading
+void sAlgebra::createGPUThread(DWORD* ctxH) {
+#ifdef USE_GPU
+	createGPUcontext(ctxH);
+#endif
+}
+void sAlgebra::destroyGPUThread(DWORD ctxH) {
+#ifdef USE_GPU
+	destroyGPUcontext(&ctxH);
+#endif
+}
 
 //-- memory initializatin
 void sAlgebra::myMalloc(numtype** var, int size) {

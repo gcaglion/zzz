@@ -10,6 +10,7 @@
 #include "../CUDAwrapper/CUDAwrapper.h"	//-- defines MAX_STREAMS
 #else
 #define MAX_STREAMS 0
+#define MAX_CONTEXTS 0
 #endif
 
 //-- Exceptions
@@ -34,6 +35,10 @@ struct sAlgebra : public sObj {
 	EXPORT ~sAlgebra();
 
 	//-- class methods
+
+	//-- multi-threading
+	EXPORT void createGPUThread(DWORD* ctxH);
+	EXPORT void destroyGPUThread(DWORD ctxH);
 
 	//-- memory initializatin
 	EXPORT void myMalloc(numtype** var, int size);

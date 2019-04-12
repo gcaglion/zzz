@@ -168,6 +168,13 @@ void sRoot::kaz() {
 	//safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
 	//safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
 
+	sAlgebra* Alg; safespawn(Alg, newsname("Alg"), defaultdbg);
+	DWORD cuCtx[2];
+	Alg->createGPUThread(&cuCtx[0]);
+	Alg->createGPUThread(&cuCtx[1]);
+	Alg->destroyGPUThread(cuCtx[0]);
+	Alg->destroyGPUThread(cuCtx[1]);
+	return;
 
 	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/ts0.xml");
 	sTS* tsActual; safespawn(tsActual, newsname("tsActual"), defaultdbg, tsCfg, "/");

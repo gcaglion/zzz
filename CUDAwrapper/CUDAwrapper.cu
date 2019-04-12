@@ -1,5 +1,6 @@
 #include "CUDAwrapper.h"
 //--
+#include <cuda.h>
 #include <cuda_runtime.h>
 #include <cublas_v2.h>
 #include <curand.h>
@@ -72,6 +73,16 @@ EXPORT void initCUstreams(void* cuStream[]) {
 	for (int s=0; s<MAX_STREAMS; s++) {
 		if (cudaStreamCreate((cudaStream_t*)cuStream[s])!=cudaSuccess) CUWfail("CU stream %d creation failed.", s);
 	}
+}
+
+EXPORT void createGPUcontext(void* cuCtxH) {
+	CUresult ret=cuCtxCreate((CUcontext*)cuCtxH, 0, 0);
+	if (ret!=cudaSuccess) CUWfail("%s() failed. Error %d", __func__, ret);	
+}
+EXPORT void destroyGPUcontext(void* cuCtxH) {
+	CUcontext* ctx=(CUcontext*)cuCtxH;
+	CUresult ret=cuCtxDestroy((*ctx));
+	if (ret!=cudaSuccess) CUWfail("%s() failed. Error %d", __func__, ret);
 }
 
 EXPORT void Malloc_cu(numtype** var, int size) {
