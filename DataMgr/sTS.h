@@ -38,7 +38,6 @@ struct sTS : sCfgObj {
 	EXPORT sTS(sCfgObjParmsDef);
 	EXPORT ~sTS();
 
-	EXPORT void untransform();
 	EXPORT void dump();
 	EXPORT void FFTcalc(int decompLevel_, int waveletType_);
 

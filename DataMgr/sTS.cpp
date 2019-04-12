@@ -243,34 +243,6 @@ void sTS::transform() {
 		}
 	}
 }
-void sTS::untransform() {
-	int curr, prev;
-	for (int s=0; s<stepsCnt; s++) {
-		for (int f=0; f<featuresCnt; f++) {
-			curr=s*featuresCnt+f;
-			prev=(s-1)*featuresCnt+f;
-			if (dt==DT_NONE) {
-				val[curr]=valTR[curr];
-			}
-			if (dt==DT_DELTA) {
-				if (s>0) {
-					if (valTR[curr]==EMPTY_VALUE) {
-						val[curr]=EMPTY_VALUE;
-					} else {
-						val[curr]=valTR[curr]+val[prev];
-						if (val[curr]==EMPTY_VALUE) val[curr]=val[curr];
-					}
-				} else {
-					if (valTR[curr]==EMPTY_VALUE) {
-						val[curr]=EMPTY_VALUE;
-					} else {
-						val[curr]=valTR[curr]+valB[f];
-					}
-				}
-			}
-		}
-	}
-}
 
 void sTS::FFTcalc(int decompLevel_, int waveletType_) {
 	decompLevel=decompLevel_;

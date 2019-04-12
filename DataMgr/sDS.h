@@ -44,7 +44,7 @@ struct sDS : sCfgObj {
 	EXPORT void scale(float scaleMin_, float scaleMax_);
 	EXPORT void unscale();
 	EXPORT void getSeq(int trg_vs_prd, numtype* oVal);
-	EXPORT void untransformSeq(numtype* iTRval, numtype* oBASEval);
+	EXPORT void untransformSeq(numtype* iTRval, numtype* iActualVal, numtype* oBASEval);
 
 	EXPORT void target2prediction();
 

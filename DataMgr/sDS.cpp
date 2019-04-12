@@ -326,7 +326,7 @@ void sDS::unscale() {
 		}
 	}
 }
-void sDS::untransformSeq(numtype* iTRval, numtype* oBASEval) {
+void sDS::untransformSeq(numtype* iTRval, numtype* iActualVal, numtype* oBASEval) {
 	int curr, prev;
 	int stepsCnt=samplesCnt+sampleLen+targetLen-1;
 	for (int s=0; s<stepsCnt; s++) {
@@ -338,7 +338,7 @@ void sDS::untransformSeq(numtype* iTRval, numtype* oBASEval) {
 			}
 			if (seqDT==DT_DELTA) {
 				if (s>0) {
-					oBASEval[curr]=iTRval[curr]+oBASEval[prev];
+					oBASEval[curr]=iTRval[curr]+iActualVal[prev];
 				} else {
 					oBASEval[curr]=iTRval[curr]+seqBase[f];
 				}

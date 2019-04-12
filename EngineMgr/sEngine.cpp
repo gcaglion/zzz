@@ -434,8 +434,8 @@ void sEngine::infer(int testid_, sTS* inferTS_, int sampleLen_, int targetLen_, 
 		_ds->unscale();
 		_ds->getSeq(TARGET, trgSeqTR[c]);
 		_ds->getSeq(PREDICTION, prdSeqTR[c]);
-		_ds->untransformSeq(trgSeqTR[c], trgSeqBASE[c]);
-		_ds->untransformSeq(prdSeqTR[c], prdSeqBASE[c]);
+		_ds->untransformSeq(trgSeqTR[c], trgSeqBASE[c], trgSeqBASE[c]);
+		_ds->untransformSeq(prdSeqTR[c], trgSeqBASE[c], prdSeqBASE[c]);
 
 		if (core[c]->persistor->saveRunFlag) {
 			core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->mseR, \
