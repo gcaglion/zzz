@@ -1,5 +1,5 @@
 #include "sDS.h"
-//#include <vld.h>
+#include <vld.h>
 
 void sDS::mallocs1() {
 	sampleSBF=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
@@ -27,7 +27,7 @@ void sDS::buildFromTS(sTS* ts_, int WNNsrc_) {
 				if (WNNsrc_==0) {
 					sampleSBF[dsidxS] = ts_->valTR[tsidxS];
 				} else {
-					sampleSBF[dsidxS] = ts_->valFFT[WNNsrc_-1][tsidxS];
+					sampleSBF[dsidxS] = ts_->FFTval[WNNsrc_-1][tsidxS];
 				}
 				dsidxS++;
 			}
@@ -40,7 +40,7 @@ void sDS::buildFromTS(sTS* ts_, int WNNsrc_) {
 				if (WNNsrc_==0) {
 					targetSBF[dsidxT] = ts_->valTR[tsidxT];
 				} else {
-					targetSBF[dsidxT] = ts_->valFFT[WNNsrc_-1][tsidxT];
+					targetSBF[dsidxT] = ts_->FFTval[WNNsrc_-1][tsidxT];
 				}
 				dsidxT++;
 			}
@@ -52,8 +52,13 @@ void sDS::buildFromTS(sTS* ts_, int WNNsrc_) {
 	for (int i=0; i<stepsCnt; i++) strcpy_s(seqLabel[i], DATE_FORMAT_LEN, ts_->timestamp[i]);
 	seqDT=ts_->dt;
 	for (int f=0; f<featuresCnt; f++) {
-		trmin[f]=ts_->TRmin[f];
-		trmax[f]=ts_->TRmax[f];
+		if (WNNsrc_==0) {
+			trmin[f]=ts_->TRmin[f];
+			trmax[f]=ts_->TRmax[f];
+		} else {
+			trmin[f]=ts_->FFTmin[WNNsrc_-1][f];
+			trmax[f]=ts_->FFTmax[WNNsrc_-1][f];
+		}
 		seqBase[f]=ts_->valB[f];
 	}
 }
@@ -208,7 +213,7 @@ sDS::~sDS(){
 	free(sampleSBF); free(targetSBF); free(predictionSBF);
 	free(sampleBFS); free(targetBFS); free(predictionBFS);
 	free(scaleM); free(scaleP);
-	free(trmin); free(trmax);
+	//free(trmin); free(trmax);
 	free(seqBase);
 	for (int i=0; i<(samplesCnt+sampleLen+targetLen-1); i++) free(seqLabel[i]);
 	free(seqLabel);

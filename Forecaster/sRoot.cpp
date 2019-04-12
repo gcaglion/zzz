@@ -38,7 +38,6 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(trainCfg->currentKey, getParm, &_trainBatchSize, "BatchSize");
 
 		sTS* trainTS; safespawn(trainTS, newsname("trainTimeSerie"), defaultdbg, trainCfg, "/TimeSerie");
-		trainTS->FFTcalc(4, WNN_HAAR);
 
 		//-- 4. spawn engine the standard way
 		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", _trainSampleLen, _trainTargetLen, trainTS->featuresCnt, pid);

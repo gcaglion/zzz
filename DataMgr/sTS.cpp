@@ -1,5 +1,5 @@
 #include "sTS.h"
-//#include <vld.h>
+#include <vld.h>
 
 void sTS::mallocs1(){
 	timestamp=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) timestamp[i]=(char*)malloc(DATE_FORMAT_LEN);
@@ -114,12 +114,18 @@ sTS::sTS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 }
 sTS::~sTS() {
-	for (int i=0; i<stepsCnt; i++) free(timestamp[i]); 
+	for (int i=0; i<stepsCnt; i++) free(timestamp[i]);
 	free(timestamp); free(timestampB);
 	free(val);
 	free(valTR);
 	free(TRmin); free(TRmax);
 	free(valB);
+	if (decompLevel>0) {
+		for (int l=0; l<(decompLevel+1); l++) {
+			free(FFTval[l]); free(FFTmin[l]); free(FFTmax[l]);
+		}
+		free(FFTval); free(FFTmin); free(FFTmax);
+	}
 }
 
 void sTS::setDataSource(sDataSource** dataSrc_) {
@@ -194,9 +200,10 @@ void sTS::dump() {
 		for (int l=0; l<decompLevel; l++) {
 			sprintf_s(dumpFileName, "%s/%s_TR-HFD%d_dump_p%d_t%d_%p.csv", dumpPath, name->base, l, GetCurrentProcessId(), GetCurrentThreadId(), this);
 			if (fopen_s(&dumpFileTRHFD[l], dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-			dumpToFile(dumpFileTRHFD[l], valFFT[l+1]);
+			dumpToFile(dumpFileTRHFD[l], FFTval[l+1]);
 		}
-		dumpToFile(dumpFileTRLFA, valFFT[0]);
+		dumpToFile(dumpFileTRLFA, FFTval[0]);
+		free(dumpFileTRHFD);
 	}
 
 }
@@ -268,10 +275,10 @@ void sTS::untransform() {
 void sTS::FFTcalc(int decompLevel_, int waveletType_) {
 	decompLevel=decompLevel_;
 	//-- mallocs lfa/hfd
-	lfa=(numtype**)malloc(featuresCnt*sizeof(numtype*));
+	numtype** lfa=(numtype**)malloc(featuresCnt*sizeof(numtype*));
 	for (int f=0; f<featuresCnt; f++) lfa[f]=(numtype*)malloc(stepsCnt*sizeof(numtype));
 	//--
-	hfd=(numtype***)malloc(featuresCnt*sizeof(numtype**));
+	numtype*** hfd=(numtype***)malloc(featuresCnt*sizeof(numtype**));
 	for (int f=0; f<featuresCnt; f++) {
 		hfd[f]=(numtype**)malloc(decompLevel*sizeof(numtype*));
 		for (int l=0; l<decompLevel; l++) hfd[f][l]=(numtype*)malloc(stepsCnt*sizeof(numtype));
@@ -285,24 +292,30 @@ void sTS::FFTcalc(int decompLevel_, int waveletType_) {
 		WaweletDecomp(stepsCnt, tmpf, decompLevel, waveletType_, lfa[f], hfd[f]);
 	}
 	free(tmpf);
-	
+
 	/*for (int f=0; f<featuresCnt; f++) {
 		dumpArrayH(stepsCnt, lfa[f], strBuild("lfa_F%d.csv", f).c_str());
 		for (int l=0; l<decompLevel; l++) dumpArrayH(stepsCnt, hfd[f][l], strBuild("hfd%d_F%d.csv",l,f).c_str());
 	}
 	*/
-	valFFT = (numtype**)malloc((decompLevel+1)*sizeof(numtype*)); 
+	FFTval = (numtype**)malloc((decompLevel+1)*sizeof(numtype*));
+	FFTmin = (numtype**)malloc((decompLevel+1)*sizeof(numtype*));
+	FFTmax = (numtype**)malloc((decompLevel+1)*sizeof(numtype*));
 	int i;
 	for (int l=0; l<(decompLevel+1); l++) {
-		valFFT[l]=(numtype*)malloc(stepsCnt*featuresCnt*sizeof(numtype));
+		FFTval[l]=(numtype*)malloc(stepsCnt*featuresCnt*sizeof(numtype));
+		FFTmin[l]=(numtype*)malloc(featuresCnt*sizeof(numtype)); for (int f=0; f<featuresCnt; f++) FFTmin[l][f]=1e9;
+		FFTmax[l]=(numtype*)malloc(featuresCnt*sizeof(numtype)); for (int f=0; f<featuresCnt; f++) FFTmax[l][f]=-1e9;
 		i=0;
 		for (int s=0; s<stepsCnt; s++) {
 			for (int f=0; f<featuresCnt; f++) {
 				if (l>0) {
-					valFFT[l][i]=hfd[f][l-1][s];
+					FFTval[l][i]=hfd[f][l-1][s];
 				} else {
-					valFFT[l][i]=lfa[f][s];
+					FFTval[l][i]=lfa[f][s];
 				}
+				if (FFTval[l][i]<FFTmin[l][f]) FFTmin[l][f]=FFTval[l][i];
+				if (FFTval[l][i]>FFTmax[l][f]) FFTmax[l][f]=FFTval[l][i];
 				i++;
 			}
 		}
@@ -311,4 +324,10 @@ void sTS::FFTcalc(int decompLevel_, int waveletType_) {
 	//-- dump
 	if (doDump) dump();
 
+	//-- frees
+	for (int f=0; f<featuresCnt; f++) {
+		for (int l=0; l<decompLevel; l++) free(hfd[f][l]);
+		free(hfd[f]); free(lfa[f]);
+	}
+	free(hfd); free(lfa);
 }

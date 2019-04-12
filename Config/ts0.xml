@@ -1,6 +1,6 @@
 		HistoryLen			= 5002
 		Date0				= 2018-05-30-00:00
-		DataTransformation	= DT_NONE
+		DataTransformation	= DT_DELTA
 	
 		Dump				= true
 		DumpPath			= c:\temp\DataDump

@@ -66,6 +66,6 @@ private:
 	//-- these are needed to save trmin/max for each training feature
 	//sDS* trainDS;
 	numtype* DStrMin; numtype* DStrMax;
-
+	numtype** DSfftMin; numtype** DSfftMax;
 
 };

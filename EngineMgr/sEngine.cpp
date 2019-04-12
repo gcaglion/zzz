@@ -1,5 +1,5 @@
 #include "sEngine.h"
-//#include <vld.h>
+#include <vld.h>
 
 //-- Engine stuff
 sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_) : sCfgObj(sObjParmsVal, nullptr, "") {
@@ -24,6 +24,8 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	//--
 	DStrMin=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
 	DStrMax=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
+	DSfftMin=(numtype**)malloc(MAX_WAVELET_LEVELS*sizeof(numtype*)); for (int l=0; l<MAX_WAVELET_LEVELS; l++) DSfftMin[l]=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
+	DSfftMax=(numtype**)malloc(MAX_WAVELET_LEVELS*sizeof(numtype*)); for (int l=0; l<MAX_WAVELET_LEVELS; l++) DSfftMax[l]=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
 	//-- 3. load info from FROM persistor
 	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &sampleLen, &targetLen, &featuresCnt, &WNNdecompLevel, &WNNwaveletType, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, DStrMin, DStrMax);
 	//-- 2. malloc one core, one coreLayout, one coreParms and one corePersistor for each core
@@ -283,6 +285,7 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 				//-- create dataset for core
 				if (l==0) {
 					procArgs[c]->coreProcArgs->ds=ds_[c];
+					safecall(procArgs[c]->coreProcArgs->ds, scale, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 				} else {
 					parentDS=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
 					for (int p=0; p<coreLayout[c]->parentsCnt; p++)	parentDS[p]=procArgs[coreLayout[c]->parentId[p]]->coreProcArgs->ds;
@@ -290,7 +293,6 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 					//--
 					free(parentDS);
 				}
-				safecall(procArgs[c]->coreProcArgs->ds, scale, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 				if(procArgs[c]->coreProcArgs->ds->doDump) procArgs[c]->coreProcArgs->ds->dump();
 
 				//-- Create Training or Infer Thread for current Core
@@ -364,8 +366,8 @@ void sEngine::train(int testid_, sTS* trainTS_, int sampleLen_, int targetLen_, 
 		free(core[c]->procArgs->mseV);
 		free(core[c]->procArgs->duration);
 	}
-
-	for(int l=0; l<(WNNdecompLevel+2); l++) delete trainDS[l];
+	
+	//for(int l=0; l<(WNNdecompLevel+2); l++) delete trainDS[l];
 	free(trainDS);
 }
 void sEngine::infer(int testid_, sTS* inferTS_, int sampleLen_, int targetLen_, int batchSize_, int savedEnginePid_, bool reTransform) {
@@ -455,8 +457,10 @@ void sEngine::infer(int testid_, sTS* inferTS_, int sampleLen_, int targetLen_, 
 	free(prdSeqTR);
 	free(trgSeqTRS);
 	free(prdSeqTRS);
+	
+
 	//--
-	for (int l=0; l<(WNNdecompLevel+2); l++) delete inferDS[l];
+	//for (int l=0; l<(WNNdecompLevel+2); l++) delete inferDS[l];
 	free(inferDS);
 
 }

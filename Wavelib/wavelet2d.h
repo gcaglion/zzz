@@ -6,6 +6,8 @@
 #include <complex>
 using namespace std;
 
+#define MAX_WAVELET_LEVELS 12
+
 EXPORT void WaweletDecomp(int pTSlen, numtype* pTS, int pDecompLevel, int pWaweletType, numtype* oLFA, numtype** oHFD);
 
 // 1D Functions

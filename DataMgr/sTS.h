@@ -24,9 +24,9 @@ struct sTS : sCfgObj {
 	numtype* valB;
 
 	int decompLevel=0;
-	numtype** lfa;		//-- [feature]
-	numtype*** hfd;		//-- [feature][decomplevel]
-	numtype** valFFT;	//-- [decomplevel]
+	numtype** FFTval;	//-- [decomplevel]
+	numtype** FFTmin;	//-- [decomplevel]
+	numtype** FFTmax;	//-- [decomplevel]
 
 	numtype* TRmin;
 	numtype* TRmax;
