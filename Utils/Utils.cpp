@@ -9,6 +9,13 @@ EXPORT void P2V(int Len, numtype* P, std::vector<double> &V) {
 EXPORT void V2P(int Len, numtype* P, std::vector<double> &V) {
 	for (int i = 0; i < Len; i++) P[i] = (numtype)V[i];
 }
+EXPORT bool dumpArrayH(int vlen, numtype* v, const char* fname) {
+	FILE* f; fopen_s(&f, fname, "w");
+	if (f==nullptr) return false;
+	for (int i=0; i<vlen; i++) fprintf(f, "%f\n", v[i]);
+	fclose(f);
+	return true;
+}
 
 
 EXPORT int MyRndInt(int rmin, int rmax) {

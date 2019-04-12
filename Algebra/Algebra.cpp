@@ -316,14 +316,6 @@ EXPORT void CUWd2h_cu(numtype* destAddr, numtype* srcAddr, int size, void* cuStr
 
 
 //-- read/write mem<->file
-EXPORT bool dumpArrayH(int vlen, numtype* v, const char* fname) {
-	
-	FILE* f; fopen_s(&f, fname, "w");
-	if (f==nullptr) return false;
-	for (int i=0; i<vlen; i++) fprintf(f, "%f\n", v[i]);
-	fclose(f);
-	return true;
-}
 EXPORT bool dumpArray(int vlen, numtype* v, const char* fname) {
 #ifdef USE_GPU
 	return(dumpArray_cu(vlen, v, fname));

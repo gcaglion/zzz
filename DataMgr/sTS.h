@@ -23,9 +23,10 @@ struct sTS : sCfgObj {
 	char* timestampB;
 	numtype* valB;
 
-	numtype** lfa;	//-- [feature]
-	numtype*** hfd;	//-- [feature][decomplevel]
-	numtype** valFFT;
+	int decompLevel=0;
+	numtype** lfa;		//-- [feature]
+	numtype*** hfd;		//-- [feature][decomplevel]
+	numtype** valFFT;	//-- [decomplevel]
 
 	numtype* TRmin;
 	numtype* TRmax;
@@ -45,4 +46,5 @@ private:
 	void setDataSource(sDataSource** dataSrc_);
 	void transform();
 	void mallocs1();
+	void dumpToFile(FILE* file, numtype* val_);
 };

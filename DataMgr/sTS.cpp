@@ -19,8 +19,11 @@ sTS::sTS(sObjParmsDef, int stepsCnt_, int featuresCnt_, int dt_, char** timestam
 	timestampB=timestampB_; valB=valB_;
 
 	transform();
-}
 
+	//-- dump
+	if (doDump) dump();
+
+}
 sTS::sTS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &stepsCnt, "HistoryLen");
 	safecall(cfgKey, getParm, &dt, "DataTransformation");
@@ -94,6 +97,9 @@ sTS::sTS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	//-- transform
 	transform();
 
+	//-- dump
+	if (doDump) dump();
+
 	//-- free temps
 	for (int d=0; d<dsrcCnt; d++) {
 		free(selF[d]);
@@ -148,9 +154,26 @@ void sTS::setDataSource(sDataSource** dataSrc_) {
 
 }
 
-void sTS::dump() {
-	int s, f;
+void sTS::dumpToFile(FILE* file, numtype* val_) {
+	int f, s;
+	fprintf(file, "i, datetime");
+	for (f=0; f<featuresCnt; f++) {
+		fprintf(file, ",F%d", f);
+	}
+	fprintf(file, "\n%d,%s", -1, timestampB);
+	for (f=0; f<featuresCnt; f++) {
+		fprintf(file, ",%f", valB[f]);
+	}
 
+	for (s=0; s<stepsCnt; s++) {
+		fprintf(file, "\n%d, %s", s, timestamp[s]);
+		for (f=0; f<featuresCnt; f++) {
+			fprintf(file, ",%f", val_[s*featuresCnt+f]);
+		}
+	}
+	fclose(file);
+}
+void sTS::dump() {
 	char dumpFileName[MAX_PATH];
 	sprintf_s(dumpFileName, "%s/%s_BASE_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
 	FILE* dumpFile;
@@ -159,28 +182,22 @@ void sTS::dump() {
 	FILE* dumpFileTR;
 	if (fopen_s(&dumpFileTR, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
-	fprintf(dumpFile, "i, datetime"); fprintf(dumpFileTR, "i, datetime");
-	for (f=0; f<featuresCnt; f++) {
-		fprintf(dumpFile, ",F%d", f); fprintf(dumpFileTR, ",F%d", f);
-	}
-	fprintf(dumpFile, "\n%d,%s", -1, timestampB);
-	fprintf(dumpFileTR, "\n%d,%s", -1, timestampB);
-	for (f=0; f<featuresCnt; f++) {
-		fprintf(dumpFile, ",%f", valB[f]);
-		fprintf(dumpFileTR, ",%f", valB[f]);
-	}
+	dumpToFile(dumpFile, val);
+	dumpToFile(dumpFileTR, valTR);
 
-	for (s=0; s<stepsCnt; s++) {
-		fprintf(dumpFile, "\n%d, %s", s, timestamp[s]);
-		fprintf(dumpFileTR, "\n%d, %s", s, timestamp[s]);
-		for (f=0; f<featuresCnt; f++) {
-			fprintf(dumpFile, ",%f", val[s*featuresCnt+f]);
-			fprintf(dumpFileTR, ",%f", valTR[s*featuresCnt+f]);
+
+	FILE* dumpFileTRLFA; FILE** dumpFileTRHFD;
+	if (decompLevel>0) {
+		dumpFileTRHFD=(FILE**)malloc(decompLevel*sizeof(FILE*));
+		sprintf_s(dumpFileName, "%s/%s_TR-LFA_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+		if (fopen_s(&dumpFileTRLFA, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
+		for (int l=0; l<decompLevel; l++) {
+			sprintf_s(dumpFileName, "%s/%s_TR-HFD%d_dump_p%d_t%d_%p.csv", dumpPath, name->base, l, GetCurrentProcessId(), GetCurrentThreadId(), this);
+			if (fopen_s(&dumpFileTRHFD[l], dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
+			dumpToFile(dumpFileTRHFD[l], valFFT[l+1]);
 		}
+		dumpToFile(dumpFileTRLFA, valFFT[0]);
 	}
-	fprintf(dumpFile, "\n"); fprintf(dumpFileTR, "\n");
-
-	fclose(dumpFile); fclose(dumpFileTR);
 
 }
 
@@ -247,15 +264,17 @@ void sTS::untransform() {
 		}
 	}
 }
+
 void sTS::FFTcalc(int decompLevel_, int waveletType_) {
+	decompLevel=decompLevel_;
 	//-- mallocs lfa/hfd
 	lfa=(numtype**)malloc(featuresCnt*sizeof(numtype*));
 	for (int f=0; f<featuresCnt; f++) lfa[f]=(numtype*)malloc(stepsCnt*sizeof(numtype));
 	//--
 	hfd=(numtype***)malloc(featuresCnt*sizeof(numtype**));
 	for (int f=0; f<featuresCnt; f++) {
-		hfd[f]=(numtype**)malloc(decompLevel_*sizeof(numtype*));
-		for (int l=0; l<decompLevel_; l++) hfd[f][l]=(numtype*)malloc(stepsCnt*sizeof(numtype));
+		hfd[f]=(numtype**)malloc(decompLevel*sizeof(numtype*));
+		for (int l=0; l<decompLevel; l++) hfd[f][l]=(numtype*)malloc(stepsCnt*sizeof(numtype));
 	}
 	//-- extract single features from valTR
 	numtype* tmpf=(numtype*)malloc(stepsCnt*sizeof(numtype));
@@ -263,17 +282,22 @@ void sTS::FFTcalc(int decompLevel_, int waveletType_) {
 		for (int s=0; s<stepsCnt; s++) {
 			tmpf[s]=valTR[s*featuresCnt+f];
 		}
-		WaweletDecomp(stepsCnt, tmpf, decompLevel_, waveletType_, lfa[f], hfd[f]);
+		WaweletDecomp(stepsCnt, tmpf, decompLevel, waveletType_, lfa[f], hfd[f]);
 	}
 	free(tmpf);
-
-	valFFT = (numtype**)malloc((decompLevel_+1)*sizeof(numtype*)); 
+	
+	/*for (int f=0; f<featuresCnt; f++) {
+		dumpArrayH(stepsCnt, lfa[f], strBuild("lfa_F%d.csv", f).c_str());
+		for (int l=0; l<decompLevel; l++) dumpArrayH(stepsCnt, hfd[f][l], strBuild("hfd%d_F%d.csv",l,f).c_str());
+	}
+	*/
+	valFFT = (numtype**)malloc((decompLevel+1)*sizeof(numtype*)); 
 	int i;
-	for (int l=0; l<(decompLevel_+1); l++) {
+	for (int l=0; l<(decompLevel+1); l++) {
 		valFFT[l]=(numtype*)malloc(stepsCnt*featuresCnt*sizeof(numtype));
 		i=0;
-		for (int f=0; f<featuresCnt; f++) {
-			for (int s=0; s<stepsCnt; s++) {
+		for (int s=0; s<stepsCnt; s++) {
+			for (int f=0; f<featuresCnt; f++) {
 				if (l>0) {
 					valFFT[l][i]=hfd[f][l-1][s];
 				} else {
@@ -283,4 +307,8 @@ void sTS::FFTcalc(int decompLevel_, int waveletType_) {
 			}
 		}
 	}
+
+	//-- dump
+	if (doDump) dump();
+
 }
