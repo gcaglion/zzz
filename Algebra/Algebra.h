@@ -37,9 +37,12 @@ struct sAlgebra : public sObj {
 	//-- class methods
 
 	//-- multi-threading
-	EXPORT void createGPUThread();
-	EXPORT void destroyGPUThread();
-	EXPORT void syncGPUThread();
+	EXPORT void createGPUContext();
+	EXPORT void destroyGPUContext();
+	EXPORT void syncGPUContext();
+
+	//-- device synchronization
+	EXPORT void devSync();
 
 	//-- memory initializatin
 	EXPORT void myMalloc(numtype** var, int size);

@@ -23,20 +23,25 @@ sAlgebra::~sAlgebra() {
 //-- class methods
 
 //-- multi-threading
-void sAlgebra::createGPUThread() {
+void sAlgebra::createGPUContext() {
 #ifdef USE_GPU
-	createGPUcontext();
+	createGPUcontext_cu();
 #endif
 }
-void sAlgebra::destroyGPUThread() {
+void sAlgebra::destroyGPUContext() {
 #ifdef USE_GPU
-	destroyGPUcontext();
+	destroyGPUcontext_cu();
 #endif
 }
-void sAlgebra::syncGPUThread() {
+void sAlgebra::syncGPUContext() {
 #ifdef USE_GPU
-	syncGPUcontext();
+	syncGPUcontext_cu();
 #endif
+}
+
+//-- device-level sync
+void sAlgebra::devSync() {
+	devSync_cu();
 }
 
 //-- memory initializatin

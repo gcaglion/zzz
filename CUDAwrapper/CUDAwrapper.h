@@ -19,9 +19,11 @@ EXPORT void initCUBLAS(void* cublasH);
 EXPORT void initCURand(void* cuRandH);
 EXPORT void initCUstreams(void* cuStream[]);
 
-EXPORT void createGPUcontext();
-EXPORT void destroyGPUcontext();
-EXPORT void syncGPUcontext();
+EXPORT void createGPUcontext_cu();
+EXPORT void destroyGPUcontext_cu();
+EXPORT void syncGPUcontext_cu();
+
+EXPORT void devSync_cu();
 
 EXPORT void Malloc_cu(numtype** var, int size);
 EXPORT void Free_cu(numtype* var);

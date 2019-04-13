@@ -75,12 +75,12 @@ EXPORT void initCUstreams(void* cuStream[]) {
 	}
 }
 
-EXPORT void createGPUcontext() {
+EXPORT void createGPUcontext_cu() {
 	CUcontext cuCtx;
 	CUresult ret=cuCtxCreate(&cuCtx, 0, 0);
 	if (ret!=cudaSuccess) CUWfail("%s() failed. Error %d", __func__, ret);	
 }
-EXPORT void destroyGPUcontext() {
+EXPORT void destroyGPUcontext_cu() {
 	CUcontext cuCtx; 
 	CUresult ret;
 	ret=cuCtxGetCurrent(&cuCtx);
@@ -88,8 +88,13 @@ EXPORT void destroyGPUcontext() {
 	ret=cuCtxDestroy(cuCtx);
 	if (ret!=cudaSuccess) CUWfail("%s() failed. Error %d", __func__, ret);
 }
-EXPORT void syncGPUcontext() {
+EXPORT void syncGPUcontext_cu() {
 	CUresult ret=cuCtxSynchronize();
+	if (ret!=cudaSuccess) CUWfail("%s() failed. Error %d", __func__, ret);
+}
+
+EXPORT void devSync_cu() {
+	int ret=cudaDeviceSynchronize();
 	if (ret!=cudaSuccess) CUWfail("%s() failed. Error %d", __func__, ret);
 }
 
