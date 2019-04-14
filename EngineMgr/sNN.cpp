@@ -442,9 +442,6 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	int epoch, b;
 	bool hasInverted=false, hasDiverged=false, hasMinimized=false;
 
-	//-- pre-load the whole dataset (samples+targets) on GPU !
-	safecall(this, loadWholeDataSet);
-
 	//-- extract training arguments from trainArgs into local variables
 	pid=trainArgs->pid;
 	tid=trainArgs->tid;
@@ -464,8 +461,6 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 
 	//---- 0.2. Init W
 	for (l=0; l<(outputLevel); l++) Alg->VinitRnd(weightsCnt[l], &W[levelFirstWeight[l]], -1/sqrtf((numtype)nodesCnt[l]), 1/sqrtf((numtype)nodesCnt[l]), Alg->cuRandH);
-	//dumpArray(weightsCntTotal, W, "C:/temp/initW.txt");
-	//loadArray(weightsCntTotal, W, "initW.txt");
 
 	//---- 0.3. Init dW, dJdW
 	Alg->Vinit(weightsCntTotal, dW, 0, 0);
@@ -473,6 +468,9 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 
 	//-- 0.4. convert samples and targets from SBF to BFS  in training dataset
 	trainArgs->ds->setBFS(procArgs->batchCnt, procArgs->batchSize);
+
+	//-- pre-load the whole dataset (samples+targets) on GPU !
+	safecall(this, loadWholeDataSet);
 
 	//-- 1. for every epoch, train all batches with one Forward pass ( loadSamples(b)+FF()+calcErr() ), and one Backward pass (BP + calcdW + W update)
 	if (parms->BP_Algo==BP_SCGD) {
