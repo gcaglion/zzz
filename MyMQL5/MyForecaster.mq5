@@ -269,7 +269,7 @@ bool loadBars() {
 	ENUM_TIMEFRAMES tf;
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
-		int copied=CopyRates(serieSymbol[s], tf, 1, historyLen+2, serierates);	//printf("copied[%d]=%d", s, copied);
+		int copied=CopyRates(serieSymbol[s], tf, 1, historyLen+2, serierates);	printf("copied[%d]=%d", s, copied);
 		if (copied!=(historyLen+2)) return false;
 		//-- base bar
 		vtimeB[s]=serierates[1].time+TimeGMTOffset();

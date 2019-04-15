@@ -527,6 +527,54 @@ void sRoot::getSeriesInfo(int* oSeriesCnt_, char* oSymbolsCSL_, char* oTimeFrame
 }
 
 void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
+	int i;
+
+	//-- need to make a local copy of featureMask_, as it gets changed just to get selFcnt
+	int* _featureMask=(int*)malloc(seriesCnt_*sizeof(int));
+	memcpy_s(_featureMask, seriesCnt_*sizeof(int), featureMask_, seriesCnt_*sizeof(int));
+	//-- _featureMask to selectedFeature[]
+	int selFcntTot=0;
+	int* selFcnt=(int*)malloc(seriesCnt_*sizeof(int));
+	int** selF=(int**)malloc(seriesCnt_*sizeof(int*));
+	for (int serie=0; serie<seriesCnt_; serie++) {
+		selFcnt[serie]=0;
+		selF[serie]=(int*)malloc(5*sizeof(int));
+		if (_featureMask[serie]>=10000) { selF[serie][selFcnt[serie]]=FXOPEN; selFcnt[serie]++; _featureMask[serie]-=10000; }	//-- OPEN is selected
+		if (_featureMask[serie]>=1000) { selF[serie][selFcnt[serie]]=FXHIGH; selFcnt[serie]++; _featureMask[serie]-=1000; }		//-- HIGH is selected
+		if (_featureMask[serie]>=100) { selF[serie][selFcnt[serie]]=FXLOW; selFcnt[serie]++; _featureMask[serie]-=100; }		//-- LOW is selected
+		if (_featureMask[serie]>=10) { selF[serie][selFcnt[serie]]=FXCLOSE; selFcnt[serie]++; _featureMask[serie]-=10; }		//-- CLOSE is selected
+		if (_featureMask[serie]>=1) { selF[serie][selFcnt[serie]]=FXVOLUME; selFcnt[serie]++; _featureMask[serie]-=1; }			//-- VOLUME is selected
+		info("serie[%d] featuresCnt=%d", serie, selFcnt[serie]);
+		for (int sf=0; sf<selFcnt[serie]; sf++) info("serie[%d] feature [%d]=%d", serie, sf, selF[serie][sf]);
+		selFcntTot+=selFcnt[serie];
+	}
+
+	numtype* oBar=(numtype*)malloc(MT4engine->sampleLen*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
+	int fi=0;
+	for (int b=0; b<MT4engine->sampleLen; b++) {
+		for (int s=0; s<seriesCnt_; s++) {
+			for (int f=0; f<selFcnt[s]; f++) {
+				if (selF[s][f]==FXOPEN)   oBar[fi]=iBarO[s*MT4engine->sampleLen+b];
+				if (selF[s][f]==FXHIGH)   oBar[fi]=iBarH[s*MT4engine->sampleLen+b];
+				if (selF[s][f]==FXLOW)    oBar[fi]=iBarL[s*MT4engine->sampleLen+b];
+				if (selF[s][f]==FXCLOSE)  oBar[fi]=iBarC[s*MT4engine->sampleLen+b];
+				if (selF[s][f]==FXVOLUME) oBar[fi]=iBarV[s*MT4engine->sampleLen+b];
+				fi++;
+			}
+		}
+	}
+
+	FILE* f;
+	fopen_s(&f, "C:/temp/oBar.csv", "w");
+	int bi=0;
+	for (int i=0; i<MT4engine->sampleLen*selFcntTot; i++) {
+		fprintf(f, "%f,", oBar[i]);
+		if ((i+1)%selFcntTot==0) fprintf(f, "%d\n", i);
+	}
+	fclose(f);
+
+	//sTS* mtTimeSerie; safespawn(mtTimeSerie, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->predictionLen, selFcntTot, dt_, )
+	return;
 
 	//-- decompose flat arrays (SERIE-BAR ordered) in 2d-arrays
 	long*   oBaseBarT=(long*)malloc(seriesCnt_*sizeof(long));
@@ -543,7 +591,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	double** oBarC=(double**)malloc(seriesCnt_*sizeof(double*));
 	double** oBarV=(double**)malloc(seriesCnt_*sizeof(double*));
 
-	int i=0;
+	i=0;
 	char bartime[DATE_FORMAT_LEN];
 	for (int serie=0; serie<seriesCnt_; serie++) {
 		oBaseBarT[serie]=iBaseBarT[serie]; MT4time2str(oBaseBarT[serie], DATE_FORMAT_LEN, bartime);
@@ -579,6 +627,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 			oBarV[serie][bar]=EMPTY_VALUE;
 		}
 	}
+
 	//-- manually spawn one DataSrc, one TimeSerie for each serie
 	sMT4DataSource** mtDataSrc = (sMT4DataSource**)malloc(seriesCnt_*sizeof(sMT4DataSource*));
 	sTimeSerie** mtTimeSerie = (sTimeSerie**)malloc(seriesCnt_*sizeof(sTimeSerie*));
@@ -591,7 +640,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 		safespawn(mtTimeSerie[serie], newsname("MTtimeSerie%d", serie), defaultdbg, mtDataSrc[serie], tmpDate0, MT4engine->sampleLen+MT4engine->targetLen, dt_, MT4doDump);
 //		safecall(mtTimeSerie[serie], load, ACTUAL, BASE);
 	}
-	//-- need to make a local copy of featureMask_, as it gets changed just to get selFcnt
+/*	//-- need to make a local copy of featureMask_, as it gets changed just to get selFcnt
 	int* _featureMask=(int*)malloc(seriesCnt_*sizeof(int));
 	memcpy_s(_featureMask, seriesCnt_*sizeof(int), featureMask_, seriesCnt_*sizeof(int));
 
@@ -609,7 +658,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 		info("serie[%d] featuresCnt=%d", serie, selFcnt[serie]);
 		for (int sf=0; sf<selFcnt[serie]; sf++) info("serie[%d] feature [%d]=%d", serie, sf, selF[serie][sf]);
 	}
-
+*/
 	//-- manually spawn infer dataset from timeseries, sampleLen, predictionLen
 	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, seriesCnt_, mtTimeSerie, selFcnt, selF, MT4engine->sampleLen, MT4engine->targetLen, 1, MT4doDump);
 	mtDataSet->build(ACTUAL, BASE);
