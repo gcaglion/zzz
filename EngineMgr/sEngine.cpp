@@ -234,7 +234,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 DWORD coreThreadTrain(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
 	try {
-		//args->core->Alg->createGPUContext();
+		args->core->Alg->createGPUContext();
 		args->core->train(args->coreProcArgs);
 		args->core->infer(args->coreProcArgs);
 		//args->core->Alg->destroyGPUContext();
