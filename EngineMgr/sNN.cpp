@@ -348,14 +348,14 @@ void sNN::showEpochStats(int e, DWORD eStart_) {
 	//=======  !!!! CHECK FOR PERFORMANCE DEGRADATION !!!  ========
 	sprintf_s(dbg->msg, DBG_MSG_MAXLEN, "\rTestId %3d, Process %6d, Thread %6d, Epoch %6d/%6d , Training MSE=%1.10f , Validation MSE=%1.10f, duration=%d ms , remaining: %s", testid, pid, tid, e, parms->MaxEpochs, procArgs->mseT[e], procArgs->mseV[e], procArgs->duration[e], remainingTimeS);
 
-	if (dbg->dbgtoscreen) {
+	//if (dbg->dbgtoscreen) {
 		if (GUIreporter!=nullptr) {
 			(*GUIreporter)(20, dbg->msg);
 		} else {
 			gotoxy(0, procArgs->screenLine);
 			printf(dbg->msg);
 		}
-	}
+	//}
 
 }
 void sNN::showEpochStatsG(int e, DWORD eStart_, bool success_, numtype Gtse_) {

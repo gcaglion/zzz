@@ -106,6 +106,7 @@ drop table EngineCores purge;
 create table EngineCores(
 	EnginePid number,
 	CoreId number,
+	Layer number,
 	CoreThreadId number,
 	CoreType number
 );

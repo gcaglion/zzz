@@ -307,8 +307,8 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 				procArgs[c]->coreProcArgs->screenLine = lsl0+1+t;
 				procArgs[c]->core=core[c];
 				procArgs[c]->coreProcArgs->loadImage=loadImage_;
+				procArgs[c]->coreProcArgs->pid = clientPid;
 				procArgs[c]->coreProcArgs->npid=savedEnginePid_;
-				procArgs[c]->coreProcArgs->ntid=coreLayout[c]->tid;
 
 				//-- set batchCnt
 				procArgs[c]->coreProcArgs->batchSize=procArgs[c]->coreProcArgs->ds->batchSize;
@@ -320,12 +320,13 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 
 				if (procid_==trainProc) {
 					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadTrain, &(*procArgs[c]), 0, tid[t]);
+					procArgs[c]->coreProcArgs->ntid=(*tid[t]);
 				} else {
 					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadInfer, &(*procArgs[c]), 0, tid[t]);
+					if(clientPid!=savedEnginePid_) procArgs[c]->coreProcArgs->ntid=coreLayout[c]->tid;
 				}
 
 				//-- Store Engine Handler
-				procArgs[c]->coreProcArgs->pid = clientPid;
 				procArgs[c]->coreProcArgs->tid=(*tid[t]);
 				procArgs[c]->coreProcArgs->testid=testid_;
 
@@ -516,6 +517,7 @@ void sEngine::saveInfo(numtype* trmin_, numtype* trmax_) {
 
 	//-- malloc temps
 	int* coreId_=(int*)malloc(coresCnt*sizeof(int));
+	int* coreLayer_=(int*)malloc(coresCnt*sizeof(int));
 	int* coreType_=(int*)malloc(coresCnt*sizeof(int));
 	int* coreThreadId_=(int*)malloc(coresCnt*sizeof(int));
 	int* coreParentsCnt_=(int*)malloc(coresCnt*sizeof(int));
@@ -525,6 +527,7 @@ void sEngine::saveInfo(numtype* trmin_, numtype* trmax_) {
 	//-- set temps
 	for (int c=0; c<coresCnt; c++) {
 		coreId_[c]=c;
+		coreLayer_[c]=coreLayout[c]->layer;
 		coreType_[c]=coreLayout[c]->type;
 		coreThreadId_[c]=core[c]->procArgs->tid;
 		coreParentsCnt_[c]=coreLayout[c]->parentsCnt;
@@ -543,7 +546,7 @@ void sEngine::saveInfo(numtype* trmin_, numtype* trmax_) {
 		sampleLen, targetLen, featuresCnt, \
 		WNNdecompLevel, WNNwaveletType, \
 		persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
-		coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_, \
+		coreId_, coreLayer_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_, \
 		trmin_, trmax_
 	);
 
@@ -551,7 +554,7 @@ void sEngine::saveInfo(numtype* trmin_, numtype* trmax_) {
 	for (int c=0; c<coresCnt; c++) {
 		free(coreParent_[c]); free(parentConnType_[c]);
 	}
-	free(coreId_); free(coreType_); free(coreThreadId_); free(coreParentsCnt_); free(coreParent_); free(parentConnType_);
+	free(coreId_); free(coreType_); free(coreLayer_); free(coreThreadId_); free(coreParentsCnt_); free(coreParent_); free(parentConnType_);
 }
 
 //-- private stuff

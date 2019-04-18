@@ -585,7 +585,7 @@ void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, n
 }
 
 //-- Save/Load engine info
-void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, int WNNdecompLevel_, int WNNwaveletType_, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_) {
+void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, int WNNdecompLevel_, int WNNwaveletType_, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreLayer, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -601,7 +601,7 @@ void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleL
 
 	//-- 2. ENGINECORES
 	for (int c=0; c<coresCnt; c++) {
-		sprintf_s(sqlS, SQL_MAXLEN, "insert into EngineCores(EnginePid, CoreId, CoreThreadId, CoreType) values(%d, %d, %d, %d)", pid, coreId[c], tid[c], coreType[c]);
+		sprintf_s(sqlS, SQL_MAXLEN, "insert into EngineCores(EnginePid, CoreId, Layer, CoreThreadId, CoreType) values(%d, %d, %d, %d, %d)", pid, coreId[c], coreLayer[c], tid[c], coreType[c]);
 		safecall(this, sqlExec, sqlS);
 		//-- 3. CORELAYOUTS
 		for (int cp=0; cp<parentCoresCnt[c]; cp++) {
