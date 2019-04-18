@@ -1,4 +1,4 @@
-		HistoryLen			= 1002
+		HistoryLen			= 10002
 		Date0				= 2018-05-30-00:00
 		DataTransformation	= DT_DELTA
 	
@@ -8,11 +8,11 @@
 		DataSourcesCount		= 3
 		<DataSource0>
 			<! FXDB-EurUsdH1.xml >
-			SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
+			SelectedFeatures = FXHIGH, FXLOW
 		</DataSource0>
 		<DataSource1>
 			<! FXDB-SpxH1.xml >
-			SelectedFeatures = FXHIGH, FXLOW
+			SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
 		</DataSource1>
 		<DataSource2>
 			<! FXDB-EtxEurH1.xml >

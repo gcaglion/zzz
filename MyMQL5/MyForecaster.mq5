@@ -272,7 +272,7 @@ bool loadBars() {
 		int copied=CopyRates(serieSymbol[s], tf, 1, historyLen+2, serierates);	printf("copied[%d]=%d", s, copied);
 		if (copied!=(historyLen+2)) return false;
 		//-- base bar
-		vtimeB[s]=serierates[1].time+TimeGMTOffset();
+		vtimeB[s]=serierates[1].time;// +TimeGMTOffset();
 		StringConcatenate(vtimeSB[s], TimeToString(vtimeB[s], TIME_DATE), ".", TimeToString(vtimeB[s], TIME_MINUTES));
 		vopenB[s]=serierates[1].open;
 		vhighB[s]=serierates[1].high;
@@ -282,7 +282,7 @@ bool loadBars() {
 		//printf("serie=%d ; time=%s ; OHLCV=%f|%f|%f|%f|%f", s, vtimeSB[s], vopenB[s], vhighB[s], vlowB[s], vcloseB[s], vvolumeB[s]);
 		//-- [historyLen] bars
 		for (int bar=2; bar<(historyLen+2); bar++) {
-			vtime[i]=serierates[bar].time+TimeGMTOffset();
+			vtime[i]=serierates[bar].time;// +TimeGMTOffset();
 			StringConcatenate(vtimeS[i], TimeToString(vtime[i], TIME_DATE), ".", TimeToString(vtime[i], TIME_MINUTES));
 			vopen[i]=serierates[bar].open;
 			vhigh[i]=serierates[bar].high;

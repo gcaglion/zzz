@@ -162,15 +162,37 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int r
 				((Statement*)stmt)->setInt(6, step);
 				std::string str(posLabel[step]); ((Statement*)stmt)->setMaxParamSize(7, 64); ((Statement*)stmt)->setString(7, str);
 				((Statement*)stmt)->setInt(8, f);
-				((Statement*)stmt)->setFloat(9, actualTRS[step*featuresCnt_+f]);
+
+				if (actualTRS[step*featuresCnt_+f]==EMPTY_VALUE) {
+					((Statement*)stmt)->setNull(9, OCCIFLOAT);
+					((Statement*)stmt)->setNull(11, OCCIFLOAT);
+				} else {
+					((Statement*)stmt)->setFloat(9, actualTRS[step*featuresCnt_+f]);
+					((Statement*)stmt)->setFloat(11, fabs(actualTRS[step*featuresCnt_+f]-predictedTRS[step*featuresCnt_+f]));
+				}
+
 				((Statement*)stmt)->setFloat(10, predictedTRS[step*featuresCnt_+f]);
-				((Statement*)stmt)->setFloat(11, fabs(actualTRS[step*featuresCnt_+f]-predictedTRS[step*featuresCnt_+f]));
-				((Statement*)stmt)->setFloat(12, actualTR[step*featuresCnt_+f]);
+
+				if (actualTR[step*featuresCnt_+f]==EMPTY_VALUE) {
+					((Statement*)stmt)->setNull(12, OCCIFLOAT);
+					((Statement*)stmt)->setNull(14, OCCIFLOAT);
+				} else {
+					((Statement*)stmt)->setFloat(12, actualTR[step*featuresCnt_+f]);
+					((Statement*)stmt)->setFloat(14, fabs(actualTR[step*featuresCnt_+f]-predictedTR[step*featuresCnt_+f]));
+				}
+
 				((Statement*)stmt)->setFloat(13, predictedTR[step*featuresCnt_+f]);
-				((Statement*)stmt)->setFloat(14, fabs(actualTR[step*featuresCnt_+f]-predictedTR[step*featuresCnt_+f]));
-				((Statement*)stmt)->setFloat(15, actualBASE[step*featuresCnt_+f]);
+
+				if (actualBASE[step*featuresCnt_+f]==EMPTY_VALUE) {
+					((Statement*)stmt)->setNull(15, OCCIFLOAT);
+					((Statement*)stmt)->setNull(17, OCCIFLOAT);
+				} else {
+					((Statement*)stmt)->setFloat(15, actualBASE[step*featuresCnt_+f]);
+					((Statement*)stmt)->setFloat(17, fabs(actualBASE[step*featuresCnt_+f]-predictedBASE[step*featuresCnt_+f]));
+				}
+
 				((Statement*)stmt)->setFloat(16, predictedBASE[step*featuresCnt_+f]);
-				((Statement*)stmt)->setFloat(17, fabs(actualBASE[step*featuresCnt_+f]-predictedBASE[step*featuresCnt_+f]));
+
 
 				if (runidx<(runCnt-1)) ((Statement*)stmt)->addIteration();
 				runidx++;

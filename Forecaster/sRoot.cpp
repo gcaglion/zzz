@@ -115,7 +115,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		timer->start();
 
 		//-- do inference (also populates datasets)
-		safecall(engine, infer, simulationId_, inferTS, _inferSampleLen, _inferTargetLen, _inferBatchSize, savedEnginePid_);
+		safecall(engine, infer, simulationId_, inferTS, _inferSampleLen, _inferTargetLen, _inferBatchSize, savedEnginePid_, true);
 
 		//-- commit engine persistor data
 		safecall(engine, commit);
@@ -527,7 +527,6 @@ void sRoot::getSeriesInfo(int* oSeriesCnt_, char* oSymbolsCSL_, char* oTimeFrame
 }
 
 void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
-	int i;
 
 	//-- need to make a local copy of featureMask_, as it gets changed just to get selFcnt
 	int* _featureMask=(int*)malloc(seriesCnt_*sizeof(int));
@@ -549,33 +548,109 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 		selFcntTot+=selFcnt[serie];
 	}
 
-	numtype* oBar=(numtype*)malloc(MT4engine->sampleLen*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
+	numtype* oBar=(numtype*)malloc((MT4engine->sampleLen+MT4engine->targetLen)*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
+	long oBarTime;
+	char** oBarTimeS=(char**)malloc((MT4engine->sampleLen+MT4engine->targetLen)*sizeof(char*)); for (int b=0; b<(MT4engine->sampleLen+MT4engine->targetLen); b++) oBarTimeS[b]=(char*)malloc(DATE_FORMAT_LEN);
 	int fi=0;
 	for (int b=0; b<MT4engine->sampleLen; b++) {
 		for (int s=0; s<seriesCnt_; s++) {
+			oBarTime=iBarT[s*MT4engine->sampleLen+b];
+			MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarTimeS[b]);
 			for (int f=0; f<selFcnt[s]; f++) {
-				if (selF[s][f]==FXOPEN)   oBar[fi]=iBarO[s*MT4engine->sampleLen+b];
-				if (selF[s][f]==FXHIGH)   oBar[fi]=iBarH[s*MT4engine->sampleLen+b];
-				if (selF[s][f]==FXLOW)    oBar[fi]=iBarL[s*MT4engine->sampleLen+b];
-				if (selF[s][f]==FXCLOSE)  oBar[fi]=iBarC[s*MT4engine->sampleLen+b];
-				if (selF[s][f]==FXVOLUME) oBar[fi]=iBarV[s*MT4engine->sampleLen+b];
+				if (selF[s][f]==FXOPEN)   oBar[fi]=(numtype)iBarO[s*MT4engine->sampleLen+b];
+				if (selF[s][f]==FXHIGH)   oBar[fi]=(numtype)iBarH[s*MT4engine->sampleLen+b];
+				if (selF[s][f]==FXLOW)    oBar[fi]=(numtype)iBarL[s*MT4engine->sampleLen+b];
+				if (selF[s][f]==FXCLOSE)  oBar[fi]=(numtype)iBarC[s*MT4engine->sampleLen+b];
+				if (selF[s][f]==FXVOLUME) oBar[fi]=(numtype)iBarV[s*MT4engine->sampleLen+b];
 				fi++;
 			}
+		}
+	}
+	//--
+	for (int b=0; b<MT4engine->targetLen; b++) {
+		strcpy_s(oBarTimeS[MT4engine->sampleLen+b], DATE_FORMAT_LEN, "9999-99-99-99:99");
+		for (int f=0; f<selFcntTot; f++) {
+			oBar[fi]=EMPTY_VALUE;
+			fi++;
+		}
+	}
+	//--
+	numtype* oBarB=(numtype*)malloc(selFcntTot*sizeof(numtype));
+	char* oBarBTimeS=(char*)malloc(DATE_FORMAT_LEN);
+	fi=0;
+	for (int s=0; s<seriesCnt_; s++) {
+		oBarTime=iBaseBarT[0];
+		MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarBTimeS);
+		for (int f=0; f<selFcnt[s]; f++) {
+			if (selF[s][f]==FXOPEN)   oBarB[fi]=(numtype)iBaseBarO[s];
+			if (selF[s][f]==FXHIGH)   oBarB[fi]=(numtype)iBaseBarH[s];
+			if (selF[s][f]==FXLOW)    oBarB[fi]=(numtype)iBaseBarL[s];
+			if (selF[s][f]==FXCLOSE)  oBarB[fi]=(numtype)iBaseBarC[s];
+			if (selF[s][f]==FXVOLUME) oBarB[fi]=(numtype)iBaseBarV[s];
+			fi++;
 		}
 	}
 
 	FILE* f;
 	fopen_s(&f, "C:/temp/oBar.csv", "w");
+	for (int fi=0; fi<selFcntTot; fi++) fprintf(f, "%f,", oBarB[fi]);
+	fprintf(f, ",%s\n", oBarBTimeS);
+	//--
 	int bi=0;
-	for (int i=0; i<MT4engine->sampleLen*selFcntTot; i++) {
+	for (int i=0; i<(MT4engine->sampleLen+MT4engine->targetLen)*selFcntTot; i++) {
 		fprintf(f, "%f,", oBar[i]);
-		if ((i+1)%selFcntTot==0) fprintf(f, "%d\n", i);
+		if ((i+1)%selFcntTot==0) {
+			fprintf(f, "%d,%s \n", i, oBarTimeS[bi]);
+			bi++;
+		}
 	}
 	fclose(f);
+	//--
+	sTS* mtTimeSerie; safespawn(mtTimeSerie, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->targetLen, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
+/*	for (int f=0; f<mtTimeSerie->featuresCnt; f++) {
+		info("mtTimeSerie trMin[%d]=%f ; trMax[%d]=%f\n", f, mtTimeSerie->TRmin[f], f, mtTimeSerie->TRmax[f]);
+	}
+	//-- 
+	sDS* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, mtTimeSerie, 0, MT4engine->sampleLen, MT4engine->targetLen, 1, MT4doDump);
+	for (int f=0; f<mtDataSet->featuresCnt; f++) {
+		info("mtDataSet trMin[%d]=%f ; trMax[%d]=%f ; scaleM[%d]=%f ; scaleP[%d]=%f\n", f, mtDataSet->trmin[f], f, mtDataSet->trmax[f], f, mtDataSet->scaleM[f], f, mtDataSet->scaleP[f]);
+	}
+	mtDataSet->scale(-1, 1);
+	for (int f=0; f<mtDataSet->featuresCnt; f++) {
+		info("mtDataSet trMin[%d]=%f ; trMax[%d]=%f ; scaleM[%d]=%f ; scaleP[%d]=%f\n", f, mtDataSet->trmin[f], f, mtDataSet->trmax[f], f, mtDataSet->scaleM[f], f, mtDataSet->scaleP[f]);
+	}
+	strcpy_s(mtDataSet->name->base, ObjNameMaxLen, "MtdataSetS");
+	mtDataSet->dump();
+*/
+	//--
+	safecall(MT4engine, infer, MT4accountId, mtTimeSerie, MT4engine->sampleLen, MT4engine->targetLen, 1, MT4enginePid, true);
 
-	//sTS* mtTimeSerie; safespawn(mtTimeSerie, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->predictionLen, selFcntTot, dt_, )
+	for (int b=0; b<MT4engine->targetLen; b++) {
+		for (int f=0; f<MT4engine->featuresCnt; f++) {
+			info("forecast[%d]= %f", b*MT4engine->featuresCnt+f, MT4engine->forecast[b*MT4engine->featuresCnt+f]);
+		}
+	}
+	fi=0;
+	for (int b=0; b<MT4engine->targetLen; b++) {
+		for (int s=0; s<seriesCnt_; s++) {
+			for (int sf=0; sf<selFcnt[s]; sf++) {
+				if (selF[s][sf]==FXOPEN) oForecastO[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				if (selF[s][sf]==FXHIGH) oForecastH[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				if (selF[s][sf]==FXLOW) oForecastL[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				if (selF[s][sf]==FXCLOSE) oForecastC[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				if (selF[s][sf]==FXVOLUME) oForecastV[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				fi++;
+			}
+			info("OHLCV Forecast, serie %d , bar %d: %f|%f|%f|%f|%f", s, b, oForecastO[s*MT4engine->targetLen+b], oForecastH[s*MT4engine->targetLen+b], oForecastL[s*MT4engine->targetLen+b], oForecastC[s*MT4engine->targetLen+b], oForecastV[s*MT4engine->targetLen+b]);
+		}
+	}
+
+	safecall(MT4engine, commit);
+
+	//-- cleanup
+
 	return;
-
+/*
 	//-- decompose flat arrays (SERIE-BAR ordered) in 2d-arrays
 	long*   oBaseBarT=(long*)malloc(seriesCnt_*sizeof(long));
 	double* oBaseBarO=(double*)malloc(seriesCnt_*sizeof(double));
@@ -640,7 +715,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 		safespawn(mtTimeSerie[serie], newsname("MTtimeSerie%d", serie), defaultdbg, mtDataSrc[serie], tmpDate0, MT4engine->sampleLen+MT4engine->targetLen, dt_, MT4doDump);
 //		safecall(mtTimeSerie[serie], load, ACTUAL, BASE);
 	}
-/*	//-- need to make a local copy of featureMask_, as it gets changed just to get selFcnt
+	//-- need to make a local copy of featureMask_, as it gets changed just to get selFcnt
 	int* _featureMask=(int*)malloc(seriesCnt_*sizeof(int));
 	memcpy_s(_featureMask, seriesCnt_*sizeof(int), featureMask_, seriesCnt_*sizeof(int));
 
@@ -658,7 +733,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 		info("serie[%d] featuresCnt=%d", serie, selFcnt[serie]);
 		for (int sf=0; sf<selFcnt[serie]; sf++) info("serie[%d] feature [%d]=%d", serie, sf, selF[serie][sf]);
 	}
-*/
+
 	//-- manually spawn infer dataset from timeseries, sampleLen, predictionLen
 	sDataSet* mtDataSet; safespawn(mtDataSet, newsname("MTdataSet"), defaultdbg, seriesCnt_, mtTimeSerie, selFcnt, selF, MT4engine->sampleLen, MT4engine->targetLen, 1, MT4doDump);
 	mtDataSet->build(ACTUAL, BASE);
@@ -694,7 +769,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	}
 	free(mtDataSrc); free(mtTimeSerie);
 	delete mtDataSet;
-
+*/
 }
 void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit) {
 	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4sessionId, MT4accountId, MT4enginePid, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);

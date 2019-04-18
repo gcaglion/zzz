@@ -38,12 +38,14 @@ struct sEngine : sCfgObj {
 	sCoreLogger** corePersistor;
 	sEngineProcArgs** procArgs;
 
+	numtype* forecast;
+
 	EXPORT sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_);
 	EXPORT sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int clientPid_);
 	EXPORT ~sEngine();
 
 	EXPORT void train(int testid_, sTS* trainTS_, int sampleLen, int targetLen_, int batchSize_);
-	EXPORT void infer(int testid_, sTS* inferTS_, int sampleLen_, int targetLen_, int batchSize_, int savedEnginePid_, bool reTransform=true);
+	EXPORT void infer(int testid_, sTS* inferTS_, int sampleLen_, int targetLen_, int batchSize_, int savedEnginePid_, bool reTransform);
 	//--
 	EXPORT void saveRun();
 	//--

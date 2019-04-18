@@ -15,6 +15,8 @@ sTS::sTS(sObjParmsDef, int stepsCnt_, int featuresCnt_, int dt_, char** timestam
 	stepsCnt=stepsCnt_; featuresCnt=featuresCnt_; dt=dt_; doDump=doDump_;
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath); if (dumpPath_!=nullptr) strcpy_s(dumpPath, MAX_PATH, dumpPath_);
 
+	mallocs1();
+
 	timestamp=timestamp_; val=val_;
 	timestampB=timestampB_; valB=valB_;
 
@@ -193,7 +195,6 @@ void sTS::dump() {
 
 	dumpToFile(dumpFile, val);
 	dumpToFile(dumpFileTR, valTR);
-
 
 	FILE* dumpFileTRLFA; FILE** dumpFileTRHFD;
 	if (decompLevel>0) {

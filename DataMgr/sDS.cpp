@@ -63,15 +63,20 @@ void sDS::buildFromTS(sTS* ts_, int WNNsrc_) {
 	}
 }
 
-sDS::sDS(sObjParmsDef, sTS* fromTS_, int WNNsrc_, int sampleLen_, int targetLen_, int batchSize_) : sCfgObj(sObjParmsVal, nullptr, "") {
+sDS::sDS(sObjParmsDef, sTS* fromTS_, int WNNsrc_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	sampleLen=sampleLen_; targetLen=targetLen_; batchSize=batchSize_;
 	featuresCnt=fromTS_->featuresCnt;
 	samplesCnt=fromTS_->stepsCnt-sampleLen-targetLen+1;
-	doDump=fromTS_->doDump; strcpy_s(dumpPath, MAX_PATH, fromTS_->dumpPath);
+	doDump=doDump_;
+	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath); if (dumpPath_!=nullptr) strcpy_s(dumpPath, MAX_PATH, dumpPath_);
 
 	mallocs1();
 
 	buildFromTS(fromTS_, WNNsrc_);
+
+	//-- dump
+	if (doDump) dump();
+
 }
 sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
@@ -93,6 +98,9 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	mallocs1();
 
 	buildFromTS(_ts, 0);
+
+	//-- dump
+	if (doDump) dump();
 
 	cfg->currentKey=bkpKey;
 }
@@ -135,6 +143,10 @@ sDS::sDS(sObjParmsDef, sDS* copyFromDS_) : sCfgObj(sObjParmsVal, nullptr, "") {
 		seqBase[f]=copyFromDS_->seqBase[df];
 		f++;
 	}
+
+	//-- dump
+	if (doDump) dump();
+
 }
 sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal, nullptr, "") {
 
@@ -207,6 +219,10 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 			if (parentDS_[d]->trmax[f]>trmax[f]) trmax[f]=parentDS_[d]->trmax[f];
 		}
 	}
+
+	//-- dump
+	if (doDump) dump();
+
 }
 sDS::~sDS(){
 	free(sampleSBF); free(targetSBF); free(predictionSBF);
@@ -300,7 +316,7 @@ void sDS::scale(float scaleMin_, float scaleMax_) {
 		}
 		for (int b=0; b<targetLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				targetSBF[ti]=targetSBF[ti]*scaleM[f]+scaleP[f];
+				targetSBF[ti]=(targetSBF[ti]==EMPTY_VALUE)?EMPTY_VALUE:targetSBF[ti]*scaleM[f]+scaleP[f];
 				predictionSBF[ti]=predictionSBF[ti]*scaleM[f]+scaleP[f];
 				ti++;
 			}
@@ -312,13 +328,13 @@ void sDS::unscale() {
 	for (int s=0; s<samplesCnt; s++) {
 		for (int b=0; b<sampleLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				sampleSBF[si]=(sampleSBF[si]-scaleP[f])/scaleM[f];
+				sampleSBF[si]=(sampleSBF[si]==EMPTY_VALUE)?EMPTY_VALUE:(sampleSBF[si]-scaleP[f])/scaleM[f];
 				si++;
 			}
 		}
 		for (int b=0; b<targetLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				targetSBF[ti]=(targetSBF[ti]-scaleP[f])/scaleM[f];
+				targetSBF[ti]=(targetSBF[ti]==EMPTY_VALUE)?EMPTY_VALUE:(targetSBF[ti]-scaleP[f])/scaleM[f];
 				predictionSBF[ti]=(predictionSBF[ti]-scaleP[f])/scaleM[f];
 				ti++;
 			}
@@ -337,9 +353,18 @@ void sDS::untransformSeq(numtype* iTRval, numtype* iActualVal, numtype* oBASEval
 			}
 			if (seqDT==DT_DELTA) {
 				if (s>0) {
-					oBASEval[curr]=iTRval[curr]+iActualVal[prev];
+					if (iTRval[curr]==EMPTY_VALUE) {
+						oBASEval[curr]=EMPTY_VALUE;
+					} else {
+						oBASEval[curr]=iTRval[curr]+iActualVal[prev];
+						if (iActualVal[curr]==EMPTY_VALUE) iActualVal[curr]=oBASEval[curr];
+					}
 				} else {
-					oBASEval[curr]=iTRval[curr]+seqBase[f];
+					if (iTRval[curr]==EMPTY_VALUE) {
+						oBASEval[curr]=EMPTY_VALUE;
+					} else {
+						oBASEval[curr]=iTRval[curr]+seqBase[f];
+					}
 				}
 			}
 		}
