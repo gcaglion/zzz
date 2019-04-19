@@ -243,8 +243,7 @@ from trainLog t,
 ) v 
 where t.processid=v.processid and t.threadid=v.threadid and t.epoch=v.LastEpoch order by 1,2;
 --
-create or replace view vRunStats   as select processId, threadId, netProcessId, netThreadId,
-decode(Feature,0,'OPEN',1,'HIGH',2,'LOW',3,'CLOSE',4,'VOLUME','UNKNOWN') feature,
+create or replace view vRunStats   as select processId, threadId, netProcessId, netThreadId, Feature,
 max(posLabel) LastDate, max(pos) LastPos , avg(ErrorBase) avgErrorBase, avg(ErrorTRS*ErrorTRS) MSE from runlog group by processId, threadId, netProcessId, netThreadId, Feature;
 --
 create or replace view vXMLconfig as

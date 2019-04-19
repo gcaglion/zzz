@@ -292,7 +292,6 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 				//-- create dataset for core
 				if (l==0) {
 					procArgs[c]->coreProcArgs->ds=ds_[c];
-					safecall(procArgs[c]->coreProcArgs->ds, scale, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 				} else {
 					parentDS=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
 					for (int p=0; p<coreLayout[c]->parentsCnt; p++)	parentDS[p]=procArgs[coreLayout[c]->parentId[p]]->coreProcArgs->ds;
@@ -301,7 +300,9 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 					//--
 					free(parentDS);
 				}
-				if(procArgs[c]->coreProcArgs->ds->doDump) procArgs[c]->coreProcArgs->ds->dump();
+				procArgs[c]->coreProcArgs->ds->dump();
+				safecall(procArgs[c]->coreProcArgs->ds, scale, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
+				procArgs[c]->coreProcArgs->ds->dump();
 
 				//-- Create Training or Infer Thread for current Core
 				procArgs[c]->coreProcArgs->screenLine = lsl0+1+t;
@@ -312,11 +313,11 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 
 				//-- set batchCnt
 				procArgs[c]->coreProcArgs->batchSize=procArgs[c]->coreProcArgs->ds->batchSize;
-				if ((procArgs[c]->coreProcArgs->ds->samplesCnt%procArgs[c]->coreProcArgs->ds->batchSize)!=0) {
-					fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", procArgs[c]->coreProcArgs->ds->samplesCnt, procArgs[c]->coreProcArgs->ds->batchSize)
-				} else {
+				//if ((procArgs[c]->coreProcArgs->ds->samplesCnt%procArgs[c]->coreProcArgs->ds->batchSize)!=0) {
+				//	fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", procArgs[c]->coreProcArgs->ds->samplesCnt, procArgs[c]->coreProcArgs->ds->batchSize)
+				//} else {
 					procArgs[c]->coreProcArgs->batchCnt = procArgs[c]->coreProcArgs->ds->samplesCnt/procArgs[c]->coreProcArgs->ds->batchSize;
-				}
+				//}
 
 				if (procid_==trainProc) {
 					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadTrain, &(*procArgs[c]), 0, tid[t]);
