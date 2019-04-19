@@ -31,8 +31,8 @@
 	<Core5>
 		<Layout>
 			Type	= CORE_NN
-			Parents			= Core0, Core1, Core2, Core3, Core4
-			ParentsConnType	= CONN_DENSE, CONN_DENSE, CONN_DENSE, CONN_DENSE, CONN_DENSE
+			Parents			= Core0, Core1
+			ParentsConnType	= CONN_DENSE, CONN_DENSE
 		</Layout>
 		<! CoreParmsCommonL1.xml >
 		<! CorePersistor-Default.xml >

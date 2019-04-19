@@ -591,7 +591,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 		}
 	}
 
-	/*FILE* f;
+	FILE* f;
 	fopen_s(&f, "C:/temp/oBar.csv", "w");
 	for (int fi=0; fi<selFcntTot; fi++) fprintf(f, "%f,", oBarB[fi]);
 	fprintf(f, ",%s\n", oBarBTimeS);
@@ -605,7 +605,6 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 		}
 	}
 	fclose(f);
-	*/
 	//--
 	sTS* mtTimeSerie; safespawn(mtTimeSerie, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->targetLen, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
 
