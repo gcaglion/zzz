@@ -2,7 +2,7 @@
 
 #include "../DataMgr/sDS.h"
 #include "../DataMgr/sTimeSerie.h"
-#include "../DataMgr/sDataSet.h"
+#include "../DataMgr/sDS.h"
 #include "../DataMgr/sDataShape.h"
 #include "../DataMgr/sFXDataSource.h"
 #include "../DataMgr/sGenericDataSource.h"

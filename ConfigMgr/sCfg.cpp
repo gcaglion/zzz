@@ -22,7 +22,7 @@ sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName_, int currDepth_, int overr
 			//-- first, need to set include filename relative to current path
 			getFullPath(cfgLine[linesCnt-1]->naked, subCfgFileFullName, cfgFilePath);
 			//-- then, open it with fullname
-			safespawn(subCfg[subCfgCnt], newsname("subCfg[%d]", subCfgCnt), defaultdbg, subCfgFileFullName);
+			safespawn(subCfg[subCfgCnt], newsname("subCfg[%d]", subCfgCnt), dbg, subCfgFileFullName);
 			subCfgCnt++;
 			//-- lines in subCfg become lines in cfg
 			for (int i=0; i<subCfg[subCfgCnt-1]->linesCnt; i++) cfgLine[linesCnt+i]=subCfg[subCfgCnt-1]->cfgLine[i];

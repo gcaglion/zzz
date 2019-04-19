@@ -164,7 +164,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="sDataSet.cpp" />
     <ClCompile Include="sDataShape.cpp" />
     <ClCompile Include="sDataSource.cpp" />
     <ClCompile Include="sDS.cpp" />
