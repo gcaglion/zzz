@@ -164,7 +164,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="sDataShape.cpp" />
     <ClCompile Include="sDataSource.cpp" />
     <ClCompile Include="sDS.cpp" />
     <ClCompile Include="sGenericDataSource.cpp" />
@@ -174,7 +173,6 @@
     <ClCompile Include="TSF.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="sDataShape.h" />
     <ClInclude Include="sDataSource.h" />
     <ClInclude Include="DataSource_enums.h" />
     <ClInclude Include="DBConnection_enums.h" />

@@ -260,7 +260,7 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 	return 1;
 }
 
-void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int savedEnginePid_) {
+void sEngine::process(int procid_, int testid_, sDS** ds_, int savedEnginePid_) {
 
 	sDS** parentDS;
 
@@ -303,9 +303,9 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 				//-- Create Training or Infer Thread for current Core
 				procArgs[c]->coreProcArgs->screenLine = lsl0+1+t;
 				procArgs[c]->core=core[c];
-				procArgs[c]->coreProcArgs->loadImage=loadImage_;
+				procArgs[c]->coreProcArgs->loadImage=(savedEnginePid_>0);
 				procArgs[c]->coreProcArgs->pid = clientPid;
-				procArgs[c]->coreProcArgs->npid=savedEnginePid_;
+				procArgs[c]->coreProcArgs->npid=(savedEnginePid_>0)?savedEnginePid_:clientPid;
 
 				//-- set batchCnt
 				procArgs[c]->coreProcArgs->batchSize=procArgs[c]->coreProcArgs->ds->batchSize;
@@ -320,7 +320,7 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 					procArgs[c]->coreProcArgs->ntid=(*tid[t]);
 				} else {
 					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadInfer, &(*procArgs[c]), 0, tid[t]);
-					if(clientPid!=savedEnginePid_) procArgs[c]->coreProcArgs->ntid=coreLayout[c]->tid;
+					if(clientPid!=procArgs[c]->coreProcArgs->npid) procArgs[c]->coreProcArgs->ntid=coreLayout[c]->tid;
 				}
 
 				//-- Store Engine Handler
@@ -346,14 +346,14 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 		free(procH); free(kaz); free(tid);
 	}
 }
-void sEngine::train(int testid_, sDS** trainDS_, numtype* trmin_, numtype* trmax_) {
+void sEngine::train(int testid_, sDS** trainDS_) {
 
-	safecall(this, process, trainProc, false, testid_, trainDS_, 0);
+	safecall(this, process, trainProc, testid_, trainDS_, 0);
 
 	//-- set trmin/max from input
 
 	//-- save training engine, cores, MSE, core images
-	safecall(this, saveInfo, trmin_, trmax_);
+	safecall(this, saveInfo);
 	for (int c=0; c<coresCnt; c++) {
 		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->duration, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
 		safecall(core[c]->persistor, save, persistor, core[c]->procArgs->pid, core[c]->procArgs->tid);
@@ -364,25 +364,15 @@ void sEngine::train(int testid_, sDS** trainDS_, numtype* trmin_, numtype* trmax
 	}
 	
 }
-void sEngine::infer(int testid_, sDS** inferDS_, numtype* trmin_, numtype* trmax_, int savedEnginePid_, bool reTransform) {
+void sEngine::infer(int testid_, sDS** inferDS_, int savedEnginePid_) {
 
 	//-- consistency checks: sampleLen/targetLen/featuresCnt must be the same in inferDS and engine
 	if (inferDS_[0]->sampleLen!=sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS_[0]->sampleLen, sampleLen);
 	if (inferDS_[0]->targetLen!=targetLen) fail("Infer DataSet Prediction Length (%d) differs from Engine's (%d)", inferDS_[0]->targetLen, targetLen);
 	if (inferDS_[0]->featuresCnt!=featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_[0]->featuresCnt, featuresCnt);
 
-	//-- re-transform inferDS_ using trMin/Max loaded
-	if (reTransform) {
-		for (int d=0; d<(WNNdecompLevel+2); d++) {
-			for (int f=0; f<inferDS_[d]->featuresCnt; f++) {
-				inferDS_[d]->trmin[f]=DStrMin[f];
-				inferDS_[d]->trmax[f]=DStrMax[f];
-			}
-		}
-	}
-
 	//-- call infer
-	safecall(this, process, inferProc, reTransform, testid_, inferDS_, savedEnginePid_);
+	safecall(this, process, inferProc, testid_, inferDS_, savedEnginePid_);
 
 	//-- get predicted/target sequences (TR) for all cores, and saveRun
 	sDS* _ds;
@@ -456,7 +446,7 @@ void sEngine::commit() {
 	safecall(this->persistor, commit);
 }
 
-void sEngine::saveInfo(numtype* trmin_, numtype* trmax_) {
+void sEngine::saveInfo() {
 
 	//-- malloc temps
 	int* coreId_=(int*)malloc(coresCnt*sizeof(int));
@@ -472,7 +462,7 @@ void sEngine::saveInfo(numtype* trmin_, numtype* trmax_) {
 		coreId_[c]=c;
 		coreLayer_[c]=coreLayout[c]->layer;
 		coreType_[c]=coreLayout[c]->type;
-		coreThreadId_[c]=core[c]->procArgs->tid;
+		coreThreadId_[c]=core[c]->procArgs->ntid;
 		coreParentsCnt_[c]=coreLayout[c]->parentsCnt;
 		coreParent_[c]=(int*)malloc(coreParentsCnt_[c]*sizeof(int));
 		parentConnType_[c]=(int*)malloc(coreParentsCnt_[c]*sizeof(int));
@@ -490,7 +480,7 @@ void sEngine::saveInfo(numtype* trmin_, numtype* trmax_) {
 		WNNdecompLevel, WNNwaveletType, \
 		persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
 		coreId_, coreLayer_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_, \
-		trmin_, trmax_
+		DStrMin, DStrMax, DSfftMin, DSfftMax
 	);
 
 	//-- free temps

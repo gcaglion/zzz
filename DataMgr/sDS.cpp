@@ -8,6 +8,10 @@ void sDS::mallocs1() {
 	sampleBFS=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
 	targetBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
 	predictionBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	TRmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	TRmax=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	scaleM=(numtype*)malloc(featuresCnt*sizeof(numtype));
+	scaleP=(numtype*)malloc(featuresCnt*sizeof(numtype));
 }
 void sDS::buildFromTS(sTS* ts_, int WNNsrc_) {
 	//-- build samples/targets
@@ -156,6 +160,7 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 sDS::~sDS(){
 	free(sampleSBF); free(targetSBF); free(predictionSBF);
 	free(sampleBFS); free(targetBFS); free(predictionBFS);
+	free(TRmin); free(TRmax); free(scaleM); free(scaleP);
 }
 
 void sDS::dump() {
@@ -312,3 +317,45 @@ void sDS::target2prediction() {
 	}
 }
 
+void sDS::scale(float scaleMin_, float scaleMax_) {
+
+	for (int f=0; f<featuresCnt; f++) {
+		scaleM[f] = (scaleMin_==scaleMax_) ? 1 : ((scaleMax_-scaleMin_)/(TRmax[f]-TRmin[f]));
+		scaleP[f] = (scaleMin_==scaleMax_) ? 0 : (scaleMax_-scaleM[f]*TRmax[f]);
+	}
+
+	int si=0, ti=0;
+	for (int s=0; s<samplesCnt; s++) {
+		for (int b=0; b<sampleLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				sampleSBF[si]=sampleSBF[si]*scaleM[f]+scaleP[f];
+				si++;
+			}
+		}
+		for (int b=0; b<targetLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				targetSBF[ti]=(targetSBF[ti]==EMPTY_VALUE) ? EMPTY_VALUE : targetSBF[ti]*scaleM[f]+scaleP[f];
+				predictionSBF[ti]=predictionSBF[ti]*scaleM[f]+scaleP[f];
+				ti++;
+			}
+		}
+	}
+}
+void sDS::unscale() {
+	int si=0, ti=0;
+	for (int s=0; s<samplesCnt; s++) {
+		for (int b=0; b<sampleLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				sampleSBF[si]=(sampleSBF[si]==EMPTY_VALUE) ? EMPTY_VALUE : (sampleSBF[si]-scaleP[f])/scaleM[f];
+				si++;
+			}
+		}
+		for (int b=0; b<targetLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				targetSBF[ti]=(targetSBF[ti]==EMPTY_VALUE) ? EMPTY_VALUE : (targetSBF[ti]-scaleP[f])/scaleM[f];
+				predictionSBF[ti]=(predictionSBF[ti]-scaleP[f])/scaleM[f];
+				ti++;
+			}
+		}
+	}
+}

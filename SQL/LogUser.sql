@@ -138,11 +138,12 @@ alter table CoreLoggerParms add constraint CoreLoggerParms_PK primary key(Proces
 drop table EngineScalingParms purge;
 create table EngineScalingParms(
 	ProcessId number,
+	DecompLevel number,
 	Feature number,
 	trMin number,
 	trMax number
 );
-alter table EngineScalingParms add constraint EngineScalingParms_PK primary key(ProcessId, Feature) using index tablespace LogIdx;
+alter table EngineScalingParms add constraint EngineScalingParms_PK primary key(ProcessId, DecompLevel, Feature) using index tablespace LogIdx;
 
 drop table CoreNNparms purge;
 create table CoreNNparms(

@@ -10,30 +10,47 @@ sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname
 sRoot::~sRoot() {}
 
 //-- core stuff
-void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS** ds_, int dsBatchSize_, bool dsDoDump_, char* dsDumpPath_, bool loadEngine_){
+void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsBatchSize_, bool dsDoDump_, char* dsDumpPath_, bool loadEngine_){
 
-	ds_=(sDS**)malloc((eng_->WNNdecompLevel+2)*sizeof(sDS*));
-	safespawn(ds_[0], newsname("trainDataSet_Base"), defaultdbg, ts_, 0, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
+	(*ds_)=(sDS**)malloc((eng_->WNNdecompLevel+2)*sizeof(sDS*));
+	safespawn((*ds_)[0], newsname("trainDataSet_Base"), defaultdbg, ts_, 0, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
 
-	//-- update TRmin/max in ts_ , if inferring from a loaded engine
+	//-- update TRmin/max in (*ds_) , if inferring from a loaded engine
 	if (loadEngine_) {
-		ts_->TRmin=eng_->DStrMin;
-		ts_->TRmax=eng_->DStrMax;
-		ts_->FFTmin=eng_->DSfftMin;
-		ts_->FFTmax=eng_->DSfftMax;
+		(*ds_)[0]->TRmin=eng_->DStrMin;
+		(*ds_)[0]->TRmax=eng_->DStrMax;
+	} else {
+		(*ds_)[0]->TRmin=ts_->TRmin;
+		(*ds_)[0]->TRmax=ts_->TRmax;
+		eng_->DStrMin=ts_->TRmin;
+		eng_->DStrMax=ts_->TRmax;
 	}
 
 	//-- timeseries wavelets, if engine is WNN
 	if (engine->type==ENGINE_WNN) {
 		safecall(ts_, FFTcalc, eng_->WNNdecompLevel, eng_->WNNwaveletType);
 		//-- build LFA dataset
-		safespawn(ds_[1], newsname("dataSet_LFA"), defaultdbg, ts_, 1, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
+		safespawn((*ds_)[1], newsname("dataSet_LFA"), defaultdbg, ts_, 1, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
 		//-- build HFD datasets
-		for (int l=0; l<engine->WNNdecompLevel; l++) safespawn(ds_[2+l], newsname("dataSet_HFD%d", l), defaultdbg, ts_, 2+l, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
+		for (int l=0; l<engine->WNNdecompLevel; l++) safespawn((*ds_)[2+l], newsname("dataSet_HFD%d", l), defaultdbg, ts_, 2+l, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
+		//-- update TRmin/max
+		if (loadEngine_) {
+			for (int d=1; d<(engine->WNNdecompLevel+1); d++) {
+				(*ds_)[d]->TRmin=eng_->DSfftMin[d-1];
+				(*ds_)[d]->TRmax=eng_->DSfftMax[d-1];
+			}
+		} else {
+			for (int d=1; d<(engine->WNNdecompLevel+1); d++) {
+				(*ds_)[d]->TRmin=ts_->FFTmin[d-1];
+				(*ds_)[d]->TRmax=ts_->FFTmax[d-1];
+			}
+			eng_->DSfftMin=ts_->FFTmin;
+			eng_->DSfftMax=ts_->FFTmax;
+		}
 	}
 
 	//-- scale DSs
-	for(int d=0; d<(eng_->WNNdecompLevel+2); d++) safecall(ds_[d], scale, eng_->coreParms[d]->scaleMin[0], eng_->coreParms[d]->scaleMax[0]);
+	for(int d=0; d<(eng_->WNNdecompLevel+2); d++) safecall((*ds_)[d], scale, eng_->coreParms[d]->scaleMin[0], eng_->coreParms[d]->scaleMax[0]);
 
 }
 void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr) {
@@ -58,7 +75,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- check for possible duplicate pid in db (through client persistor), and change it
 		safecall(this, getSafePid, clientLog, &pid);
 
-		int _trainSampleLen, _trainTargetLen, _trainBatchSize; bool _doDump; char _dumpPath[MAX_PATH];
+		int _trainSampleLen, _trainTargetLen, _trainBatchSize; bool _doDump; char _dp[MAX_PATH]; char* _dumpPath=&_dp[0];
 		safecall(trainCfg->currentKey, getParm, &_trainSampleLen, "SampleLen");
 		safecall(trainCfg->currentKey, getParm, &_trainTargetLen, "TargetLen");
 		safecall(trainCfg->currentKey, getParm, &_trainBatchSize, "BatchSize");
@@ -71,16 +88,16 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", _trainSampleLen, _trainTargetLen, trainTS->featuresCnt, pid);
 
 		//-- prepare datasets
-		sDS** trainDS; datasetPrepare(trainTS, engine, trainDS, _trainBatchSize, _doDump, _dumpPath);
+		sDS** trainDS; datasetPrepare(trainTS, engine, &trainDS, _trainBatchSize, _doDump, _dumpPath, false);
 
 		//-- training cycle core
 		timer->start();
 
 		//-- do training (also populates datasets)
-		safecall(engine, train, simulationId_, trainDS, trainTS->TRmin, trainTS->TRmax);
+		safecall(engine, train, simulationId_, trainDS);
 
 		//-- do infer on training data, without reloading engine
-		safecall(engine, infer, simulationId_, trainTS, _trainSampleLen, _trainTargetLen, _trainBatchSize, pid, false);
+		safecall(engine, infer, simulationId_, trainDS, 0);
 
 		//-- persist Run logs
 		safecall(engine, saveRun);
@@ -133,7 +150,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- check for possible duplicate pid in db (through client persistor), and change it
 		safecall(this, getSafePid, clientLog, &pid);
 
-		int _inferSampleLen, _inferTargetLen, _inferBatchSize; bool _doDump; char _dumpPath[MAX_PATH];
+		int _inferSampleLen, _inferTargetLen, _inferBatchSize; bool _doDump;  char _dp[MAX_PATH]; char* _dumpPath=&_dp[0];
 		safecall(inferCfg->currentKey, getParm, &_inferSampleLen, "SampleLen");
 		safecall(inferCfg->currentKey, getParm, &_inferTargetLen, "TargetLen");
 		safecall(inferCfg->currentKey, getParm, &_inferBatchSize, "BatchSize");
@@ -146,13 +163,13 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safespawn(engine, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid_);
 		
 		//-- prepare datasets
-		sDS** inferDS; datasetPrepare(inferTS, engine, inferDS, _inferBatchSize, _doDump, _dumpPath);
+		sDS** inferDS; datasetPrepare(inferTS, engine, &inferDS, _inferBatchSize, _doDump, _dumpPath, true);
 
 		//-- core infer cycle
 		timer->start();
 
 		//-- do inference (also populates datasets)
-		safecall(engine, infer, simulationId_, inferTS, _inferSampleLen, _inferTargetLen, _inferBatchSize, savedEnginePid_, true);
+		safecall(engine, infer, simulationId_, inferDS, savedEnginePid_);
 
 		//-- commit engine persistor data
 		safecall(engine, commit);
@@ -643,10 +660,10 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	}
 	fclose(f);
 	//--
-	sTS* mtTimeSerie; safespawn(mtTimeSerie, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->targetLen, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
-
+	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->targetLen, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
+	sDS** mtDS; datasetPrepare(mtTS, engine, &mtDS, 1, MT4doDump, nullptr, true);
 	//--
-	safecall(MT4engine, infer, MT4accountId, mtTimeSerie, MT4engine->sampleLen, MT4engine->targetLen, 1, MT4enginePid, true);
+	safecall(MT4engine, infer, MT4accountId, mtDS, MT4enginePid);
 
 	for (int b=0; b<MT4engine->targetLen; b++) {
 		for (int f=0; f<MT4engine->featuresCnt; f++) {

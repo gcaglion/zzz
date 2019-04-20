@@ -625,7 +625,7 @@ void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, n
 }
 
 //-- Save/Load engine info
-void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, int WNNdecompLevel_, int WNNwaveletType_, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreLayer, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_) {
+void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, int WNNdecompLevel_, int WNNwaveletType_, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreLayer, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_, numtype** fftMin_, numtype** fftMax_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -635,8 +635,14 @@ void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleL
 	safecall(this, sqlExec, sqlS);
 	//-- 1.1. ENGINES SCALING PARMS
 	for (int f=0; f<featuresCnt_; f++) {
-		sprintf_s(sqlS, SQL_MAXLEN, "insert into EngineScalingParms(ProcessId, Feature, trMin, trMax) values(%d, %d, %f, %f)", pid, f, trMin_[f], trMax_[f]);
+		sprintf_s(sqlS, SQL_MAXLEN, "insert into EngineScalingParms(ProcessId, DecompLevel, Feature, trMin, trMax) values(%d, %d, %d, %f, %f)", pid, -1, f, trMin_[f], trMax_[f]);
 		safecall(this, sqlExec, sqlS);
+	}
+	for (int l=0; l<WNNdecompLevel_; l++) {
+		for (int f=0; f<featuresCnt_; f++) {
+			sprintf_s(sqlS, SQL_MAXLEN, "insert into EngineScalingParms(ProcessId, DecompLevel, Feature, trMin, trMax) values(%d, %d, %d, %f, %f)", pid, l, f, fftMin_[l][f], fftMax_[l][f]);
+			safecall(this, sqlExec, sqlS);
+		}
 	}
 
 	//-- 2. ENGINECORES

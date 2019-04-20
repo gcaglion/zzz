@@ -44,12 +44,12 @@ struct sEngine : sCfgObj {
 	EXPORT sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int clientPid_);
 	EXPORT ~sEngine();
 
-	EXPORT void train(int testid_, sDS** trainDS_, numtype* trmin_, numtype* trmax_);
-	EXPORT void infer(int testid_, sDS** trainDS_, numtype* trmin_, numtype* trmax_, int savedEnginePid_, bool reTransform);
+	EXPORT void train(int testid_, sDS** trainDS_);
+	EXPORT void infer(int testid_, sDS** trainDS_, int savedEnginePid_);
 	//--
 	EXPORT void saveRun();
 	//--
-	EXPORT void saveInfo(numtype* trmin_, numtype* trmax_);
+	EXPORT void saveInfo();
 	//--
 	EXPORT void commit();
 
@@ -68,7 +68,7 @@ private:
 	void setLayerProps();
 	const int trainProc = 0;
 	const int inferProc = 1;
-	void process(int procid_, bool loadImage_, int testid_, sDS** ds_, int savedEnginePid_);
+	void process(int procid_, int testid_, sDS** ds_, int savedEnginePid_);
 
 
 };
