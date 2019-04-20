@@ -122,6 +122,14 @@ sEngine::~sEngine() {
 	free(core); free(coreLayout); free(coreParms);
 	free(layerCoresCnt);
 	free(forecast);
+
+	for (int c=0; c<coresCnt; c++) {
+		free(trgSeqTRS[c]);
+		free(prdSeqTRS[c]);
+	}
+	free(seqLen);
+	free(trgSeqTRS);
+	free(prdSeqTRS);
 }
 
 void sEngine::spawnCoresFromXML() {
@@ -376,9 +384,9 @@ void sEngine::infer(int testid_, sDS** inferDS_, int savedEnginePid_) {
 
 	//-- get predicted/target sequences (TR) for all cores, and saveRun
 	sDS* _ds;
-	int* seqLen=(int*)malloc(coresCnt*sizeof(int));
-	numtype** trgSeqTRS=(numtype**)malloc(coresCnt*sizeof(numtype*));
-	numtype** prdSeqTRS=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	seqLen=(int*)malloc(coresCnt*sizeof(int));
+	trgSeqTRS=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	prdSeqTRS=(numtype**)malloc(coresCnt*sizeof(numtype*));
 	int c;
 	for (c=0; c<coresCnt; c++) {
 		_ds=core[c]->procArgs->ds;
@@ -402,14 +410,6 @@ void sEngine::infer(int testid_, sDS** inferDS_, int savedEnginePid_) {
 		}
 	}*/
 
-	//-- frees
-	for (c=0; c<coresCnt; c++) {
-		free(trgSeqTRS[c]);
-		free(prdSeqTRS[c]);
-	}
-	free(seqLen);
-	free(trgSeqTRS);
-	free(prdSeqTRS);
 }
 
 void sEngine::commit() {

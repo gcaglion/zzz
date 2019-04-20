@@ -361,3 +361,32 @@ void sDS::unscale() {
 		}
 	}
 }
+void sDS::untransformSeq(int seqDT_, numtype* seqBase_, numtype* iTRval, numtype* iActualVal, numtype* oBASEval) {
+	int curr, prev;
+	int stepsCnt=samplesCnt+sampleLen+targetLen-1;
+	for (int s=0; s<stepsCnt; s++) {
+		for (int f=0; f<featuresCnt; f++) {
+			curr=s*featuresCnt+f;
+			prev=(s-1)*featuresCnt+f;
+			if (seqDT_==DT_NONE) {
+				oBASEval[curr]=iTRval[curr];
+			}
+			if (seqDT_==DT_DELTA) {
+				if (s>0) {
+					if (iTRval[curr]==EMPTY_VALUE) {
+						oBASEval[curr]=EMPTY_VALUE;
+					} else {
+						oBASEval[curr]=iTRval[curr]+iActualVal[prev];
+						if (iActualVal[curr]==EMPTY_VALUE) iActualVal[curr]=oBASEval[curr];
+					}
+				} else {
+					if (iTRval[curr]==EMPTY_VALUE) {
+						oBASEval[curr]=EMPTY_VALUE;
+					} else {
+						oBASEval[curr]=iTRval[curr]+seqBase_[f];
+					}
+				}
+			}
+		}
+	}
+}

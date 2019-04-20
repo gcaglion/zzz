@@ -38,6 +38,9 @@ struct sEngine : sCfgObj {
 	sCoreLogger** corePersistor;
 	sEngineProcArgs** procArgs;
 
+	int* seqLen;
+	numtype** trgSeqTRS;
+	numtype** prdSeqTRS;
 	numtype* forecast;
 
 	EXPORT sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_);

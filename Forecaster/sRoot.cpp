@@ -99,6 +99,19 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- do infer on training data, without reloading engine
 		safecall(engine, infer, simulationId_, trainDS, 0);
 
+		//-- unscale/untransform prdSeqTRS/trgSeqTRS for last (outmost) core
+		sCore* _outerCore=engine->core[engine->coresCnt-1];
+		sDS* _ds=engine->procArgs[engine->coresCnt-1]->coreProcArgs->ds;
+		numtype* trgSeqTR=(numtype*)malloc(engine->seqLen[engine->coresCnt-1]*_ds->featuresCnt*sizeof(numtype));
+		numtype* prdSeqTR=(numtype*)malloc(engine->seqLen[engine->coresCnt-1]*_ds->featuresCnt*sizeof(numtype));
+		numtype* trgSeqBASE=(numtype*)malloc(engine->seqLen[engine->coresCnt-1]*_ds->featuresCnt*sizeof(numtype));
+		numtype* prdSeqBASE=(numtype*)malloc(engine->seqLen[engine->coresCnt-1]*_ds->featuresCnt*sizeof(numtype));
+		_ds->unscale();
+		_ds->getSeq(TARGET, trgSeqTR);
+		_ds->getSeq(PREDICTION, prdSeqTR);
+		_ds->untransformSeq(trainTS->dt, trainTS->valB, trgSeqTR, trainTS->val, trgSeqBASE);
+		_ds->untransformSeq(trainTS->dt, trainTS->valB, prdSeqTR, trainTS->val, prdSeqBASE);
+
 		//-- Commit engine persistor data
 		safecall(engine, commit);
 		//-- stop timer, and save client info
