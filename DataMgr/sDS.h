@@ -37,11 +37,10 @@ struct sDS : sCfgObj {
 	EXPORT sDS(sObjParmsDef, sTS* fromTS_, int WNNsrc_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, char* dumpPath_=nullptr);
 	EXPORT ~sDS();
 
-	EXPORT void dump();
+	EXPORT void dump(bool isScaled=false);
 	EXPORT void scale(float scaleMin_, float scaleMax_);
 	EXPORT void unscale();
 	EXPORT void getSeq(int trg_vs_prd, numtype* oVal);
-	EXPORT void untransformSeq(numtype* iTRval, numtype* iActualVal, numtype* oBASEval);
 
 	EXPORT void target2prediction();
 
@@ -50,7 +49,7 @@ struct sDS : sCfgObj {
 private:
 	void SBF2BFS(int batchSamplesCnt, int batchId, int barCnt, numtype* fromSBF, numtype* toBFS);
 	void BFS2SBF(int batchSamplesCnt, int batchId, int barCnt, numtype* fromBFS, numtype* toSBF);
-	void dumpPre(FILE** dumpFile);
+	void dumpPre(bool isScaled, FILE** dumpFile);
 	void mallocs1();
 	void buildFromTS(sTS* ts_, int WNNsrc_);
 };

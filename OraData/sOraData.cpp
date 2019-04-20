@@ -657,7 +657,7 @@ void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleL
 	}
 
 }
-void sOraData::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* WNNdecompLevel_, int* WNNwaveletType_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_) {
+void sOraData::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* WNNdecompLevel_, int* WNNwaveletType_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_, numtype** fftMin_, numtype** fftMax_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -690,22 +690,35 @@ void sOraData::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sam
 		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 
-		//-- 1. scaling parameters
-			sprintf_s(sqlS, SQL_MAXLEN, "select trMin, trMax from EngineScalingParms where Processid= %d", pid);
-			stmt = ((Connection*)conn)->createStatement(sqlS);
-			rset = ((Statement*)stmt)->executeQuery();
-			int ftrCnt=0;
-			while (((ResultSet*)rset)->next()) {
-				trMin_[ftrCnt]=((ResultSet*)rset)->getFloat(1);
-				trMax_[ftrCnt]=((ResultSet*)rset)->getFloat(2);
-				ftrCnt++;
-			}
-
+		//-- 1. scaling parameters (base)
+		sprintf_s(sqlS, SQL_MAXLEN, "select trMin, trMax from EngineScalingParms where Processid= %d and DecompLevel=-1", pid);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+		int ftrCnt=0;
+		while (((ResultSet*)rset)->next()) {
+			trMin_[ftrCnt]=((ResultSet*)rset)->getFloat(1);
+			trMax_[ftrCnt]=((ResultSet*)rset)->getFloat(2);
+			ftrCnt++;
+		}
 		if (ftrCnt==0) fail("Engine Scaling Parms for Engine pid %d not found.", pid);
-
 		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 
+		//-- 1.1. scaling parameters (fft)
+		for (int l=0; l<(*WNNdecompLevel_); l++) {
+			sprintf_s(sqlS, SQL_MAXLEN, "select trMin, trMax from EngineScalingParms where Processid= %d and DecompLevel=%d", pid, l);
+			stmt = ((Connection*)conn)->createStatement(sqlS);
+			rset = ((Statement*)stmt)->executeQuery();
+			ftrCnt=0;
+			while (((ResultSet*)rset)->next()) {
+				fftMin_[l][ftrCnt]=((ResultSet*)rset)->getFloat(1);
+				fftMax_[l][ftrCnt]=((ResultSet*)rset)->getFloat(2);
+				ftrCnt++;
+			}
+			if (ftrCnt==0) fail("Engine Scaling Parms for Engine pid %d and DecompLevel=%d not found.", pid, l);
+			((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+			((Connection*)conn)->terminateStatement((Statement*)stmt);
+		}
 		//-- 2. coresCnt, coreId, coreType
 		sprintf_s(sqlS, SQL_MAXLEN, "select CoreId, CoreType, CoreThreadId from EngineCores where EnginePid= %d", pid);
 		stmt = ((Connection*)conn)->createStatement(sqlS);

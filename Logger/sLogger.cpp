@@ -70,8 +70,8 @@ void sLogger::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLe
 	if (saveToDB) safecall(oradb, saveEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, WNNdecompLevel_, WNNwaveletType_, saveToDB_, saveToFile_, dbconn_, coreId, coreLayer, coreType, tid, parentCoresCnt, parentCore, parentConnType, trMin_, trMax_, fftMin_, fftMax_);
 	//if (saveToFile) safecall(filedb, saveEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType);
 }
-void sLogger::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* WNNdecompLevel_, int* WNNwaveletType_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_) {
-	if (source==OraData) safecall(oradb, loadEngineInfo, pid, engineType_, coresCnt, sampleLen_, predictionLen_, featuresCnt_, WNNdecompLevel_, WNNwaveletType_, saveToDB_, saveToFile_, dbconn_, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType, trMin_, trMax_);
+void sLogger::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* WNNdecompLevel_, int* WNNwaveletType_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_, numtype** fftMin_, numtype** fftMax_) {
+	if (source==OraData) safecall(oradb, loadEngineInfo, pid, engineType_, coresCnt, sampleLen_, predictionLen_, featuresCnt_, WNNdecompLevel_, WNNwaveletType_, saveToDB_, saveToFile_, dbconn_, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType, trMin_, trMax_, fftMin_, fftMax_);
 	//if (source==FileData) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, saveToDB_, saveToFile_, "DioPorco", coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
 }
 //-- Save/Load Core<XXX>Image

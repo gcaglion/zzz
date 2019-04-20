@@ -164,9 +164,9 @@ sDS::~sDS(){
 	free(scaleM); free(scaleP);
 }
 
-void sDS::dump() {
+void sDS::dump(bool isScaled) {
 	FILE* dumpFile=nullptr;
-	dumpPre(&dumpFile);
+	dumpPre(isScaled, &dumpFile);
 
 	int dsidxS=0, dsidxT=0, dsidxP=0;
 	for (int sample=0; sample<samplesCnt; sample++) {
@@ -199,12 +199,12 @@ void sDS::dump() {
 
 	fclose(dumpFile);
 }
-void sDS::dumpPre(FILE** dumpFile) {
+void sDS::dumpPre(bool isScaled, FILE** dumpFile) {
 	int b, f;
 
 	//-- open dumpFile
 	char dumpFileName[MAX_PATH];
-	sprintf_s(dumpFileName, "%s/%s__dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(dumpFileName, "%s/%s_%sdump_p%d_t%d_%p.csv", dumpPath, name->base, (isScaled)?"SCALED_":"_", GetCurrentProcessId(), GetCurrentThreadId(), this);
 	if (fopen_s(dumpFile, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
 	//-- print headers
@@ -341,6 +341,7 @@ void sDS::scale(float scaleMin_, float scaleMax_) {
 			}
 		}
 	}
+	if (doDump) dump(true);
 }
 void sDS::unscale() {
 	int si=0, ti=0;
