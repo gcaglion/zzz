@@ -26,16 +26,6 @@ struct sDS : sCfgObj {
 	numtype* targetBFS;
 	numtype* predictionBFS;
 
-	numtype* trmin;
-	numtype* trmax;
-	numtype* scaleM;
-	numtype* scaleP;
-
-	numtype* seqBase;
-	int seqLen;
-	char** seqLabel;
-	int seqDT;
-
 	EXPORT sDS(sCfgObjParmsDef);
 	EXPORT sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_);
 	EXPORT sDS(sObjParmsDef, sDS* copyFromDS_);

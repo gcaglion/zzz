@@ -60,7 +60,7 @@ private:
 	char cfgOverrideName[XMLLINE_MAXCNT][XMLKEY_PARM_NAME_MAXLEN];
 	char cfgOverrideValS[XMLKEY_PARM_MAXCNT][XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
 	//--
-	void CLoverride(int argc, char* argv[]);
+	void datasetPrepare(sTS* ts_, sEngine* eng_, sDS** ds_, int dsBatchSize_, bool dsDoDump_, char* dsDumpPath_, bool loadEngine_);
 
 	//-- functions
 	void mallocSimulationDates(sCfg* clientCfg, int* simLen, char*** simTrainStart, char*** simInferStart, char*** simValidStart);

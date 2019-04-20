@@ -292,14 +292,13 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 				//-- create dataset for core
 				if (l==0) {
 					procArgs[c]->coreProcArgs->ds=ds_[c];
-					safecall(procArgs[c]->coreProcArgs->ds, scale, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
 				} else {
 					parentDS=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
 					for (int p=0; p<coreLayout[c]->parentsCnt; p++)	parentDS[p]=procArgs[coreLayout[c]->parentId[p]]->coreProcArgs->ds;
 					safespawn(procArgs[c]->coreProcArgs->ds, newsname("Core_%d-%d_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDS);
 					free(parentDS);
 				}
-				procArgs[c]->coreProcArgs->ds->dump();
+				if(procArgs[c]->coreProcArgs->ds->doDump) procArgs[c]->coreProcArgs->ds->dump();
 
 				//-- Create Training or Infer Thread for current Core
 				procArgs[c]->coreProcArgs->screenLine = lsl0+1+t;
@@ -347,24 +346,14 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 		free(procH); free(kaz); free(tid);
 	}
 }
-void sEngine::train(int testid_, sTS* trainTS_, int sampleLen_, int targetLen_, int batchSize_) {
+void sEngine::train(int testid_, sDS** trainDS_, numtype* trmin_, numtype* trmax_) {
 
-	sDS** trainDS=(sDS**)malloc((WNNdecompLevel+2)*sizeof(sDS*));
-	safespawn(trainDS[0], newsname("trainDataSet_Base"), defaultdbg, trainTS_, 0, sampleLen_, targetLen_, batchSize_, trainTS_->doDump, trainTS_->dumpPath);
+	safecall(this, process, trainProc, false, testid_, trainDS_, 0);
 
-	if (type==ENGINE_WNN) {
-		//-- run FFT on timeserie
-		safecall(trainTS_, FFTcalc, WNNdecompLevel, WNNwaveletType);
-		//-- build LFA dataset
-		safespawn(trainDS[1], newsname("trainDataSet_LFA"), defaultdbg, trainTS_, 1, sampleLen_, targetLen_, batchSize_, trainTS_->doDump, trainTS_->dumpPath);
-		//-- build HFD datasets
-		for(int l=0; l<WNNdecompLevel; l++) safespawn(trainDS[2+l], newsname("trainDataSet_HFD%d", l), defaultdbg, trainTS_, 2+l, sampleLen_, targetLen_, batchSize_, trainTS_->doDump, trainTS_->dumpPath);
-	}
-	
-	safecall(this, process, trainProc, false, testid_, trainDS, 0);
+	//-- set trmin/max from input
 
-	//-- persistors
-	safecall(this, saveInfo, trainDS[0]->trmin, trainDS[0]->trmax);
+	//-- save training engine, cores, MSE, core images
+	safecall(this, saveInfo, trmin_, trmax_);
 	for (int c=0; c<coresCnt; c++) {
 		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->duration, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
 		safecall(core[c]->persistor, save, persistor, core[c]->procArgs->pid, core[c]->procArgs->tid);
@@ -374,48 +363,30 @@ void sEngine::train(int testid_, sTS* trainTS_, int sampleLen_, int targetLen_, 
 		free(core[c]->procArgs->duration);
 	}
 	
-	free(trainDS);
 }
-void sEngine::infer(int testid_, sTS* inferTS_, int sampleLen_, int targetLen_, int batchSize_, int savedEnginePid_, bool reTransform) {
-
-	sDS** inferDS=(sDS**)malloc((WNNdecompLevel+2)*sizeof(sDS*));
-	safespawn(inferDS[0], newsname("inferDataSet_Base"), defaultdbg, inferTS_, 0, sampleLen_, targetLen_, batchSize_, inferTS_->doDump, inferTS_->dumpPath);
-
-	if (type==ENGINE_WNN) {
-		//-- run FFT on timeserie
-		safecall(inferTS_, FFTcalc, WNNdecompLevel, WNNwaveletType);
-		//-- build LFA dataset
-		safespawn(inferDS[1], newsname("inferDataSet_LFA"), defaultdbg, inferTS_, 1, sampleLen_, targetLen_, batchSize_, inferTS_->doDump, inferTS_->dumpPath);
-		//-- build HFD datasets
-		for (int l=0; l<WNNdecompLevel; l++) safespawn(inferDS[2+l], newsname("inferDataSet_HFD%d", l), defaultdbg, inferTS_, 2+l, sampleLen_, targetLen_, batchSize_, inferTS_->doDump, inferTS_->dumpPath);
-	}
+void sEngine::infer(int testid_, sDS** inferDS_, numtype* trmin_, numtype* trmax_, int savedEnginePid_, bool reTransform) {
 
 	//-- consistency checks: sampleLen/targetLen/featuresCnt must be the same in inferDS and engine
-	if (inferDS[0]->sampleLen!=sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS[0]->sampleLen, sampleLen);
-	if (inferDS[0]->targetLen!=targetLen) fail("Infer DataSet Prediction Length (%d) differs from Engine's (%d)", inferDS[0]->targetLen, targetLen);
-	if (inferDS[0]->featuresCnt!=featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS[0]->featuresCnt, featuresCnt);
+	if (inferDS_[0]->sampleLen!=sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS_[0]->sampleLen, sampleLen);
+	if (inferDS_[0]->targetLen!=targetLen) fail("Infer DataSet Prediction Length (%d) differs from Engine's (%d)", inferDS_[0]->targetLen, targetLen);
+	if (inferDS_[0]->featuresCnt!=featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_[0]->featuresCnt, featuresCnt);
 
-	//-- re-transform inferDS using trMin/Max loaded
+	//-- re-transform inferDS_ using trMin/Max loaded
 	if (reTransform) {
 		for (int d=0; d<(WNNdecompLevel+2); d++) {
-			for (int f=0; f<inferDS[d]->featuresCnt; f++) {
-				inferDS[d]->trmin[f]=DStrMin[f];
-				inferDS[d]->trmax[f]=DStrMax[f];
+			for (int f=0; f<inferDS_[d]->featuresCnt; f++) {
+				inferDS_[d]->trmin[f]=DStrMin[f];
+				inferDS_[d]->trmax[f]=DStrMax[f];
 			}
 		}
 	}
 
 	//-- call infer
-	safecall(this, process, inferProc, reTransform, testid_, inferDS, savedEnginePid_);
+	safecall(this, process, inferProc, reTransform, testid_, inferDS_, savedEnginePid_);
 
 	//-- get predicted/target sequences (TR) for all cores, and saveRun
 	sDS* _ds;
 	int* seqLen=(int*)malloc(coresCnt*sizeof(int));
-	char*** seqLabel=(char***)malloc(coresCnt*sizeof(char**));
-	numtype** trgSeqBASE=(numtype**)malloc(coresCnt*sizeof(numtype*));
-	numtype** prdSeqBASE=(numtype**)malloc(coresCnt*sizeof(numtype*));
-	numtype** trgSeqTR=(numtype**)malloc(coresCnt*sizeof(numtype*));
-	numtype** prdSeqTR=(numtype**)malloc(coresCnt*sizeof(numtype*));
 	numtype** trgSeqTRS=(numtype**)malloc(coresCnt*sizeof(numtype*));
 	numtype** prdSeqTRS=(numtype**)malloc(coresCnt*sizeof(numtype*));
 	int c;
@@ -423,60 +394,33 @@ void sEngine::infer(int testid_, sTS* inferTS_, int sampleLen_, int targetLen_, 
 		_ds=core[c]->procArgs->ds;
 		seqLen[c] =_ds->samplesCnt+_ds->sampleLen+_ds->targetLen-1;
 		//-- mallocs
-		seqLabel[c]=(char**)malloc(seqLen[c]*sizeof(char*)); for (int i=0; i<seqLen[c]; i++) seqLabel[c][i]=(char*)malloc(DATE_FORMAT_LEN);
-		trgSeqBASE[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
-		prdSeqBASE[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
-		trgSeqTR[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
-		prdSeqTR[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
 		trgSeqTRS[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
 		prdSeqTRS[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
 		//--
-		for (int i=0; i<seqLen[c]; i++) strcpy_s(seqLabel[c][i], DATE_FORMAT_LEN, _ds->seqLabel[i]);
 		_ds->getSeq(TARGET, trgSeqTRS[c]); //dumpArrayH(seqLen[c]*_ds->featuresCnt, trgSeqTRS[c], "C:/temp/trgSeqTRS.csv");
 		_ds->getSeq(PREDICTION, prdSeqTRS[c]);
-		_ds->unscale();
-		_ds->getSeq(TARGET, trgSeqTR[c]); //dumpArrayH(seqLen[c]*_ds->featuresCnt, trgSeqTR[c], "C:/temp/trgSeqTR.csv");
-		_ds->getSeq(PREDICTION, prdSeqTR[c]); //dumpArrayH(seqLen[c]*_ds->featuresCnt, prdSeqTR[c], "C:/temp/prdSeqTR.csv");
-
-		_ds->untransformSeq(trgSeqTR[c], inferTS_->val, trgSeqBASE[c]);	//dumpArrayH(seqLen[c]*_ds->featuresCnt, trgSeqBASE[c], "C:/temp/trgSeqBASE.csv");
-		_ds->untransformSeq(prdSeqTR[c], inferTS_->val, prdSeqBASE[c]);
 
 		//dumpArrayH(seqLen[c]*_ds->featuresCnt, trgSeqTRS[c], "C:/temp/trgSeqTRS2.csv"); 
 		if (core[c]->persistor->saveRunFlag) {
 			core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->mseR, \
-				seqLen[c], _ds->featuresCnt, seqLabel[c], trgSeqTRS[c], prdSeqTRS[c], trgSeqTR[c], prdSeqTR[c], trgSeqBASE[c], prdSeqBASE[c]
-			);
+				seqLen[c], _ds->featuresCnt, trgSeqTRS[c], prdSeqTRS[c]	);
 		}
 	}
 
-	for (int b=0; b<targetLen; b++) {
+	/*for (int b=0; b<targetLen; b++) {
 		for (int f=0; f<featuresCnt; f++) {
 			forecast[b*featuresCnt+f]=prdSeqBASE[c-1][sampleLen*featuresCnt+b*featuresCnt+f];
 		}
-	}
+	}*/
 
 	//-- frees
 	for (c=0; c<coresCnt; c++) {
-		for (int i=0; i<seqLen[c]; i++) free(seqLabel[c][i]);
-		free(seqLabel[c]);
-		free(trgSeqBASE[c]);
-		free(prdSeqBASE[c]);
-		free(trgSeqTR[c]);
-		free(prdSeqTR[c]);
 		free(trgSeqTRS[c]);
 		free(prdSeqTRS[c]);
 	}
-	free(seqLabel);
 	free(seqLen);
-	free(trgSeqBASE);
-	free(prdSeqBASE);
-	free(trgSeqTR);
-	free(prdSeqTR);
 	free(trgSeqTRS);
 	free(prdSeqTRS);
-	
-	free(inferDS);
-
 }
 
 void sEngine::saveRun() {

@@ -170,7 +170,6 @@
     <ClCompile Include="sGenericDataSource.cpp" />
     <ClCompile Include="sFXDataSource.cpp" />
     <ClCompile Include="sMT4DataSource.cpp" />
-    <ClCompile Include="sTimeSerie.cpp" />
     <ClCompile Include="sTS.cpp" />
     <ClCompile Include="TSF.cpp" />
   </ItemGroup>
@@ -185,7 +184,6 @@
     <ClInclude Include="sFXDataSource.h" />
     <ClInclude Include="FXData_enums.h" />
     <ClInclude Include="sMT4dataSource.h" />
-    <ClInclude Include="sTimeSerie.h" />
     <ClInclude Include="sTS.h" />
     <ClInclude Include="TSF.h" />
   </ItemGroup>

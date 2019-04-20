@@ -10,6 +10,32 @@ sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname
 sRoot::~sRoot() {}
 
 //-- core stuff
+void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS** ds_, int dsBatchSize_, bool dsDoDump_, char* dsDumpPath_, bool loadEngine_){
+
+	ds_=(sDS**)malloc((eng_->WNNdecompLevel+2)*sizeof(sDS*));
+	safespawn(ds_[0], newsname("trainDataSet_Base"), defaultdbg, ts_, 0, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
+
+	//-- update TRmin/max in ts_ , if inferring from a loaded engine
+	if (loadEngine_) {
+		ts_->TRmin=eng_->DStrMin;
+		ts_->TRmax=eng_->DStrMax;
+		ts_->FFTmin=eng_->DSfftMin;
+		ts_->FFTmax=eng_->DSfftMax;
+	}
+
+	//-- timeseries wavelets, if engine is WNN
+	if (engine->type==ENGINE_WNN) {
+		safecall(ts_, FFTcalc, eng_->WNNdecompLevel, eng_->WNNwaveletType);
+		//-- build LFA dataset
+		safespawn(ds_[1], newsname("dataSet_LFA"), defaultdbg, ts_, 1, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
+		//-- build HFD datasets
+		for (int l=0; l<engine->WNNdecompLevel; l++) safespawn(ds_[2+l], newsname("dataSet_HFD%d", l), defaultdbg, ts_, 2+l, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
+	}
+
+	//-- scale DSs
+	for(int d=0; d<(eng_->WNNdecompLevel+2); d++) safecall(ds_[d], scale, eng_->coreParms[d]->scaleMin[0], eng_->coreParms[d]->scaleMax[0]);
+
+}
 void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr) {
 
 	try {
@@ -32,21 +58,26 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- check for possible duplicate pid in db (through client persistor), and change it
 		safecall(this, getSafePid, clientLog, &pid);
 
-		int _trainSampleLen, _trainTargetLen, _trainBatchSize; 
+		int _trainSampleLen, _trainTargetLen, _trainBatchSize; bool _doDump; char _dumpPath[MAX_PATH];
 		safecall(trainCfg->currentKey, getParm, &_trainSampleLen, "SampleLen");
 		safecall(trainCfg->currentKey, getParm, &_trainTargetLen, "TargetLen");
 		safecall(trainCfg->currentKey, getParm, &_trainBatchSize, "BatchSize");
+		safecall(trainCfg->currentKey, getParm, &_doDump, "Dump");
+		safecall(trainCfg->currentKey, getParm, &_dumpPath, "DumpPath");
 
 		sTS* trainTS; safespawn(trainTS, newsname("trainTimeSerie"), defaultdbg, trainCfg, "/TimeSerie");
 
 		//-- 4. spawn engine the standard way
 		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", _trainSampleLen, _trainTargetLen, trainTS->featuresCnt, pid);
 
+		//-- prepare datasets
+		sDS** trainDS; datasetPrepare(trainTS, engine, trainDS, _trainBatchSize, _doDump, _dumpPath);
+
 		//-- training cycle core
 		timer->start();
 
 		//-- do training (also populates datasets)
-		safecall(engine, train, simulationId_, trainTS, _trainSampleLen, _trainTargetLen, _trainBatchSize);
+		safecall(engine, train, simulationId_, trainDS, trainTS->TRmin, trainTS->TRmax);
 
 		//-- do infer on training data, without reloading engine
 		safecall(engine, infer, simulationId_, trainTS, _trainSampleLen, _trainTargetLen, _trainBatchSize, pid, false);
@@ -74,6 +105,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		delete trainCfg;
 		delete clientCfg;
 
+		free(trainDS);
 	}
 	catch (std::exception exc) {
 		fail("Exception=%s", exc.what());
@@ -101,16 +133,21 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- check for possible duplicate pid in db (through client persistor), and change it
 		safecall(this, getSafePid, clientLog, &pid);
 
-		int _inferSampleLen, _inferTargetLen, _inferBatchSize;
+		int _inferSampleLen, _inferTargetLen, _inferBatchSize; bool _doDump; char _dumpPath[MAX_PATH];
 		safecall(inferCfg->currentKey, getParm, &_inferSampleLen, "SampleLen");
 		safecall(inferCfg->currentKey, getParm, &_inferTargetLen, "TargetLen");
 		safecall(inferCfg->currentKey, getParm, &_inferBatchSize, "BatchSize");
+		safecall(inferCfg->currentKey, getParm, &_doDump, "Dump");
+		safecall(inferCfg->currentKey, getParm, &_dumpPath, "DumpPath");
 
 		sTS* inferTS; safespawn(inferTS, newsname("inferTimeSerie"), defaultdbg, inferCfg, "/TimeSerie");
 
 		//-- spawn engine from savedEnginePid_ with pid
 		safespawn(engine, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid_);
 		
+		//-- prepare datasets
+		sDS** inferDS; datasetPrepare(inferTS, engine, inferDS, _inferBatchSize, _doDump, _dumpPath);
+
 		//-- core infer cycle
 		timer->start();
 

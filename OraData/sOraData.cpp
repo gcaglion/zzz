@@ -141,7 +141,47 @@ void sOraData::saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mse
 	}
 
 }
-void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int runStepsCnt, int featuresCnt_, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actualBASE, numtype* predictedBASE) {
+void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int runStepsCnt, int featuresCnt_, numtype* actualTRS, numtype* predictedTRS) {
+
+	int runCnt=runStepsCnt*featuresCnt_;
+	int runidx=0;
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	try {
+		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, mseR, Pos, Feature, ActualTRS, PredictedTRS) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09)");
+		((Statement*)stmt)->setMaxIterations(runCnt);
+		for (int step=0; step<runStepsCnt; step++) {
+			for (int f=0; f<featuresCnt_; f++) {
+				((Statement*)stmt)->setInt(1, pid);
+				((Statement*)stmt)->setInt(2, tid);
+				((Statement*)stmt)->setInt(3, npid);
+				((Statement*)stmt)->setInt(4, ntid);
+				((Statement*)stmt)->setFloat(5, mseR);
+				((Statement*)stmt)->setInt(6, step);
+				((Statement*)stmt)->setInt(7, f);
+
+				if (actualTRS[step*featuresCnt_+f]==EMPTY_VALUE) {
+					((Statement*)stmt)->setNull(8, OCCIFLOAT);
+				} else {
+					((Statement*)stmt)->setFloat(8, actualTRS[step*featuresCnt_+f]);
+				}
+				((Statement*)stmt)->setFloat(9, predictedTRS[step*featuresCnt_+f]);
+
+				if (runidx<(runCnt-1)) ((Statement*)stmt)->addIteration();
+				runidx++;
+			}
+		}
+		((Statement*)stmt)->executeUpdate();
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
+}
+/*void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int runStepsCnt, int featuresCnt_, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actualBASE, numtype* predictedBASE) {
 
 	int runCnt=runStepsCnt*featuresCnt_;
 	int runidx=0;
@@ -206,7 +246,7 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int r
 	}
 
 }
-
+*/
 //-- Save Client Info
 void sOraData::findPid(int pid_, bool* found_) {
 

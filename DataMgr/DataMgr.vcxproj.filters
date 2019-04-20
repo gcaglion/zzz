@@ -21,9 +21,6 @@
     <ClCompile Include="sDataShape.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sTimeSerie.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sFXDataSource.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -60,9 +57,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sDataSource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sTimeSerie.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sFXDataSource.h">
