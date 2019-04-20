@@ -30,7 +30,9 @@ struct sDS : sCfgObj {
 	numtype* trmax;
 	numtype* scaleM;
 	numtype* scaleP;
+
 	numtype* seqBase;
+	int seqLen;
 	char** seqLabel;
 	int seqDT;
 

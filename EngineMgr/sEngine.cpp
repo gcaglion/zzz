@@ -296,12 +296,10 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDS** ds_, int 
 				} else {
 					parentDS=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
 					for (int p=0; p<coreLayout[c]->parentsCnt; p++)	parentDS[p]=procArgs[coreLayout[c]->parentId[p]]->coreProcArgs->ds;
-
 					safespawn(procArgs[c]->coreProcArgs->ds, newsname("Core_%d-%d_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDS);
-					//--
 					free(parentDS);
 				}
-				if(procArgs[c]->coreProcArgs->ds->doDump) procArgs[c]->coreProcArgs->ds->dump();
+				procArgs[c]->coreProcArgs->ds->dump();
 
 				//-- Create Training or Infer Thread for current Core
 				procArgs[c]->coreProcArgs->screenLine = lsl0+1+t;
@@ -434,15 +432,16 @@ void sEngine::infer(int testid_, sTS* inferTS_, int sampleLen_, int targetLen_, 
 		prdSeqTRS[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
 		//--
 		for (int i=0; i<seqLen[c]; i++) strcpy_s(seqLabel[c][i], DATE_FORMAT_LEN, _ds->seqLabel[i]);
-		_ds->getSeq(TARGET, trgSeqTRS[c]);
+		_ds->getSeq(TARGET, trgSeqTRS[c]); //dumpArrayH(seqLen[c]*_ds->featuresCnt, trgSeqTRS[c], "C:/temp/trgSeqTRS.csv");
 		_ds->getSeq(PREDICTION, prdSeqTRS[c]);
 		_ds->unscale();
-		_ds->getSeq(TARGET, trgSeqTR[c]); dumpArrayH(seqLen[c]*_ds->featuresCnt, trgSeqTR[c], "C:/temp/trgSeqTR.csv");
-		_ds->getSeq(PREDICTION, prdSeqTR[c]);
+		_ds->getSeq(TARGET, trgSeqTR[c]); //dumpArrayH(seqLen[c]*_ds->featuresCnt, trgSeqTR[c], "C:/temp/trgSeqTR.csv");
+		_ds->getSeq(PREDICTION, prdSeqTR[c]); //dumpArrayH(seqLen[c]*_ds->featuresCnt, prdSeqTR[c], "C:/temp/prdSeqTR.csv");
 
-		_ds->untransformSeq(trgSeqTR[c], inferTS_->val, trgSeqBASE[c]);	dumpArrayH(seqLen[c]*_ds->featuresCnt, trgSeqBASE[c], "C:/temp/trgSeqBASE.csv");
+		_ds->untransformSeq(trgSeqTR[c], inferTS_->val, trgSeqBASE[c]);	//dumpArrayH(seqLen[c]*_ds->featuresCnt, trgSeqBASE[c], "C:/temp/trgSeqBASE.csv");
 		_ds->untransformSeq(prdSeqTR[c], inferTS_->val, prdSeqBASE[c]);
 
+		//dumpArrayH(seqLen[c]*_ds->featuresCnt, trgSeqTRS[c], "C:/temp/trgSeqTRS2.csv"); 
 		if (core[c]->persistor->saveRunFlag) {
 			core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->mseR, \
 				seqLen[c], _ds->featuresCnt, seqLabel[c], trgSeqTRS[c], prdSeqTRS[c], trgSeqTR[c], prdSeqTR[c], trgSeqBASE[c], prdSeqBASE[c]
