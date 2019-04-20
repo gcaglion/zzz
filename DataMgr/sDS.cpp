@@ -160,7 +160,8 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 sDS::~sDS(){
 	free(sampleSBF); free(targetSBF); free(predictionSBF);
 	free(sampleBFS); free(targetBFS); free(predictionBFS);
-	free(TRmin); free(TRmax); free(scaleM); free(scaleP);
+	//free(TRmin); free(TRmax); 
+	free(scaleM); free(scaleP);
 }
 
 void sDS::dump() {

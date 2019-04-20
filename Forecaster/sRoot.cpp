@@ -99,9 +99,6 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- do infer on training data, without reloading engine
 		safecall(engine, infer, simulationId_, trainDS, 0);
 
-		//-- persist Run logs
-		safecall(engine, saveRun);
-
 		//-- Commit engine persistor data
 		safecall(engine, commit);
 		//-- stop timer, and save client info
@@ -114,15 +111,6 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- Commit clientpersistor data
 		safecall(clientLog, commit);
 
-		//-- cleanup
-		delete engine;
-		delete trainTS;
-		delete clientLog;
-		delete engCfg;
-		delete trainCfg;
-		delete clientCfg;
-
-		free(trainDS);
 	}
 	catch (std::exception exc) {
 		fail("Exception=%s", exc.what());
@@ -181,13 +169,6 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, inferCfg);
 		//-- Commit clientpersistor data
 		safecall(clientLog, commit);
-
-		//-- cleanup
-		delete inferTS;
-		delete engine;
-		delete clientLog;
-		delete clientCfg;
-		delete inferCfg;
 
 	}
 	catch (std::exception exc) {

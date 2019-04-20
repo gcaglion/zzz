@@ -413,32 +413,6 @@ void sEngine::infer(int testid_, sDS** inferDS_, int savedEnginePid_) {
 	free(prdSeqTRS);
 }
 
-void sEngine::saveRun() {
-
-/*	sDS* _ds;
-	sTimeSerie* _ts;
-	int layer;
-	int runStepsCnt;
-
-	for (int c=0; c<coresCnt; c++) {
-		layer=core[c]->layout->layer;
-		_ds = core[c]->procArgs->ds;
-
-		for (int t=0; t<_ds->sourceTScnt; t++) {
-			_ts = _ds->sourceTS[t];
-
-			//-- persist into runLog
-			runStepsCnt= _ds->samplesCnt + _ds->sampleLen + _ds->targetLen -1;
-
-			if (core[c]->persistor->saveRunFlag) {
-				core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->mseR, \
-						runStepsCnt, t, _ts->featuresCnt, _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t], _ds->targetLen, \
-						_ts->dtime, _ts->val[ACTUAL][TRS], _ts->val[PREDICTED][TRS], _ts->val[ACTUAL][TR], _ts->val[PREDICTED][TR], _ts->val[ACTUAL][BASE], _ts->val[PREDICTED][BASE], _ts->barWidth);
-			}
-		}
-	}
-	*/
-}
 void sEngine::commit() {
 	for (int c=0; c<coresCnt; c++) {
 		safecall(core[c]->persistor, commit);

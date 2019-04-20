@@ -47,8 +47,6 @@ struct sEngine : sCfgObj {
 	EXPORT void train(int testid_, sDS** trainDS_);
 	EXPORT void infer(int testid_, sDS** trainDS_, int savedEnginePid_);
 	//--
-	EXPORT void saveRun();
-	//--
 	EXPORT void saveInfo();
 	//--
 	EXPORT void commit();
