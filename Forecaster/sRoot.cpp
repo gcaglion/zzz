@@ -97,20 +97,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, train, simulationId_, trainDS);
 
 		//-- do infer on training data, without reloading engine
-		safecall(engine, infer, simulationId_, trainDS, 0);
-
-		//-- unscale/untransform prdSeqTRS/trgSeqTRS for last (outmost) core
-		sCore* _outerCore=engine->core[engine->coresCnt-1];
-		sDS* _ds=engine->procArgs[engine->coresCnt-1]->coreProcArgs->ds;
-		numtype* trgSeqTR=(numtype*)malloc(engine->seqLen[engine->coresCnt-1]*_ds->featuresCnt*sizeof(numtype));
-		numtype* prdSeqTR=(numtype*)malloc(engine->seqLen[engine->coresCnt-1]*_ds->featuresCnt*sizeof(numtype));
-		numtype* trgSeqBASE=(numtype*)malloc(engine->seqLen[engine->coresCnt-1]*_ds->featuresCnt*sizeof(numtype));
-		numtype* prdSeqBASE=(numtype*)malloc(engine->seqLen[engine->coresCnt-1]*_ds->featuresCnt*sizeof(numtype));
-		_ds->unscale();
-		_ds->getSeq(TARGET, trgSeqTR);
-		_ds->getSeq(PREDICTION, prdSeqTR);
-		_ds->untransformSeq(trainTS->dt, trainTS->valB, trgSeqTR, trainTS->val, trgSeqBASE);
-		_ds->untransformSeq(trainTS->dt, trainTS->valB, prdSeqTR, trainTS->val, prdSeqBASE);
+		safecall(engine, infer, simulationId_, trainDS, trainTS, 0);
 
 		//-- Commit engine persistor data
 		safecall(engine, commit);
@@ -170,7 +157,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		timer->start();
 
 		//-- do inference (also populates datasets)
-		safecall(engine, infer, simulationId_, inferDS, savedEnginePid_);
+		safecall(engine, infer, simulationId_, inferDS, inferTS, savedEnginePid_);
 
 		//-- commit engine persistor data
 		safecall(engine, commit);
@@ -207,6 +194,15 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 #include "../DataMgr/sDS.h"
 void sRoot::kaz() {
 
+	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/ds.xml");
+	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/DataSet1");
+	ds1->target2prediction(); ds1->dump();
+	sDS* ds2; safespawn(ds2, newsname("ds2"), defaultdbg, dsCfg, "/DataSet2");
+	ds2->target2prediction(); ds2->dump();
+	sDS* ds[2]; ds[0]=ds1; ds[1]=ds2;
+	sDS* ds12; safespawn(ds12, newsname("ds12"), defaultdbg, 2, ds);
+	return;
+
 	/*sCfg* clientCfg; safespawn(clientCfg, newsname("ClientCfg"), defaultdbg, "Config/10/Client.xml");
 	sLogger* clientLog;
 	bool saveClient;
@@ -226,12 +222,12 @@ void sRoot::kaz() {
 //	tsActual->untransform();
 //	tsActual->dump();
 
-	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/10/ds0b.xml");
+	/*sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/10/ds0b.xml");
 	sDS* ds0; safespawn(ds0, newsname("ds0"), defaultdbg, dsCfg, "/");
 
 	sCfg* dsiCfg; safespawn(dsiCfg, newsname("dsiCfg"), defaultdbg, "Config/10/ds0i.xml");
 	sDS* ds0i; safespawn(ds0i, newsname("ds0i"), defaultdbg, dsiCfg, "/");
-
+*/
 
 	//	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
 //	ds0->target2prediction(); ds1->target2prediction();
@@ -657,7 +653,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->targetLen, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
 	sDS** mtDS; datasetPrepare(mtTS, engine, &mtDS, 1, MT4doDump, nullptr, true);
 	//--
-	safecall(MT4engine, infer, MT4accountId, mtDS, MT4enginePid);
+	safecall(MT4engine, infer, MT4accountId, mtDS, mtTS, MT4enginePid);
 
 	for (int b=0; b<MT4engine->targetLen; b++) {
 		for (int f=0; f<MT4engine->featuresCnt; f++) {

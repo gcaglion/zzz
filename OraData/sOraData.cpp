@@ -141,7 +141,7 @@ void sOraData::saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mse
 	}
 
 }
-void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int runStepsCnt, int featuresCnt_, numtype* actualTRS, numtype* predictedTRS) {
+void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int runStepsCnt, char** posLabel, int featuresCnt_, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actualBASE, numtype* predictedBASE) {
 
 	int runCnt=runStepsCnt*featuresCnt_;
 	int runidx=0;
@@ -150,7 +150,7 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int r
 	if (!isOpen) safecall(this, open);
 
 	try {
-		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, mseR, Pos, Feature, ActualTRS, PredictedTRS) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09)");
+		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, mseR, Pos, PosLabel, Feature, ActualTRS, PredictedTRS, ActualTR, PredictedTR, ActualBASE, PredictedBASE) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14)");
 		((Statement*)stmt)->setMaxIterations(runCnt);
 		for (int step=0; step<runStepsCnt; step++) {
 			for (int f=0; f<featuresCnt_; f++) {
@@ -160,14 +160,29 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int r
 				((Statement*)stmt)->setInt(4, ntid);
 				((Statement*)stmt)->setFloat(5, mseR);
 				((Statement*)stmt)->setInt(6, step);
-				((Statement*)stmt)->setInt(7, f);
+				std::string str(posLabel[step]); ((Statement*)stmt)->setMaxParamSize(7, 64); ((Statement*)stmt)->setString(7, str);
+				((Statement*)stmt)->setInt(8, f);
 
 				if (actualTRS[step*featuresCnt_+f]==EMPTY_VALUE) {
-					((Statement*)stmt)->setNull(8, OCCIFLOAT);
+					((Statement*)stmt)->setNull(9, OCCIFLOAT);
 				} else {
-					((Statement*)stmt)->setFloat(8, actualTRS[step*featuresCnt_+f]);
+					((Statement*)stmt)->setFloat(9, actualTRS[step*featuresCnt_+f]);
 				}
-				((Statement*)stmt)->setFloat(9, predictedTRS[step*featuresCnt_+f]);
+				((Statement*)stmt)->setFloat(10, predictedTRS[step*featuresCnt_+f]);
+
+				if (actualTR[step*featuresCnt_+f]==EMPTY_VALUE) {
+					((Statement*)stmt)->setNull(11, OCCIFLOAT);
+				} else {
+					((Statement*)stmt)->setFloat(11, actualTR[step*featuresCnt_+f]);
+				}
+				((Statement*)stmt)->setFloat(12, predictedTR[step*featuresCnt_+f]);
+
+				if (actualBASE[step*featuresCnt_+f]==EMPTY_VALUE) {
+					((Statement*)stmt)->setNull(13, OCCIFLOAT);
+				} else {
+					((Statement*)stmt)->setFloat(13, actualBASE[step*featuresCnt_+f]);
+				}
+				((Statement*)stmt)->setFloat(14, predictedBASE[step*featuresCnt_+f]);
 
 				if (runidx<(runCnt-1)) ((Statement*)stmt)->addIteration();
 				runidx++;

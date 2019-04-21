@@ -133,12 +133,12 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 	int sbfi=0; int i=0;
 	for (int s=0; s<samplesCnt; s++) {
 		for (int b=0; b<targetLen; b++) {
-			for (int f=0; f<featuresCnt; f++) {
 				for (int d=0; d<parentDScnt_; d++) {
-					sampleSBF[i]=parentDS_[d]->predictionSBF[sbfi];
+					for (int f=0; f<featuresCnt; f++) {
+						sbfi=s*targetLen*featuresCnt+b*featuresCnt+f;
+						sampleSBF[i]=parentDS_[d]->predictionSBF[sbfi];
 					i++;
-				}
-				sbfi++;
+				}				
 			}
 		}
 	}
@@ -150,6 +150,15 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 				targetSBF[i]=parentDS_[0]->targetSBF[i];
 				i++;
 			}
+		}
+	}
+
+	//-- TRmin/TRmax
+	for (int f=0; f<featuresCnt; f++) {
+		TRmin[f]=1e9; TRmax[f]=-1e9;
+		for (int d=0; d<parentDScnt_; d++) {
+			if (parentDS_[d]->TRmin[f]<TRmin[f]) TRmin[f]=parentDS_[d]->TRmin[f];
+			if (parentDS_[d]->TRmax[f]>TRmax[f]) TRmax[f]=parentDS_[d]->TRmax[f];
 		}
 	}
 

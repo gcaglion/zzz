@@ -38,9 +38,6 @@ struct sEngine : sCfgObj {
 	sCoreLogger** corePersistor;
 	sEngineProcArgs** procArgs;
 
-	int* seqLen;
-	numtype** trgSeqTRS;
-	numtype** prdSeqTRS;
 	numtype* forecast;
 
 	EXPORT sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_);
@@ -48,7 +45,7 @@ struct sEngine : sCfgObj {
 	EXPORT ~sEngine();
 
 	EXPORT void train(int testid_, sDS** trainDS_);
-	EXPORT void infer(int testid_, sDS** trainDS_, int savedEnginePid_);
+	EXPORT void infer(int testid_, sDS** trainDS_, sTS* inferTS_, int savedEnginePid_);
 	//--
 	EXPORT void saveInfo();
 	//--
