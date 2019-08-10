@@ -11,9 +11,12 @@ sRoot::~sRoot() {}
 
 //-- core stuff
 void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsBatchSize_, bool dsDoDump_, char* dsDumpPath_, bool loadEngine_){
-
+	info("CheckPoint 1.1");
+	info("eng_->WNNdecompLevel=%d", eng_->WNNdecompLevel);
 	(*ds_)=(sDS**)malloc((eng_->WNNdecompLevel+2)*sizeof(sDS*));
-	safespawn((*ds_)[0], newsname("trainDataSet_Base"), defaultdbg, ts_, 0, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
+	info("CheckPoint 1.2");
+	safespawn((*ds_)[0], newsname("dataSet_Base"), defaultdbg, ts_, 0, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
+	info("CheckPoint 1.3");
 
 	//-- update TRmin/max in (*ds_) , if inferring from a loaded engine
 	if (loadEngine_) {
@@ -25,7 +28,7 @@ void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsBatchSize_
 		eng_->DStrMin=ts_->TRmin;
 		eng_->DStrMax=ts_->TRmax;
 	}
-
+	 
 	//-- timeseries wavelets, if engine is WNN
 	if (engine->type==ENGINE_WNN) {
 		safecall(ts_, FFTcalc, eng_->WNNdecompLevel, eng_->WNNwaveletType);
@@ -48,6 +51,7 @@ void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsBatchSize_
 			eng_->DSfftMax=ts_->FFTmax;
 		}
 	}
+	info("CheckPoint 1.9");
 
 	//-- scale DSs
 	for(int d=0; d<(eng_->WNNdecompLevel+2); d++) safecall((*ds_)[d], scale, eng_->coreParms[d]->scaleMin[0], eng_->coreParms[d]->scaleMax[0]);
@@ -651,8 +655,9 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	fclose(f);
 	//--
 	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->targetLen, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
-	sDS** mtDS; datasetPrepare(mtTS, engine, &mtDS, 1, MT4doDump, nullptr, true);
+	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, 1, MT4doDump, (char*)nullptr, true);
 	//--
+	info("CheckPoint 2");
 	safecall(MT4engine, infer, MT4accountId, mtDS, mtTS, MT4enginePid);
 
 	for (int b=0; b<MT4engine->targetLen; b++) {

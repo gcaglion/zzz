@@ -46,11 +46,13 @@ void sDS::buildFromTS(sTS* ts_, int WNNsrc_) {
 }
 
 sDS::sDS(sObjParmsDef, sTS* fromTS_, int WNNsrc_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, "") {
+	info("CheckPoint 1.1.1");
 	sampleLen=sampleLen_; targetLen=targetLen_; batchSize=batchSize_;
 	featuresCnt=fromTS_->featuresCnt;
 	samplesCnt=fromTS_->stepsCnt-sampleLen-targetLen+1;
 	doDump=doDump_;
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath); if (dumpPath_!=nullptr) strcpy_s(dumpPath, MAX_PATH, dumpPath_);
+	info("CheckPoint 1.1.2");
 
 	mallocs1();
 

@@ -1,6 +1,6 @@
 <Engine>
 	Type = ENGINE_CUSTOM
-	CoresCount	= 1
+	CoresCount	= 6
 	<Core0>
 		<Layout>
 			Type	= CORE_NN
