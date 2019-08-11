@@ -1,12 +1,12 @@
-	SampleLen	= 10
+	SampleLen	= 20
 	TargetLen	= 3
-	BatchSize	= 5
+	BatchSize	= 50
 	
-	Dump		= true
+	Dump		= false
 	DumpPath	= c:\temp\DataDump
 	
 	<TimeSerie>
-		<! ts1.xml >
+		<! ts0.xml >
 	</TimeSerie>
 
 	<! DataSetPersistor-Default.xml >

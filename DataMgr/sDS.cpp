@@ -237,17 +237,17 @@ void sDS::dumpPre(bool isScaled, FILE** dumpFile) {
 	fprintf((*dumpFile), "\n");
 }
 
-void sDS::getSeq(int trg_vs_prd, numtype* oVal) {
+void sDS::getSeq(int trg_vs_prd, numtype* oVal, sDS* baseDS) {
 	int si=0, ti=0;
 
-	for (int b=0; b<sampleLen; b++) {
-		for (int f=0; f<featuresCnt; f++) {
-			si=b*featuresCnt+f;
-			oVal[ti]=sampleSBF[si];
+	for (int b=0; b<baseDS->sampleLen; b++) {
+		for (int f=0; f<baseDS->featuresCnt; f++) {
+			si=b*baseDS->featuresCnt+f;
+			oVal[ti]=baseDS->sampleSBF[si];
 			ti++;
 		}
 	}
-	
+
 	for (int s=0; s<samplesCnt; s++) {
 		for (int f=0; f<featuresCnt; f++) {
 			si=s*targetLen*featuresCnt+f;

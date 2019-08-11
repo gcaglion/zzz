@@ -386,7 +386,7 @@ void sEngine::infer(int testid_, sDS** inferDS_, sTS* inferTS_, int savedEngineP
 
 	//-- get predicted/target sequences (TR) for all cores, and saveRun
 	sDS* _ds;
-	int* seqLen=(int*)malloc(coresCnt*sizeof(int));
+	int seqLen=inferDS_[0]->samplesCnt+inferDS_[0]->sampleLen+inferDS_[0]->targetLen-1;
 	numtype** trgSeqTRS=(numtype**)malloc(coresCnt*sizeof(numtype*));
 	numtype** prdSeqTRS=(numtype**)malloc(coresCnt*sizeof(numtype*));
 	numtype** trgSeqTR=(numtype**)malloc(coresCnt*sizeof(numtype*));
@@ -396,27 +396,26 @@ void sEngine::infer(int testid_, sDS** inferDS_, sTS* inferTS_, int savedEngineP
 	int c;
 	for (c=0; c<coresCnt; c++) {
 		_ds=core[c]->procArgs->ds;
-		seqLen[c] =_ds->samplesCnt+_ds->sampleLen+_ds->targetLen-1;
 		//-- mallocs
-		trgSeqTRS[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
-		prdSeqTRS[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
-		trgSeqTR[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
-		prdSeqTR[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
-		trgSeqBASE[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
-		prdSeqBASE[c]=(numtype*)malloc(seqLen[c]*_ds->featuresCnt*sizeof(numtype));
+		trgSeqTRS[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		prdSeqTRS[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		trgSeqTR[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		prdSeqTR[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		trgSeqBASE[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		prdSeqBASE[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
 		//--
 
-		_ds->getSeq(TARGET, trgSeqTRS[c]); //dumpArrayH(seqLen[c]*_ds->featuresCnt, trgSeqTRS[c], "C:/temp/trgSeqTRS.csv");
-		_ds->getSeq(PREDICTION, prdSeqTRS[c]); //dumpArrayH(seqLen[c]*_ds->featuresCnt, prdSeqTRS[c], "C:/temp/prdSeqTRS.csv");
+		_ds->getSeq(TARGET, trgSeqTRS[c], inferDS_[0]); //dumpArrayH(seqLen[c]*_ds->featuresCnt, trgSeqTRS[c], "C:/temp/trgSeqTRS.csv");
+		_ds->getSeq(PREDICTION, prdSeqTRS[c], inferDS_[0]); //dumpArrayH(seqLen[c]*_ds->featuresCnt, prdSeqTRS[c], "C:/temp/prdSeqTRS.csv");
 		_ds->unscale();
-		_ds->getSeq(TARGET, trgSeqTR[c]);
-		_ds->getSeq(PREDICTION, prdSeqTR[c]);
+		_ds->getSeq(TARGET, trgSeqTR[c], inferDS_[0]);
+		_ds->getSeq(PREDICTION, prdSeqTR[c], inferDS_[0]);
 		_ds->untransformSeq(inferTS_->dt, inferTS_->valB, trgSeqTR[c], inferTS_->val, trgSeqBASE[c]);
 		_ds->untransformSeq(inferTS_->dt, inferTS_->valB, prdSeqTR[c], inferTS_->val, prdSeqBASE[c]);
 
 		if (core[c]->persistor->saveRunFlag) {
 			core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->mseR, \
-				seqLen[c], inferTS_->timestamp, _ds->featuresCnt, trgSeqTRS[c], prdSeqTRS[c], trgSeqTR[c], prdSeqTR[c], trgSeqBASE[c], prdSeqBASE[c]);
+				seqLen, inferTS_->timestamp, _ds->featuresCnt, trgSeqTRS[c], prdSeqTRS[c], trgSeqTR[c], prdSeqTR[c], trgSeqBASE[c], prdSeqBASE[c]);
 		}
 	}
 
@@ -432,7 +431,6 @@ void sEngine::infer(int testid_, sDS** inferDS_, sTS* inferTS_, int savedEngineP
 		free(trgSeqTR[c]);	free(prdSeqTR[c]);
 		free(trgSeqBASE[c]); free(prdSeqBASE[c]);
 	}
-	free(seqLen);
 	free(trgSeqTRS); free(prdSeqTRS);
 	free(trgSeqTR); free(prdSeqTR);
 	free(trgSeqBASE); free(prdSeqBASE);
