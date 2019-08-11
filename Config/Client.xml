@@ -26,12 +26,12 @@
 			SelectedFeatures	= FXHIGH, FXLOW
 		</Chart0>
 		<Chart1>
-			Symbol				= US500-JUN19
+			Symbol				= US500-SEP19
 			TimeFrame			= H1
 			SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 		</Chart1>
 		<Chart2>
-			Symbol				= EU50-JUN19
+			Symbol				= EU50-SEP19
 			TimeFrame			= H1
 			SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
 		</Chart2>

@@ -5,7 +5,7 @@
 #include "svard.h"
 #include "../Utils/Utils.h"
 
-#define DEFAULT_DBG_TO_SCREEN	true
+#define DEFAULT_DBG_TO_SCREEN	false
 #define DEFAULT_DBG_TO_FILE		true
 #define DEFAULT_DBG_FPATH		"C:/temp/logs"
 #define DEFAULT_DBG_FNAME		"Debugger"
@@ -88,3 +88,4 @@ private:
 #define defaultdbg new sDbg(DEFAULT_DBG_VERBOSITY, DEFAULT_DBG_TIMING, DEFAULT_DBG_TO_SCREEN, DEFAULT_DBG_TO_FILE, DEFAULT_DBG_FPATH)
 #define erronlydbg new sDbg(false, DEFAULT_DBG_TIMING, DEFAULT_DBG_TO_SCREEN, DEFAULT_DBG_TO_FILE, DEFAULT_DBG_FPATH)
 #define clonedbg(fromDbg) new sDbg(fromDbg->verbose, fromDbg->timing, fromDbg->dbgtoscreen, fromDbg->dbgtofile, fromDbg->outfilepath)
+#define checkpoint(id) info("%s->%s() Checkpoint %d", name->base, __func__, id);

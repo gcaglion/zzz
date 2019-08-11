@@ -51,7 +51,6 @@ void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsBatchSize_
 			eng_->DSfftMax=ts_->FFTmax;
 		}
 	}
-	info("CheckPoint 1.9");
 
 	//-- scale DSs
 	for(int d=0; d<(eng_->WNNdecompLevel+2); d++) safecall((*ds_)[d], scale, eng_->coreParms[d]->scaleMin[0], eng_->coreParms[d]->scaleMax[0]);

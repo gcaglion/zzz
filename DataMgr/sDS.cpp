@@ -46,13 +46,10 @@ void sDS::buildFromTS(sTS* ts_, int WNNsrc_) {
 }
 
 sDS::sDS(sObjParmsDef, sTS* fromTS_, int WNNsrc_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, "") {
-	info("CheckPoint 1.1.1");
-	sampleLen=sampleLen_; targetLen=targetLen_; batchSize=batchSize_;
+	sampleLen=sampleLen_; targetLen=targetLen_; batchSize=batchSize_; doDump=doDump_;
 	featuresCnt=fromTS_->featuresCnt;
 	samplesCnt=fromTS_->stepsCnt-sampleLen-targetLen+1;
-	doDump=doDump_;
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath); if (dumpPath_!=nullptr) strcpy_s(dumpPath, MAX_PATH, dumpPath_);
-	info("CheckPoint 1.1.2");
 
 	mallocs1();
 
@@ -117,7 +114,7 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 	//--the rest is taken from parentDS[0]
 	targetLen=parentDS_[0]->targetLen;
 	featuresCnt=parentDS_[0]->featuresCnt;
-	samplesCnt=parentDS_[0]->samplesCnt+parentDS_[0]->sampleLen-sampleLen;
+	samplesCnt=parentDS_[0]->samplesCnt;// +parentDS_[0]->sampleLen-sampleLen;
 	batchSize=parentDS_[0]->batchSize;
 	doDump=parentDS_[0]->doDump;
 	strcpy_s(dumpPath, MAX_PATH, parentDS_[0]->dumpPath);

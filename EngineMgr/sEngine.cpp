@@ -309,7 +309,6 @@ void sEngine::process(int procid_, int testid_, sDS** ds_, int savedEnginePid_) 
 
 					free(parentDS);
 				}
-				if(procArgs[c]->coreProcArgs->ds->doDump) procArgs[c]->coreProcArgs->ds->dump();
 
 				//-- Create Training or Infer Thread for current Core
 				procArgs[c]->coreProcArgs->screenLine = lsl0+1+t;
