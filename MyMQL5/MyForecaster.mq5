@@ -19,8 +19,8 @@ int _destroyEnv(uchar& iEnv[]);
 #import
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 10964;
-input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/master/99/Client.xml";
+input int EnginePid				= 9768;
+input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 input int DataTransformation	= 1;
 input bool DumpData				= true;
 input bool SaveLogs				= true;
@@ -152,6 +152,8 @@ int OnInit() {
 	ArrayResize(vlowF, predictionLen*seriesCnt);
 	ArrayResize(vcloseF, predictionLen*seriesCnt);
 	ArrayResize(vvolumeF, predictionLen*seriesCnt);
+
+	OnTick();
 
 	return 0;
 
