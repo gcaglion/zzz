@@ -2,7 +2,7 @@
 
 
 //=== sDataSource
-sDataSource::sDataSource(sObjParmsDef, int featuresCnt_, bool calcBW_, int BWfeatureH_, int BWfeatureL_) : sCfgObj(sObjParmsVal, nullptr, nullptr) {
+sDataSource::sDataSource(sObjParmsDef, int featuresCnt_, bool calcBW_, int BWfeatureH_, int BWfeatureL_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	featuresCnt=featuresCnt_; calcBW=calcBW_; BWfeatureH=BWfeatureH_; BWfeatureL=BWfeatureL_;
 }
 sDataSource::sDataSource(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
