@@ -420,11 +420,12 @@ void sEngine::infer(int testid_, sDS** inferDS_, sTS* inferTS_, int savedEngineP
 		}
 	}
 
-	/*for (int b=0; b<targetLen; b++) {
+	for (int b=0; b<targetLen; b++) {
 		for (int f=0; f<featuresCnt; f++) {
 			forecast[b*featuresCnt+f]=prdSeqBASE[c-1][sampleLen*featuresCnt+b*featuresCnt+f];
+			info("forecast[%d]=%f", b*featuresCnt+f, forecast[b*featuresCnt+f]);
 		}
-	}*/
+	}
 
 	for (int c=0; c<coresCnt; c++) {
 		free(trgSeqTRS[c]);	free(prdSeqTRS[c]);

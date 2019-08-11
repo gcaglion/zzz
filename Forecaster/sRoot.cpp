@@ -11,12 +11,10 @@ sRoot::~sRoot() {}
 
 //-- core stuff
 void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsBatchSize_, bool dsDoDump_, char* dsDumpPath_, bool loadEngine_){
-	info("CheckPoint 1.1");
 	info("eng_->WNNdecompLevel=%d", eng_->WNNdecompLevel);
+	info("engine->type=%d", eng_->type);
 	(*ds_)=(sDS**)malloc((eng_->WNNdecompLevel+2)*sizeof(sDS*));
-	info("CheckPoint 1.2");
 	safespawn((*ds_)[0], newsname("dataSet_Base"), defaultdbg, ts_, 0, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
-	info("CheckPoint 1.3");
 
 	//-- update TRmin/max in (*ds_) , if inferring from a loaded engine
 	if (loadEngine_) {
@@ -30,20 +28,20 @@ void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsBatchSize_
 	}
 	 
 	//-- timeseries wavelets, if engine is WNN
-	if (engine->type==ENGINE_WNN) {
+	if (eng_->type==ENGINE_WNN) {
 		safecall(ts_, FFTcalc, eng_->WNNdecompLevel, eng_->WNNwaveletType);
 		//-- build LFA dataset
 		safespawn((*ds_)[1], newsname("dataSet_LFA"), defaultdbg, ts_, 1, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
 		//-- build HFD datasets
-		for (int l=0; l<engine->WNNdecompLevel; l++) safespawn((*ds_)[2+l], newsname("dataSet_HFD%d", l), defaultdbg, ts_, 2+l, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
+		for (int l=0; l<eng_->WNNdecompLevel; l++) safespawn((*ds_)[2+l], newsname("dataSet_HFD%d", l), defaultdbg, ts_, 2+l, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
 		//-- update TRmin/max
 		if (loadEngine_) {
-			for (int d=1; d<(engine->WNNdecompLevel+1); d++) {
+			for (int d=1; d<(eng_->WNNdecompLevel+1); d++) {
 				(*ds_)[d]->TRmin=eng_->DSfftMin[d-1];
 				(*ds_)[d]->TRmax=eng_->DSfftMax[d-1];
 			}
 		} else {
-			for (int d=1; d<(engine->WNNdecompLevel+1); d++) {
+			for (int d=1; d<(eng_->WNNdecompLevel+1); d++) {
 				(*ds_)[d]->TRmin=ts_->FFTmin[d-1];
 				(*ds_)[d]->TRmax=ts_->FFTmax[d-1];
 			}
@@ -106,7 +104,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0], "", "", true, false, clientffname, "", trainffname, engineffname);
+		safecall(clientLog, saveClientInfo, pid, simulationId_, pid, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0], "", "", true, false, clientffname, "", trainffname, engineffname);
 		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, trainCfg);
@@ -166,7 +164,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[0], "", false, true, clientffname, "", inferffname, "");
+		safecall(clientLog, saveClientInfo, pid, simulationId_, savedEnginePid_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[0], "", false, true, clientffname, "", inferffname, "");
 		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, inferCfg);
@@ -639,7 +637,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	}
 
 	FILE* f;
-	fopen_s(&f, "C:/temp/oBar.csv", "w");
+	fopen_s(&f, "C:/temp/DataDump/oBar.csv", "w");
 	for (int fi=0; fi<selFcntTot; fi++) fprintf(f, "%f,", oBarB[fi]);
 	fprintf(f, ",%s\n", oBarBTimeS);
 	//--
@@ -654,9 +652,8 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	fclose(f);
 	//--
 	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->targetLen, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
-	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, 1, MT4doDump, (char*)nullptr, true);
+	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, 1, MT4doDump,(char*)nullptr, true);
 	//--
-	info("CheckPoint 2");
 	safecall(MT4engine, infer, MT4accountId, mtDS, mtTS, MT4enginePid);
 
 	for (int b=0; b<MT4engine->targetLen; b++) {
@@ -688,6 +685,11 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 }
 void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit) {
 	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4sessionId, MT4accountId, MT4enginePid, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
+}
+void sRoot::saveClientInfo(double iPositionOpenTime) {
+	char accountStr[64]; sprintf_s(accountStr, 32, "MT5_account_%d", MT4accountId);
+	info("MT4enginePid=%d", MT4enginePid);
+	safecall(MT4clientLog, saveClientInfo, MT4clientPid, MT4sessionId, MT4enginePid, accountStr, iPositionOpenTime, 0, "", "","",false,true,"","","","");
 }
 void sRoot::setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int savedEnginePid_, int dt_, bool doDump_) {
 	MT4clientPid=clientPid_;
@@ -791,6 +793,22 @@ extern "C" __declspec(dllexport) int _saveTradeInfo(char* iEnvS, int iPositionTi
 		MT4time2str(iLastBarT, DATE_FORMAT_LEN, iLastBarTs);
 		//-- then, make the call
 		env->saveTradeInfo(iPositionTicket, iPositionOpenTimes, iLastBarTs, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
+	}
+	catch (std::exception exc) {
+		return -1;
+	}
+	return 0;
+}
+extern "C" __declspec(dllexport) int _saveClientInfo(char* iEnvS, long iTradeStartTime) {
+	sRoot* env;
+	sscanf_s(iEnvS, "%p", &env);
+
+	char iPositionOpenTimes[DATE_FORMAT_LEN];
+	try {
+		//-- first, convert the 2 dates to string
+		MT4time2str(iTradeStartTime, DATE_FORMAT_LEN, iPositionOpenTimes);
+		//-- then, make the call
+		env->saveClientInfo(iTradeStartTime);
 	}
 	catch (std::exception exc) {
 		return -1;

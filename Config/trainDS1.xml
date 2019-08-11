@@ -1,4 +1,4 @@
-	SampleLen	= 50
+	SampleLen	= 10
 	TargetLen	= 3
 	BatchSize	= 5
 	

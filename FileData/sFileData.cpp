@@ -61,7 +61,7 @@ void sFileData::findPid(int pid_, bool* found_) {
 	fail("Not implemented.");
 }
 
-void sFileData::saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doInfer, const char* clientXMLfile_, const char* shapeXMLfile_, const char* actionXMLfile_, const char* engineXMLfile_) {
+void sFileData::saveClientInfo(int pid, int simulationId, int npid, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doInfer, const char* clientXMLfile_, const char* shapeXMLfile_, const char* actionXMLfile_, const char* engineXMLfile_) {
 	fail("not implemented.");
 }
 //-- Save/Load core images

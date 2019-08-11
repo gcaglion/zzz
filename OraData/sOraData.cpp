@@ -284,12 +284,12 @@ void sOraData::findPid(int pid_, bool* found_) {
 
 
 }
-void sOraData::saveClientInfo(int pid, int simulationId, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doInfer, const char* clientXMLfile_, const char* shapeXMLfile_, const char* actionXMLfile_, const char* engineXMLfile_) {
+void sOraData::saveClientInfo(int pid, int simulationId, int npid, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doInfer, const char* clientXMLfile_, const char* shapeXMLfile_, const char* actionXMLfile_, const char* engineXMLfile_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
-	sprintf_s(sqlS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, SimulationId, ClientName, ClientStart, Duration, SimulationStartTrain, SimulationStartInfer, SimulationStartValid, DoTraining, DoTestRun, clientXMLFile, shapeXMLFile, actionXMLFile, engineXMLFile) values(%d, %d, '%s', sysdate, %f, '%s','%s', to_date('%s','%s'), %d, %d, '%s', '%s', '%s', '%s')", pid, simulationId, clientName, elapsedSecs, simulStartTrain, simulStartInfer, simulStartValid, DATE_FORMAT, (doTrain ? 1 : 0), (doInfer ? 1 : 0), clientXMLfile_, shapeXMLfile_, actionXMLfile_, engineXMLfile_);
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into ClientInfo(ProcessId, SimulationId, NetProcessId, ClientName, ClientStart, Duration, SimulationStartTrain, SimulationStartInfer, SimulationStartValid, DoTraining, DoTestRun, clientXMLFile, shapeXMLFile, actionXMLFile, engineXMLFile) values(%d, %d, %d, '%s', sysdate, %f, '%s','%s', to_date('%s','%s'), %d, %d, '%s', '%s', '%s', '%s')", pid, simulationId, npid, clientName, elapsedSecs, simulStartTrain, simulStartInfer, simulStartValid, DATE_FORMAT, (doTrain ? 1 : 0), (doInfer ? 1 : 0), clientXMLfile_, shapeXMLfile_, actionXMLfile_, engineXMLfile_);
 	safecall(this, sqlExec, sqlS);
 
 }

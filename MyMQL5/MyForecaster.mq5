@@ -14,13 +14,14 @@ int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, uchar& oSymbolsCSL_[], uchar
 int _getForecast(uchar& iEnv[], int seriesCnt_, int dt_, int& featMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 //--
 int _saveTradeInfo(uchar& iEnv[], int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit);
+int _saveClientInfo(uchar& iEnv[], long iTradeStartTime);
 void _commit(uchar& iEnv[]);
 int _destroyEnv(uchar& iEnv[]);
 #import
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 10964;
-input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/master/99/Client.xml";
+input int EnginePid				= 12888;
+input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 input int DataTransformation	= 1;
 input bool DumpData				= true;
 input bool SaveLogs				= true;
@@ -153,6 +154,8 @@ int OnInit() {
 	ArrayResize(vcloseF, predictionLen*seriesCnt);
 	ArrayResize(vvolumeF, predictionLen*seriesCnt);
 
+	OnTick();
+
 	return 0;
 
 }
@@ -241,6 +244,7 @@ void OnTick() {
 				positionTime=PositionGetInteger(POSITION_TIME);
 			}
 		}
+		
 		//-- save tradeInfo, even if we do not trade
 		int idx=tradeSerie*historyLen+historyLen-1;
 		//printf("calling _saveTradeInfo() with lastBar = %s - %f|%f|%f|%f ; forecast = %f|%f|%f|%f", vtimeS[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0]);
@@ -248,6 +252,14 @@ void OnTick() {
 			printf("_saveTradeInfo() failed. see Forecaster logs.");
 			return;
 		}
+
+		//-- save clientInfo
+		if (_saveClientInfo(vEnvS, TimeCurrent())<0) {
+			printf("_saveClientInfo() failed. see Forecaster logs.");
+			return;
+		}
+
+		//-- commit
 		_commit(vEnvS);
 	}
 	//runOnce=true;

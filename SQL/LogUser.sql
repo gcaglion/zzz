@@ -42,6 +42,7 @@ drop table ClientInfo purge;
 create table ClientInfo(
 	ProcessId  number,
 	SimulationId number,
+	NetProcessId number,
 	ClientName varchar2(128),
 	ClientStart date,
 	Duration number,

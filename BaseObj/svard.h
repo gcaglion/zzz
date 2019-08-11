@@ -19,7 +19,7 @@ struct svard {
 	char fullval[PARMS_MAXCNT*PARM_VAL_MAXLEN];
 
 	void select(string a) { { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "\"%s\", "); } }
-	void select(const char* a) { if (a!=nullptr) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "\"%s\", "); } }
+	void select(const char* a) { if (a!=nullptr) { plen=strlen(a); strcpy_s(pmask[pcnt], PARM_MASK_LEN, "\"%s\", "); } }
 	void select(char* a) { if (a!=nullptr) { plen=strlen(a); strcpy_s(pmask[pcnt], PARM_MASK_LEN, "\"%s\", "); } }
 	void select(int a) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "%d, "); }
 	void select(numtype a) { strcpy_s(pmask[pcnt], PARM_MASK_LEN, "%f, "); }
