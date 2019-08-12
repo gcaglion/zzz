@@ -5,13 +5,6 @@
 #include "svard.h"
 #include "../Utils/Utils.h"
 
-#define DEFAULT_DBG_TO_SCREEN	true
-#define DEFAULT_DBG_TO_FILE		false
-#define DEFAULT_DBG_FPATH		"C:/temp/logs"
-#define DEFAULT_DBG_FNAME		"Debugger"
-#define DEFAULT_DBG_VERBOSITY	false
-#define DEFAULT_DBG_TIMING		false
-#define DEFAULT_DBG_PAUSERR		true
 #define DBG_MSG_MAXLEN			2048
 #define DBG_STACK_MAXLEN		32768*1024	// 32MB
 //--
@@ -38,7 +31,7 @@ struct sDbg {
 	char msg[DBG_MSG_MAXLEN];
 	char stack[DBG_STACK_MAXLEN];
 
-	EXPORT sDbg(bool verbose_, bool timing_, bool dbgtoscreen_, bool dbgtofile_, char* outfilepath_);
+	EXPORT sDbg(bool verbose_=false, bool timing_=false, bool dbgtoscreen_=true, bool dbgtofile_=false, char* outfilepath_="C:/temp/logs");
 	EXPORT ~sDbg();	
 	EXPORT void createOutFile(char* objName, void* objAddr, int objDepth);
 	//-- local copy of stripChar(), to avoid linkng Utils.lib to all modules that use sDbg
@@ -85,7 +78,7 @@ private:
 
 };
 
-#define defaultdbg new sDbg(DEFAULT_DBG_VERBOSITY, DEFAULT_DBG_TIMING, DEFAULT_DBG_TO_SCREEN, DEFAULT_DBG_TO_FILE, DEFAULT_DBG_FPATH)
-#define erronlydbg new sDbg(false, DEFAULT_DBG_TIMING, DEFAULT_DBG_TO_SCREEN, DEFAULT_DBG_TO_FILE, DEFAULT_DBG_FPATH)
+#define defaultdbg new sDbg()
+#define erronlydbg new sDbg(false)
 #define clonedbg(fromDbg) new sDbg(fromDbg->verbose, fromDbg->timing, fromDbg->dbgtoscreen, fromDbg->dbgtofile, fromDbg->outfilepath)
 #define checkpoint(id) info("%s->%s() Checkpoint %d", name->base, __func__, id);

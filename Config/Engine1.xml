@@ -1,4 +1,7 @@
 <Engine>
+	<Debugger>
+		verbose=true
+	</Debugger>
 	Type = ENGINE_CUSTOM
 	CoresCount	= 1
 	<Core0>

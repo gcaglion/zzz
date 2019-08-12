@@ -1,6 +1,6 @@
 #include "sDUMB.h"
 
-sDUMB::sDUMB(sObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sCoreLogger* persistor_, sDUMBparms* DUMBparms_) : sCore(sObjParmsVal, nullptr, nullptr, Alg_, layout_, persistor_) {
+sDUMB::sDUMB(sObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sCoreLogger* persistor_, sDUMBparms* DUMBparms_) : sCore(sObjParmsVal, nullptr, "", Alg_, layout_, persistor_) {
 	parms=DUMBparms_;
 }
 sDUMB::sDUMB(sCfgObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sDUMBparms* DUMBparms_): sCore(sCfgObjParmsVal, Alg_, layout_) {
