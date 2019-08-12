@@ -168,21 +168,33 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int r
 				} else {
 					((Statement*)stmt)->setFloat(9, actualTRS[step*featuresCnt_+f]);
 				}
-				((Statement*)stmt)->setFloat(10, predictedTRS[step*featuresCnt_+f]);
+				if (predictedTRS[step*featuresCnt_+f]==EMPTY_VALUE) {
+					((Statement*)stmt)->setNull(10, OCCIFLOAT);
+				} else {
+					((Statement*)stmt)->setFloat(10, predictedTRS[step*featuresCnt_+f]);
+				}
 
 				if (actualTR[step*featuresCnt_+f]==EMPTY_VALUE) {
 					((Statement*)stmt)->setNull(11, OCCIFLOAT);
 				} else {
 					((Statement*)stmt)->setFloat(11, actualTR[step*featuresCnt_+f]);
 				}
-				((Statement*)stmt)->setFloat(12, predictedTR[step*featuresCnt_+f]);
+				if (predictedTR[step*featuresCnt_+f]==EMPTY_VALUE) {
+					((Statement*)stmt)->setNull(12, OCCIFLOAT);
+				} else {
+					((Statement*)stmt)->setFloat(12, predictedTR[step*featuresCnt_+f]);
+				}
 
 				if (actualBASE[step*featuresCnt_+f]==EMPTY_VALUE) {
 					((Statement*)stmt)->setNull(13, OCCIFLOAT);
 				} else {
 					((Statement*)stmt)->setFloat(13, actualBASE[step*featuresCnt_+f]);
 				}
-				((Statement*)stmt)->setFloat(14, predictedBASE[step*featuresCnt_+f]);
+				if (predictedBASE[step*featuresCnt_+f]==EMPTY_VALUE) {
+					((Statement*)stmt)->setNull(14, OCCIFLOAT);
+				} else {
+					((Statement*)stmt)->setFloat(14, predictedBASE[step*featuresCnt_+f]);
+				}
 
 				if (runidx<(runCnt-1)) ((Statement*)stmt)->addIteration();
 				runidx++;

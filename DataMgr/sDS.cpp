@@ -243,7 +243,7 @@ void sDS::getSeq(int trg_vs_prd, numtype* oVal, sDS* baseDS) {
 	for (int b=0; b<baseDS->sampleLen; b++) {
 		for (int f=0; f<baseDS->featuresCnt; f++) {
 			si=b*baseDS->featuresCnt+f;
-			oVal[ti]=baseDS->sampleSBF[si];
+			oVal[ti]=(trg_vs_prd==TARGET) ? baseDS->sampleSBF[si]:EMPTY_VALUE;
 			ti++;
 		}
 	}

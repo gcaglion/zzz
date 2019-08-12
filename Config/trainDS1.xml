@@ -6,7 +6,7 @@
 	DumpPath	= c:\temp\DataDump
 	
 	<TimeSerie>
-		<! ts0.xml >
+		<! ts2.xml >
 	</TimeSerie>
 
 	<! DataSetPersistor-Default.xml >
