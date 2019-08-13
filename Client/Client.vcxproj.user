@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <LocalDebuggerCommandArguments>Infer 1 Config/Client.xml Config/inferDS1.xml 9768</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>Train 1 Config/Client.xml Config/trainDS1.xml Config/Engine1.xml</LocalDebuggerCommandArguments>
     <LocalDebuggerWorkingDirectory>$(SolutionDir)</LocalDebuggerWorkingDirectory>
     <LocalDebuggerEnvironment>PATH=$(ORACLE_HOME1)\oci\lib\msvc\vc14;$(ORACLE_HOME1)\bin;$(CUDA_PATH)\bin;C:\Program Files (x86)\Visual Leak Detector\bin\$(Platform)
 $(LocalDebuggerEnvironment)</LocalDebuggerEnvironment>
