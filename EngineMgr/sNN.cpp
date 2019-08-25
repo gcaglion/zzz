@@ -3,7 +3,7 @@
 
 void sNN::sNNcommon(sNNparms* NNparms_) {
 	parms=NNparms_;
-	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
+	//if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
 
 	//-- set Common Layout, independent by batchSampleCnt.
 	setCommonLayout();

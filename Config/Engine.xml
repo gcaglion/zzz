@@ -1,7 +1,4 @@
 <Engine>
-	<Debugger>
-		verbose=true
-	</Debugger>
 	Type = ENGINE_CUSTOM
 	CoresCount	= 1
 	<Core0>
@@ -12,10 +9,10 @@
 		</Layout>
 		<Parameters>
 			<Topology>
-				LevelRatio			= 2,1,1
-				LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
-				UseContext			= FALSE
-				UseBias				= false
+				LevelRatio			= 0.5
+				LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+				UseContext			= false
+				UseBias				= true
 			</Topology>
 			<Training>
 				MaxEpochs			= 50

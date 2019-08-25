@@ -41,7 +41,9 @@ void sAlgebra::syncGPUContext() {
 
 //-- device-level sync
 void sAlgebra::devSync() {
+#ifdef USE_GPU
 	devSync_cu();
+#endif
 }
 
 //-- memory initializatin
