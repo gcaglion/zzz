@@ -86,6 +86,7 @@ private:
 	void setCommonLayout();
 	void FF();
 	void Activate(int level);
+	void resetBias();
 
 	void Ecalc();
 	void dEcalc();

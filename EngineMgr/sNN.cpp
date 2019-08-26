@@ -3,7 +3,6 @@
 
 void sNN::sNNcommon(sNNparms* NNparms_) {
 	parms=NNparms_;
-	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
 
 	//-- set Common Layout, independent by batchSampleCnt.
 	setCommonLayout();
@@ -63,6 +62,7 @@ void sNN::FF() {
 		FF2timeTot+=((DWORD)(timeGetTime()-FF2start));
 	}
 
+	if(parms->useBias) resetBias();
 }
 void sNN::Activate(int level) {
 	// sets F, dF
@@ -93,6 +93,7 @@ void sNN::Activate(int level) {
 		retf=-1;
 		break;
 	}
+
 	if (!(retf&&retd)) fail("retf=%d ; retd=%d", retf, retd);
 
 }
@@ -237,6 +238,14 @@ void sNN::initNeurons(){
 	Alg->Vinit(nodesCntTotal, dF, 0, 0);
 	Alg->Vinit(nodesCntTotal, edF, 0, 0);
 
+}
+void sNN::resetBias() {
+	//-- bias neurons are the last neuron in each level
+	int i;
+	for (int l=0; l<outputLevel; l++) {
+		i=levelFirstNode[l+1]-1;
+		Alg->Vinit(1, &F[i], 1, 0);
+	}
 }
 void sNN::destroyNeurons() {
 	Alg->myFree(a);
@@ -388,6 +397,11 @@ void sNN::setLayout(int batchSamplesCnt_) {
 		for (nl = outputLevel; nl>0; nl--) nodesCnt[nl-1] += nodesCnt[nl];
 	}
 
+	//-- add bias neurons
+	if (parms->useBias) {
+		for (l=0; l<outputLevel; l++) nodesCnt[l]++;
+	}
+
 	//-- 0.2. calc nodesCntTotal
 	nodesCntTotal=0;
 	for (l=0; l<parms->levelsCnt; l++) nodesCntTotal+=nodesCnt[l];
@@ -454,6 +468,9 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	//---- 0.3. Init dW, dJdW
 	Alg->Vinit(weightsCntTotal, dW, 0, 0);
 	Alg->Vinit(weightsCntTotal, dJdW, 0, 0);
+
+	//--- init bias neurons
+	if (parms->useBias) resetBias();
 
 	//-- 0.4. convert samples and targets from SBF to BFS  in training dataset
 	trainArgs->ds->setBFS(procArgs->batchCnt, procArgs->batchSize);
@@ -557,6 +574,9 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 
 	if (inferArgs->loadImage) safecall( this, loadImage, inferArgs->npid, inferArgs->ntid, -1);
 	
+	//--- init bias neurons
+	if (parms->useBias) resetBias();
+
 	//-- 0.4. convert samples and targets from SBF to BFS  in inference dataset
 	inferArgs->ds->setBFS(procArgs->batchCnt, procArgs->batchSize);
 
