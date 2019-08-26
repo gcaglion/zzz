@@ -3,7 +3,7 @@
 
 void sNN::sNNcommon(sNNparms* NNparms_) {
 	parms=NNparms_;
-	//if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
+	if (parms->useBias) fail("Bias still not working properly. NN creation aborted.");
 
 	//-- set Common Layout, independent by batchSampleCnt.
 	setCommonLayout();
@@ -67,11 +67,10 @@ void sNN::FF() {
 void sNN::Activate(int level) {
 	// sets F, dF
 	int retf, retd;
-	int skipBias=(parms->useBias&&level!=(outputLevel))?1:0;	//-- because bias neuron does not exits in outer layer
-	int nc=nodesCnt[level]-skipBias;
-	numtype* va=&a[levelFirstNode[level]+skipBias];
-	numtype* vF=&F[levelFirstNode[level]+skipBias];
-	numtype* vdF=&dF[levelFirstNode[level]+skipBias];
+	int nc=nodesCnt[level];
+	numtype* va=&a[levelFirstNode[level]];
+	numtype* vF=&F[levelFirstNode[level]];
+	numtype* vdF=&dF[levelFirstNode[level]];
 
 	switch (parms->ActivationFunction[level]) {
 	case NN_ACTIVATION_TANH:
@@ -238,12 +237,6 @@ void sNN::initNeurons(){
 	Alg->Vinit(nodesCntTotal, dF, 0, 0);
 	Alg->Vinit(nodesCntTotal, edF, 0, 0);
 
-	if (parms->useBias) {
-		for (int l=0; l<outputLevel; l++) {
-			//-- set every bias node's F=1
-			Alg->Vinit(1, &F[levelFirstNode[l]], 1, 0);
-		}
-	}
 }
 void sNN::destroyNeurons() {
 	Alg->myFree(a);
@@ -290,7 +283,7 @@ void sNN::loadBatchData(sDS* ds, int b) {
 	//-- set number of L0 neurons to load
 	int L0SampleNodesCnt=ds->sampleLen*ds->featuresCnt*procArgs->batchSize;
 	//-- load batch samples on L0
-	Alg->d2d(&F[(parms->useBias) ? 1 : 0], &sample_d[b*L0SampleNodesCnt], L0SampleNodesCnt*sizeof(numtype));
+	Alg->d2d(&F[0], &sample_d[b*L0SampleNodesCnt], L0SampleNodesCnt*sizeof(numtype));
 	//-- load batch target on output level
 	Alg->d2d(&u[0], &target_d[b*nodesCnt[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 }
@@ -394,10 +387,6 @@ void sNN::setLayout(int batchSamplesCnt_) {
 	if (parms->useContext) {
 		for (nl = outputLevel; nl>0; nl--) nodesCnt[nl-1] += nodesCnt[nl];
 	}
-	//-- add one bias neurons for each layer, except output layer
-	if (parms->useBias) {
-		for (nl = 0; nl<(outputLevel); nl++) nodesCnt[nl] += 1;
-	}
 
 	//-- 0.2. calc nodesCntTotal
 	nodesCntTotal=0;
@@ -426,7 +415,7 @@ void sNN::setLayout(int batchSamplesCnt_) {
 
 	//-- ctxStart[] can only be defined after levelFirstNode has been defined.
 	if (parms->useContext) {
-		for (nl=0; nl<(outputLevel); nl++) ctxStart[nl]=levelFirstNode[nl+1]-nodesCnt[nl+1]+((parms->useBias) ? 1 : 0);
+		for (nl=0; nl<(outputLevel); nl++) ctxStart[nl]=levelFirstNode[nl+1]-nodesCnt[nl+1];
 	}
 
 }
