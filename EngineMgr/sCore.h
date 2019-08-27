@@ -42,8 +42,8 @@ struct sCore : sCfgObj {
 	//-- MyAlgebra common structures
 	sAlgebra* Alg;
 
-	EXPORT sCore(sCfgObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sCoreLogger* persistor_);
-	EXPORT sCore(sCfgObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_);
+	EXPORT sCore(sCfgObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_);
+	EXPORT sCore(sCfgObjParmsDef, sCoreLayout* layout_);
 	EXPORT ~sCore();
 
 

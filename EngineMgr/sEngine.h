@@ -25,7 +25,6 @@ struct sEngine : sCfgObj {
 	int layersCnt=0;
 	int* layerCoresCnt;
 
-	sAlgebra* Alg;
 	sLogger* persistor;
 
 	int sampleLen;

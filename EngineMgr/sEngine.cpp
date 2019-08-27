@@ -4,9 +4,6 @@
 //-- Engine stuff
 sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	
-	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
-	safespawn(Alg, newsname("%s_Algebra", name->base), defaultdbg);
-
 	sOraData* persistorDB;
 	safespawn(persistorDB, newsname("%s_Logger_DB", name->base), defaultdbg,"","","");
 	safespawn(persistor, newsname("%s_Logger", name->base), defaultdbg, persistorDB);
@@ -65,9 +62,6 @@ sEngine::sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCn
 
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
 	clientPid=clientPid_;
-
-	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
-	safespawn(Alg, newsname("%s_Algebra", name->base), dbg);
 
 	//-- engine-level persistor
 	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
@@ -134,31 +128,31 @@ void sEngine::spawnCoresFromXML() {
 				case CORE_NN:
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					NNcp->setScaleMinMax();
-					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", Alg, coreLayout[c], NNcp);
+					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", coreLayout[c], NNcp);
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
 					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					GAcp->setScaleMinMax();
-					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, "../", Alg, coreLayout[c], GAcp);
+					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, "../", coreLayout[c], GAcp);
 					coreParms[c]=GAcp; core[c]=GAc;
 					break;
 				case CORE_SVM:
 					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					SVMcp->setScaleMinMax();
-					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, "../", Alg, coreLayout[c], SVMcp);
+					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, "../", coreLayout[c], SVMcp);
 					coreParms[c]=SVMcp; core[c]=SVMc;
 					break;
 				case CORE_SOM:
 					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					SOMcp->setScaleMinMax();
-					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, "../", Alg, coreLayout[c], SOMcp);
+					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, "../", coreLayout[c], SOMcp);
 					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
 				case CORE_DUMB:
 					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					DUMBcp->setScaleMinMax();
-					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, cfg, "../", Alg, coreLayout[c], DUMBcp);
+					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, cfg, "../", coreLayout[c], DUMBcp);
 					coreParms[c]=DUMBcp; core[c]=DUMBc;
 					break;
 				default:
@@ -185,7 +179,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					NNcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], NNcp);
+					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, coreLayout[c], corePersistor[c], NNcp);
 					//-- 4. set parent classes
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
@@ -194,7 +188,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					GAcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], GAcp);
+					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, coreLayout[c], corePersistor[c], GAcp);
 					//-- 4. set parent classes
 					coreParms[c]=GAcp; core[c]=GAc;
 					break;
@@ -203,7 +197,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					SVMcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], SVMcp);
+					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, coreLayout[c], corePersistor[c], SVMcp);
 					//-- 4. set parent classes
 					coreParms[c]=SVMcp; core[c]=SVMc;
 					break;
@@ -212,7 +206,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					SOMcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], SOMcp);
+					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, coreLayout[c], corePersistor[c], SOMcp);
 					//-- 4. set parent classes
 					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
@@ -221,7 +215,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					DUMBcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], DUMBcp);
+					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, coreLayout[c], corePersistor[c], DUMBcp);
 					//-- 4. set parent classes
 					coreParms[c]=DUMBcp; core[c]=DUMBc;
 					break;
