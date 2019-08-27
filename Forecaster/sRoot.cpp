@@ -10,11 +10,11 @@ sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname
 sRoot::~sRoot() {}
 
 //-- core stuff
-void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsBatchSize_, bool dsDoDump_, char* dsDumpPath_, bool loadEngine_){
+void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsSampleLen_, int dsTargetLen_, int dsBatchSize_, bool dsDoDump_, char* dsDumpPath_, bool loadEngine_){
 	info("eng_->WNNdecompLevel=%d", eng_->WNNdecompLevel);
 	info("engine->type=%d", eng_->type);
 	(*ds_)=(sDS**)malloc((eng_->WNNdecompLevel+2)*sizeof(sDS*));
-	safespawn((*ds_)[0], newsname("dataSet_Base"), defaultdbg, ts_, 0, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
+	safespawn((*ds_)[0], newsname("dataSet_Base"), defaultdbg, ts_, 0, dsSampleLen_, dsTargetLen_, dsBatchSize_, dsDoDump_, dsDumpPath_);
 
 	//-- update TRmin/max in (*ds_) , if inferring from a loaded engine
 	if (loadEngine_) {
@@ -89,7 +89,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", _trainSampleLen, _trainTargetLen, trainTS->featuresCnt, pid);
 
 		//-- prepare datasets
-		sDS** trainDS; datasetPrepare(trainTS, engine, &trainDS, _trainBatchSize, _doDump, _dumpPath, false);
+		sDS** trainDS; datasetPrepare(trainTS, engine, &trainDS, _trainSampleLen, _trainTargetLen, _trainBatchSize, _doDump, _dumpPath, false);
 
 		//-- training cycle core
 		timer->start();
@@ -152,7 +152,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safespawn(engine, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid_);
 		
 		//-- prepare datasets
-		sDS** inferDS; datasetPrepare(inferTS, engine, &inferDS, _inferBatchSize, _doDump, _dumpPath, true);
+		sDS** inferDS; datasetPrepare(inferTS, engine, &inferDS, _inferSampleLen, _inferTargetLen, _inferBatchSize, _doDump, _dumpPath, true);
 
 		//-- core infer cycle
 		timer->start();
@@ -342,7 +342,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	fclose(f);
 	//--
 	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->targetLen, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
-	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, 1, MT4doDump,(char*)nullptr, true);
+	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, 1, MT4doDump,(char*)nullptr, true);
 	//--
 	safecall(MT4engine, infer, MT4accountId, mtDS, mtTS, MT4enginePid);
 
