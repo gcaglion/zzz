@@ -234,7 +234,7 @@ DWORD coreThreadTrain(LPVOID vargs_) {
 	try {
 		//args->core->Alg->createGPUContext();
 		args->core->train(args->coreProcArgs);
-		args->core->infer(args->coreProcArgs);
+		if(!args->core->procArgs->quitAfterBreak) args->core->infer(args->coreProcArgs);
 		//args->core->Alg->destroyGPUContext();
 	} catch (...) {
 		args->coreProcArgs->excp=current_exception();
@@ -357,14 +357,16 @@ void sEngine::train(int testid_, sDS** trainDS_) {
 	//-- set trmin/max from input
 
 	//-- save training engine, cores, MSE, core images
-	safecall(this, saveInfo);
-	for (int c=0; c<coresCnt; c++) {
-		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->duration, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
-		safecall(core[c]->persistor, save, persistor, core[c]->procArgs->pid, core[c]->procArgs->tid);
-		if (core[c]->persistor->saveImageFlag) safecall(core[c], saveImage, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt-1);
-		free(core[c]->procArgs->mseT);
-		free(core[c]->procArgs->mseV);
-		free(core[c]->procArgs->duration);
+	if (!core[0]->procArgs->quitAfterBreak) {
+		safecall(this, saveInfo);
+		for (int c=0; c<coresCnt; c++) {
+			if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->duration, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
+			safecall(core[c]->persistor, save, persistor, core[c]->procArgs->pid, core[c]->procArgs->tid);
+			if (core[c]->persistor->saveImageFlag) safecall(core[c], saveImage, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt-1);
+			free(core[c]->procArgs->mseT);
+			free(core[c]->procArgs->mseV);
+			free(core[c]->procArgs->duration);
+		}
 	}
 	
 }

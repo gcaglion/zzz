@@ -438,11 +438,19 @@ void sNN::mallocLayout() {
 	safecall(this, mallocNeurons);
 	safecall(this, initNeurons);
 }
+
+volatile bool trainingBreakRequested;
+
+BOOL WINAPI breakTraining(DWORD signal) {
+	trainingBreakRequested=true;
+	return true;
+}
+
 void sNN::train(sCoreProcArgs* trainArgs) {
 	int l;
 	DWORD epoch_starttime;
 	DWORD training_starttime=timeGetTime();
-	int epoch, b;
+	int b;
 	bool hasInverted=false, hasDiverged=false, hasMinimized=false;
 
 	//-- extract training arguments from trainArgs into local variables
@@ -478,6 +486,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	//-- pre-load the whole dataset (samples+targets) on GPU !
 	safecall(this, loadWholeDataSet);
 
+
 	//-- 1. for every epoch, train all batches with one Forward pass ( loadSamples(b)+FF()+calcErr() ), and one Backward pass (BP + calcdW + W update)
 	if (parms->BP_Algo==BP_SCGD) {
 
@@ -485,7 +494,21 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 		trainArgs->mseCnt=trainSCGD(trainArgs);
 
 	} else {
+
+		if (!SetConsoleCtrlHandler(breakTraining, TRUE)) {
+			printf("\nERROR: Could not set control handler");
+			return;
+		}
+		trainingBreakRequested=false;
+
 		for (epoch=0; epoch<parms->MaxEpochs; epoch++) {
+
+			if (trainingBreakRequested) {
+				printf("\nQuit after break?"); 
+				int c=getchar();
+				procArgs->quitAfterBreak=(c=='y'||c=='Y');
+				break;
+			}
 
 			//-- timing
 			epoch_starttime=timeGetTime();

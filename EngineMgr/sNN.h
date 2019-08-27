@@ -25,6 +25,8 @@ struct sNN : sCore {
 
 private:
 
+	int epoch;
+
 	//-- NNParms
 	sNNparms* parms;
 	int pid, tid, testid;	//-- these are set from either procArgs or runArgs

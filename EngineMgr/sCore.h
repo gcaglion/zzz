@@ -30,6 +30,7 @@ struct sCoreProcArgs {
 	int ntid;
 	numtype mseR;
 	bool loadImage;
+	bool quitAfterBreak;
 };
 
 struct sCore : sCfgObj {

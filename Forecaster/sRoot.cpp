@@ -97,6 +97,9 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- do training (also populates datasets)
 		safecall(engine, train, simulationId_, trainDS);
 
+		//-- check if break with no save was requested
+		if (engine->core[0]->procArgs->quitAfterBreak) return;
+
 		//-- do infer on training data, without reloading engine
 		safecall(engine, infer, simulationId_, trainDS, trainTS, 0);
 
