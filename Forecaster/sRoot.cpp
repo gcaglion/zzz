@@ -110,7 +110,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(clientLog, saveClientInfo, pid, simulationId_, pid, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0], "", "", true, false, clientffname, "", trainffname, engineffname);
 		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
-		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, trainCfg);
+		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 1, trainCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 3, engCfg);
 		//-- Commit clientpersistor data
 		safecall(clientLog, commit);
