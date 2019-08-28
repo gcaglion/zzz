@@ -14,6 +14,10 @@ void sDS::mallocs1() {
 	scaleP=(numtype*)malloc(featuresCnt*sizeof(numtype));
 }
 void sDS::buildFromTS(sTS* ts_, int WNNsrc_) {
+	
+	//-- check that ts historyLen is greater than ds sampleLen
+	if (!(ts_->stepsCnt>(sampleLen+targetLen))) fail("not enough history in timeserie (%d) to build one sample/target (%d/%d)", ts_->stepsCnt, sampleLen, targetLen);
+
 	//-- build samples/targets
 	int dsidxS=0, tsidxS=0, dsidxT=0, tsidxT=0;
 	for (int sample=0; sample<samplesCnt; sample++) {
@@ -53,7 +57,7 @@ sDS::sDS(sObjParmsDef, sTS* fromTS_, int WNNsrc_, int sampleLen_, int targetLen_
 
 	mallocs1();
 
-	buildFromTS(fromTS_, WNNsrc_);
+	safecall(this, buildFromTS, fromTS_, WNNsrc_);
 
 	//-- dump
 	if (doDump) dump();
@@ -78,7 +82,7 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	mallocs1();
 
-	buildFromTS(_ts, 0);
+	safecall(this, buildFromTS, _ts, 0);
 
 	//-- dump
 	if (doDump) dump();

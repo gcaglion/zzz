@@ -15,14 +15,14 @@
 				UseBias				= true
 			</Topology>
 			<Training>
-				MaxEpochs			= 1000
+				MaxEpochs			= 50
 				TargetMSE			= 0.0001
 				NetSaveFrequency	= 10
 				StopOnDivergence	= false
 				StopOnInversion		= true
 				BP_Algo				= BP_STD
 				<BP_Std>
-					LearningRate		= 0.001
+					LearningRate		= 0.01
 					LearningMomentum	= 0.8
 				</BP_Std>
 			</Training>

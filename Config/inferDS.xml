@@ -1,6 +1,6 @@
-	SampleLen	= 20
+	SampleLen	= 100
 	TargetLen	= 3
-	BatchSize	= 20
+	BatchSize	= 1
 	
 	Dump		= false
 	DumpPath	= c:\temp\DataDump
