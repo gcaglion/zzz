@@ -23,8 +23,8 @@ struct sRoot : sCfgObj {
 	EXPORT sRoot(NativeReportProgress* progressReporter);
 	EXPORT ~sRoot();
 
-	EXPORT void trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr);
-	EXPORT void inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr);
+	EXPORT void trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr, int overridesCnt_=0, char** overridePname_=nullptr, char** overridePcnt=nullptr);
+	EXPORT void inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr, int overridesCnt_=0, char** overridePname_=nullptr, char** overridePcnt=nullptr);
 	
 	//-- MT4 stuff
 	int MT4clientPid;

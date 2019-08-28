@@ -54,7 +54,7 @@ void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsSampleLen_
 	for(int d=0; d<(eng_->WNNdecompLevel+2); d++) safecall((*ds_)[d], scale, eng_->coreParms[d]->scaleMin[0], eng_->coreParms[d]->scaleMax[0]);
 
 }
-void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr) {
+void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr, int overridesCnt_, char** overridePname_, char** overridePval) {
 
 	try {
 		//-- 0. set full file name for each of the input files
@@ -63,9 +63,9 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		getFullPath(engineXMLfile_, engineffname);
 
 		//-- 1. load separate sCfg* for client, trainDataset, Engine
-		safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
-		safespawn(trainCfg, newsname("trainCfg"), defaultdbg, trainffname);
-		safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineffname);
+		safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname, 0, overridesCnt_, overridePname_, overridePval);
+		safespawn(trainCfg, newsname("trainCfg"), defaultdbg, trainffname, 0, overridesCnt_, overridePname_, overridePval);
+		safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineffname, 0, overridesCnt_, overridePname_, overridePval);
 
 		//-- 5. create client persistor, if needed
 		bool saveClient;
@@ -122,7 +122,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 
 
 }
-void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr) {
+void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr, int overridesCnt_, char** overridePname_, char** overridePval) {
 
 	try {
 		//-- 0. set full file name for each of the input files
