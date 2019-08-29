@@ -175,6 +175,11 @@ EXPORT int  instr(char soughtChar, const char* intoStr, bool fromRight) {
 	}
 	return -1;
 }
+EXPORT void replace(char* str, char origc, char newc) {
+	for (int c=0; c<strlen(str); c++) {
+		if (str[c]==origc) str[c]=newc;
+	}
+}
 EXPORT int argcnt(const char* mask) {
 	int cnt=0;
 	for (int i=0; i<strlen(mask); i++) {

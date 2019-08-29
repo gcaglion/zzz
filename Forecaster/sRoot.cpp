@@ -54,7 +54,7 @@ void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsSampleLen_
 	for(int d=0; d<(eng_->WNNdecompLevel+2); d++) safecall((*ds_)[d], scale, eng_->coreParms[d]->scaleMin[0], eng_->coreParms[d]->scaleMax[0]);
 
 }
-void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr, int overridesCnt_, char** overridePname_, char** overridePval) {
+void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr, int overridesCnt_, char** overridePname_, char** overridePval_) {
 
 	try {
 		//-- 0. set full file name for each of the input files
@@ -63,9 +63,20 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		getFullPath(engineXMLfile_, engineffname);
 
 		//-- 1. load separate sCfg* for client, trainDataset, Engine
-		safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname, 0, overridesCnt_, overridePname_, overridePval);
-		safespawn(trainCfg, newsname("trainCfg"), defaultdbg, trainffname, 0, overridesCnt_, overridePname_, overridePval);
-		safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineffname, 0, overridesCnt_, overridePname_, overridePval);
+		safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname, 0, overridesCnt_, overridePname_, overridePval_);
+		safespawn(trainCfg, newsname("trainCfg"), defaultdbg, trainffname, 0, overridesCnt_, overridePname_, overridePval_);
+		safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineffname, 0, overridesCnt_, overridePname_, overridePval_);
+
+		for (int o=0; o<overridesCnt_; o++) {
+			replace(overridePname_[o], '.', '/');
+			if (overridePname_[o][0]=='c'&&overridePname_[o][1]=='l'&&overridePname_[o][2]=='i') {}
+			if (overridePname_[o][0]=='d'&&overridePname_[o][1]=='s') {
+				trainCfg->rootKey->setParm(&overridePname_[o][3], overridePval_[o]);
+			}
+			if (overridePname_[o][0]=='e'&&overridePname_[o][1]=='n'&&overridePname_[o][2]=='g') {
+				engCfg->rootKey->setParm(&overridePname_[o][4], overridePval_[o]);
+			}
+		}
 
 		//-- 5. create client persistor, if needed
 		bool saveClient;

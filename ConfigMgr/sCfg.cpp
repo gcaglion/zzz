@@ -14,7 +14,7 @@ sCfg::sCfg(sObjParmsDef, const char* cfgFileFullName_, int currDepth_, int overr
 	//-- create one cfgLine object for each line in file, including comments
 	linesCnt=0;
 	while (fgets(_line, XMLLINE_MAXLEN, cfgFile)!=NULL) {
-		safespawn(cfgLine[linesCnt], newsname("line_%d", linesCnt), dbg, _line, overridesCnt, overrideName, overrideValS);
+		safespawn(cfgLine[linesCnt], newsname("line_%d", linesCnt), dbg, _line);
 		linesCnt++;
 
 		//-- include another xml as subCfg[subCfgCnt]	

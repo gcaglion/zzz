@@ -17,6 +17,8 @@ struct sCfgKey : sObj {
 	sCfgKey(sObjParmsDef, int linesCnt_, sCfgLine** cfgLine_, int startLine_);
 	~sCfgKey();
 
+	EXPORT void setParm(const char* parmDesc_, const char* parmValS_);
+
 	template<typename T> EXPORT void getParm(T* pvar, const char* parmDesc, bool ignoreError=false, int* oValsCnt_=nullptr) {
 		sObj* parmObj=nullptr;
 

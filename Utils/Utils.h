@@ -21,6 +21,7 @@ EXPORT char* substr(char* str, int start, int len);
 EXPORT char* right(char* str, int len);
 EXPORT char* left(char* str, int len);
 EXPORT int  instr(char soughtChar, const char* intoStr, bool fromRight);
+EXPORT void replace(char* str, char origc, char newc);
 EXPORT int argcnt(const char* mask);
 //EXPORT void UpperCase(const char* istr, char* ostr);
 EXPORT void removeQuotes(char* istr, char* ostr);
