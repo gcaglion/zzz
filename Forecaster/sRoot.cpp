@@ -67,6 +67,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safespawn(trainCfg, newsname("trainCfg"), defaultdbg, trainffname, 0, overridesCnt_, overridePname_, overridePval_);
 		safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineffname, 0, overridesCnt_, overridePname_, overridePval_);
 
+		//-- 1.1. override parameters from command line
 		for (int o=0; o<overridesCnt_; o++) {
 			replace(overridePname_[o], '.', '/');
 			if (overridePname_[o][0]=='c'&&overridePname_[o][1]=='l'&&overridePname_[o][2]=='i') {}
@@ -97,7 +98,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		sTS* trainTS; safespawn(trainTS, newsname("trainTimeSerie"), defaultdbg, trainCfg, "/TimeSerie");
 
 		//-- 4. spawn engine the standard way
-		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/Engine", _trainSampleLen, _trainTargetLen, trainTS->featuresCnt, pid);
+		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/", _trainSampleLen, _trainTargetLen, trainTS->featuresCnt, pid);
 
 		//-- prepare datasets
 		sDS** trainDS; datasetPrepare(trainTS, engine, &trainDS, _trainSampleLen, _trainTargetLen, _trainBatchSize, _doDump, _dumpPath, false);
@@ -133,7 +134,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 
 
 }
-void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr, int overridesCnt_, char** overridePname_, char** overridePval) {
+void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr, int overridesCnt_, char** overridePname_, char** overridePval_) {
 
 	try {
 		//-- 0. set full file name for each of the input files
@@ -143,6 +144,15 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		//-- 1. load separate sCfg* for client, inferDataset, Engine
 		safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
 		safespawn(inferCfg, newsname("inferCfg"), defaultdbg, inferffname);
+
+		//-- 1.1. override parameters from command line
+		for (int o=0; o<overridesCnt_; o++) {
+			replace(overridePname_[o], '.', '/');
+			if (overridePname_[o][0]=='c'&&overridePname_[o][1]=='l'&&overridePname_[o][2]=='i') {}
+			if (overridePname_[o][0]=='d'&&overridePname_[o][1]=='s') {
+				inferCfg->rootKey->setParm(&overridePname_[o][3], overridePval_[o]);
+			}
+		}
 
 		//-- 5.1 create client persistor, if needed
 		bool saveClient;
