@@ -610,20 +610,8 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 
 	//-- timing
 	inferStartTime=timeGetTime();
-
-	Alg->Vinit(1, tse, 0, 0);
-	for (int b=0; b<procArgs->batchCnt; b++) {
-		safecallSilent(this, loadBatchData, inferArgs->ds, b);
-		safecallSilent(this, FF);
-		safecallSilent(this, FF);
-		safecallSilent(this, FF);
-		safecallSilent(this, FF);
-		safecallSilent(this, FF);
-		safecallSilent(this, FF);
-		safecallSilent(this, Ecalc);
-		Alg->d2h(&inferArgs->ds->predictionBFS[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
-	}
-	Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
+	
+	Alg->Vinit(1, tse, 0, 0); for (int b=0; b<procArgs->batchCnt; b++) safecallSilent(this, ForwardPass, inferArgs->ds, b, true); Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
 	procArgs->mseR=tse_h/nodesCnt[outputLevel]/procArgs->batchCnt;
 
 	//-- 0.4. convert samples and targets back from BFS to SBF in inference dataset
