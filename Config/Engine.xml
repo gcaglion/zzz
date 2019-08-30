@@ -8,7 +8,7 @@
 		</Layout>
 		<Parameters>
 			<Topology>
-				LevelRatio			= 2
+				LevelRatio			= 1
 				LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
 				UseContext			= true
 				UseBias				= true

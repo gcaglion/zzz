@@ -7,7 +7,6 @@ void sNN::sNNcommon(sNNparms* NNparms_) {
 	//-- set Common Layout, independent by batchSampleCnt.
 	setCommonLayout();
 	//-- weights can be set now, as they are not affected by batchSampleCnt
-	createWeights();
 }
 sNN::sNN(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sObjParmsVal, nullptr, "", layout_, persistor_) {
 	sNNcommon(NNparms_);
@@ -36,11 +35,11 @@ void sNN::setCommonLayout() {
 
 void sNN::FF() {
 	for (int l=0; l<outputLevel; l++) {
-		int Ay=nodesCnt[l+1]/procArgs->batchSize;
-		int Ax=nodesCnt[l]/procArgs->batchSize;
+		int Ay=nodesCnt[l+1];
+		int Ax=nodesCnt[l];
 		numtype* A=&W[levelFirstWeight[l]];
-		int By=nodesCnt[l]/procArgs->batchSize;
-		int Bx=procArgs->batchSize;
+		int By=nodesCnt[l];
+		int Bx=1;
 		numtype* B=&F[levelFirstNode[l]];
 		numtype* C=&a[levelFirstNode[l+1]];
 
@@ -114,12 +113,12 @@ void sNN::dEcalc() {
 			Alg->VbyV2V(nodesCnt[l], e, &dF[levelFirstNode[l]], &edF[levelFirstNode[l]]);	// edF(l) = e * dF(l)
 		} else {
 			//-- lower levels
-			Ay=nodesCnt[l+1]/procArgs->batchSize;
-			Ax=nodesCnt[l]/procArgs->batchSize;
+			Ay=nodesCnt[l+1];
+			Ax=nodesCnt[l];
 			Astart=levelFirstWeight[l];
 			A=&W[Astart];
-			By=nodesCnt[l+1]/procArgs->batchSize;
-			Bx=procArgs->batchSize;
+			By=nodesCnt[l+1];
+			Bx=1;
 			Bstart=levelFirstNode[l+1];
 			B=&edF[Bstart];
 			Cy=Ax;	// because A gets transposed
@@ -132,12 +131,12 @@ void sNN::dEcalc() {
 		}
 
 		//-- common	
-		Ay=nodesCnt[l]/procArgs->batchSize;
-		Ax=procArgs->batchSize;
+		Ay=nodesCnt[l];
+		Ax=1;
 		Astart=levelFirstNode[l];
 		A=&edF[Astart];
-		By=nodesCnt[l-1]/procArgs->batchSize;
-		Bx=procArgs->batchSize;
+		By=nodesCnt[l-1];
+		Bx=1;
 		Bstart=levelFirstNode[l-1];
 		B=&F[Bstart];
 		Cy=Ay;
@@ -258,8 +257,6 @@ void sNN::destroyNeurons() {
 	Alg->myFree(tse);
 }
 void sNN::createWeights() {
-	//-- need to set weightsCntTotal, which will not be affected by batchSampleCnt
-	setLayout(1);
 	//-- malloc weights (on either CPU or GPU)
 	Alg->myMalloc(&W, weightsCntTotal);
 	Alg->myMalloc(&prevW, weightsCntTotal);
@@ -409,7 +406,7 @@ void sNN::setLayout(int batchSamplesCnt_) {
 	//-- 0.3. weights count
 	weightsCntTotal=0;
 	for (l=0; l<(outputLevel); l++) {
-		weightsCnt[l]=nodesCnt[l]/batchSamplesCnt_*nodesCnt[l+1]/batchSamplesCnt_;
+		weightsCnt[l]=nodesCnt[l]*nodesCnt[l+1];
 		weightsCntTotal+=weightsCnt[l];
 	}
 
@@ -464,6 +461,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	//-- 0. malloc + init neurons
 	mallocNeurons();
 	initNeurons();
+	createWeights();
 
 	//-- malloc mse[maxepochs], always host-side. We need to free them, first (see issue when running without training...)
 	trainArgs->duration=(int*)malloc(parms->MaxEpochs*sizeof(int));
@@ -595,8 +593,11 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	//-- 0. malloc + init neurons
 	mallocNeurons();
 
-	if (inferArgs->loadImage) safecall( this, loadImage, inferArgs->npid, inferArgs->ntid, -1);
-	
+	if (inferArgs->loadImage) {
+		createWeights();
+		safecall(this, loadImage, inferArgs->npid, inferArgs->ntid, -1);
+	}
+
 	//--- init bias neurons
 	if (parms->useBias) resetBias();
 
