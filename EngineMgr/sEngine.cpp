@@ -24,7 +24,7 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	DSfftMin=(numtype**)malloc(MAX_WAVELET_LEVELS*sizeof(numtype*)); for (int l=0; l<MAX_WAVELET_LEVELS; l++) DSfftMin[l]=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
 	DSfftMax=(numtype**)malloc(MAX_WAVELET_LEVELS*sizeof(numtype*)); for (int l=0; l<MAX_WAVELET_LEVELS; l++) DSfftMax[l]=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
 	//-- 3. load info from FROM persistor
-	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &sampleLen, &targetLen, &featuresCnt, &WNNdecompLevel, &WNNwaveletType, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, DStrMin, DStrMax, DSfftMin, DSfftMax);
+	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &sampleLen, &targetLen, &featuresCnt, &batchSize, &WNNdecompLevel, &WNNwaveletType, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, DStrMin, DStrMax, DSfftMin, DSfftMax);
 	//-- 2. malloc one core, one coreLayout, one coreParms and one corePersistor for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
@@ -55,9 +55,9 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	}
 	free(coreParent); free(coreParentConnType); free(coreParentsCnt); free(coreType); free(coreThreadId); free(coreId);
 }
-sEngine::sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int clientPid_) : sCfgObj(sCfgObjParmsVal) {
+sEngine::sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int batchSize_, int clientPid_) : sCfgObj(sCfgObjParmsVal) {
 
-	sampleLen=sampleLen_; targetLen=targetLen_; featuresCnt=featuresCnt_;
+	sampleLen=sampleLen_; targetLen=targetLen_; featuresCnt=featuresCnt_; batchSize=batchSize_;
 	forecast=(numtype*)malloc(targetLen*featuresCnt*sizeof(numtype));
 
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
@@ -376,6 +376,7 @@ void sEngine::infer(int testid_, sDS** inferDS_, sTS* inferTS_, int savedEngineP
 	if (inferDS_[0]->sampleLen!=sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS_[0]->sampleLen, sampleLen);
 	if (inferDS_[0]->targetLen!=targetLen) fail("Infer DataSet Prediction Length (%d) differs from Engine's (%d)", inferDS_[0]->targetLen, targetLen);
 	if (inferDS_[0]->featuresCnt!=featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_[0]->featuresCnt, featuresCnt);
+	if (inferDS_[0]->batchSize!=batchSize) fail("Infer DataSet Batch Size (%d) differs from Engine's (%d)", inferDS_[0]->batchSize, batchSize);
 
 	//-- call infer
 	safecall(this, process, inferProc, testid_, inferDS_, savedEnginePid_);
@@ -469,7 +470,7 @@ void sEngine::saveInfo() {
 
 	safecall(persistor, saveEngineInfo, \
 		clientPid, type, coresCnt, \
-		sampleLen, targetLen, featuresCnt, \
+		sampleLen, targetLen, featuresCnt, batchSize, \
 		WNNdecompLevel, WNNwaveletType, \
 		persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
 		coreId_, coreLayer_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_, \

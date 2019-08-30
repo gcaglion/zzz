@@ -84,6 +84,7 @@ create table Engines(
 	DataSampleLen number,
 	DataPredictionLen number,
 	DataFeaturesCnt number,
+	DataBatchSize number,
 	-- WNN info
 	WNNdecompLevel number,
 	WNNwaveletType number,

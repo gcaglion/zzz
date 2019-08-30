@@ -98,7 +98,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		sTS* trainTS; safespawn(trainTS, newsname("trainTimeSerie"), defaultdbg, trainCfg, "/TimeSerie");
 
 		//-- 4. spawn engine the standard way
-		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/", _trainSampleLen, _trainTargetLen, trainTS->featuresCnt, pid);
+		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/", _trainSampleLen, _trainTargetLen, trainTS->featuresCnt, _trainBatchSize, pid);
 
 		//-- prepare datasets
 		sDS** trainDS; datasetPrepare(trainTS, engine, &trainDS, _trainSampleLen, _trainTargetLen, _trainBatchSize, _doDump, _dumpPath, false);
@@ -435,7 +435,7 @@ void sRoot::MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeatur
 
 	//-- spawn engine from savedEnginePid_ with pid
 	safespawn(MT4engine, newsname("Engine"), defaultdbg, MT4clientLog, MT4clientPid, MT4enginePid);
-	
+
 	(*oSampleLen_)=MT4engine->sampleLen;
 	(*oPredictionLen_)=MT4engine->targetLen;
 	(*oFeaturesCnt_)=MT4engine->featuresCnt;

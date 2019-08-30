@@ -30,6 +30,7 @@ struct sEngine : sCfgObj {
 	int sampleLen;
 	int targetLen;
 	int featuresCnt;
+	int batchSize;
 
 	sCore** core;
 	sCoreLayout** coreLayout;
@@ -40,7 +41,7 @@ struct sEngine : sCfgObj {
 	numtype* forecast;
 
 	EXPORT sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_);
-	EXPORT sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int clientPid_);
+	EXPORT sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int batchSize_, int clientPid_);
 	EXPORT ~sEngine();
 
 	EXPORT void train(int testid_, sDS** trainDS_);
