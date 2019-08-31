@@ -31,7 +31,7 @@ struct sDbg {
 	char msg[DBG_MSG_MAXLEN];
 	char stack[DBG_STACK_MAXLEN];
 
-	EXPORT sDbg(bool verbose_=false, bool timing_=false, bool dbgtoscreen_=true, bool dbgtofile_=false, char* outfilepath_="C:/temp/logs");
+	EXPORT sDbg(bool verbose_=true, bool timing_=false, bool dbgtoscreen_=true, bool dbgtofile_=true, char* outfilepath_="C:/temp/logs");
 	EXPORT ~sDbg();	
 	EXPORT void createOutFile(char* objName, void* objAddr, int objDepth);
 	//-- local copy of stripChar(), to avoid linkng Utils.lib to all modules that use sDbg

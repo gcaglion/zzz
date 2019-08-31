@@ -16,7 +16,7 @@ void sDS::mallocs1() {
 void sDS::buildFromTS(sTS* ts_, int WNNsrc_) {
 	
 	//-- check that ts historyLen is greater than ds sampleLen
-	if (!(ts_->stepsCnt>(sampleLen+targetLen))) fail("not enough history in timeserie (%d) to build one sample/target (%d/%d)", ts_->stepsCnt, sampleLen, targetLen);
+	if (!(ts_->stepsCnt>=(sampleLen+targetLen))) fail("not enough history in timeserie (%d) to build one sample/target (%d/%d)", ts_->stepsCnt, sampleLen, targetLen);
 
 	//-- build samples/targets
 	int dsidxS=0, tsidxS=0, dsidxT=0, tsidxT=0;
