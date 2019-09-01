@@ -307,11 +307,11 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 		selFcntTot+=selFcnt[serie];
 	}
 
-	numtype* oBar=(numtype*)malloc((MT4engine->sampleLen+MT4engine->targetLen)*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
+	numtype* oBar=(numtype*)malloc((MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1)*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
 	long oBarTime;
-	char** oBarTimeS=(char**)malloc((MT4engine->sampleLen+MT4engine->targetLen)*sizeof(char*)); for (int b=0; b<(MT4engine->sampleLen+MT4engine->targetLen); b++) oBarTimeS[b]=(char*)malloc(DATE_FORMAT_LEN);
+	char** oBarTimeS=(char**)malloc((MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1)*sizeof(char*)); for (int b=0; b<(MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1); b++) oBarTimeS[b]=(char*)malloc(DATE_FORMAT_LEN);
 	int fi=0;
-	for (int b=0; b<MT4engine->sampleLen; b++) {
+	for (int b=0; b<(MT4engine->sampleLen+MT4engine->batchSize-1); b++) {
 		for (int s=0; s<seriesCnt_; s++) {
 			oBarTime=iBarT[s*MT4engine->sampleLen+b];
 			MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarTimeS[b]);
@@ -327,7 +327,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	}
 	//--
 	for (int b=0; b<MT4engine->targetLen; b++) {
-		strcpy_s(oBarTimeS[MT4engine->sampleLen+b], DATE_FORMAT_LEN, "9999-99-99-99:99");
+		strcpy_s(oBarTimeS[MT4engine->sampleLen+b+MT4engine->batchSize-1], DATE_FORMAT_LEN, "9999-99-99-99:99");
 		for (int f=0; f<selFcntTot; f++) {
 			oBar[fi]=EMPTY_VALUE;
 			fi++;
@@ -350,7 +350,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 		}
 	}
 
-	FILE* f;
+	/*FILE* f;
 	fopen_s(&f, "C:/temp/DataDump/oBar.csv", "w");
 	for (int fi=0; fi<selFcntTot; fi++) fprintf(f, "%f,", oBarB[fi]);
 	fprintf(f, ",%s\n", oBarBTimeS);
@@ -363,11 +363,12 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 			bi++;
 		}
 	}
-	fclose(f);
+	fclose(f);*/
 	//--
-	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->targetLen, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
-	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, 1, MT4doDump,(char*)nullptr, true);
+	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
+	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump,(char*)nullptr, true);
 	//--
+	
 	safecall(MT4engine, infer, MT4accountId, mtDS, mtTS, MT4enginePid);
 
 	for (int b=0; b<MT4engine->targetLen; b++) {
@@ -428,7 +429,7 @@ void sRoot::setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int 
 	srand((unsigned int)time(NULL));
 	MT4sessionId=MyRndInt(1, 1000000); info("MT4sessionId=%d", MT4sessionId);
 }
-void sRoot::MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeaturesCnt_) {
+void sRoot::MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeaturesCnt_, int* oBatchSize) {
 
 	//-- check for possible duplicate pid in db (through client persistor), and change it
 	safecall(this, getSafePid, MT4clientLog, &MT4clientPid);
@@ -439,7 +440,8 @@ void sRoot::MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeatur
 	(*oSampleLen_)=MT4engine->sampleLen;
 	(*oPredictionLen_)=MT4engine->targetLen;
 	(*oFeaturesCnt_)=MT4engine->featuresCnt;
-	info("Engine spawned from DB. sampleLen=%d ; targetLen=%d ; featuresCnt=%d", MT4engine->sampleLen, MT4engine->targetLen, MT4engine->featuresCnt);
+	(*oBatchSize)=MT4engine->batchSize;
+	info("Engine spawned from DB. sampleLen=%d ; targetLen=%d ; featuresCnt=%d ; batchSize=%d", MT4engine->sampleLen, MT4engine->targetLen, MT4engine->featuresCnt, MT4engine->batchSize);
 	info("Environment initialized and Engine created for Account Number %d inferring from Engine pid %d using config from %s", MT4accountId, MT4enginePid, MT4clientXMLFile);
 }
 void sRoot::MT4commit(){
@@ -453,13 +455,13 @@ void sRoot::MT4commit(){
 	}
 }
 //--
-extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLFile_, int savedEnginePid_, int dt_, bool doDump_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_, int* oFeaturesCnt_) {
+extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLFile_, int savedEnginePid_, int dt_, bool doDump_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_, int* oFeaturesCnt_, int* oBatchSize_) {
 	static sRoot* root;
 	try {
 		root=new sRoot(nullptr);
 		sprintf_s(oEnvS, 64, "%p", root);
 		root->setMT4env(GetCurrentProcessId(), accountId_, clientXMLFile_, savedEnginePid_, dt_, doDump_);
-		root->MT4createEngine(oSampleLen_, oPredictionLen_, oFeaturesCnt_);
+		root->MT4createEngine(oSampleLen_, oPredictionLen_, oFeaturesCnt_, oBatchSize_);
 	}
 	catch (std::exception exc) {
 		terminate(false, "Exception thrown by root. See stack.");

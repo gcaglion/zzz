@@ -43,7 +43,7 @@ struct sRoot : sCfgObj {
 	EXPORT void setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int savedEnginePid_, int dt_, bool doDump_);
 	EXPORT void saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int TPhit, int SLhit);
 	EXPORT void saveClientInfo(double iPositionOpenTime);
-	EXPORT void MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeaturesCnt_);
+	EXPORT void MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeaturesCnt_, int* oBatchSize);
 	EXPORT void MT4commit();
 
 	//-- temp stuff

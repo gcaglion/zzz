@@ -9,7 +9,7 @@
 
 #import "Forecaster.dll"
 //--
-int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, int dt_, bool doDump_, uchar& oEnv[], int& oSampleLen_, int &oPredictionLen_, int &oFeaturesCnt_);
+int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, int dt_, bool doDump_, uchar& oEnv[], int& oSampleLen_, int &oPredictionLen_, int &oFeaturesCnt_, int &oBatchSize_);
 int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[], bool& oChartTrade[]);
 int _getForecast(uchar& iEnv[], int seriesCnt_, int dt_, int& featMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 //--
@@ -20,7 +20,7 @@ int _destroyEnv(uchar& iEnv[]);
 #import
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 12888;
+input int EnginePid				= 13172;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 input int DataTransformation	= 1;
 input bool DumpData				= true;
@@ -47,6 +47,7 @@ int seriesCnt;
 int historyLen;
 int predictionLen;
 int featuresCnt;
+int batchSize;
 int featuresCntFromCfg;
 string serieSymbol[MT_MAX_SERIES_CNT];
 string serieTimeFrame[MT_MAX_SERIES_CNT];
@@ -87,12 +88,12 @@ int OnInit() {
 
 	//--
 	printf("Creating Environment from saved engine (pid=%d) ...", vEnginePid);
-	if (_createEnv(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vDataTransformation, vDumpData, vEnvS, historyLen, predictionLen, featuresCnt)!=0) {
+	if (_createEnv(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vDataTransformation, vDumpData, vEnvS, historyLen, predictionLen, featuresCnt, batchSize)!=0) {
 		printf("FAILURE: _createEnv() failed. see Forecaster logs.");
 		return -1;
 	}
 	EnvS=CharArrayToString(vEnvS);
-	printf("EnginePid=%d ; SampleLen/PredictionLen/FeaturesCnt=%d/%d/%d ; EnvS=%s ; ClientXMLFile=%s", EnginePid, historyLen, predictionLen, featuresCnt, EnvS, ClientXMLFile);
+	printf("EnginePid=%d ; SampleLen/PredictionLen/FeaturesCnt/BatchSize=%d/%d/%d/%d ; EnvS=%s ; ClientXMLFile=%s", EnginePid, historyLen, predictionLen, featuresCnt, batchSize, EnvS, ClientXMLFile);
 
 	//--
 	printf("Getting TimeSeries Info from Client Config...");
@@ -140,13 +141,13 @@ int OnInit() {
 	ArrayResize(vcloseB, seriesCnt);
 	ArrayResize(vvolumeB, seriesCnt);
 	//--
-	ArrayResize(vtime, historyLen*seriesCnt);
-	ArrayResize(vtimeS, historyLen*seriesCnt);
-	ArrayResize(vopen, historyLen*seriesCnt);
-	ArrayResize(vhigh, historyLen*seriesCnt);
-	ArrayResize(vlow, historyLen*seriesCnt);
-	ArrayResize(vclose, historyLen*seriesCnt);
-	ArrayResize(vvolume, historyLen*seriesCnt);
+	ArrayResize(vtime, (batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vtimeS, (batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vopen, (batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vhigh, (batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vlow, (batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vclose, (batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vvolume, (batchSize+historyLen-1)*seriesCnt);
 	//--
 	ArrayResize(vopenF, predictionLen*seriesCnt);
 	ArrayResize(vhighF, predictionLen*seriesCnt);
@@ -281,8 +282,8 @@ bool loadBars() {
 	ENUM_TIMEFRAMES tf;
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
-		int copied=CopyRates(serieSymbol[s], tf, 1, historyLen+2, serierates);	printf("copied[%d]=%d", s, copied);
-		if (copied!=(historyLen+2)) return false;
+		int copied=CopyRates(serieSymbol[s], tf, 1, (batchSize+historyLen-1)+2, serierates);	printf("copied[%d]=%d", s, copied);
+		if (copied!=((batchSize+historyLen-1)+2)) return false;
 		//-- base bar
 		vtimeB[s]=serierates[1].time;// +TimeGMTOffset();
 		StringConcatenate(vtimeSB[s], TimeToString(vtimeB[s], TIME_DATE), ".", TimeToString(vtimeB[s], TIME_MINUTES));
@@ -293,7 +294,7 @@ bool loadBars() {
 		vvolumeB[s]=serierates[1].real_volume;
 		//printf("serie=%d ; time=%s ; OHLCV=%f|%f|%f|%f|%f", s, vtimeSB[s], vopenB[s], vhighB[s], vlowB[s], vcloseB[s], vvolumeB[s]);
 		//-- [historyLen] bars
-		for (int bar=2; bar<(historyLen+2); bar++) {
+		for (int bar=2; bar<((batchSize+historyLen-1)+2); bar++) {
 			vtime[i]=serierates[bar].time;// +TimeGMTOffset();
 			StringConcatenate(vtimeS[i], TimeToString(vtime[i], TIME_DATE), ".", TimeToString(vtime[i], TIME_MINUTES));
 			vopen[i]=serierates[bar].open;
