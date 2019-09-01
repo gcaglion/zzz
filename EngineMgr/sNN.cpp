@@ -587,17 +587,6 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	tid=inferArgs->tid;
 	testid=inferArgs->testid;
 
-	//-- set Layout. This should not change weightsCnt[] at all, just nodesCnt[]
-	setLayout(procArgs->batchSize);
-
-	//-- 0. malloc + init neurons
-	mallocNeurons();
-
-	if (inferArgs->loadImage) {
-		createWeights();
-		safecall(this, loadImage, inferArgs->npid, inferArgs->ntid, -1);
-	}
-
 	//--- init bias neurons
 	if (parms->useBias) resetBias();
 
@@ -618,9 +607,6 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	//-- 0.4. convert samples and targets back from BFS to SBF in inference dataset
 	inferArgs->ds->setSBF(procArgs->batchCnt, procArgs->batchSize);
 
-	//-- feee neurons()
-	//destroyNeurons();
-
 }
 
 //-- local implementations of sCore virtual methods
@@ -639,6 +625,10 @@ void sNN::saveImage(int pid, int tid, int epoch) {
 	free(hF);
 }
 void sNN::loadImage(int pid, int tid, int epoch) {
+
+	setLayout(procArgs->batchSize);
+	mallocNeurons();
+	createWeights();
 
 	//-- malloc clocal copy of W
 	numtype* hW = (numtype*)malloc(weightsCntTotal*sizeof(numtype));
