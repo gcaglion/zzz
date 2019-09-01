@@ -10,6 +10,7 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
 	clientPid=clientPid_;
+	imageLoaded=false;
 
 	//-- 0. mallocs
 	int* coreId=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
@@ -62,6 +63,7 @@ sEngine::sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCn
 
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
 	clientPid=clientPid_;
+	imageLoaded=false;
 
 	//-- engine-level persistor
 	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
@@ -253,6 +255,16 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 	}
 	return 1;
 }
+DWORD coreThreadLoad(LPVOID vargs_) {
+	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
+	try {
+		args->core->loadImage(args->coreProcArgs->npid, args->coreProcArgs->ntid, -1);
+	}
+	catch (...) {
+		args->coreProcArgs->excp=current_exception();
+	}
+	return 1;
+}
 
 void sEngine::process(int procid_, int testid_, sDS** ds_, int savedEnginePid_) {
 
@@ -319,7 +331,10 @@ void sEngine::process(int procid_, int testid_, sDS** ds_, int savedEnginePid_) 
 					procArgs[c]->coreProcArgs->batchCnt = procArgs[c]->coreProcArgs->ds->samplesCnt/procArgs[c]->coreProcArgs->ds->batchSize;
 				}
 
-				if (procid_==trainProc) {
+				if (procid_==loadProc) {
+					procArgs[c]->coreProcArgs->ntid=coreLayout[c]->tid;
+					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadLoad, &(*procArgs[c]), 0, tid[t]);
+				}  else if (procid_==trainProc) {
 					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadTrain, &(*procArgs[c]), 0, tid[t]);
 					procArgs[c]->coreProcArgs->ntid=(*tid[t]);
 				} else {
@@ -378,8 +393,13 @@ void sEngine::infer(int testid_, sDS** inferDS_, sTS* inferTS_, int savedEngineP
 	if (inferDS_[0]->featuresCnt!=featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_[0]->featuresCnt, featuresCnt);
 	if (inferDS_[0]->batchSize!=batchSize) fail("Infer DataSet Batch Size (%d) differs from Engine's (%d)", inferDS_[0]->batchSize, batchSize);
 
-	//-- call infer
+	if (!imageLoaded) {
+		safecall(this, process, loadProc, testid_, inferDS_, savedEnginePid_);
+		imageLoaded=true;
+	}
+	
 	safecall(this, process, inferProc, testid_, inferDS_, savedEnginePid_);
+	//-- call infer
 
 	//-- get predicted/target sequences (TR) for all cores, and saveRun
 	sDS* _ds;
