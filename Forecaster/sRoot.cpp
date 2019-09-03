@@ -309,7 +309,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 
 	numtype* oBar=(numtype*)malloc((MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1)*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
 	long oBarTime;
-	char** oBarTimeS=(char**)malloc((MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1)*sizeof(char*)); for (int b=0; b<(MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1+MT4engine->targetLen); b++) oBarTimeS[b]=(char*)malloc(DATE_FORMAT_LEN);
+	char** oBarTimeS=(char**)malloc((MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1)*sizeof(char*)); for (int b=0; b<(MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1); b++) oBarTimeS[b]=(char*)malloc(DATE_FORMAT_LEN);
 	int fi=0;
 	for (int b=0; b<(MT4engine->sampleLen+MT4engine->batchSize-1); b++) {
 		for (int s=0; s<seriesCnt_; s++) {
