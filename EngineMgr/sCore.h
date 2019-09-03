@@ -29,7 +29,6 @@ struct sCoreProcArgs {
 	int npid;
 	int ntid;
 	numtype mseR;
-	bool loadImage;
 	bool quitAfterBreak;
 };
 

@@ -573,9 +573,6 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 		//	TRtimeAvg=(float)TRtimeTot/LDcnt; printf("TR count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", TRcnt, (TRtimeTot/(float)1000), TRtimeAvg);
 */	}
 
-	//-- feee neurons()
-	//destroyNeurons();
-
 }
 void sNN::infer(sCoreProcArgs* inferArgs) {
 
@@ -586,20 +583,6 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	pid=inferArgs->pid;
 	tid=inferArgs->tid;
 	testid=inferArgs->testid;
-
-	//-- set Layout. This should not change weightsCnt[] at all, just nodesCnt[]
-	setLayout(procArgs->batchSize);
-
-	//-- 0. malloc + init neurons
-	mallocNeurons();
-
-	if (inferArgs->loadImage) {
-		createWeights();
-		safecall(this, loadImage, inferArgs->npid, inferArgs->ntid, -1);
-	}
-
-	//--- init bias neurons
-	if (parms->useBias) resetBias();
 
 	//-- 0.4. convert samples and targets from SBF to BFS  in inference dataset
 	inferArgs->ds->setBFS(procArgs->batchCnt, procArgs->batchSize);
@@ -617,9 +600,6 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 
 	//-- 0.4. convert samples and targets back from BFS to SBF in inference dataset
 	inferArgs->ds->setSBF(procArgs->batchCnt, procArgs->batchSize);
-
-	//-- feee neurons()
-	//destroyNeurons();
 
 }
 
@@ -639,6 +619,17 @@ void sNN::saveImage(int pid, int tid, int epoch) {
 	free(hF);
 }
 void sNN::loadImage(int pid, int tid, int epoch) {
+
+	//-- set Layout. This should not change weightsCnt[] at all, just nodesCnt[]
+	setLayout(procArgs->batchSize);
+
+	//-- 0. malloc + init neurons
+	mallocNeurons();
+
+	//--- init bias neurons
+	if (parms->useBias) resetBias();
+
+	createWeights();
 
 	//-- malloc clocal copy of W
 	numtype* hW = (numtype*)malloc(weightsCntTotal*sizeof(numtype));

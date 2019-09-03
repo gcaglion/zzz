@@ -47,7 +47,8 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	//-- spawn cores
 	safecall(this, spawnCoresFromDB, loadingPid_);
 
-	//-- re-transform sourceTSs
+	//-- load cores'images
+	safecall(this, loadImage, loadingPid_);
 
 	//-- free(s)
 	for (int i=0; i<MAX_ENGINE_CORES; i++) {
@@ -253,7 +254,21 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 	}
 	return 1;
 }
+DWORD coreThreadLoad(LPVOID vargs_) {
+	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
+	try {
+		args->core->loadImage(args->coreProcArgs->npid, args->coreProcArgs->ntid, -1);
+	}
+	catch (...) {
+		args->coreProcArgs->excp=current_exception();
+	}
+	return 1;
+}
 
+void sEngine::loadImage(int loadingPid_) {
+	safecall(this, process, loadProc, 0, (sDS**)nullptr, loadingPid_);
+	imageLoaded=true;
+}
 void sEngine::process(int procid_, int testid_, sDS** ds_, int savedEnginePid_) {
 
 	sDS** parentDS;
@@ -278,54 +293,60 @@ void sEngine::process(int procid_, int testid_, sDS** ds_, int savedEnginePid_) 
 		//--
 
 		if (l>0) lsl0+=layerCoresCnt[l-1]+1;
-		gotoxy(0, lsl0);  printf("Process %6d, %s Layer %d\n", clientPid, ((procid_==trainProc)?"Training":"Inferencing"), l);
+		gotoxy(0, lsl0);  printf("Process %6d, %s Layer %d\n", clientPid, ((procid_==trainProc)?"Training":(procid_==inferProc)?"Inferencing":"Loading Images"), l);
 		t=0;
 		for (int c=0; c<coresCnt; c++) {
 			if (core[c]->layout->layer==l) {
 
 				//-- create dataset for core
-				if (l==0) {
-					procArgs[c]->coreProcArgs->ds=ds_[c];
-				} else {
+				if (ds_!=nullptr) {
+					if (l==0) {
+						procArgs[c]->coreProcArgs->ds=ds_[c];
+					} else {
 
-					parentDS=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
-					for (int p=0; p<coreLayout[c]->parentsCnt; p++) {
-						parentDS[p]=procArgs[coreLayout[c]->parentId[p]]->coreProcArgs->ds;
-						safecall(parentDS[p], unscale);
+						parentDS=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
+						for (int p=0; p<coreLayout[c]->parentsCnt; p++) {
+							parentDS[p]=procArgs[coreLayout[c]->parentId[p]]->coreProcArgs->ds;
+							safecall(parentDS[p], unscale);
+						}
+
+						safespawn(procArgs[c]->coreProcArgs->ds, newsname("Core_%d-%d_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDS);
+						safecall(procArgs[c]->coreProcArgs->ds, scale, coreParms[c]->scaleMin[0], coreParms[c]->scaleMax[0]);
+
+						for (int p=0; p<coreLayout[c]->parentsCnt; p++) {
+							safecall(parentDS[p], scale, coreParms[coreLayout[c]->parentId[p]]->scaleMin[0], coreParms[coreLayout[c]->parentId[p]]->scaleMax[0]);
+						}
+
+						free(parentDS);
 					}
-
-					safespawn(procArgs[c]->coreProcArgs->ds, newsname("Core_%d-%d_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDS);
-					safecall(procArgs[c]->coreProcArgs->ds, scale, coreParms[c]->scaleMin[0], coreParms[c]->scaleMax[0]);
-
-					for (int p=0; p<coreLayout[c]->parentsCnt; p++) {
-						safecall(parentDS[p], scale, coreParms[coreLayout[c]->parentId[p]]->scaleMin[0], coreParms[coreLayout[c]->parentId[p]]->scaleMax[0]);
+					
+					//-- set batchCnt
+					procArgs[c]->coreProcArgs->batchSize=procArgs[c]->coreProcArgs->ds->batchSize;
+					if ((procArgs[c]->coreProcArgs->ds->samplesCnt%procArgs[c]->coreProcArgs->ds->batchSize)!=0) {
+						fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", procArgs[c]->coreProcArgs->ds->samplesCnt, procArgs[c]->coreProcArgs->ds->batchSize)
+					} else {
+						procArgs[c]->coreProcArgs->batchCnt = procArgs[c]->coreProcArgs->ds->samplesCnt/procArgs[c]->coreProcArgs->ds->batchSize;
 					}
-
-					free(parentDS);
 				}
 
 				//-- Create Training or Infer Thread for current Core
 				procArgs[c]->coreProcArgs->screenLine = lsl0+1+t;
 				procArgs[c]->core=core[c];
-				procArgs[c]->coreProcArgs->loadImage=(savedEnginePid_>0);
 				procArgs[c]->coreProcArgs->pid = clientPid;
-				procArgs[c]->coreProcArgs->npid=(savedEnginePid_>0)?savedEnginePid_:clientPid;
+				procArgs[c]->coreProcArgs->npid=(savedEnginePid_>0) ? savedEnginePid_ : clientPid;
 
-				//-- set batchCnt
-				procArgs[c]->coreProcArgs->batchSize=procArgs[c]->coreProcArgs->ds->batchSize;
-				if ((procArgs[c]->coreProcArgs->ds->samplesCnt%procArgs[c]->coreProcArgs->ds->batchSize)!=0) {
-					fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", procArgs[c]->coreProcArgs->ds->samplesCnt, procArgs[c]->coreProcArgs->ds->batchSize)
-				} else {
-					procArgs[c]->coreProcArgs->batchCnt = procArgs[c]->coreProcArgs->ds->samplesCnt/procArgs[c]->coreProcArgs->ds->batchSize;
-				}
-
-				if (procid_==trainProc) {
+				if (procid_==loadProc) {
+					procArgs[c]->coreProcArgs->batchSize=batchSize;
+					procArgs[c]->coreProcArgs->ntid=coreLayout[c]->tid;
+					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadLoad, &(*procArgs[c]), 0, tid[t]);
+				} else if (procid_==trainProc) {
 					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadTrain, &(*procArgs[c]), 0, tid[t]);
 					procArgs[c]->coreProcArgs->ntid=(*tid[t]);
 				} else {
 					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadInfer, &(*procArgs[c]), 0, tid[t]);
-					if(clientPid!=procArgs[c]->coreProcArgs->npid) procArgs[c]->coreProcArgs->ntid=coreLayout[c]->tid;
+					if (clientPid!=procArgs[c]->coreProcArgs->npid) procArgs[c]->coreProcArgs->ntid=coreLayout[c]->tid;
 				}
+				
 
 				//-- Store Engine Handler
 				procArgs[c]->coreProcArgs->tid=(*tid[t]);
@@ -353,6 +374,7 @@ void sEngine::process(int procid_, int testid_, sDS** ds_, int savedEnginePid_) 
 void sEngine::train(int testid_, sDS** trainDS_) {
 
 	safecall(this, process, trainProc, testid_, trainDS_, 0);
+	imageLoaded=true;
 
 	//-- set trmin/max from input
 
