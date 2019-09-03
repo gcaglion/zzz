@@ -141,13 +141,13 @@ int OnInit() {
 	ArrayResize(vcloseB, seriesCnt);
 	ArrayResize(vvolumeB, seriesCnt);
 	//--
-	ArrayResize(vtime, (predictionLen+batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vtimeS, (predictionLen+batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vopen, (predictionLen+batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vhigh, (predictionLen+batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vlow, (predictionLen+batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vclose, (predictionLen+batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vvolume, (predictionLen+batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vtime, (batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vtimeS, (batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vopen, (batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vhigh, (batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vlow, (batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vclose, (batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vvolume, (batchSize+historyLen-1)*seriesCnt);
 	//--
 	ArrayResize(vopenF, predictionLen*seriesCnt);
 	ArrayResize(vhighF, predictionLen*seriesCnt);
@@ -283,16 +283,16 @@ bool loadBars() {
 		int copied=CopyRates(serieSymbol[s], tf, 1, (batchSize+historyLen-1)+2, serierates);	printf("copied[%d]=%d", s, copied);
 		if (copied!=((batchSize+historyLen-1)+2)) return false;
 		//-- base bar
-		vtimeB[s]=serierates[1].time;// +TimeGMTOffset();
+		vtimeB[s]=serierates[predictionLen+1].time;// +TimeGMTOffset();
 		StringConcatenate(vtimeSB[s], TimeToString(vtimeB[s], TIME_DATE), ".", TimeToString(vtimeB[s], TIME_MINUTES));
-		vopenB[s]=serierates[1].open;
-		vhighB[s]=serierates[1].high;
-		vlowB[s]=serierates[1].low;
-		vcloseB[s]=serierates[1].close;
-		vvolumeB[s]=serierates[1].real_volume;
+		vopenB[s]=serierates[predictionLen+1].open;
+		vhighB[s]=serierates[predictionLen+1].high;
+		vlowB[s]=serierates[predictionLen+1].low;
+		vcloseB[s]=serierates[predictionLen+1].close;
+		vvolumeB[s]=serierates[predictionLen+1].real_volume;
 		//printf("serie=%d ; time=%s ; OHLCV=%f|%f|%f|%f|%f", s, vtimeSB[s], vopenB[s], vhighB[s], vlowB[s], vcloseB[s], vvolumeB[s]);
 		//-- [historyLen] bars
-		for (int bar=2; bar<((batchSize+historyLen-1)+2); bar++) {
+		for (int bar=2+predictionLen; bar<((batchSize+historyLen-1)+2); bar++) {
 			vtime[i]=serierates[bar].time;// +TimeGMTOffset();
 			StringConcatenate(vtimeS[i], TimeToString(vtime[i], TIME_DATE), ".", TimeToString(vtime[i], TIME_MINUTES));
 			vopen[i]=serierates[bar].open;

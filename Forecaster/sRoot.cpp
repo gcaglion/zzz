@@ -307,12 +307,11 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 		selFcntTot+=selFcnt[serie];
 	}
 
-	int barsCnt=
-	numtype* oBar=(numtype*)malloc((MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1+MT4engine->targetLen)*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
+	numtype* oBar=(numtype*)malloc((MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1)*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
 	long oBarTime;
-	char** oBarTimeS=(char**)malloc((MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1+MT4engine->targetLen)*sizeof(char*)); for (int b=0; b<(MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1+MT4engine->targetLen); b++) oBarTimeS[b]=(char*)malloc(DATE_FORMAT_LEN);
+	char** oBarTimeS=(char**)malloc((MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1)*sizeof(char*)); for (int b=0; b<(MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1+MT4engine->targetLen); b++) oBarTimeS[b]=(char*)malloc(DATE_FORMAT_LEN);
 	int fi=0;
-	for (int b=0; b<(MT4engine->sampleLen+MT4engine->batchSize-1+MT4engine->targetLen); b++) {
+	for (int b=0; b<(MT4engine->sampleLen+MT4engine->batchSize-1); b++) {
 		for (int s=0; s<seriesCnt_; s++) {
 			oBarTime=iBarT[s*MT4engine->sampleLen+b];
 			MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarTimeS[b]);
@@ -328,7 +327,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	}
 	//--
 	for (int b=0; b<MT4engine->targetLen; b++) {
-		strcpy_s(oBarTimeS[MT4engine->sampleLen+b+MT4engine->batchSize-1+MT4engine->targetLen], DATE_FORMAT_LEN, "9999-99-99-99:99");
+		strcpy_s(oBarTimeS[MT4engine->sampleLen+b+MT4engine->batchSize-1], DATE_FORMAT_LEN, "9999-99-99-99:99");
 		for (int f=0; f<selFcntTot; f++) {
 			oBar[fi]=EMPTY_VALUE;
 			fi++;
@@ -366,7 +365,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	}
 	fclose(f);*/
 	//--
-	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1+MT4engine->targetLen, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
+	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
 	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump,(char*)nullptr, true);
 	//--
 	
