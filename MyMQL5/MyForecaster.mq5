@@ -20,7 +20,7 @@ int _destroyEnv(uchar& iEnv[]);
 #import
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 13172;
+input int EnginePid				= 6956;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 input int DataTransformation	= 1;
 input bool DumpData				= true;
@@ -141,13 +141,13 @@ int OnInit() {
 	ArrayResize(vcloseB, seriesCnt);
 	ArrayResize(vvolumeB, seriesCnt);
 	//--
-	ArrayResize(vtime, (batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vtimeS, (batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vopen, (batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vhigh, (batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vlow, (batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vclose, (batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vvolume, (batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vtime, (predictionLen+batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vtimeS, (predictionLen+batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vopen, (predictionLen+batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vhigh, (predictionLen+batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vlow, (predictionLen+batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vclose, (predictionLen+batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vvolume, (predictionLen+batchSize+historyLen-1)*seriesCnt);
 	//--
 	ArrayResize(vopenF, predictionLen*seriesCnt);
 	ArrayResize(vhighF, predictionLen*seriesCnt);
@@ -164,11 +164,16 @@ void OnTick() {
 
 	static bool runOnce=false;
 	static bool firstTick=true;
+	int tradeScenario;
+	int tradeResult=-1;
+	datetime positionTime=0;
+	vTicket=-1;
 
 	if (!runOnce) {
 		// Only do this if there's a new bar
 		static datetime Time0=0;
 		if (Time0==SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE)) return;
+
 		Time0 = SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE);
 		string Time0S;
 		StringConcatenate(Time0S, TimeToString(Time0, TIME_DATE), ".", TimeToString(Time0, TIME_MINUTES));
@@ -215,37 +220,32 @@ void OnTick() {
 		//-- check for forecast consistency in first bar (H>L)
 		if (vForecastL>vForecastH) {
 			printf("Invalid Forecast: H=%f ; L=%f . Exiting...", vForecastH, vForecastL);
-			return;
 		} else {
 			printf("Using Forecast: H=%f ; L=%f", vForecastH, vForecastL);
-		}
+			//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
+			drawForecast(vForecastH, vForecastL);
 
-		//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
-		drawForecast(vForecastH, vForecastL);
+			//-- define trade scenario based on current price level and forecast
+			double tradeVol=TradeVol;
+			double tradeTP, tradeSL;
 
-		//-- define trade scenario based on current price level and forecast
-		double tradeVol=TradeVol;
-		double tradeTP, tradeSL;
-		int tradeResult=-1;
-		datetime positionTime=0;
-		vTicket=-1;
+			tradeScenario=getTradeScenario(tradeTP, tradeSL); printf("trade scenario=%d ; tradeTP=%5.4f ; tradeSL=%5.4f", tradeScenario, tradeTP, tradeSL);
+			if (tradeScenario>=0) {
 
-		int tradeScenario=getTradeScenario(tradeTP, tradeSL); printf("trade scenario=%d ; tradeTP=%5.4f ; tradeSL=%5.4f", tradeScenario, tradeTP, tradeSL);
-		if (tradeScenario>=0) {
+				//-- do the actual trade
+				printf("======================================== CALL TO NewTrade() ========================================================================================================================");
+				tradeResult=NewTrade(tradeScenario, tradeVol, tradeTP, tradeSL);
+				printf("====================================================================================================================================================================================");
 
-			//-- do the actual trade
-			printf("======================================== CALL TO NewTrade() ========================================================================================================================");
-			tradeResult=NewTrade(tradeScenario, tradeVol, tradeTP, tradeSL);
-			printf("====================================================================================================================================================================================");
-
-			//-- if trade successful, store position ticket in shared variable
-			if (tradeResult==0) {
-				vTicket = PositionGetTicket(0);
-				int positionId=PositionSelect(Symbol());
-				positionTime=PositionGetInteger(POSITION_TIME);
+				//-- if trade successful, store position ticket in shared variable
+				if (tradeResult==0) {
+					vTicket = PositionGetTicket(0);
+					int positionId=PositionSelect(Symbol());
+					positionTime=PositionGetInteger(POSITION_TIME);
+				}
 			}
 		}
-		
+
 		//-- save tradeInfo, even if we do not trade
 		int idx=tradeSerie*historyLen+historyLen-1;
 		//printf("calling _saveTradeInfo() with lastBar = %s - %f|%f|%f|%f ; forecast = %f|%f|%f|%f", vtimeS[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0]);
@@ -274,8 +274,6 @@ void OnDeinit(const int reason) {
 		_destroyEnv(vEnvS);
 	}
 }
-void OnTrade() {
-}
 
 bool loadBars() {
 	int i=0;
@@ -295,6 +293,17 @@ bool loadBars() {
 		//printf("serie=%d ; time=%s ; OHLCV=%f|%f|%f|%f|%f", s, vtimeSB[s], vopenB[s], vhighB[s], vlowB[s], vcloseB[s], vvolumeB[s]);
 		//-- [historyLen] bars
 		for (int bar=2; bar<((batchSize+historyLen-1)+2); bar++) {
+			vtime[i]=serierates[bar].time;// +TimeGMTOffset();
+			StringConcatenate(vtimeS[i], TimeToString(vtime[i], TIME_DATE), ".", TimeToString(vtime[i], TIME_MINUTES));
+			vopen[i]=serierates[bar].open;
+			vhigh[i]=serierates[bar].high;
+			vlow[i]=serierates[bar].low;
+			vclose[i]=serierates[bar].close;
+			vvolume[i]=serierates[bar].real_volume; if (MathAbs(vvolume[i])>10000) vvolume[i]=0;
+			//printf("time[%d]=%s ; OHLCV[%d]=%f|%f|%f|%f|%f", i, vtimeS[i], i, vopen[i], vhigh[i], vlow[i], vclose[i], vvolume[i]);
+			i++;
+		}
+		for (int bar=2; bar<(predictionLen+2); bar++) {
 			vtime[i]=serierates[bar].time;// +TimeGMTOffset();
 			StringConcatenate(vtimeS[i], TimeToString(vtime[i], TIME_DATE), ".", TimeToString(vtime[i], TIME_MINUTES));
 			vopen[i]=serierates[bar].open;

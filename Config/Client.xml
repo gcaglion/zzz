@@ -28,7 +28,7 @@
 		<Chart1>
 			Symbol				= US500-SEP19
 			TimeFrame			= H1
-			SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+			SelectedFeatures	= FXOPEN, FXCLOSE
 		</Chart1>
 		<Chart2>
 			Symbol				= EU50-SEP19
