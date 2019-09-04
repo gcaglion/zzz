@@ -37,6 +37,8 @@ struct sDS : sCfgObj {
 	EXPORT sDS(sObjParmsDef, sTS* fromTS_, int WNNsrc_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, char* dumpPath_=nullptr);
 	EXPORT ~sDS();
 
+	EXPORT void invertSequence();
+
 	EXPORT void dump(bool isScaled=false);
 	EXPORT void scale(float scaleMin_, float scaleMax_);
 	EXPORT void unscale();

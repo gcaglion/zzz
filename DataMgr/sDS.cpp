@@ -176,6 +176,30 @@ sDS::~sDS(){
 	free(scaleM); free(scaleP);
 }
 
+void sDS::invertSequence() {
+	numtype* tmpSample=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	numtype* tmpTarget=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	numtype* tmpPrediction=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+
+	for (int s=0; s<samplesCnt; s++) {
+		for(int b=0; b<sampleLen; b++){
+			for (int f=0; f<featuresCnt; f++) {
+				tmpSample[(samplesCnt-s-1)*sampleLen*featuresCnt+b*featuresCnt+f]=sampleSBF[s*sampleLen*featuresCnt+b*featuresCnt+f];
+			}
+		}
+		for (int b=0; b<targetLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				tmpTarget[(samplesCnt-s-1)*targetLen*featuresCnt+b*featuresCnt+f]=targetSBF[s*targetLen*featuresCnt+b*featuresCnt+f];
+				tmpPrediction[(samplesCnt-s-1)*targetLen*featuresCnt+b*featuresCnt+f]=predictionSBF[s*targetLen*featuresCnt+b*featuresCnt+f];
+			}
+		}
+	}
+	memcpy_s(sampleSBF, samplesCnt*sampleLen*featuresCnt*sizeof(numtype), tmpSample, samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	memcpy_s(targetSBF, samplesCnt*targetLen*featuresCnt*sizeof(numtype), tmpTarget, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(predictionSBF, samplesCnt*targetLen*featuresCnt*sizeof(numtype), tmpPrediction, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+
+	free(tmpSample); free(tmpTarget); free(tmpPrediction);
+}
 void sDS::dump(bool isScaled) {
 	FILE* dumpFile=nullptr;
 	dumpPre(isScaled, &dumpFile);

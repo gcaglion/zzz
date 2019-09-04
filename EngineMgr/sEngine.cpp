@@ -400,8 +400,12 @@ void sEngine::infer(int testid_, int seqId_, sDS** inferDS_, sTS* inferTS_, int 
 	if (inferDS_[0]->featuresCnt!=featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_[0]->featuresCnt, featuresCnt);
 	if (inferDS_[0]->batchSize!=batchSize) fail("Infer DataSet Batch Size (%d) differs from Engine's (%d)", inferDS_[0]->batchSize, batchSize);
 
+	//for (int c=0; c<coresCnt; c++) inferDS_[c]->invertSequence();
+	
 	//-- call infer
 	safecall(this, process, inferProc, testid_, inferDS_, savedEnginePid_);
+
+	//for (int c=0; c<coresCnt; c++) inferDS_[c]->invertSequence();
 
 	//-- get predicted/target sequences (TR) for all cores, and saveRun
 	sDS* _ds;

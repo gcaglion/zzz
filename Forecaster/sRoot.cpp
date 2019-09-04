@@ -119,7 +119,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, pid, 0, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0], "", "", true, false, clientffname, "", trainffname, engineffname);
+		safecall(clientLog, saveClientInfo, pid, 0, simulationId_, pid, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0], "", "", true, false, clientffname, "", trainffname, engineffname);
 		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 1, trainCfg);
@@ -188,7 +188,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, savedEnginePid_, 0, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[0], "", false, true, clientffname, "", inferffname, "");
+		safecall(clientLog, saveClientInfo, pid, 0, simulationId_, savedEnginePid_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[0], "", false, true, clientffname, "", inferffname, "");
 		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, inferCfg);
@@ -218,10 +218,11 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 #include "../DataMgr/sTS.h"
 #include "../DataMgr/sDS.h"
 void sRoot::kaz() {
-	sAlgebra* Alg; safespawn(Alg, newsname("Alg"), defaultdbg);
-	numtype* v1; numtype* v2; numtype vdotv;
-	Alg->myMalloc(&v1, 5); Alg->myMalloc(&v2, 5);
-	Alg->VdotV(5, v1, v2, &vdotv);
+	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/inferDS.xml");
+	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
+	ds1->dump();
+	ds1->invertSequence();
+	ds1->dump();
 }
 
 //-- GUI hooks
