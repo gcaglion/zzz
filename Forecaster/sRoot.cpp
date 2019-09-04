@@ -119,7 +119,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, pid, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0], "", "", true, false, clientffname, "", trainffname, engineffname);
+		safecall(clientLog, saveClientInfo, pid, simulationId_, pid, 0, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0], "", "", true, false, clientffname, "", trainffname, engineffname);
 		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 1, trainCfg);
@@ -188,7 +188,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(engine, commit);
 		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, simulationId_, savedEnginePid_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[0], "", false, true, clientffname, "", inferffname, "");
+		safecall(clientLog, saveClientInfo, pid, simulationId_, savedEnginePid_, 0, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[0], "", false, true, clientffname, "", inferffname, "");
 		//-- persist XML config parameters for Client,DataSet,Engine
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, inferCfg);
@@ -401,10 +401,10 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit) {
 	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4sessionId, MT4accountId, MT4enginePid, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
 }
-void sRoot::saveClientInfo(double iPositionOpenTime) {
+void sRoot::saveClientInfo(int sequenceId, double iPositionOpenTime) {
 	char accountStr[64]; sprintf_s(accountStr, 32, "MT5_account_%d", MT4accountId);
 	info("MT4enginePid=%d", MT4enginePid);
-	safecall(MT4clientLog, saveClientInfo, MT4clientPid, MT4sessionId, MT4enginePid, accountStr, iPositionOpenTime, 0, "", "","",false,true,"","","","");
+	safecall(MT4clientLog, saveClientInfo, MT4clientPid, sequenceId, MT4sessionId, MT4enginePid, accountStr, iPositionOpenTime, 0, "", "","",false,true,"","","","");
 }
 void sRoot::setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int savedEnginePid_, int dt_, bool doDump_) {
 	MT4clientPid=clientPid_;
@@ -515,7 +515,7 @@ extern "C" __declspec(dllexport) int _saveTradeInfo(char* iEnvS, int iPositionTi
 	}
 	return 0;
 }
-extern "C" __declspec(dllexport) int _saveClientInfo(char* iEnvS, long iTradeStartTime) {
+extern "C" __declspec(dllexport) int _saveClientInfo(char* iEnvS, int sequenceId, long iTradeStartTime) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
 
@@ -524,7 +524,7 @@ extern "C" __declspec(dllexport) int _saveClientInfo(char* iEnvS, long iTradeSta
 		//-- first, convert the 2 dates to string
 		MT4time2str(iTradeStartTime, DATE_FORMAT_LEN, iPositionOpenTimes);
 		//-- then, make the call
-		env->saveClientInfo(iTradeStartTime);
+		env->saveClientInfo(sequenceId, iTradeStartTime);
 	}
 	catch (std::exception exc) {
 		return -1;

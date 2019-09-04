@@ -14,7 +14,7 @@ int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, uchar& oSymbolsCSL_[], uchar
 int _getForecast(uchar& iEnv[], int seriesCnt_, int dt_, int& featMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 //--
 int _saveTradeInfo(uchar& iEnv[], int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit);
-int _saveClientInfo(uchar& iEnv[], long iTradeStartTime);
+int _saveClientInfo(uchar& iEnv[], int sequenceId, long iTradeStartTime);
 void _commit(uchar& iEnv[]);
 int _destroyEnv(uchar& iEnv[]);
 #import
@@ -168,6 +168,7 @@ void OnTick() {
 	int tradeResult=-1;
 	datetime positionTime=0;
 	vTicket=-1;
+	static int sequenceId=0;
 
 	if (!runOnce) {
 		// Only do this if there's a new bar
@@ -255,7 +256,7 @@ void OnTick() {
 		}
 
 		//-- save clientInfo
-		if (_saveClientInfo(vEnvS, TimeCurrent())<0) {
+		if (_saveClientInfo(vEnvS, sequenceId, TimeCurrent())<0) {
 			printf("_saveClientInfo() failed. see Forecaster logs.");
 			return;
 		}
@@ -265,6 +266,7 @@ void OnTick() {
 	}
 	//runOnce=true;
 	firstTick=false;
+	sequenceId++;
 }
 void OnDeinit(const int reason) {
 	CharArrayToString(vEnvS, EnvS);
@@ -283,27 +285,16 @@ bool loadBars() {
 		int copied=CopyRates(serieSymbol[s], tf, 1, (batchSize+historyLen-1)+2, serierates);	printf("copied[%d]=%d", s, copied);
 		if (copied!=((batchSize+historyLen-1)+2)) return false;
 		//-- base bar
-		vtimeB[s]=serierates[predictionLen+1].time;// +TimeGMTOffset();
+		vtimeB[s]=serierates[1].time;// +TimeGMTOffset();
 		StringConcatenate(vtimeSB[s], TimeToString(vtimeB[s], TIME_DATE), ".", TimeToString(vtimeB[s], TIME_MINUTES));
-		vopenB[s]=serierates[predictionLen+1].open;
-		vhighB[s]=serierates[predictionLen+1].high;
-		vlowB[s]=serierates[predictionLen+1].low;
-		vcloseB[s]=serierates[predictionLen+1].close;
-		vvolumeB[s]=serierates[predictionLen+1].real_volume;
+		vopenB[s]=serierates[1].open;
+		vhighB[s]=serierates[1].high;
+		vlowB[s]=serierates[1].low;
+		vcloseB[s]=serierates[1].close;
+		vvolumeB[s]=serierates[1].real_volume;
 		//printf("serie=%d ; time=%s ; OHLCV=%f|%f|%f|%f|%f", s, vtimeSB[s], vopenB[s], vhighB[s], vlowB[s], vcloseB[s], vvolumeB[s]);
 		//-- [historyLen] bars
-		for (int bar=2+predictionLen; bar<((batchSize+historyLen-1)+2); bar++) {
-			vtime[i]=serierates[bar].time;// +TimeGMTOffset();
-			StringConcatenate(vtimeS[i], TimeToString(vtime[i], TIME_DATE), ".", TimeToString(vtime[i], TIME_MINUTES));
-			vopen[i]=serierates[bar].open;
-			vhigh[i]=serierates[bar].high;
-			vlow[i]=serierates[bar].low;
-			vclose[i]=serierates[bar].close;
-			vvolume[i]=serierates[bar].real_volume; if (MathAbs(vvolume[i])>10000) vvolume[i]=0;
-			//printf("time[%d]=%s ; OHLCV[%d]=%f|%f|%f|%f|%f", i, vtimeS[i], i, vopen[i], vhigh[i], vlow[i], vclose[i], vvolume[i]);
-			i++;
-		}
-		for (int bar=2; bar<(predictionLen+2); bar++) {
+		for (int bar=2; bar<((batchSize+historyLen-1)+2); bar++) {
 			vtime[i]=serierates[bar].time;// +TimeGMTOffset();
 			StringConcatenate(vtimeS[i], TimeToString(vtime[i], TIME_DATE), ".", TimeToString(vtime[i], TIME_MINUTES));
 			vopen[i]=serierates[bar].open;
