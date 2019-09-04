@@ -392,7 +392,7 @@ void sEngine::train(int testid_, sDS** trainDS_) {
 	}
 	
 }
-void sEngine::infer(int testid_, sDS** inferDS_, sTS* inferTS_, int savedEnginePid_) {
+void sEngine::infer(int testid_, int seqId_, sDS** inferDS_, sTS* inferTS_, int savedEnginePid_) {
 
 	//-- consistency checks: sampleLen/targetLen/featuresCnt must be the same in inferDS and engine
 	if (inferDS_[0]->sampleLen!=sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS_[0]->sampleLen, sampleLen);
@@ -433,7 +433,7 @@ void sEngine::infer(int testid_, sDS** inferDS_, sTS* inferTS_, int savedEngineP
 		_ds->untransformSeq(inferTS_->dt, inferTS_->valB, prdSeqTR[c], inferTS_->val, prdSeqBASE[c]); dumpArrayH(seqLen*_ds->featuresCnt, prdSeqBASE[c], "C:/temp/logs/prdSeqBASE.csv");
 
 		if (core[c]->persistor->saveRunFlag) {
-			core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->mseR, \
+			core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, seqId_, core[c]->procArgs->mseR, \
 				seqLen, inferTS_->timestamp, _ds->featuresCnt, trgSeqTRS[c], prdSeqTRS[c], trgSeqTR[c], prdSeqTR[c], trgSeqBASE[c], prdSeqBASE[c]);
 		}
 	}

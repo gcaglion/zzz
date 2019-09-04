@@ -141,7 +141,7 @@ void sOraData::saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mse
 	}
 
 }
-void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int runStepsCnt, char** posLabel, int featuresCnt_, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actualBASE, numtype* predictedBASE) {
+void sOraData::saveRun(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char** posLabel, int featuresCnt_, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actualBASE, numtype* predictedBASE) {
 
 	int runCnt=runStepsCnt*featuresCnt_;
 	int runidx=0;
@@ -150,7 +150,7 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int r
 	if (!isOpen) safecall(this, open);
 
 	try {
-		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, mseR, Pos, PosLabel, Feature, ActualTRS, PredictedTRS, ActualTR, PredictedTR, ActualBASE, PredictedBASE) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14)");
+		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, mseR, Pos, PosLabel, Feature, ActualTRS, PredictedTRS, ActualTR, PredictedTR, ActualBASE, PredictedBASE, SequenceId) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15)");
 		((Statement*)stmt)->setMaxIterations(runCnt);
 		for (int step=0; step<runStepsCnt; step++) {
 			for (int f=0; f<featuresCnt_; f++) {
@@ -195,6 +195,7 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int r
 				} else {
 					((Statement*)stmt)->setFloat(14, predictedBASE[step*featuresCnt_+f]);
 				}
+				((Statement*)stmt)->setInt(15, seqId);
 
 				if (runidx<(runCnt-1)) ((Statement*)stmt)->addIteration();
 				runidx++;

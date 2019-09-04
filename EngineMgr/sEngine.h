@@ -46,7 +46,7 @@ struct sEngine : sCfgObj {
 
 	void loadImage(int loadingPid_);
 	EXPORT void train(int testid_, sDS** trainDS_);
-	EXPORT void infer(int testid_, sDS** trainDS_, sTS* inferTS_, int savedEnginePid_);
+	EXPORT void infer(int testid_, int seqId_, sDS** trainDS_, sTS* inferTS_, int savedEnginePid_);
 	//--
 	EXPORT void saveInfo();
 	//--

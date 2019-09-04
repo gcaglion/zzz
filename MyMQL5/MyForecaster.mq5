@@ -11,7 +11,7 @@
 //--
 int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, int dt_, bool doDump_, uchar& oEnv[], int& oSampleLen_, int &oPredictionLen_, int &oFeaturesCnt_, int &oBatchSize_);
 int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[], bool& oChartTrade[]);
-int _getForecast(uchar& iEnv[], int seriesCnt_, int dt_, int& featMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
+int _getForecast(uchar& iEnv[], int seqId_, int seriesCnt_, int dt_, int& featMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 //--
 int _saveTradeInfo(uchar& iEnv[], int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit);
 int _saveClientInfo(uchar& iEnv[], int sequenceId, long iTradeStartTime);
@@ -198,7 +198,7 @@ void OnTick() {
 
 		//------ GET FORECAST ---------
 		//printf("Getting Forecast...");
-		if (_getForecast(vEnvS, seriesCnt, vDataTransformation, serieFeatMask, vtime, vopen, vhigh, vlow, vclose, vvolume, vtimeB, vopenB, vhighB, vlowB, vcloseB, vvolumeB, vopenF, vhighF, vlowF, vcloseF, vvolumeF)!=0) {
+		if (_getForecast(vEnvS, sequenceId, seriesCnt, vDataTransformation, serieFeatMask, vtime, vopen, vhigh, vlow, vclose, vvolume, vtimeB, vopenB, vhighB, vlowB, vcloseB, vvolumeB, vopenF, vhighF, vlowF, vcloseF, vvolumeF)!=0) {
 			printf("_getForecast() FAILURE! Exiting...");
 			return;
 		};

@@ -22,6 +22,7 @@ create table RunLog(
 	ThreadId number,
 	NetProcessId number,
 	NetThreadId number,
+	SequenceId number,
 	mseR number,
 	Pos number,
 	PosLabel varchar2(64),
@@ -38,6 +39,7 @@ alter table RunLog add constraint RunLog_PK primary key( ProcessId, ThreadId, Po
 drop table ClientInfo purge;
 create table ClientInfo(
 	ProcessId  number,
+	SequenceId number,
 	SimulationId number,
 	NetProcessId number,
 	ClientName varchar2(128),
@@ -54,7 +56,7 @@ create table ClientInfo(
 	actionXMLFile varchar2(256),
 	engineXMLFile varchar2(256)
 ) storage (initial 2M minextents 4 pctincrease 0);
-alter table ClientInfo add constraint ClientInfo_PK primary key (ProcessId, DoTraining);
+alter table ClientInfo add constraint ClientInfo_PK primary key (ProcessId, SequenceId, DoTraining);
 
 drop table CoreImage_NN_W purge;
 create table CoreImage_NN_W(

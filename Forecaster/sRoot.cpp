@@ -113,7 +113,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		if (engine->core[0]->procArgs->quitAfterBreak) return;
 
 		//-- do infer on training data, without reloading engine
-		safecall(engine, infer, simulationId_, trainDS, trainTS, 0);
+		safecall(engine, infer, simulationId_, 0, trainDS, trainTS, 0);
 
 		//-- Commit engine persistor data
 		safecall(engine, commit);
@@ -182,7 +182,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		timer->start();
 
 		//-- do inference (also populates datasets)
-		safecall(engine, infer, simulationId_, inferDS, inferTS, savedEnginePid_);
+		safecall(engine, infer, simulationId_, 0, inferDS, inferTS, savedEnginePid_);
 
 		//-- commit engine persistor data
 		safecall(engine, commit);
@@ -285,7 +285,7 @@ void sRoot::getSeriesInfo(int* oSeriesCnt_, char* oSymbolsCSL_, char* oTimeFrame
 
 }
 
-void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
+void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
 
 	//-- need to make a local copy of featureMask_, as it gets changed just to get selFcnt
 	int* _featureMask=(int*)malloc(seriesCnt_*sizeof(int));
@@ -369,7 +369,7 @@ void sRoot::getForecast(int seriesCnt_, int dt_, int* featureMask_, long* iBarT,
 	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump,(char*)nullptr, true);
 	//--
 	
-	safecall(MT4engine, infer, MT4accountId, mtDS, mtTS, MT4enginePid);
+	safecall(MT4engine, infer, MT4accountId, seqId_, mtDS, mtTS, MT4enginePid);
 
 	for (int b=0; b<MT4engine->targetLen; b++) {
 		for (int f=0; f<MT4engine->featuresCnt; f++) {
@@ -483,13 +483,13 @@ extern "C" __declspec(dllexport) int _getSeriesInfo(char* iEnvS, int* oSeriesCnt
 	return 0;
 }
 //--
-extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seriesCnt_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
+extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seqId_, int seriesCnt_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
 
 	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p . Calling env->getForecast()...", env);	
 	try {
-		env->getForecast(seriesCnt_, dt_, featureMask_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
+		env->getForecast(seqId_, seriesCnt_, dt_, featureMask_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
 	}
 	catch (std::exception exc) {
 		return -1;
