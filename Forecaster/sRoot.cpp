@@ -221,7 +221,10 @@ void sRoot::kaz() {
 	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/inferDS.xml");
 	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
 	ds1->dump();
-	ds1->invertSequence();
+	//ds1->invertSequence();
+	ds1->slideSequence(1);
+	ds1->dump();
+	ds1->slideSequence(-1);
 	ds1->dump();
 }
 

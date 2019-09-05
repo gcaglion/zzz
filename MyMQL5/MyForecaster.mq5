@@ -20,7 +20,7 @@ int _destroyEnv(uchar& iEnv[]);
 #import
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 12292;
+input int EnginePid				= 6912;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 input int DataTransformation	= 1;
 input bool DumpData				= true;
@@ -222,7 +222,7 @@ void OnTick() {
 		if (vForecastL>vForecastH) {
 			printf("Invalid Forecast: H=%f ; L=%f . Exiting...", vForecastH, vForecastL);
 		} else {
-			printf("Using Forecast: H=%f ; L=%f", vForecastH, vForecastL);
+			printf("Last Bar: H=%f ; L=%f ; Using Forecast: H=%f ; L=%f", vhigh[batchSize+historyLen-1-1], vlow[batchSize+historyLen-1-1], vForecastH, vForecastL);
 			//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
 			drawForecast(vForecastH, vForecastL);
 
@@ -248,7 +248,8 @@ void OnTick() {
 		}
 
 		//-- save tradeInfo, even if we do not trade
-		int idx=tradeSerie*historyLen+historyLen-1;
+		//int idx=tradeSerie*historyLen+historyLen-1;
+		int idx=tradeSerie*(batchSize+historyLen-1)+(batchSize+historyLen-1)-1;
 		//printf("calling _saveTradeInfo() with lastBar = %s - %f|%f|%f|%f ; forecast = %f|%f|%f|%f", vtimeS[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0]);
 		if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0], tradeScenario, tradeResult, TPhit, SLhit)<0) {
 			printf("_saveTradeInfo() failed. see Forecaster logs.");

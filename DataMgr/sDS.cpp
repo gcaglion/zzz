@@ -200,6 +200,91 @@ void sDS::invertSequence() {
 
 	free(tmpSample); free(tmpTarget); free(tmpPrediction);
 }
+void sDS::slideSequence(int steps) {
+	numtype* tmpSample=(numtype*)malloc(1*sampleLen*featuresCnt*sizeof(numtype));
+	numtype* tmpTarget=(numtype*)malloc(1*targetLen*featuresCnt*sizeof(numtype));
+	numtype* tmpPrediction=(numtype*)malloc(1*targetLen*featuresCnt*sizeof(numtype));
+
+	if (steps>0) {
+		for (int b=0; b<sampleLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				tmpSample[b*featuresCnt+f]=sampleSBF[0*sampleLen*featuresCnt+b*featuresCnt+f];
+			}
+		}
+		for (int b=0; b<targetLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				tmpTarget[b*featuresCnt+f]=targetSBF[0*targetLen*featuresCnt+b*featuresCnt+f];
+				tmpPrediction[b*featuresCnt+f]=predictionSBF[0*targetLen*featuresCnt+b*featuresCnt+f];
+			}
+		}
+
+		for (int s=0; s<(samplesCnt-1); s++) {
+			for (int b=0; b<sampleLen; b++) {
+				for (int f=0; f<featuresCnt; f++) {
+					sampleSBF[s*sampleLen*featuresCnt+b*featuresCnt+f]=sampleSBF[(s+1)*sampleLen*featuresCnt+b*featuresCnt+f];
+				}
+			}
+			for (int b=0; b<targetLen; b++) {
+				for (int f=0; f<featuresCnt; f++) {
+					targetSBF[s*targetLen*featuresCnt+b*featuresCnt+f]=targetSBF[(s+1)*targetLen*featuresCnt+b*featuresCnt+f];
+					predictionSBF[s*targetLen*featuresCnt+b*featuresCnt+f]=predictionSBF[(s+1)*targetLen*featuresCnt+b*featuresCnt+f];
+				}
+			}
+		}
+
+		for (int b=0; b<sampleLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				sampleSBF[(samplesCnt-1)*sampleLen*featuresCnt+b*featuresCnt+f]=tmpSample[b*featuresCnt+f];
+			}
+		}
+		for (int b=0; b<targetLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				targetSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f]=tmpTarget[b*featuresCnt+f];
+				predictionSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f]=tmpPrediction[b*featuresCnt+f];
+			}
+		}
+	} else {
+		for (int b=0; b<sampleLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				tmpSample[b*featuresCnt+f]=sampleSBF[(samplesCnt-1)*sampleLen*featuresCnt+b*featuresCnt+f];
+			}
+		}
+		for (int b=0; b<targetLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				tmpTarget[b*featuresCnt+f]=targetSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f];
+				tmpPrediction[b*featuresCnt+f]=predictionSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f];
+			}
+		}
+
+		for (int s=(samplesCnt-1); s>=0; s--) {
+			for (int b=0; b<sampleLen; b++) {
+				for (int f=0; f<featuresCnt; f++) {
+					sampleSBF[(s+1)*sampleLen*featuresCnt+b*featuresCnt+f]=sampleSBF[s*sampleLen*featuresCnt+b*featuresCnt+f];
+				}
+			}
+			for (int b=0; b<targetLen; b++) {
+				for (int f=0; f<featuresCnt; f++) {
+					targetSBF[(s+1)*targetLen*featuresCnt+b*featuresCnt+f]=targetSBF[s*targetLen*featuresCnt+b*featuresCnt+f];
+					predictionSBF[(s+1)*targetLen*featuresCnt+b*featuresCnt+f]=predictionSBF[s*targetLen*featuresCnt+b*featuresCnt+f];
+				}
+			}
+		}
+
+		for (int b=0; b<sampleLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				sampleSBF[0*sampleLen*featuresCnt+b*featuresCnt+f]=tmpSample[b*featuresCnt+f];
+			}
+		}
+		for (int b=0; b<targetLen; b++) {
+			for (int f=0; f<featuresCnt; f++) {
+				targetSBF[0*targetLen*featuresCnt+b*featuresCnt+f]=tmpTarget[b*featuresCnt+f];
+				predictionSBF[0*targetLen*featuresCnt+b*featuresCnt+f]=tmpPrediction[b*featuresCnt+f];
+			}
+		}
+	}
+	free(tmpSample); free(tmpTarget); free(tmpPrediction);
+}
+
 void sDS::dump(bool isScaled) {
 	FILE* dumpFile=nullptr;
 	dumpPre(isScaled, &dumpFile);
