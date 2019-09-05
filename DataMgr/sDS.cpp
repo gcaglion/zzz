@@ -284,7 +284,48 @@ void sDS::slideSequence(int steps) {
 	}
 	free(tmpSample); free(tmpTarget); free(tmpPrediction);
 }
+void sDS::duplicateSequence() {
+	numtype* sampleSBFbkp=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	numtype* targetSBFbkp=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	numtype* predictionSBFbkp=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	numtype* sampleBFSbkp=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	numtype* targetBFSbkp=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	numtype* predictionBFSbkp=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
 
+	memcpy_s(sampleSBFbkp, samplesCnt*sampleLen*featuresCnt*sizeof(numtype), sampleSBF, samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	memcpy_s(targetSBFbkp, samplesCnt*targetLen*featuresCnt*sizeof(numtype), targetSBF, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(predictionSBFbkp, samplesCnt*targetLen*featuresCnt*sizeof(numtype), predictionSBF, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(sampleBFSbkp, samplesCnt*sampleLen*featuresCnt*sizeof(numtype), sampleBFS, samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	memcpy_s(targetBFSbkp, samplesCnt*targetLen*featuresCnt*sizeof(numtype), targetBFS, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(predictionBFSbkp, samplesCnt*targetLen*featuresCnt*sizeof(numtype), predictionBFS, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+
+	samplesCnt*=2;
+	free(sampleSBF); sampleSBF=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	free(targetSBF); targetSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	free(predictionSBF); predictionSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	free(sampleBFS); sampleBFS=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	free(targetBFS); targetBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	free(predictionBFS); predictionBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+
+	memcpy_s(&sampleSBF[0], samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype), sampleSBFbkp, samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&sampleSBF[samplesCnt/2*sampleLen*featuresCnt], samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype), sampleSBFbkp, samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&targetSBF[0], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), targetSBFbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&targetSBF[samplesCnt/2*targetLen*featuresCnt], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), targetSBFbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&predictionSBF[0], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), predictionSBFbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&predictionSBF[samplesCnt/2*targetLen*featuresCnt], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), predictionSBFbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&sampleBFS[0], samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype), sampleBFSbkp, samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&sampleBFS[samplesCnt/2*sampleLen*featuresCnt], samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype), sampleBFSbkp, samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&targetBFS[0], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), targetBFSbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&targetBFS[samplesCnt/2*targetLen*featuresCnt], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), targetBFSbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&predictionBFS[0], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), predictionBFSbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&predictionBFS[samplesCnt/2*targetLen*featuresCnt], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), predictionBFSbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
+
+	free(sampleSBFbkp); free(targetSBFbkp); free(predictionSBFbkp);
+	free(sampleBFSbkp); free(targetBFSbkp); free(predictionBFSbkp);
+}
+void sDS::halveSequence() {
+	samplesCnt/=2;
+}
 void sDS::dump(bool isScaled) {
 	FILE* dumpFile=nullptr;
 	dumpPre(isScaled, &dumpFile);

@@ -39,6 +39,8 @@ struct sDS : sCfgObj {
 
 	EXPORT void invertSequence();
 	EXPORT void slideSequence(int steps);
+	EXPORT void duplicateSequence();
+	EXPORT void halveSequence();
 
 	EXPORT void dump(bool isScaled=false);
 	EXPORT void scale(float scaleMin_, float scaleMax_);
