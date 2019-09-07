@@ -64,9 +64,12 @@ create table CoreImage_NN_W(
 	ThreadId number,
 	Epoch number,
 	WId number,
-	W number
-) storage (initial 1024M minextents 8 pctincrease 0);
-alter table CoreImage_NN_W add constraint CoreImage_NN_W_PK primary key( ProcessId, ThreadId, Epoch, WId ) using index tablespace LogIdx;
+	W number,
+	constraint CoreImage_NN_W_PK primary key( ProcessId, ThreadId, Epoch, WId )
+) 
+organization index
+storage (initial 1024M minextents 8 pctincrease 0);
+--alter table CoreImage_NN_W add constraint CoreImage_NN_W_PK primary key( ProcessId, ThreadId, Epoch, WId ) using index tablespace LogIdx;
 
 drop table CoreImage_NN_N purge;
 create table CoreImage_NN_N(
@@ -74,9 +77,12 @@ create table CoreImage_NN_N(
 	ThreadId number,
 	Epoch number,
 	NId number,
-	F number
-) storage (initial 1024M minextents 8 pctincrease 0);
-alter table CoreImage_NN_N add constraint CoreImage_NN_N_PK primary key( ProcessId, ThreadId, Epoch, NId ) using index tablespace LogIdx;
+	F number,
+	constraint CoreImage_NN_N_PK primary key( ProcessId, ThreadId, Epoch, NId )
+) 
+organization index
+storage (initial 1024M minextents 8 pctincrease 0);
+--alter table CoreImage_NN_N add constraint CoreImage_NN_N_PK primary key( ProcessId, ThreadId, Epoch, NId ) using index tablespace LogIdx;
 
 drop table Engines purge;
 create table Engines(

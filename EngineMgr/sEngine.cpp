@@ -400,12 +400,8 @@ void sEngine::infer(int testid_, int seqId_, sDS** inferDS_, sTS* inferTS_, int 
 	if (inferDS_[0]->featuresCnt!=featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_[0]->featuresCnt, featuresCnt);
 	if (inferDS_[0]->batchSize!=batchSize) fail("Infer DataSet Batch Size (%d) differs from Engine's (%d)", inferDS_[0]->batchSize, batchSize);
 
-	//for (int c=0; c<coresCnt; c++) inferDS_[c]->duplicateSequence();
-	
 	//-- call infer
 	safecall(this, process, inferProc, testid_, inferDS_, savedEnginePid_);
-
-	//for (int c=0; c<coresCnt; c++) inferDS_[c]->halveSequence();
 
 	//-- get predicted/target sequences (TR) for all cores, and saveRun
 	sDS* _ds;
@@ -434,7 +430,7 @@ void sEngine::infer(int testid_, int seqId_, sDS** inferDS_, sTS* inferTS_, int 
 		_ds->getSeq(TARGET, trgSeqTR[c], inferDS_[0]);
 		_ds->getSeq(PREDICTION, prdSeqTR[c], inferDS_[0]);
 		_ds->untransformSeq(inferTS_->dt, inferTS_->valB, trgSeqTR[c], inferTS_->val, trgSeqBASE[c]);
-		_ds->untransformSeq(inferTS_->dt, inferTS_->valB, prdSeqTR[c], inferTS_->val, prdSeqBASE[c]); dumpArrayH(seqLen*_ds->featuresCnt, prdSeqBASE[c], "C:/temp/logs/prdSeqBASE.csv");
+		_ds->untransformSeq(inferTS_->dt, inferTS_->valB, prdSeqTR[c], inferTS_->val, prdSeqBASE[c]); //dumpArrayH(seqLen*_ds->featuresCnt, prdSeqBASE[c], "C:/temp/logs/prdSeqBASE.csv");
 
 		if (core[c]->persistor->saveRunFlag) {
 			core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, seqId_, core[c]->procArgs->mseR, \
