@@ -330,7 +330,7 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	}
 	//--
 	for (int b=0; b<MT4engine->targetLen; b++) {
-		sprintf_s(oBarTimeS[b+2*(MT4engine->sampleLen+MT4engine->batchSize-1)], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
+		sprintf_s(oBarTimeS[b+(MT4engine->sampleLen+MT4engine->batchSize-1)], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
 		for (int f=0; f<selFcntTot; f++) {
 			oBar[fi]=EMPTY_VALUE;
 			fi++;

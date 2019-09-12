@@ -20,7 +20,7 @@ int _destroyEnv(uchar& iEnv[]);
 #import
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 6912;
+input int EnginePid				= 14308;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 input int DataTransformation	= 1;
 input bool DumpData				= true;
@@ -222,7 +222,7 @@ void OnTick() {
 		if (vForecastL>vForecastH) {
 			printf("Invalid Forecast: H=%f ; L=%f . Exiting...", vForecastH, vForecastL);
 		} else {
-			printf("Last Bar: H=%f ; L=%f ; Using Forecast: H=%f ; L=%f", vhigh[batchSize+historyLen-1-1], vlow[batchSize+historyLen-1-1], vForecastH, vForecastL);
+			printf("Last Bar(%s): H=%f ; L=%f ; Using Forecast: H=%f ; L=%f", vtimeS[batchSize+historyLen-1-1], vhigh[batchSize+historyLen-1-1], vlow[batchSize+historyLen-1-1], vForecastH, vForecastL);
 			//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
 			drawForecast(vForecastH, vForecastL);
 
