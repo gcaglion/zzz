@@ -279,11 +279,11 @@ void OnDeinit(const int reason) {
 }
 
 bool loadBars() {
-	int i=0;
+	int barsCnt=batchSize+historyLen-1;
 	ENUM_TIMEFRAMES tf;
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
-		int copied=CopyRates(serieSymbol[s], tf, 1, (batchSize+historyLen-1)+2, serierates);	printf("copied[%d]=%d", s, copied);
+		int copied=CopyRates(serieSymbol[s], tf, 1, barsCnt+2, serierates);	printf("copied[%d]=%d", s, copied);
 		if (copied!=((batchSize+historyLen-1)+2)) return false;
 		//-- base bar
 		vtimeB[s]=serierates[1].time;// +TimeGMTOffset();
@@ -295,17 +295,37 @@ bool loadBars() {
 		vvolumeB[s]=serierates[1].real_volume;
 		//printf("serie=%d ; time=%s ; OHLCV=%f|%f|%f|%f|%f", s, vtimeSB[s], vopenB[s], vhighB[s], vlowB[s], vcloseB[s], vvolumeB[s]);
 		//-- [historyLen] bars
-		for (int bar=2; bar<((batchSize+historyLen-1)+2); bar++) {
-			vtime[i]=serierates[bar].time;// +TimeGMTOffset();
-			StringConcatenate(vtimeS[i], TimeToString(vtime[i], TIME_DATE), ".", TimeToString(vtime[i], TIME_MINUTES));
-			vopen[i]=serierates[bar].open;
-			vhigh[i]=serierates[bar].high;
-			vlow[i]=serierates[bar].low;
-			vclose[i]=serierates[bar].close;
-			vvolume[i]=serierates[bar].real_volume; if (MathAbs(vvolume[i])>10000) vvolume[i]=0;
-			//printf("time[%d]=%s ; OHLCV[%d]=%f|%f|%f|%f|%f", i, vtimeS[i], i, vopen[i], vhigh[i], vlow[i], vclose[i], vvolume[i]);
-			i++;
+		for (int bar=0; bar<barsCnt; bar++) {
+			vtime[s*barsCnt+bar]=serierates[bar+1].time;// +TimeGMTOffset();
+			StringConcatenate(vtimeS[s*barsCnt+bar], TimeToString(vtime[s*barsCnt+bar], TIME_DATE), ".", TimeToString(vtime[s*barsCnt+bar], TIME_MINUTES));
+			vopen[s*barsCnt+bar]=serierates[bar+1].open;
+			vhigh[s*barsCnt+bar]=serierates[bar+1].high;
+			vlow[s*barsCnt+bar]=serierates[bar+1].low;
+			vclose[s*barsCnt+bar]=serierates[bar+1].close;
+			vvolume[s*barsCnt+bar]=serierates[bar+1].real_volume; if (MathAbs(vvolume[s*barsCnt+bar])>10000) vvolume[s*barsCnt+bar]=0;
 		}
+		
+		/*for (int kaz=0; kaz<1; kaz++) {
+			//-- slide by 1 forward
+			for (int bar=0; bar<(barsCnt-1); bar++) {
+				vtime[s*barsCnt+bar]=vtime[s*barsCnt+bar+1];
+				StringConcatenate(vtimeS[s*barsCnt+bar], TimeToString(vtime[s*barsCnt+bar], TIME_DATE), ".", TimeToString(vtime[s*barsCnt+bar], TIME_MINUTES));
+				vopen[s*barsCnt+bar]=vopen[s*barsCnt+bar+1];
+				vhigh[s*barsCnt+bar]=vhigh[s*barsCnt+bar+1];
+				vlow[s*barsCnt+bar]=vlow[s*barsCnt+bar+1];
+				vclose[s*barsCnt+bar]=vclose[s*barsCnt+bar+1];
+				vvolume[s*barsCnt+bar]=vvolume[s*barsCnt+bar+1];
+			}
+			//-- add last bar, same as previous
+			vtime[s*barsCnt+barsCnt-1]=vtime[s*barsCnt+barsCnt-1]+60*60*24;
+			StringConcatenate(vtimeS[s*barsCnt+barsCnt-1], TimeToString(vtime[s*barsCnt+barsCnt-1], TIME_DATE), ".", TimeToString(vtime[s*barsCnt+barsCnt-1], TIME_MINUTES));
+			vopen[s*barsCnt+barsCnt-1]=vopen[s*barsCnt+barsCnt-2];
+			vhigh[s*barsCnt+barsCnt-1]=vhigh[s*barsCnt+barsCnt-2];
+			vlow[s*barsCnt+barsCnt-1]=vlow[s*barsCnt+barsCnt-2];
+			vclose[s*barsCnt+barsCnt-1]=vclose[s*barsCnt+barsCnt-2];
+			vvolume[s*barsCnt+barsCnt-1]=vvolume[s*barsCnt+barsCnt-2];
+		}*/
+		//for (int bar=0; bar<barsCnt; bar++) printf("time[%d]=%s ; OHLCV[%d]=%f|%f|%f|%f|%f", bar, vtimeS[bar], bar, vopen[bar], vhigh[bar], vlow[bar], vclose[bar], vvolume[bar]);
 	}
 	return true;
 }
