@@ -307,3 +307,26 @@ void sTS::FFTcalc(int decompLevel_, int waveletType_) {
 	}
 	free(hfd); free(lfa);
 }
+
+void sTS::slide(int steps_) {
+	int f, s;
+	for (int kaz=0; kaz<steps_; kaz++) {
+		//-- set valB = first step
+		for (f=0; f<featuresCnt; f++) {
+			valB[f]=val[0*featuresCnt+f];
+		}
+		//-- set timestampB
+		strcpy_s(timestampB, DATE_FORMAT_LEN, timestamp[0]);
+		//-- set val
+		for (s=0; s<(stepsCnt-1); s++) {
+			for (f=0; f<featuresCnt; f++) {
+				val[s*featuresCnt+f]=val[(s+1)*featuresCnt+f];
+				valTR[s*featuresCnt+f]=valTR[(s+1)*featuresCnt+f];
+			}
+			//-- set timestamp
+			strcpy_s(timestamp[s], DATE_FORMAT_LEN, timestamp[s+1]);
+		}
+		//-- last step is unchanged, except for timestamp
+		timestamp[s][0]='E';
+	}
+}

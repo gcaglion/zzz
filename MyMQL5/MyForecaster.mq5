@@ -48,6 +48,7 @@ int historyLen;
 int predictionLen;
 int featuresCnt;
 int batchSize;
+int barsCnt;
 int featuresCntFromCfg;
 string serieSymbol[MT_MAX_SERIES_CNT];
 string serieTimeFrame[MT_MAX_SERIES_CNT];
@@ -94,9 +95,10 @@ int OnInit() {
 	}
 	EnvS=CharArrayToString(vEnvS);
 	printf("EnginePid=%d ; SampleLen/PredictionLen/FeaturesCnt/BatchSize=%d/%d/%d/%d ; EnvS=%s ; ClientXMLFile=%s", EnginePid, historyLen, predictionLen, featuresCnt, batchSize, EnvS, ClientXMLFile);
+	barsCnt=batchSize+historyLen-1;
 
 	//--
-	printf("Getting TimeSeries Info from Client Config...");
+	//printf("Getting TimeSeries Info from Client Config...");
 	if (_getSeriesInfo(vEnvS, seriesCnt, uSymbolsCSL, uTimeFramesCSL, uFeaturesCSL, chartTrade)!=0) {
 		printf("FAILURE: _getSeriesInfo() failed. see Forecaster logs.");
 		return -1;
@@ -104,7 +106,7 @@ int OnInit() {
 	sSymbolsCSL=CharArrayToString(uSymbolsCSL);
 	sTimeFramesCSL=CharArrayToString(uTimeFramesCSL);
 	sFeaturesCSL=CharArrayToString(uFeaturesCSL);
-	printf("seriesCnt=%d ; symbolsCSL=%s ; timeFramesCSL=%s, featuresCSL=%s", seriesCnt, sSymbolsCSL, sTimeFramesCSL, sFeaturesCSL);
+	//printf("seriesCnt=%d ; symbolsCSL=%s ; timeFramesCSL=%s, featuresCSL=%s", seriesCnt, sSymbolsCSL, sTimeFramesCSL, sFeaturesCSL);
 
 	if (StringSplit(sSymbolsCSL, '|', serieSymbol)!=seriesCnt) {
 		printf("Invalid Symbol CSL");
@@ -122,10 +124,10 @@ int OnInit() {
 	featuresCntFromCfg=0;
 	string serieFeatTmp[5];
 	for (int s=0; s<seriesCnt; s++) {
-		printf("Symbol/TF [%d] : %s/%s", s, serieSymbol[s], serieTimeFrame[s]);
+		//printf("Symbol/TF [%d] : %s/%s", s, serieSymbol[s], serieTimeFrame[s]);
 		serieFeatMask[s]=CSL2Mask(serieFeatList[s]);
-		printf("FeatureList [%d] : %s (%d)", s, serieFeatList[s], serieFeatMask[s]);
-		printf("Trade [%d] : %s", s, (chartTrade[s]) ? "TRUE" : "FALSE");
+		//printf("FeatureList [%d] : %s (%d)", s, serieFeatList[s], serieFeatMask[s]);
+		//printf("Trade [%d] : %s", s, (chartTrade[s]) ? "TRUE" : "FALSE");
 		featuresCntFromCfg+=StringSplit(serieFeatList[s], ',', serieFeatTmp);
 	}
 	if (featuresCntFromCfg!=featuresCnt) {
@@ -141,13 +143,13 @@ int OnInit() {
 	ArrayResize(vcloseB, seriesCnt);
 	ArrayResize(vvolumeB, seriesCnt);
 	//--
-	ArrayResize(vtime, (batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vtimeS, (batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vopen, (batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vhigh, (batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vlow, (batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vclose, (batchSize+historyLen-1)*seriesCnt);
-	ArrayResize(vvolume, (batchSize+historyLen-1)*seriesCnt);
+	ArrayResize(vtime, barsCnt*seriesCnt);
+	ArrayResize(vtimeS, barsCnt*seriesCnt);
+	ArrayResize(vopen, barsCnt*seriesCnt);
+	ArrayResize(vhigh, barsCnt*seriesCnt);
+	ArrayResize(vlow, barsCnt*seriesCnt);
+	ArrayResize(vclose, barsCnt*seriesCnt);
+	ArrayResize(vvolume, barsCnt*seriesCnt);
 	//--
 	ArrayResize(vopenF, predictionLen*seriesCnt);
 	ArrayResize(vhighF, predictionLen*seriesCnt);
@@ -162,15 +164,15 @@ int OnInit() {
 }
 void OnTick() {
 
-	static bool runOnce=false;
 	static bool firstTick=true;
 	int tradeScenario;
 	int tradeResult=-1;
 	datetime positionTime=0;
 	vTicket=-1;
 	static int sequenceId=0;
+	int maxSteps=2;
 
-	if (!runOnce) {
+	if (maxSteps<0||sequenceId<maxSteps) {
 		// Only do this if there's a new bar
 		static datetime Time0=0;
 		if (Time0==SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE)) return;
@@ -181,7 +183,7 @@ void OnTick() {
 
 		//-- close existing position
 		trade.PositionClose(Symbol(), 10);
-		printf("trade.PositionClose() returned %d", trade.ResultRetcode());
+		//printf("trade.PositionClose() returned %d", trade.ResultRetcode());
 		if (!firstTick&&trade.ResultRetcode()!=TRADE_RETCODE_DONE) {
 			//-- prev position has already been closed due to TP or SL
 			TPhit=true;
@@ -218,11 +220,11 @@ void OnTick() {
 		//-- take first bar from vhighF, vlowF
 		vForecastH=vhighF[tradeSerie*predictionLen+0];
 		vForecastL=vlowF[tradeSerie*predictionLen+0];
+		printf("Last Bar(%s): H=%f ; L=%f ; Forecast: H=%f ; L=%f", vtimeS[batchSize+historyLen-1-1], vhigh[batchSize+historyLen-1-1], vlow[batchSize+historyLen-1-1], vForecastH, vForecastL);
 		//-- check for forecast consistency in first bar (H>L)
 		if (vForecastL>vForecastH) {
 			printf("Invalid Forecast: H=%f ; L=%f . Exiting...", vForecastH, vForecastL);
 		} else {
-			printf("Last Bar(%s): H=%f ; L=%f ; Using Forecast: H=%f ; L=%f", vtimeS[batchSize+historyLen-1-1], vhigh[batchSize+historyLen-1-1], vlow[batchSize+historyLen-1-1], vForecastH, vForecastL);
 			//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
 			drawForecast(vForecastH, vForecastL);
 
@@ -234,9 +236,9 @@ void OnTick() {
 			if (tradeScenario>=0) {
 
 				//-- do the actual trade
-				printf("======================================== CALL TO NewTrade() ========================================================================================================================");
+				//printf("======================================== CALL TO NewTrade() ========================================================================================================================");
 				tradeResult=NewTrade(tradeScenario, tradeVol, tradeTP, tradeSL);
-				printf("====================================================================================================================================================================================");
+				//printf("====================================================================================================================================================================================");
 
 				//-- if trade successful, store position ticket in shared variable
 				if (tradeResult==0) {
@@ -265,7 +267,6 @@ void OnTick() {
 		//-- commit
 		_commit(vEnvS);
 	}
-	//runOnce=true;
 	firstTick=false;
 	sequenceId++;
 }
@@ -279,12 +280,11 @@ void OnDeinit(const int reason) {
 }
 
 bool loadBars() {
-	int barsCnt=batchSize+historyLen-1;
 	ENUM_TIMEFRAMES tf;
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
-		int copied=CopyRates(serieSymbol[s], tf, 1, barsCnt+2, serierates);	printf("copied[%d]=%d", s, copied);
-		if (copied!=((batchSize+historyLen-1)+2)) return false;
+		int copied=CopyRates(serieSymbol[s], tf, 1, barsCnt+2, serierates);	//printf("copied[%d]=%d", s, copied);
+		if (copied!=(barsCnt+2)) return false;
 		//-- base bar
 		vtimeB[s]=serierates[1].time;// +TimeGMTOffset();
 		StringConcatenate(vtimeSB[s], TimeToString(vtimeB[s], TIME_DATE), ".", TimeToString(vtimeB[s], TIME_MINUTES));
@@ -296,16 +296,16 @@ bool loadBars() {
 		//printf("serie=%d ; time=%s ; OHLCV=%f|%f|%f|%f|%f", s, vtimeSB[s], vopenB[s], vhighB[s], vlowB[s], vcloseB[s], vvolumeB[s]);
 		//-- [historyLen] bars
 		for (int bar=0; bar<barsCnt; bar++) {
-			vtime[s*barsCnt+bar]=serierates[bar+1].time;// +TimeGMTOffset();
+			vtime[s*barsCnt+bar]=serierates[bar+2].time;// +TimeGMTOffset();
 			StringConcatenate(vtimeS[s*barsCnt+bar], TimeToString(vtime[s*barsCnt+bar], TIME_DATE), ".", TimeToString(vtime[s*barsCnt+bar], TIME_MINUTES));
-			vopen[s*barsCnt+bar]=serierates[bar+1].open;
-			vhigh[s*barsCnt+bar]=serierates[bar+1].high;
-			vlow[s*barsCnt+bar]=serierates[bar+1].low;
-			vclose[s*barsCnt+bar]=serierates[bar+1].close;
-			vvolume[s*barsCnt+bar]=serierates[bar+1].real_volume; if (MathAbs(vvolume[s*barsCnt+bar])>10000) vvolume[s*barsCnt+bar]=0;
+			vopen[s*barsCnt+bar]=serierates[bar+2].open;
+			vhigh[s*barsCnt+bar]=serierates[bar+2].high;
+			vlow[s*barsCnt+bar]=serierates[bar+2].low;
+			vclose[s*barsCnt+bar]=serierates[bar+2].close;
+			vvolume[s*barsCnt+bar]=serierates[bar+2].real_volume; if (MathAbs(vvolume[s*barsCnt+bar])>10000) vvolume[s*barsCnt+bar]=0;
 		}
 		
-		/*for (int kaz=0; kaz<1; kaz++) {
+		/*for (int kaz=0; kaz<predictionLen; kaz++) {
 			//-- slide by 1 forward
 			for (int bar=0; bar<(barsCnt-1); bar++) {
 				vtime[s*barsCnt+bar]=vtime[s*barsCnt+bar+1];

@@ -171,6 +171,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(inferCfg->currentKey, getParm, &_dumpPath, "DumpPath");
 
 		sTS* inferTS; safespawn(inferTS, newsname("inferTimeSerie"), defaultdbg, inferCfg, "/TimeSerie");
+		//inferTS->slide(_inferTargetLen);
 
 		//-- spawn engine from savedEnginePid_ with pid
 		safespawn(engine, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid_);
@@ -219,6 +220,12 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 #include "../DataMgr/sDS.h"
 void sRoot::kaz() {
 	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/inferDS.xml");
+	sTS* ts1; safespawn(ts1, newsname("TS1"), defaultdbg, dsCfg, "/TimeSerie");
+	ts1->dump();
+	ts1->slide(1);
+	ts1->dump();
+	return;
+
 	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
 	ds1->dump();
 	ds1->duplicateSequence();
@@ -310,11 +317,13 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 		selFcntTot+=selFcnt[serie];
 	}
 
-	numtype* oBar=(numtype*)malloc((MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1)*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
+	int sampleBarsCnt=MT4engine->sampleLen+MT4engine->batchSize-1;
+	int targetBarsCnt=MT4engine->targetLen;
+	numtype* oBar=(numtype*)malloc((sampleBarsCnt+targetBarsCnt)*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
 	long oBarTime;
-	char** oBarTimeS=(char**)malloc((MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1)*sizeof(char*)); for (int b=0; b<(MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1); b++) oBarTimeS[b]=(char*)malloc(DATE_FORMAT_LEN);
+	char** oBarTimeS=(char**)malloc((sampleBarsCnt+targetBarsCnt)*sizeof(char*)); for (int b=0; b<(sampleBarsCnt+targetBarsCnt); b++) oBarTimeS[b]=(char*)malloc(DATE_FORMAT_LEN);
 	int fi=0;
-	for (int b=0; b<(MT4engine->sampleLen+MT4engine->batchSize-1); b++) {
+	for (int b=0; b<sampleBarsCnt; b++) {
 		for (int s=0; s<seriesCnt_; s++) {
 			oBarTime=iBarT[s*MT4engine->sampleLen+b];
 			MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarTimeS[b]);
@@ -329,7 +338,7 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 		}
 	}
 	//--
-	for (int b=0; b<MT4engine->targetLen; b++) {
+	for (int b=0; b<targetBarsCnt; b++) {
 		sprintf_s(oBarTimeS[b+(MT4engine->sampleLen+MT4engine->batchSize-1)], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
 		for (int f=0; f<selFcntTot; f++) {
 			oBar[fi]=EMPTY_VALUE;
@@ -368,7 +377,8 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	}
 	fclose(f);*/
 	//--
-	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, MT4engine->sampleLen+MT4engine->targetLen+MT4engine->batchSize-1, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
+	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
+	//mtTS->slide(MT4engine->targetLen); mtTS->dump();
 	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump,(char*)nullptr, true);
 	//--
 	
