@@ -323,7 +323,7 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	long oBarTime;
 	char** oBarTimeS=(char**)malloc((sampleBarsCnt+targetBarsCnt)*sizeof(char*)); for (int b=0; b<(sampleBarsCnt+targetBarsCnt); b++) oBarTimeS[b]=(char*)malloc(DATE_FORMAT_LEN);
 	int fi=0;
-	for (int b=0; b<sampleBarsCnt; b++) {
+	for (int b=0; b<(sampleBarsCnt+targetBarsCnt); b++) {
 		for (int s=0; s<seriesCnt_; s++) {
 			oBarTime=iBarT[s*MT4engine->sampleLen+b];
 			MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarTimeS[b]);
@@ -338,13 +338,13 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 		}
 	}
 	//--
-	for (int b=0; b<targetBarsCnt; b++) {
+	/*for (int b=0; b<targetBarsCnt; b++) {
 		sprintf_s(oBarTimeS[b+(MT4engine->sampleLen+MT4engine->batchSize-1)], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
 		for (int f=0; f<selFcntTot; f++) {
 			oBar[fi]=EMPTY_VALUE;
 			fi++;
 		}
-	}
+	}*/
 	//--
 	numtype* oBarB=(numtype*)malloc(selFcntTot*sizeof(numtype));
 	char* oBarBTimeS=(char*)malloc(DATE_FORMAT_LEN);
@@ -378,7 +378,7 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	fclose(f);*/
 	//--
 	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
-	//mtTS->slide(MT4engine->targetLen); mtTS->dump();
+	mtTS->slide(MT4engine->targetLen); mtTS->dump();
 	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump,(char*)nullptr, true);
 	//--
 	
@@ -411,8 +411,8 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	return;
 
 }
-void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit) {
-	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4sessionId, MT4accountId, MT4enginePid, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
+void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit) {
+	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4sessionId, MT4accountId, MT4enginePid, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iLastForecastO, iLastForecastH, iLastForecastL, iLastForecastC, iLastForecastV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
 }
 void sRoot::saveClientInfo(int sequenceId, double iPositionOpenTime) {
 	char accountStr[64]; sprintf_s(accountStr, 32, "MT5_account_%d", MT4accountId);
@@ -510,7 +510,7 @@ extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seqId_, int s
 
 	return 0;
 }
-extern "C" __declspec(dllexport) int _saveTradeInfo(char* iEnvS, int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit) {
+extern "C" __declspec(dllexport) int _saveTradeInfo(char* iEnvS, int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
 
@@ -521,7 +521,7 @@ extern "C" __declspec(dllexport) int _saveTradeInfo(char* iEnvS, int iPositionTi
 		MT4time2str(iPositionOpenTime, DATE_FORMAT_LEN, iPositionOpenTimes);
 		MT4time2str(iLastBarT, DATE_FORMAT_LEN, iLastBarTs);
 		//-- then, make the call
-		env->saveTradeInfo(iPositionTicket, iPositionOpenTimes, iLastBarTs, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
+		env->saveTradeInfo(iPositionTicket, iPositionOpenTimes, iLastBarTs, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iLastForecastO, iLastForecastH, iLastForecastL, iLastForecastC, iLastForecastV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
 	}
 	catch (std::exception exc) {
 		return -1;

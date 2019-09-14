@@ -13,7 +13,7 @@ int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, int
 int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[], bool& oChartTrade[]);
 int _getForecast(uchar& iEnv[], int seqId_, int seriesCnt_, int dt_, int& featMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 //--
-int _saveTradeInfo(uchar& iEnv[], int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit);
+int _saveTradeInfo(uchar& iEnv[], int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit);
 int _saveClientInfo(uchar& iEnv[], int sequenceId, long iTradeStartTime);
 void _commit(uchar& iEnv[]);
 int _destroyEnv(uchar& iEnv[]);
@@ -95,7 +95,7 @@ int OnInit() {
 	}
 	EnvS=CharArrayToString(vEnvS);
 	printf("EnginePid=%d ; SampleLen/PredictionLen/FeaturesCnt/BatchSize=%d/%d/%d/%d ; EnvS=%s ; ClientXMLFile=%s", EnginePid, historyLen, predictionLen, featuresCnt, batchSize, EnvS, ClientXMLFile);
-	barsCnt=batchSize+historyLen-1;
+	barsCnt=batchSize+historyLen-1+predictionLen;
 
 	//--
 	//printf("Getting TimeSeries Info from Client Config...");
@@ -170,7 +170,13 @@ void OnTick() {
 	datetime positionTime=0;
 	vTicket=-1;
 	static int sequenceId=0;
-	int maxSteps=2;
+	int maxSteps=-1;
+
+	static double lastForecastO=0;
+	static double lastForecastH=0;
+	static double lastForecastL=0;
+	static double lastForecastC=0;
+	static double lastForecastV=0;
 
 	if (maxSteps<0||sequenceId<maxSteps) {
 		// Only do this if there's a new bar
@@ -220,7 +226,7 @@ void OnTick() {
 		//-- take first bar from vhighF, vlowF
 		vForecastH=vhighF[tradeSerie*predictionLen+0];
 		vForecastL=vlowF[tradeSerie*predictionLen+0];
-		printf("Last Bar(%s): H=%f ; L=%f ; Forecast: H=%f ; L=%f", vtimeS[batchSize+historyLen-1-1], vhigh[batchSize+historyLen-1-1], vlow[batchSize+historyLen-1-1], vForecastH, vForecastL);
+		printf("==== Last Bar(%s): H=%f ; L=%f ; Forecast: H=%f ; L=%f", vtimeS[batchSize+historyLen-1-1], vhigh[batchSize+historyLen-1-1], vlow[batchSize+historyLen-1-1], vForecastH, vForecastL);
 		//-- check for forecast consistency in first bar (H>L)
 		if (vForecastL>vForecastH) {
 			printf("Invalid Forecast: H=%f ; L=%f . Exiting...", vForecastH, vForecastL);
@@ -250,13 +256,17 @@ void OnTick() {
 		}
 
 		//-- save tradeInfo, even if we do not trade
-		//int idx=tradeSerie*historyLen+historyLen-1;
 		int idx=tradeSerie*(batchSize+historyLen-1)+(batchSize+historyLen-1)-1;
 		//printf("calling _saveTradeInfo() with lastBar = %s - %f|%f|%f|%f ; forecast = %f|%f|%f|%f", vtimeS[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0]);
-		if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0], tradeScenario, tradeResult, TPhit, SLhit)<0) {
+		if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], lastForecastO, lastForecastH, lastForecastL, lastForecastC, lastForecastV, vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0], tradeScenario, tradeResult, TPhit, SLhit)<0) {
 			printf("_saveTradeInfo() failed. see Forecaster logs.");
 			return;
 		}
+		lastForecastO=vopenF[tradeSerie*predictionLen+0];
+		lastForecastH=vhighF[tradeSerie*predictionLen+0];
+		lastForecastL=vlowF[tradeSerie*predictionLen+0];
+		lastForecastC=vcloseF[tradeSerie*predictionLen+0];
+		lastForecastV=vvolumeF[tradeSerie*predictionLen+0];
 
 		//-- save clientInfo
 		if (_saveClientInfo(vEnvS, sequenceId, TimeCurrent())<0) {
