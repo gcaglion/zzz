@@ -29,6 +29,7 @@ input int  Max_Retries			= 3;
 //-- input parameters - Trade stuff
 input double TradeVol			= 0.1;
 input double RiskRatio			= 0.20;
+input double ForecastTolerance	= 2;
 
 //--- local variables
 int vDataTransformation=DataTransformation;
@@ -352,7 +353,7 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 
 	int scenario=-1;
 	double point=SymbolInfoDouble(Symbol(), SYMBOL_POINT);
-	double fTolerance=0*(10*point);
+	double fTolerance=ForecastTolerance*(10*point);
 	double riskRatio=RiskRatio;
 
 	MqlTick tick;
