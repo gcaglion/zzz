@@ -170,7 +170,7 @@ void OnTick() {
 	datetime positionTime=0;
 	vTicket=-1;
 	static int sequenceId=0;
-	int maxSteps=-1;
+	int maxSteps=5;
 
 	static double lastForecastO=0;
 	static double lastForecastH=0;
@@ -188,6 +188,7 @@ void OnTick() {
 		StringConcatenate(Time0S, TimeToString(Time0, TIME_DATE), ".", TimeToString(Time0, TIME_MINUTES));
 
 		//-- close existing position
+		printf("Closing existing position");
 		trade.PositionClose(Symbol(), 10);
 		//printf("trade.PositionClose() returned %d", trade.ResultRetcode());
 		if (!firstTick&&trade.ResultRetcode()!=TRADE_RETCODE_DONE) {
@@ -196,6 +197,7 @@ void OnTick() {
 		} else {
 			TPhit=false;
 		}
+		
 
 		//-- load bars into arrrays
 		//printf("Time0=%s . calling LoadBars()...", Time0S);
@@ -226,10 +228,17 @@ void OnTick() {
 		//-- take first bar from vhighF, vlowF
 		vForecastH=vhighF[tradeSerie*predictionLen+0];
 		vForecastL=vlowF[tradeSerie*predictionLen+0];
-		printf("==== Last Bar(%s): H=%f ; L=%f ; Forecast: H=%f ; L=%f", vtimeS[batchSize+historyLen-1-1], vhigh[batchSize+historyLen-1-1], vlow[batchSize+historyLen-1-1], vForecastH, vForecastL);
+		/*//==================================================
+		MqlRates rates[];
+		int copied=CopyRates(NULL, 0, 0, 2, rates);
+		string ts;
+		StringConcatenate(ts, TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES)); printf("rates[0]=%s", ts);
+		StringConcatenate(ts, TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES)); printf("rates[1]=%s", ts);
+		//==================================================*/
+		printf("==== Last Bar(%s): H=%6.5f ; L=%6.5f ; Forecast: H=%6.5f ; L=%6.5f", vtimeS[barsCnt-1], vhigh[barsCnt-1], vlow[barsCnt-1], vForecastH, vForecastL);
 		//-- check for forecast consistency in first bar (H>L)
 		if (vForecastL>vForecastH) {
-			printf("Invalid Forecast: H=%f ; L=%f . Exiting...", vForecastH, vForecastL);
+			printf("Invalid Forecast: H=%6.5f ; L=%6.5f . Exiting...", vForecastH, vForecastL);
 		} else {
 			//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
 			drawForecast(vForecastH, vForecastL);
@@ -238,7 +247,7 @@ void OnTick() {
 			double tradeVol=TradeVol;
 			double tradeTP, tradeSL;
 
-			tradeScenario=getTradeScenario(tradeTP, tradeSL); printf("trade scenario=%d ; tradeTP=%5.4f ; tradeSL=%5.4f", tradeScenario, tradeTP, tradeSL);
+			tradeScenario=getTradeScenario(tradeTP, tradeSL); printf("trade scenario=%d ; tradeTP=%6.5f ; tradeSL=%6.5f", tradeScenario, tradeTP, tradeSL);
 			if (tradeScenario>=0) {
 
 				//-- do the actual trade
@@ -256,7 +265,7 @@ void OnTick() {
 		}
 
 		//-- save tradeInfo, even if we do not trade
-		int idx=tradeSerie*(batchSize+historyLen-1)+(batchSize+historyLen-1)-1;
+		int idx=tradeSerie*barsCnt+barsCnt-1;
 		//printf("calling _saveTradeInfo() with lastBar = %s - %f|%f|%f|%f ; forecast = %f|%f|%f|%f", vtimeS[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0]);
 		if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], lastForecastO, lastForecastH, lastForecastL, lastForecastC, lastForecastV, vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0], tradeScenario, tradeResult, TPhit, SLhit)<0) {
 			printf("_saveTradeInfo() failed. see Forecaster logs.");
@@ -361,7 +370,7 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 		int spread=SymbolInfoInteger(Symbol(), SYMBOL_SPREAD);
 		double point=SymbolInfoDouble(Symbol(), SYMBOL_POINT);
 
-		printf("getTradeScenario(): cH=%5.4f , cL=%5.4f , fH=%5.4f , fL=%5.4f , dH=%5.4f , dL=%5.4f, minDist=%f , spread=%f", cH, cL, fH, fL, dH, dL, minDist, spread);
+		printf("getTradeScenario(): cH=%6.5f , cL=%6.5f , fH=%6.5f , fL=%6.5f , dH=%6.5f , dL=%6.5f, minDist=%f , spread=%f", cH, cL, fH, fL, dH, dL, minDist, spread);
 
 		//-- Current price (tick.ask) is below   ForecastL => BUY (1)
 		if (cH<fL) {
@@ -373,7 +382,7 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 			expLoss=expProfit*riskRatio;
 			expLoss=MathMax((minDist+spread)*point, expLoss);
 			oTradeSL=cL-expLoss;
-			printf("Scenario 1 (BUY) ; oTradeTP=%5.4f ; expProfit=%5.4f ; expLoss=%5.4f ; oTradeSL=%5.4f", oTradeTP, expProfit, expLoss, oTradeSL);
+			printf("Scenario 1 (BUY) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 		}
 
 		//-- Current price is above   ForecastH  => SELL (2)
@@ -386,7 +395,7 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 			expLoss=expProfit*riskRatio;
 			expLoss=MathMax((minDist+spread)*point, expLoss);
 			oTradeSL=cL+expLoss;
-			printf("Scenario 2 (SELL) ; oTradeTP=%5.4f ; expProfit=%5.4f ; expLoss=%5.4f ; oTradeSL=%5.4f", oTradeTP, expProfit, expLoss, oTradeSL);
+			printf("Scenario 2 (SELL) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 		}
 
 		//-- Current price is between ForecastL and ForecastH, closer to ForecastL  => BUY (3)
@@ -399,7 +408,7 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 			expLoss=expProfit*riskRatio;
 			expLoss=MathMax((minDist+spread)*point, expLoss);
 			oTradeSL=cL-expLoss;
-			printf("Scenario 3 (BUY) ; oTradeTP=%5.4f ; expProfit=%5.4f ; expLoss=%5.4f ; oTradeSL=%5.4f", oTradeTP, expProfit, expLoss, oTradeSL);
+			printf("Scenario 3 (BUY) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 		}
 
 		//-- Current price is between ForecastL and ForecastH, closer to ForecastH  => SELL (4)
@@ -412,7 +421,7 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 			expLoss=expProfit*riskRatio;
 			expLoss=MathMax((minDist+spread)*point, expLoss);
 			oTradeSL=cL+expLoss;
-			printf("Scenario 4 (SELL) ; oTradeTP=%5.4f ; expProfit=%5.4f ; expLoss=%5.4f ; oTradeSL=%5.4f", oTradeTP, expProfit, expLoss, oTradeSL);
+			printf("Scenario 4 (SELL) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 		}
 
 	}
