@@ -171,7 +171,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(inferCfg->currentKey, getParm, &_dumpPath, "DumpPath");
 
 		sTS* inferTS; safespawn(inferTS, newsname("inferTimeSerie"), defaultdbg, inferCfg, "/TimeSerie");
-		//inferTS->slide(_inferTargetLen);
+		inferTS->slide(_inferTargetLen);
 
 		//-- spawn engine from savedEnginePid_ with pid
 		safespawn(engine, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid_);

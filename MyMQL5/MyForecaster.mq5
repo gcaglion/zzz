@@ -171,7 +171,7 @@ void OnTick() {
 	datetime positionTime=0;
 	vTicket=-1;
 	static int sequenceId=0;
-	int maxSteps=5;
+	int maxSteps=-1;
 
 	static double lastForecastO=0;
 	static double lastForecastH=0;
@@ -236,7 +236,7 @@ void OnTick() {
 		StringConcatenate(ts, TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES)); printf("rates[0]=%s", ts);
 		StringConcatenate(ts, TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES)); printf("rates[1]=%s", ts);
 		//==================================================*/
-		printf("==== Last Bar(%s): H=%6.5f ; L=%6.5f ; Forecast: H=%6.5f ; L=%6.5f", vtimeS[barsCnt-1], vhigh[barsCnt-1], vlow[barsCnt-1], vForecastH, vForecastL);
+		printf("==== Sequence: %d ; Last Bar(%s): H=%6.5f ; L=%6.5f ; Forecast: H=%6.5f ; L=%6.5f", sequenceId, vtimeS[barsCnt-1], vhigh[barsCnt-1], vlow[barsCnt-1], vForecastH, vForecastL);
 		//-- check for forecast consistency in first bar (H>L)
 		if (vForecastL>vForecastH) {
 			printf("Invalid Forecast: H=%6.5f ; L=%6.5f . Exiting...", vForecastH, vForecastL);
@@ -474,14 +474,11 @@ void drawForecast(double H, double L) {
 	if (copied<=0) Print("Error copying price data ", GetLastError());
 
 	string nameR, nameE;
-	//StringConcatenate(nameR, "Rectangle", TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES));
-	StringConcatenate(nameE, "Ellipse", TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES));
+	StringConcatenate(nameE, "Forecast", TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES), " H=", DoubleToString(H, 5), " ; L=",DoubleToString(L,5));
 
 	//	ObjectDelete(_Symbol, name);
 
 	//-- draw the rectangle between last bar and new bar
-	//printf("ObjectCreate(H=%f ; L=%f) returns %d", H,L,ObjectCreate(_Symbol, name, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L));
-	//ObjectCreate(_Symbol, nameR, OBJ_RECTANGLE, 0, rates[0].time, H, rates[1].time, L);
 	ObjectCreate(_Symbol, nameE, OBJ_ELLIPSE, 0, rates[1].time, H, rates[1].time, L, rates[0].time, (H+L)/2);
 	ObjectSetInteger(0, nameE, OBJPROP_COLOR, clrBlue);
 	ObjectSetInteger(0, nameE, OBJPROP_WIDTH, 2);
