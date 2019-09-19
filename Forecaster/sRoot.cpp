@@ -171,7 +171,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(inferCfg->currentKey, getParm, &_dumpPath, "DumpPath");
 
 		sTS* inferTS; safespawn(inferTS, newsname("inferTimeSerie"), defaultdbg, inferCfg, "/TimeSerie");
-		inferTS->slide(_inferTargetLen);
+		//inferTS->slide(_inferTargetLen);
 
 		//-- spawn engine from savedEnginePid_ with pid
 		safespawn(engine, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid_);
@@ -323,7 +323,7 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	long oBarTime;
 	char** oBarTimeS=(char**)malloc((sampleBarsCnt+targetBarsCnt)*sizeof(char*)); for (int b=0; b<(sampleBarsCnt+targetBarsCnt); b++) oBarTimeS[b]=(char*)malloc(DATE_FORMAT_LEN);
 	int fi=0;
-	for (int b=0; b<(sampleBarsCnt+targetBarsCnt); b++) {
+	for (int b=0; b<(sampleBarsCnt); b++) {
 		for (int s=0; s<seriesCnt_; s++) {
 			oBarTime=iBarT[s*MT4engine->sampleLen+b];
 			MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarTimeS[b]);
@@ -338,13 +338,13 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 		}
 	}
 	//--
-	/*for (int b=0; b<targetBarsCnt; b++) {
-		sprintf_s(oBarTimeS[b+(MT4engine->sampleLen+MT4engine->batchSize-1)], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
+	for (int b=0; b<targetBarsCnt; b++) {
+		sprintf_s(oBarTimeS[sampleBarsCnt+b], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
 		for (int f=0; f<selFcntTot; f++) {
 			oBar[fi]=EMPTY_VALUE;
 			fi++;
 		}
-	}*/
+	}
 	//--
 	numtype* oBarB=(numtype*)malloc(selFcntTot*sizeof(numtype));
 	char* oBarBTimeS=(char*)malloc(DATE_FORMAT_LEN);
@@ -378,7 +378,7 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	fclose(f);*/
 	//--
 	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
-	mtTS->slide(MT4engine->targetLen); mtTS->dump();
+	//mtTS->slide(MT4engine->targetLen); mtTS->dump();
 	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump,(char*)nullptr, true);
 	//--
 	

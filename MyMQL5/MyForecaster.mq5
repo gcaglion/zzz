@@ -96,7 +96,7 @@ int OnInit() {
 	}
 	EnvS=CharArrayToString(vEnvS);
 	printf("EnginePid=%d ; SampleLen/PredictionLen/FeaturesCnt/BatchSize=%d/%d/%d/%d ; EnvS=%s ; ClientXMLFile=%s", EnginePid, historyLen, predictionLen, featuresCnt, batchSize, EnvS, ClientXMLFile);
-	barsCnt=batchSize+historyLen-1+predictionLen;
+	barsCnt=batchSize+historyLen-1;// +predictionLen;
 
 	//--
 	//printf("Getting TimeSeries Info from Client Config...");

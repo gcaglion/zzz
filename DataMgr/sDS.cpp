@@ -256,7 +256,7 @@ void sDS::slideSequence(int steps) {
 			}
 		}
 
-		for (int s=(samplesCnt-1); s>=0; s--) {
+		for (int s=(samplesCnt-2); s>=0; s--) {
 			for (int b=0; b<sampleLen; b++) {
 				for (int f=0; f<featuresCnt; f++) {
 					sampleSBF[(s+1)*sampleLen*featuresCnt+b*featuresCnt+f]=sampleSBF[s*sampleLen*featuresCnt+b*featuresCnt+f];
