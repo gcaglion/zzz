@@ -41,6 +41,7 @@ struct sTS : sCfgObj {
 	EXPORT void dump();
 	EXPORT void FFTcalc(int decompLevel_, int waveletType_);
 	EXPORT void slide(int steps_);
+	EXPORT void invertSequence(int skipLastN);
 
 private:
 	void setDataSource(sDataSource** dataSrc_);

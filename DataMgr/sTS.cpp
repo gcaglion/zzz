@@ -331,3 +331,20 @@ void sTS::slide(int steps_) {
 		timestamp[s][15]=49+kaz;	// 1,2,3...
 	}
 }
+
+void sTS::invertSequence(int skipLastN) {
+	numtype* ival=(numtype*)malloc(stepsCnt*featuresCnt*sizeof(numtype));
+	numtype* ivalTR=(numtype*)malloc(stepsCnt*featuresCnt*sizeof(numtype));
+
+	for (int s=0; s<(stepsCnt-skipLastN); s++) {
+		for (int f=0; f<featuresCnt; f++) {
+			ival[s*featuresCnt+f]=val[(stepsCnt-skipLastN-s-1)*featuresCnt+f];
+			ivalTR[s*featuresCnt+f]=valTR[(stepsCnt-skipLastN-s-1)*featuresCnt+f];
+		}
+	}
+
+	memcpy_s(val, stepsCnt*featuresCnt*sizeof(numtype), ival, stepsCnt*featuresCnt*sizeof(numtype));
+	memcpy_s(valTR, stepsCnt*featuresCnt*sizeof(numtype), ivalTR, stepsCnt*featuresCnt*sizeof(numtype));
+
+	free(ival); free(ivalTR);
+}
