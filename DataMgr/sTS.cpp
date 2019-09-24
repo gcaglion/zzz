@@ -318,7 +318,7 @@ void sTS::slide(int steps_) {
 		//-- set timestampB
 		strcpy_s(timestampB, DATE_FORMAT_LEN, timestamp[0]);
 		//-- set val
-		for (s=0; s<(stepsCnt-1); s++) {
+		for (s=0; s<(stepsCnt-1-steps_); s++) {
 			for (f=0; f<featuresCnt; f++) {
 				val[s*featuresCnt+f]=val[(s+1)*featuresCnt+f];
 				valTR[s*featuresCnt+f]=valTR[(s+1)*featuresCnt+f];
@@ -327,6 +327,7 @@ void sTS::slide(int steps_) {
 			strcpy_s(timestamp[s], DATE_FORMAT_LEN, timestamp[s+1]);
 		}
 		//-- last step is unchanged, except for timestamp
-		timestamp[s][0]='E';
+		timestamp[s][0]='9';
+		timestamp[s][15]=49+kaz;	// 1,2,3...
 	}
 }

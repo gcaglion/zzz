@@ -474,7 +474,7 @@ void drawForecast(double H, double L) {
 	if (copied<=0) Print("Error copying price data ", GetLastError());
 
 	string nameR, nameE;
-	StringConcatenate(nameE, "Forecast", TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES), " H=", DoubleToString(H, 5), " ; L=",DoubleToString(L,5));
+	StringConcatenate(nameE, "Forecast", TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES), " H=", DoubleToString(H, 5), " ; L=",DoubleToString(L,5));
 
 	//	ObjectDelete(_Symbol, name);
 
