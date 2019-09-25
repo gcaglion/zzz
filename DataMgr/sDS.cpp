@@ -326,6 +326,33 @@ void sDS::duplicateSequence() {
 void sDS::halveSequence() {
 	samplesCnt/=2;
 }
+void sDS::swapFirstLast() {
+	int s, b, f;
+	numtype* tmpSample=(numtype*)malloc(1*sampleLen*featuresCnt*sizeof(numtype));
+	numtype* tmpTarget=(numtype*)malloc(1*targetLen*featuresCnt*sizeof(numtype));
+	numtype* tmpPrediction=(numtype*)malloc(1*targetLen*featuresCnt*sizeof(numtype));
+
+	for (b=0; b<sampleLen; b++) {
+		for (f=0; f<featuresCnt; f++) {
+			tmpSample[b*featuresCnt+f]=sampleSBF[0*sampleLen*featuresCnt+b*featuresCnt+f];
+			sampleSBF[0*sampleLen*featuresCnt+b*featuresCnt+f]=sampleSBF[(samplesCnt-1)*sampleLen*featuresCnt+b*featuresCnt+f];
+			sampleSBF[(samplesCnt-1)*sampleLen*featuresCnt+b*featuresCnt+f]=tmpSample[b*featuresCnt+f];
+		}
+	}
+	for (b=0; b<targetLen; b++) {
+		for (f=0; f<featuresCnt; f++) {
+			tmpTarget[b*featuresCnt+f]=targetSBF[0*targetLen*featuresCnt+b*featuresCnt+f];
+			targetSBF[0*targetLen*featuresCnt+b*featuresCnt+f]=targetSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f];
+			targetSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f]=tmpTarget[b*featuresCnt+f];
+			tmpPrediction[b*featuresCnt+f]=predictionSBF[0*targetLen*featuresCnt+b*featuresCnt+f];
+			predictionSBF[0*targetLen*featuresCnt+b*featuresCnt+f]=predictionSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f];
+			predictionSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f]=tmpPrediction[b*featuresCnt+f];
+		}
+	}
+
+	free(tmpSample); free(tmpTarget); free(tmpPrediction);
+}
+
 void sDS::dump(bool isScaled) {
 	FILE* dumpFile=nullptr;
 	dumpPre(isScaled, &dumpFile);

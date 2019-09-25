@@ -220,17 +220,17 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 #include "../DataMgr/sDS.h"
 void sRoot::kaz() {
 	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/inferDS.xml");
-	sTS* ts1; safespawn(ts1, newsname("TS1"), defaultdbg, dsCfg, "/TimeSerie");
+	/*sTS* ts1; safespawn(ts1, newsname("TS1"), defaultdbg, dsCfg, "/TimeSerie");
 	ts1->dump();
 	ts1->slide(1);
 	ts1->dump();
-	return;
+	return;*/
 
 	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
 	ds1->dump();
-	ds1->duplicateSequence();
+	ds1->swapFirstLast();
 	ds1->dump();
-	ds1->halveSequence();
+	ds1->swapFirstLast();
 	ds1->dump();
 }
 
