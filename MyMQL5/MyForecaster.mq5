@@ -438,7 +438,7 @@ int NewTrade(int cmd, double volume, double TP, double SL) {
 	double ask=SymbolInfoDouble(symbol, SYMBOL_ASK);             // current price for closing SHORT
 	double open_price;	//--- receive the current open price for LONG positions
 
-	SL=0;
+	//SL=0;
 
 	string comment;
 	bool ret;
