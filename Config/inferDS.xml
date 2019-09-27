@@ -1,0 +1,22 @@
+	SampleLen	= 50
+	TargetLen	= 3
+	BatchSize	= 20
+	
+	Dump		= false
+	DumpPath	= c:\temp\DataDump
+	
+	<TimeSerie>
+		HistoryLen			= 72
+		Date0				= 2018-07-30-03:00
+		DataTransformation	= DT_DELTA
+		Dump				= false
+		DumpPath			= c:\temp\DataDump
+
+		DataSourcesCount		= 1
+		<DataSource0>
+			<! FXDB-EURUSDH1.xml >
+			SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
+		</DataSource0>
+	</TimeSerie>
+
+	<! DataSetPersistor-Default.xml >

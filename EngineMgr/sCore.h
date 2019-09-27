@@ -1,7 +1,8 @@
 #pragma once
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
-#include "../DataMgr/sDataSet.h"
+#include "../Algebra/Algebra.h"
+#include "../DataMgr/sDS.h"
 #include "sCoreLayout.h"
 #include "sCoreParms.h"
 #include "sCoreLogger.h"
@@ -11,7 +12,8 @@
 struct sCoreProcArgs {
 	//-- common across train and infer
 	std::exception_ptr excp;
-	sDataSet* ds;
+	sDS* ds;
+	int batchCnt;
 	int batchSize;
 	int pid;
 	int tid;
@@ -27,13 +29,10 @@ struct sCoreProcArgs {
 	int npid;
 	int ntid;
 	numtype mseR;
-	bool loadImage;
+	bool quitAfterBreak;
 };
 
 struct sCore : sCfgObj {
-
-	int _batchCnt;
-	int _batchSize;
 
 	sCoreParms* parms;
 	sCoreLayout* layout;
@@ -43,8 +42,8 @@ struct sCore : sCfgObj {
 	//-- MyAlgebra common structures
 	sAlgebra* Alg;
 
-	EXPORT sCore(sCfgObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sCoreLogger* persistor_);
-	EXPORT sCore(sCfgObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_);
+	EXPORT sCore(sCfgObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_);
+	EXPORT sCore(sCfgObjParmsDef, sCoreLayout* layout_);
 	EXPORT ~sCore();
 
 	//-- methods to be implemented indipendently by each subclass(sNN, sGA, ...)

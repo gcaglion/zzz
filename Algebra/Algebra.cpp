@@ -5,9 +5,8 @@ sAlgebra::sAlgebra(sObjParmsDef) : sObj(sObjParmsVal) {
 
 	//-- init CUDA/BLAS
 	cublasH=new void*;
-	cuRandH=new void*;
+	cuRandH=new void*;	
 	for (int i=0; i<MAX_STREAMS; i++) cuStream[i]=new void*;
-
 #ifdef USE_GPU
 	CUWsafecall(initCUDA);
 	CUWsafecall(initCUBLAS, cublasH);
@@ -22,6 +21,30 @@ sAlgebra::~sAlgebra() {
 	delete cuRandH;
 }
 //-- class methods
+
+//-- multi-threading
+void sAlgebra::createGPUContext() {
+#ifdef USE_GPU
+	createGPUcontext_cu();
+#endif
+}
+void sAlgebra::destroyGPUContext() {
+#ifdef USE_GPU
+	destroyGPUcontext_cu();
+#endif
+}
+void sAlgebra::syncGPUContext() {
+#ifdef USE_GPU
+	syncGPUcontext_cu();
+#endif
+}
+
+//-- device-level sync
+void sAlgebra::devSync() {
+#ifdef USE_GPU
+	devSync_cu();
+#endif
+}
 
 //-- memory initializatin
 void sAlgebra::myMalloc(numtype** var, int size) {
@@ -320,11 +343,7 @@ EXPORT bool dumpArray(int vlen, numtype* v, const char* fname) {
 #ifdef USE_GPU
 	return(dumpArray_cu(vlen, v, fname));
 #else
-	FILE* f=fopen(fname, "w");
-	if (f==nullptr) return false;
-	for (int i=0; i<vlen; i++) fprintf(f, "%f\n", v[i]);
-	fclose(f);
-	return true;
+	return(dumpArrayH(vlen, v, fname));
 #endif
 }
 EXPORT bool loadArray(int vlen, numtype* v, const char* fname) {

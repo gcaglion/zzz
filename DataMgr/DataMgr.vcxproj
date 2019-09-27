@@ -114,13 +114,13 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <ShowIncludes>false</ShowIncludes>
-      <AdditionalIncludeDirectories>C:\Program Files (x86)\Visual Leak Detector\include;$(ORACLE_HOME1)\oci\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ORACLE_HOME1)\oci\include;C:\Program Files (x86)\Visual Leak Detector\include;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(OutDir);C:\Program Files (x86)\Visual Leak Detector\lib\$(Platform)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>vld.lib;Utils.lib;Algebra.lib;Utils.lib;BaseObj.lib;ConfigMgr.lib;OraData.lib;FileData.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Wavelib.lib;Utils.lib;Algebra.lib;Utils.lib;BaseObj.lib;ConfigMgr.lib;OraData.lib;FileData.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -164,27 +164,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="sDataSet.cpp" />
-    <ClCompile Include="sDataShape.cpp" />
     <ClCompile Include="sDataSource.cpp" />
+    <ClCompile Include="sDS.cpp" />
     <ClCompile Include="sGenericDataSource.cpp" />
     <ClCompile Include="sFXDataSource.cpp" />
     <ClCompile Include="sMT4DataSource.cpp" />
-    <ClCompile Include="sTimeSerie.cpp" />
+    <ClCompile Include="sTS.cpp" />
     <ClCompile Include="TSF.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="sDataShape.h" />
-    <ClInclude Include="sDataSet.h" />
     <ClInclude Include="sDataSource.h" />
     <ClInclude Include="DataSource_enums.h" />
     <ClInclude Include="DBConnection_enums.h" />
+    <ClInclude Include="sDS.h" />
     <ClInclude Include="sGenericDataSource.h" />
     <ClInclude Include="FileData_enums.h" />
     <ClInclude Include="sFXDataSource.h" />
     <ClInclude Include="FXData_enums.h" />
     <ClInclude Include="sMT4dataSource.h" />
-    <ClInclude Include="sTimeSerie.h" />
+    <ClInclude Include="sTS.h" />
     <ClInclude Include="TSF.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

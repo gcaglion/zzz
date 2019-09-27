@@ -3,11 +3,18 @@
 
 #include "Utils.h"
 
-EXPORT void P2V(int Len, double* P, std::vector<double> &V) {
-	for (int i = 0; i < Len; i++) V.push_back(P[i]);
+EXPORT void P2V(int Len, numtype* P, std::vector<double> &V) {
+	for (int i = 0; i < Len; i++) V.push_back((double)P[i]);
 }
-EXPORT void V2P(int Len, double* P, std::vector<double> &V) {
-	for (int i = 0; i < Len; i++) P[i] = V[i];
+EXPORT void V2P(int Len, numtype* P, std::vector<double> &V) {
+	for (int i = 0; i < Len; i++) P[i] = (numtype)V[i];
+}
+EXPORT bool dumpArrayH(int vlen, numtype* v, const char* fname) {
+	FILE* f; fopen_s(&f, fname, "w");
+	if (f==nullptr) return false;
+	for (int i=0; i<vlen; i++) fprintf(f, "%f\n", v[i]);
+	fclose(f);
+	return true;
 }
 
 
@@ -167,6 +174,11 @@ EXPORT int  instr(char soughtChar, const char* intoStr, bool fromRight) {
 		}
 	}
 	return -1;
+}
+EXPORT void replace(char* str, char origc, char newc) {
+	for (int c=0; c<strlen(str); c++) {
+		if (str[c]==origc) str[c]=newc;
+	}
 }
 EXPORT int argcnt(const char* mask) {
 	int cnt=0;

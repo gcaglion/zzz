@@ -1,9 +1,9 @@
 #include "sGA.h"
 
-sGA::sGA(sObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sCoreLogger* persistor_, sGAparms* GAparms_) : sCore(sObjParmsVal, nullptr, nullptr, Alg_, layout_, persistor_) {
+sGA::sGA(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sGAparms* GAparms_) : sCore(sObjParmsVal, nullptr, nullptr, layout_, persistor_) {
 	parms=GAparms_;
 }
-sGA::sGA(sCfgObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sGAparms* GAparms_): sCore(sCfgObjParmsVal, Alg_, layout_){}
+sGA::sGA(sCfgObjParmsDef, sCoreLayout* layout_, sGAparms* GAparms_): sCore(sCfgObjParmsVal, layout_){}
 sGA::~sGA(){}
 
 //-- abstract methods implementations

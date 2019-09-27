@@ -1,28 +1,9 @@
 #include "sEngine.h"
 //#include <vld.h>
 
-void sEngine::mallocTSinfo() {
-	TSfeaturesCnt=(int*)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(int));
-	TSfeature=(int**)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(int*)); for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) TSfeature[ts]=(int*)malloc(MAX_DATA_FEATURES*sizeof(int));
-	TStrMin=(numtype**)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(numtype*)); for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) TStrMin[ts]=(numtype*)malloc(MAX_DATA_FEATURES*sizeof(numtype));
-	TStrMax=(numtype**)malloc(DATASET_MAX_SOURCETS_CNT*sizeof(numtype*)); for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) TStrMax[ts]=(numtype*)malloc(MAX_DATA_FEATURES*sizeof(numtype));
-}
-void sEngine::freeTSinfo() {
-	for (int ts=0; ts<DATASET_MAX_SOURCETS_CNT; ts++) {
-		free(TSfeature[ts]); 
-		free(TStrMin[ts]); 
-		free(TStrMax[ts]);
-	}
-	free(TSfeature); free(TStrMin); free(TStrMax); free(TSfeaturesCnt);
-}
-
 //-- Engine stuff
 sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	
-	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
-	safespawn(Alg, newsname("%s_Algebra", name->base), defaultdbg);
-
-	safespawn(shape, newsname("%s_DataShape", name->base), defaultdbg, 0, 0, 0);
 	sOraData* persistorDB;
 	safespawn(persistorDB, newsname("%s_Logger_DB", name->base), defaultdbg,"","","");
 	safespawn(persistor, newsname("%s_Logger", name->base), defaultdbg, persistorDB);
@@ -38,10 +19,12 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	int** coreParent=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParent[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	int** coreParentConnType=(int**)malloc(MAX_ENGINE_CORES*sizeof(int*)); for (int i=0; i<MAX_ENGINE_CORES; i++) coreParentConnType[i]=(int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	//--
-	mallocTSinfo();
-
+	DStrMin=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
+	DStrMax=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
+	DSfftMin=(numtype**)malloc(MAX_WAVELET_LEVELS*sizeof(numtype*)); for (int l=0; l<MAX_WAVELET_LEVELS; l++) DSfftMin[l]=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
+	DSfftMax=(numtype**)malloc(MAX_WAVELET_LEVELS*sizeof(numtype*)); for (int l=0; l<MAX_WAVELET_LEVELS; l++) DSfftMax[l]=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
 	//-- 3. load info from FROM persistor
-	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &shape->sampleLen, &shape->predictionLen, &shape->featuresCnt, &WNNdecompLevel, &WNNwaveletType, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, &sourceTSCnt, TSfeaturesCnt, TSfeature, TStrMin, TStrMax);
+	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &sampleLen, &targetLen, &featuresCnt, &batchSize, &WNNdecompLevel, &WNNwaveletType, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, DStrMin, DStrMax, DSfftMin, DSfftMax);
 	//-- 2. malloc one core, one coreLayout, one coreParms and one corePersistor for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
@@ -49,11 +32,13 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	corePersistor=(sCoreLogger**)malloc(coresCnt*sizeof(sCoreLogger*));
 	procArgs=(sEngineProcArgs**)malloc(coresCnt*sizeof(sEngineProcArgs*)); for (int c=0; c<coresCnt; c++) procArgs[c]= new sEngineProcArgs();
 
+	forecast=(numtype*)malloc(targetLen*featuresCnt*sizeof(numtype));
+
 	//-- for each Core, create corePersistor from DB (coreLoggerParms), using loadingPid_ and coreThreadId[]. Also, get layout info, and set base coreLayout properties  (type, desc, connType, outputCnt).
 	for (int c=0; c<coresCnt; c++) {
 		//corePersistor[c]=new sCoreLogger(this, newsname("CorePersistor%d", c), defaultdbg, GUIreporter, persistor, loadingPid_, coreThreadId[c]);
 		safespawn(corePersistor[c], newsname("CorePersistor%d", c), defaultdbg, persistor, loadingPid_, coreThreadId[c]);
-		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt, coreType[c], coreParentsCnt[c], coreParent[c], coreParentConnType[c], coreThreadId[c]);
+		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, sampleLen*featuresCnt, targetLen*featuresCnt, coreType[c], coreParentsCnt[c], coreParent[c], coreParentConnType[c], coreThreadId[c]);
 	}
 
 	//-- common to all constructors. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
@@ -62,7 +47,8 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	//-- spawn cores
 	safecall(this, spawnCoresFromDB, loadingPid_);
 
-	//-- re-transform sourceTSs
+	//-- load cores'images
+	safecall(this, loadImage, loadingPid_);
 
 	//-- free(s)
 	for (int i=0; i<MAX_ENGINE_CORES; i++) {
@@ -70,14 +56,13 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	}
 	free(coreParent); free(coreParentConnType); free(coreParentsCnt); free(coreType); free(coreThreadId); free(coreId);
 }
-sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(sCfgObjParmsVal) {
+sEngine::sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int batchSize_, int clientPid_) : sCfgObj(sCfgObjParmsVal) {
 
-	shape=shape_;
+	sampleLen=sampleLen_; targetLen=targetLen_; featuresCnt=featuresCnt_; batchSize=batchSize_;
+	forecast=(numtype*)malloc(targetLen*featuresCnt*sizeof(numtype));
+
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
 	clientPid=clientPid_;
-
-	//-- init Algebra / CUDA/CUBLAS/CURAND stuff
-	safespawn(Alg, newsname("%s_Algebra", name->base), dbg);
 
 	//-- engine-level persistor
 	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
@@ -111,11 +96,10 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(
 
 	//-- 2. for each Core, create layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
 	for (int c=0; c<coresCnt; c++) {
-		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, strBuild("Core%d/Layout", c), shape->sampleLen*shape->featuresCnt, shape->predictionLen*shape->featuresCnt);
+		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, strBuild("Core%d/Layout", c), sampleLen*featuresCnt, targetLen*featuresCnt);
 	}
-
 	//--
-	mallocTSinfo();
+//	mallocTSinfo();
 
 	//-- common to all constructors. once all coreLayouts are created (and all  parents are set), we can determine Layer for each Core, and cores count for each layer
 	setLayerProps();
@@ -128,16 +112,11 @@ sEngine::sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_) : sCfgObj(
 
 }
 sEngine::~sEngine() {
-	free(layerCoresCnt);
-	freeTSinfo();
-	cleanup();
-}
-void sEngine::cleanup() {
 	for (int c=0; c<coresCnt; c++) delete procArgs[c];
 	free(procArgs);
-	free(core);
-	free(coreLayout);
-	free(coreParms);
+	free(core); free(coreLayout); free(coreParms);
+	free(layerCoresCnt);
+	free(forecast);
 }
 
 void sEngine::spawnCoresFromXML() {
@@ -150,31 +129,31 @@ void sEngine::spawnCoresFromXML() {
 				case CORE_NN:
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					NNcp->setScaleMinMax();
-					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", Alg, coreLayout[c], NNcp);
+					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", coreLayout[c], NNcp);
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
 				case CORE_GA:
 					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					GAcp->setScaleMinMax();
-					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, "../", Alg, coreLayout[c], GAcp);
+					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, cfg, "../", coreLayout[c], GAcp);
 					coreParms[c]=GAcp; core[c]=GAc;
 					break;
 				case CORE_SVM:
 					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					SVMcp->setScaleMinMax();
-					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, "../", Alg, coreLayout[c], SVMcp);
+					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, cfg, "../", coreLayout[c], SVMcp);
 					coreParms[c]=SVMcp; core[c]=SVMc;
 					break;
 				case CORE_SOM:
 					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					SOMcp->setScaleMinMax();
-					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, "../", Alg, coreLayout[c], SOMcp);
+					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, cfg, "../", coreLayout[c], SOMcp);
 					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
 				case CORE_DUMB:
 					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
 					DUMBcp->setScaleMinMax();
-					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, cfg, "../", Alg, coreLayout[c], DUMBcp);
+					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, cfg, "../", coreLayout[c], DUMBcp);
 					coreParms[c]=DUMBcp; core[c]=DUMBc;
 					break;
 				default:
@@ -201,7 +180,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					NNcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], NNcp);
+					safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, coreLayout[c], corePersistor[c], NNcp);
 					//-- 4. set parent classes
 					coreParms[c]=NNcp; core[c]=NNc;
 					break;
@@ -210,7 +189,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(GAcp, newsname("Core%d_GAparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					GAcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], GAcp);
+					safespawn(GAc, newsname("Core%d_GA", c), defaultdbg, coreLayout[c], corePersistor[c], GAcp);
 					//-- 4. set parent classes
 					coreParms[c]=GAcp; core[c]=GAc;
 					break;
@@ -219,7 +198,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(SVMcp, newsname("Core%d_SVMparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					SVMcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], SVMcp);
+					safespawn(SVMc, newsname("Core%d_SVM", c), defaultdbg, coreLayout[c], corePersistor[c], SVMcp);
 					//-- 4. set parent classes
 					coreParms[c]=SVMcp; core[c]=SVMc;
 					break;
@@ -228,7 +207,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(SOMcp, newsname("Core%d_SOMparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					SOMcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], SOMcp);
+					safespawn(SOMc, newsname("Core%d_SOM", c), defaultdbg, coreLayout[c], corePersistor[c], SOMcp);
 					//-- 4. set parent classes
 					coreParms[c]=SOMcp; core[c]=SOMc;
 					break;
@@ -237,7 +216,7 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 					safespawn(DUMBcp, newsname("Core%d_DUMBparms", c), defaultdbg, persistor, loadingPid, coreLayout[c]->tid);
 					DUMBcp->setScaleMinMax();
 					//-- 2. core
-					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, Alg, coreLayout[c], corePersistor[c], DUMBcp);
+					safespawn(DUMBc, newsname("Core%d_DUMB", c), defaultdbg, coreLayout[c], corePersistor[c], DUMBcp);
 					//-- 4. set parent classes
 					coreParms[c]=DUMBcp; core[c]=DUMBc;
 					break;
@@ -254,7 +233,10 @@ void sEngine::spawnCoresFromDB(int loadingPid) {
 DWORD coreThreadTrain(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
 	try {
+		//args->core->Alg->createGPUContext();
 		args->core->train(args->coreProcArgs);
+		if(!args->core->procArgs->quitAfterBreak) args->core->infer(args->coreProcArgs);
+		//args->core->Alg->destroyGPUContext();
 	} catch (...) {
 		args->coreProcArgs->excp=current_exception();
 	}
@@ -262,41 +244,43 @@ DWORD coreThreadTrain(LPVOID vargs_) {
 }
 DWORD coreThreadInfer(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
-	args->core->infer(args->coreProcArgs);
+	try {
+		//args->core->Alg->createGPUContext();
+		args->core->infer(args->coreProcArgs);
+		//args->core->Alg->destroyGPUContext();
+	}
+	catch (...) {
+		args->coreProcArgs->excp=current_exception();
+	}
+	return 1;
+}
+DWORD coreThreadLoad(LPVOID vargs_) {
+	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
+	try {
+		args->core->loadImage(args->coreProcArgs->npid, args->coreProcArgs->ntid, -1);
+	}
+	catch (...) {
+		args->coreProcArgs->excp=current_exception();
+	}
 	return 1;
 }
 
-void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, int batchSize_, int savedEnginePid_) {
+void sEngine::loadImage(int loadingPid_) {
+	safecall(this, process, loadProc, 0, (sDS**)nullptr, loadingPid_);
+	imageLoaded=true;
+}
+void sEngine::process(int procid_, int testid_, sDS** ds_, int savedEnginePid_) {
 
-	//-- spawn sample/target/prediction DSs for each core
-	sDataSet** parentDS;
-	sDataSet** coreDS=(sDataSet**)malloc(coresCnt*sizeof(sDataSet*));
-	for (int l=0; l<layersCnt; l++) {
-		for (int c=0; c<coresCnt; c++) {
-			if (coreLayout[c]->layer==l) {
-				if (l==0) {
-					coreDS[c]=ds_;
-				} else {
-					parentDS=(sDataSet**)malloc(coreLayout[c]->parentsCnt*sizeof(sDataSet*));
-					//--
-					for (int p=0; p<coreLayout[c]->parentsCnt; p++) {
-						parentDS[p]=coreDS[coreLayout[c]->parentId[p]];
-					}
-					safespawn(coreDS[c], newsname("Core_%d-%d_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDS);
-					//--
-					free(parentDS);
-				}
-			}
-		}
-	}
-	//-- 
+	sDS** parentDS;
 
 	int t;
 	int ret = 0;
 	int threadsCnt;
 	HANDLE* procH;
+	int lsl0=0;
 
 	system("cls");
+
 	for (int l=0; l<layersCnt; l++) {
 		
 		threadsCnt=layerCoresCnt[l];
@@ -304,39 +288,67 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 		//-- initialize layer-level structures
 		procH = (HANDLE*)malloc(threadsCnt*sizeof(HANDLE));
 		DWORD* kaz = (DWORD*)malloc(threadsCnt*sizeof(DWORD));
-		LPDWORD* tid = (LPDWORD*)malloc(threadsCnt*sizeof(LPDWORD)); 
-		for (t=0; t<threadsCnt; t++) tid[t] = &kaz[t];		
+		LPDWORD* tid = (LPDWORD*)malloc(threadsCnt*sizeof(LPDWORD));
+		for (t=0; t<threadsCnt; t++) tid[t] = &kaz[t];
 		//--
 
-
-		gotoxy(0, 2+l+((l>0) ? layerCoresCnt[l-1] : 0));  printf("Process %6d, %s Layer %d\n", clientPid, ((procid_==trainProc)?"Training":"Inferencing"), l);
+		if (l>0) lsl0+=layerCoresCnt[l-1]+1;
+		gotoxy(0, lsl0);  printf("Process %6d, %s Layer %d\n", clientPid, ((procid_==trainProc)?"Training":(procid_==inferProc)?"Inferencing":"Loading Images"), l);
 		t=0;
 		for (int c=0; c<coresCnt; c++) {
-
 			if (core[c]->layout->layer==l) {
 
-				//-- scale trdata and rebuild training DataSet for current Core
-				for(int t=0; t<coreDS[c]->sourceTScnt; t++) safecall(coreDS[c]->sourceTS[t], scale, ACTUAL, TR, coreParms[c]->scaleMin[l], coreParms[c]->scaleMax[l]);
-				safecall(coreDS[c], build, ACTUAL, TRS);
-				coreDS[c]->dump();
+				//-- create dataset for core
+				if (ds_!=nullptr) {
+					if (l==0) {
+						procArgs[c]->coreProcArgs->ds=ds_[c];
+					} else {
 
-				//-- Create Training or Infer Thread for current Core
-				procArgs[c]->coreProcArgs->screenLine = 2+t+l+((l>0) ? layerCoresCnt[l-1] : 0);
-				procArgs[c]->core=core[c];
-				procArgs[c]->coreProcArgs->ds = coreDS[c];
-				procArgs[c]->coreProcArgs->batchSize=batchSize_;
-				procArgs[c]->coreProcArgs->loadImage=loadImage_;
-				procArgs[c]->coreProcArgs->npid=savedEnginePid_;
-				procArgs[c]->coreProcArgs->ntid=coreLayout[c]->tid;
+						parentDS=(sDS**)malloc(coreLayout[c]->parentsCnt*sizeof(sDS*));
+						for (int p=0; p<coreLayout[c]->parentsCnt; p++) {
+							parentDS[p]=procArgs[coreLayout[c]->parentId[p]]->coreProcArgs->ds;
+							safecall(parentDS[p], unscale);
+						}
 
-				if (procid_==trainProc) {
-					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadTrain, &(*procArgs[c]), 0, tid[t]);
-				} else {
-					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadInfer, &(*procArgs[c]), 0, tid[t]);
+						safespawn(procArgs[c]->coreProcArgs->ds, newsname("Core_%d-%d_Dataset", l, c), defaultdbg, coreLayout[c]->parentsCnt, parentDS);
+						safecall(procArgs[c]->coreProcArgs->ds, scale, coreParms[c]->scaleMin[0], coreParms[c]->scaleMax[0]);
+
+						for (int p=0; p<coreLayout[c]->parentsCnt; p++) {
+							safecall(parentDS[p], scale, coreParms[coreLayout[c]->parentId[p]]->scaleMin[0], coreParms[coreLayout[c]->parentId[p]]->scaleMax[0]);
+						}
+
+						free(parentDS);
+					}
+					
+					//-- set batchCnt
+					procArgs[c]->coreProcArgs->batchSize=procArgs[c]->coreProcArgs->ds->batchSize;
+					if ((procArgs[c]->coreProcArgs->ds->samplesCnt%procArgs[c]->coreProcArgs->ds->batchSize)!=0) {
+						fail("Wrong Batch Size. samplesCnt=%d , batchSamplesCnt=%d", procArgs[c]->coreProcArgs->ds->samplesCnt, procArgs[c]->coreProcArgs->ds->batchSize)
+					} else {
+						procArgs[c]->coreProcArgs->batchCnt = procArgs[c]->coreProcArgs->ds->samplesCnt/procArgs[c]->coreProcArgs->ds->batchSize;
+					}
 				}
 
-				//-- Store Engine Handler
+				//-- Create Training or Infer Thread for current Core
+				procArgs[c]->coreProcArgs->screenLine = lsl0+1+t;
+				procArgs[c]->core=core[c];
 				procArgs[c]->coreProcArgs->pid = clientPid;
+				procArgs[c]->coreProcArgs->npid=(savedEnginePid_>0) ? savedEnginePid_ : clientPid;
+
+				if (procid_==loadProc) {
+					procArgs[c]->coreProcArgs->batchSize=batchSize;
+					procArgs[c]->coreProcArgs->ntid=coreLayout[c]->tid;
+					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadLoad, &(*procArgs[c]), 0, tid[t]);
+				} else if (procid_==trainProc) {
+					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadTrain, &(*procArgs[c]), 0, tid[t]);
+					procArgs[c]->coreProcArgs->ntid=(*tid[t]);
+				} else {
+					procH[t] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)coreThreadInfer, &(*procArgs[c]), 0, tid[t]);
+					if (clientPid!=procArgs[c]->coreProcArgs->npid) procArgs[c]->coreProcArgs->ntid=coreLayout[c]->tid;
+				}
+				
+
+				//-- Store Engine Handler
 				procArgs[c]->coreProcArgs->tid=(*tid[t]);
 				procArgs[c]->coreProcArgs->testid=testid_;
 
@@ -359,103 +371,93 @@ void sEngine::process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, 
 		free(procH); free(kaz); free(tid);
 	}
 }
-void sEngine::train(int testid_, sDataSet* trainDS_) {
+void sEngine::train(int testid_, sDS** trainDS_) {
 
-	//-- needed to set trmin/max for each training feature
-	trainDS=trainDS_;
+	safecall(this, process, trainProc, testid_, trainDS_, 0);
+	imageLoaded=true;
 
-	safecall(this, process, trainProc, false, testid_, trainDS_, trainDS_->batchSamplesCnt, 0);
-}
-void sEngine::infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool reTransform) {
+	//-- set trmin/max from input
 
-	//-- consistency checks: sampleLen/predictionLen/featuresCnt must be the same in inferDS and engine
-	if (inferDS_->shape->sampleLen!=shape->sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS_->shape->sampleLen, shape->sampleLen);
-	if (inferDS_->shape->predictionLen!=shape->predictionLen) fail("Infer DataSet Prediction Length (%d) differs from Engine's (%d)", inferDS_->shape->predictionLen, shape->predictionLen);
-	if (inferDS_->shape->featuresCnt!=shape->featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_->shape->featuresCnt, shape->featuresCnt);
-
-	//-- re-transform inferDS using trMin/Max loaded
-	if (reTransform) {
-		for (int ts=0; ts<inferDS_->sourceTScnt; ts++) {
-			for (int tsf=0; tsf<inferDS_->sourceTS[ts]->featuresCnt; tsf++) {
-				for (int selF=0; selF<inferDS_->selectedTSfeaturesCnt[ts]; selF++) {
-					if (inferDS_->selectedTSfeature[ts][selF]==tsf) {
-						inferDS_->sourceTS[ts]->dmin[tsf]=TStrMin[ts][selF];
-						inferDS_->sourceTS[ts]->dmax[tsf]=TStrMax[ts][selF];
-						inferDS_->sourceTS[ts]->transform(ACTUAL);
-					}
-				}
-			}
+	//-- save training engine, cores, MSE, core images
+	if (!core[0]->procArgs->quitAfterBreak) {
+		safecall(this, saveInfo);
+		for (int c=0; c<coresCnt; c++) {
+			if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->duration, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
+			safecall(core[c]->persistor, save, persistor, core[c]->procArgs->pid, core[c]->procArgs->tid);
+			if (core[c]->persistor->saveImageFlag) safecall(core[c], saveImage, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt-1);
+			free(core[c]->procArgs->mseT);
+			free(core[c]->procArgs->mseV);
+			free(core[c]->procArgs->duration);
 		}
 	}
+	
+}
+void sEngine::infer(int testid_, int seqId_, sDS** inferDS_, sTS* inferTS_, int savedEnginePid_) {
+
+	//-- consistency checks: sampleLen/targetLen/featuresCnt must be the same in inferDS and engine
+	if (inferDS_[0]->sampleLen!=sampleLen) fail("Infer DataSet Sample Length (%d) differs from Engine's (%d)", inferDS_[0]->sampleLen, sampleLen);
+	if (inferDS_[0]->targetLen!=targetLen) fail("Infer DataSet Prediction Length (%d) differs from Engine's (%d)", inferDS_[0]->targetLen, targetLen);
+	if (inferDS_[0]->featuresCnt!=featuresCnt) fail("Infer DataSet total features count (%d) differs from Engine's (%d)", inferDS_[0]->featuresCnt, featuresCnt);
+	if (inferDS_[0]->batchSize!=batchSize) fail("Infer DataSet Batch Size (%d) differs from Engine's (%d)", inferDS_[0]->batchSize, batchSize);
+
 	//-- call infer
-	safecall(this, process, inferProc, reTransform, testid_, inferDS_, 1, savedEnginePid_);
+	safecall(this, process, inferProc, testid_, inferDS_, savedEnginePid_);
 
-	//-- unscale, untransform, then save results
-	sDataSet* _ds;
-	sTimeSerie* _ts;
-	int layer;
-	for (int c=0; c<coresCnt; c++) {
-		layer=core[c]->layout->layer;
-		_ds = core[c]->procArgs->ds;
+	//-- get predicted/target sequences (TR) for all cores, and saveRun
+	sDS* _ds;
+	int seqLen=inferDS_[0]->samplesCnt+inferDS_[0]->sampleLen+inferDS_[0]->targetLen-1;
+	numtype** trgSeqTRS=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	numtype** prdSeqTRS=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	numtype** trgSeqTR=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	numtype** prdSeqTR=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	numtype** trgSeqBASE=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	numtype** prdSeqBASE=(numtype**)malloc(coresCnt*sizeof(numtype*));
+	int c;
+	char dmpfname[MAX_PATH];
+	for (c=0; c<coresCnt; c++) {
+		_ds=core[c]->procArgs->ds;
+		//-- mallocs
+		trgSeqTRS[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		prdSeqTRS[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		trgSeqTR[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		prdSeqTR[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		trgSeqBASE[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		prdSeqBASE[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		//--
 
-		for (int t=0; t<_ds->sourceTScnt; t++) {
-			_ts = _ds->sourceTS[t];
+		_ds->getSeq(TARGET, trgSeqTRS[c], inferDS_[0]); //dumpArrayH(seqLen[c]*_ds->featuresCnt, trgSeqTRS[c], "C:/temp/trgSeqTRS.csv");
+		_ds->getSeq(PREDICTION, prdSeqTRS[c], inferDS_[0]); //dumpArrayH(seqLen[c]*_ds->featuresCnt, prdSeqTRS[c], "C:/temp/prdSeqTRS.csv");
+		_ds->unscale();
+		_ds->getSeq(TARGET, trgSeqTR[c], inferDS_[0]);
+		_ds->getSeq(PREDICTION, prdSeqTR[c], inferDS_[0]);
+		_ds->untransformSeq(inferTS_->dt, inferTS_->valB, trgSeqTR[c], inferTS_->val, trgSeqBASE[c]);
+		_ds->untransformSeq(inferTS_->dt, inferTS_->valB, prdSeqTR[c], inferTS_->val, prdSeqBASE[c]);
 
-			//-- 2. take step 0 from predictionSBF, copy it into sourceTS->trsvalP
-			safecall(_ds, unbuild, PREDICTED, PREDICTED, TRS);
-			if (_ts->doDump) _ts->dump(PREDICTED, TRS);
+		sprintf_s(dmpfname, MAX_PATH, "C:/temp/logs/prdSeqBASE%0d.csv", seqId_); dumpArrayH(seqLen*_ds->featuresCnt, prdSeqBASE[c], dmpfname);
 
-			//-- 3. sourceTS->unscale trsvalP into &trvalP[sampleLen] using scaleM/P already in timeserie
-			safecall(_ts, unscale, PREDICTED, coreParms[c]->scaleMin[layer], coreParms[c]->scaleMax[layer], _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t], _ds->shape->sampleLen);
-			if (_ts->doDump) _ts->dump(PREDICTED, TR);
-
-			//-- 5. sourceTS->untransform into valP
-			safecall(_ts, untransform, PREDICTED);
-			if (_ts->doDump) _ts->dump(PREDICTED, BASE);
+		if (core[c]->persistor->saveRunFlag) {
+			core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, seqId_, core[c]->procArgs->mseR, \
+				seqLen, inferTS_->timestamp, _ds->featuresCnt, trgSeqTRS[c], prdSeqTRS[c], trgSeqTR[c], prdSeqTR[c], trgSeqBASE[c], prdSeqBASE[c]);
 		}
 	}
 
-}
-
-void sEngine::saveMSE() {
-	for (int c=0; c<coresCnt; c++) {
-		if (core[c]->persistor->saveMSEFlag) safecall(core[c]->persistor, saveMSE, core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->mseCnt, core[c]->procArgs->duration, core[c]->procArgs->mseT, core[c]->procArgs->mseV);
-		free(core[c]->procArgs->mseT);
-		free(core[c]->procArgs->mseV);
-		free(core[c]->procArgs->duration);
-	}
-}
-void sEngine::saveCoreLoggers() {
-	for (int c=0; c<coresCnt; c++) safecall(core[c]->persistor, save, persistor, core[c]->procArgs->pid, core[c]->procArgs->tid);
-}
-void sEngine::saveCoreImages(int epoch) {
-	for (int c=0; c<coresCnt; c++) if (core[c]->persistor->saveImageFlag) safecall(core[c], saveImage, core[c]->procArgs->pid, core[c]->procArgs->tid, (epoch==-1)? core[c]->procArgs->mseCnt-1:epoch);
-}
-void sEngine::saveRun() {
-
-	sDataSet* _ds;
-	sTimeSerie* _ts;
-	int layer;
-	int runStepsCnt;
-
-	for (int c=0; c<coresCnt; c++) {
-		layer=core[c]->layout->layer;
-		_ds = core[c]->procArgs->ds;
-
-		for (int t=0; t<_ds->sourceTScnt; t++) {
-			_ts = _ds->sourceTS[t];
-
-			//-- persist into runLog
-			runStepsCnt= _ds->samplesCnt + _ds->shape->sampleLen + _ds->shape->predictionLen -1;
-
-			if (core[c]->persistor->saveRunFlag) {
-				core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, core[c]->procArgs->mseR, \
-						runStepsCnt, t, _ts->featuresCnt, _ds->selectedTSfeaturesCnt[t], _ds->selectedTSfeature[t], _ds->shape->predictionLen, \
-						_ts->dtime, _ts->val[ACTUAL][TRS], _ts->val[PREDICTED][TRS], _ts->val[ACTUAL][TR], _ts->val[PREDICTED][TR], _ts->val[ACTUAL][BASE], _ts->val[PREDICTED][BASE], _ts->barWidth);
-			}
+	for (int b=0; b<targetLen; b++) {
+		for (int f=0; f<featuresCnt; f++) {
+			forecast[b*featuresCnt+f]=prdSeqBASE[c-1][(sampleLen+batchSize-1-targetLen)*featuresCnt+b*featuresCnt+f];
+			info("forecast[%d]=%f", b*featuresCnt+f, forecast[b*featuresCnt+f]);
 		}
 	}
+
+	for (int c=0; c<coresCnt; c++) {
+		free(trgSeqTRS[c]);	free(prdSeqTRS[c]);
+		free(trgSeqTR[c]);	free(prdSeqTR[c]);
+		free(trgSeqBASE[c]); free(prdSeqBASE[c]);
+	}
+	free(trgSeqTRS); free(prdSeqTRS);
+	free(trgSeqTR); free(prdSeqTR);
+	free(trgSeqBASE); free(prdSeqBASE);
 }
+
 void sEngine::commit() {
 	for (int c=0; c<coresCnt; c++) {
 		safecall(core[c]->persistor, commit);
@@ -467,6 +469,7 @@ void sEngine::saveInfo() {
 
 	//-- malloc temps
 	int* coreId_=(int*)malloc(coresCnt*sizeof(int));
+	int* coreLayer_=(int*)malloc(coresCnt*sizeof(int));
 	int* coreType_=(int*)malloc(coresCnt*sizeof(int));
 	int* coreThreadId_=(int*)malloc(coresCnt*sizeof(int));
 	int* coreParentsCnt_=(int*)malloc(coresCnt*sizeof(int));
@@ -476,8 +479,9 @@ void sEngine::saveInfo() {
 	//-- set temps
 	for (int c=0; c<coresCnt; c++) {
 		coreId_[c]=c;
+		coreLayer_[c]=coreLayout[c]->layer;
 		coreType_[c]=coreLayout[c]->type;
-		coreThreadId_[c]=core[c]->procArgs->tid;
+		coreThreadId_[c]=core[c]->procArgs->ntid;
 		coreParentsCnt_[c]=coreLayout[c]->parentsCnt;
 		coreParent_[c]=(int*)malloc(coreParentsCnt_[c]*sizeof(int));
 		parentConnType_[c]=(int*)malloc(coreParentsCnt_[c]*sizeof(int));
@@ -489,31 +493,20 @@ void sEngine::saveInfo() {
 		safecall(core[c]->parms, save, persistor, clientPid, coreThreadId_[c]);
 	}
 
-	//-- save trMin/Max for every selected feature in every TS
-	for (int ts=0; ts<trainDS->sourceTScnt; ts++) {
-		for (int tsf=0; tsf<trainDS->sourceTS[ts]->featuresCnt; tsf++) {
-			for (int selF=0; selF<trainDS->selectedTSfeaturesCnt[ts]; selF++) {
-				if (trainDS->selectedTSfeature[ts][selF]==tsf) {
-					TStrMin[ts][selF]=trainDS->sourceTS[ts]->dmin[tsf];
-					TStrMax[ts][selF]=trainDS->sourceTS[ts]->dmax[tsf];
-				}
-			}
-		}
-	}
-
-	//-- actual call
-	safecall(persistor, saveEngineInfo, clientPid, type, coresCnt, \
-		shape->sampleLen, shape->predictionLen, shape->featuresCnt, \
+	safecall(persistor, saveEngineInfo, \
+		clientPid, type, coresCnt, \
+		sampleLen, targetLen, featuresCnt, batchSize, \
 		WNNdecompLevel, WNNwaveletType, \
 		persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
-		coreId_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_, \
-		trainDS->sourceTScnt, trainDS->selectedTSfeaturesCnt, trainDS->selectedTSfeature, TStrMin, TStrMax);
+		coreId_, coreLayer_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_, \
+		DStrMin, DStrMax, DSfftMin, DSfftMax
+	);
 
 	//-- free temps
 	for (int c=0; c<coresCnt; c++) {
 		free(coreParent_[c]); free(parentConnType_[c]);
 	}
-	free(coreId_); free(coreType_); free(coreThreadId_); free(coreParentsCnt_); free(coreParent_); free(parentConnType_);
+	free(coreId_); free(coreType_); free(coreLayer_); free(coreThreadId_); free(coreParentsCnt_); free(coreParent_); free(parentConnType_);
 }
 
 //-- private stuff

@@ -30,6 +30,6 @@ struct sMT4DataSource : sDataSource {
 	EXPORT sMT4DataSource(sCfgObjParmsDef);
 	EXPORT ~sMT4DataSource();
 
-	void load(char* pDate0, int pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar, numtype* oBarWidth);
+	void load(const char* pDate0, int pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar, numtype* oBarWidth);
 
 };

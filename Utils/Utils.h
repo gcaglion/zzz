@@ -5,8 +5,9 @@
 #include <vector>
 using namespace std;
 
-EXPORT void P2V(int Len, double* P, std::vector<double> &V);
-EXPORT void V2P(int Len, double* P, std::vector<double> &V);
+EXPORT void P2V(int Len, numtype* P, std::vector<double> &V);
+EXPORT void V2P(int Len, numtype* P, std::vector<double> &V);
+EXPORT bool dumpArrayH(int vlen, numtype* v, const char* fname);
 
 EXPORT int MyRndInt(int rmin, int rmax);
 EXPORT bool getFullPath(const char* iName, char* oName, char* startPath=nullptr);
@@ -20,6 +21,7 @@ EXPORT char* substr(char* str, int start, int len);
 EXPORT char* right(char* str, int len);
 EXPORT char* left(char* str, int len);
 EXPORT int  instr(char soughtChar, const char* intoStr, bool fromRight);
+EXPORT void replace(char* str, char origc, char newc);
 EXPORT int argcnt(const char* mask);
 //EXPORT void UpperCase(const char* istr, char* ostr);
 EXPORT void removeQuotes(char* istr, char* ostr);

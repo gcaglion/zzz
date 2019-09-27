@@ -20,7 +20,7 @@ struct sCfgLine : sObj {
 	char pname[XMLKEY_PARM_NAME_MAXLEN];
 	char pval[XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
 
-	sCfgLine(sObjParmsDef, char* rawLine_, int overridesCnt, char** overrideName, char** overrideValS);
+	sCfgLine(sObjParmsDef, char* rawLine_);
 	~sCfgLine();
 
 private:

@@ -15,8 +15,6 @@
 #include "../EngineMgr/sSOMenums.h"
 #include "../Wavelib/wavelet2d_enums.h"
 
-//#include <vld.h>
-
 #define optionLookup(option, e) { \
 	if (_stricmp(valS[elementId], #option)==0) { \
 		(*oVal)=option; \
@@ -35,9 +33,9 @@ void sCfgParm::decode(int elementId, int* oVal) {
 	optionLookup(ORADATA, elementId);
 	optionLookup(FILEDATA, elementId);
 	//-- Debugger enums
-	optionLookup(DEFAULT_DBG_VERBOSITY, elementId);
-	optionLookup(DEFAULT_DBG_TIMING, elementId);
-	optionLookup(DEFAULT_DBG_PAUSERR, elementId);
+//	optionLookup(DEFAULT_DBG_VERBOSITY, elementId);
+//	optionLookup(DEFAULT_DBG_TIMING, elementId);
+//	optionLookup(DEFAULT_DBG_PAUSERR, elementId);
 //	optionLookup(DBG_DEST_FILE, elementId);
 //	optionLookup(DBG_DEST_SCREEN, elementId);
 //	optionLookup(DBG_DEST_BOTH, elementId);
