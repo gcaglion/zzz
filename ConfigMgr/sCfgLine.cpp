@@ -1,7 +1,7 @@
 #include "sCfgLine.h"
 //#include <vld.h>
 
-sCfgLine::sCfgLine(sObjParmsDef, char* rawLine_, int overridesCnt, char** overrideName, char** overrideValS) : sObj(sObjParmsVal) {
+sCfgLine::sCfgLine(sObjParmsDef, char* rawLine_) : sObj(sObjParmsVal) {
 
 	//-- 1. set startpos, raw, clean, naked
 	strcpy_s(raw, XMLLINE_MAXLEN, rawLine_);
@@ -25,12 +25,6 @@ sCfgLine::sCfgLine(sObjParmsDef, char* rawLine_, int overridesCnt, char** overri
 		type=cfgLine_Parm;
 		//-- separate parameter name from value
 		if(!getValuePair(naked, pname, pval, '=')) fail("wrong parameter format: %s", naked);
-		//-- check for parameter override
-		for (int o=0; o<overridesCnt; o++) {
-			if (_stricmp(pname, overrideName[o])==0) {
-				strcpy_s(pval, XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT, overrideValS[o]);
-			}
-		}
 	}
 
 }

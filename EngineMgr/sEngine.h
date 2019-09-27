@@ -1,7 +1,7 @@
 #pragma once
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
-#include "../DataMgr/sDataSet.h"
+#include "../DataMgr/sDS.h"
 #include "sCore.h"
 #include "sCoreParms.h"
 #include "Engine_enums.h"
@@ -25,32 +25,37 @@ struct sEngine : sCfgObj {
 	int layersCnt=0;
 	int* layerCoresCnt;
 
-	sAlgebra* Alg;
 	sLogger* persistor;
 
-	sDataShape* shape;
+	int sampleLen;
+	int targetLen;
+	int featuresCnt;
+	int batchSize;
+
 	sCore** core;
 	sCoreLayout** coreLayout;
 	sCoreParms** coreParms;
 	sCoreLogger** corePersistor;
 	sEngineProcArgs** procArgs;
 
-	EXPORT sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_);
-	EXPORT sEngine(sCfgObjParmsDef, sDataShape* shape_, int clientPid_);
-	EXPORT ~sEngine();
-	EXPORT void cleanup();
+	numtype* forecast;
 
-	EXPORT void train(int testid_, sDataSet* trainDS_);
-	EXPORT void infer(int testid_, sDataSet* inferDS_, int savedEnginePid_, bool reTransform=true);
-	//--
-	EXPORT void saveMSE();
-	EXPORT void saveRun();
-	EXPORT void saveCoreImages(int epoch=-1);
-	EXPORT void saveCoreLoggers();
+	EXPORT sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_);
+	EXPORT sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int batchSize_, int clientPid_);
+	EXPORT ~sEngine();
+
+	void loadImage(int loadingPid_);
+	EXPORT void train(int testid_, sDS** trainDS_);
+	EXPORT void infer(int testid_, int seqId_, sDS** trainDS_, sTS* inferTS_, int savedEnginePid_);
 	//--
 	EXPORT void saveInfo();
 	//--
 	EXPORT void commit();
+
+	//-- these are needed to save trmin/max for each training feature
+	//sDS* trainDS;
+	numtype* DStrMin; numtype* DStrMax;
+	numtype** DSfftMin; numtype** DSfftMax;
 
 private:
 	int clientPid;
@@ -62,18 +67,9 @@ private:
 	void setLayerProps();
 	const int trainProc = 0;
 	const int inferProc = 1;
-	void process(int procid_, bool loadImage_, int testid_, sDataSet* ds_, int batchSize_, int savedEnginePid_);
+	const int loadProc = 2;
+	bool imageLoaded=false;
+	void process(int procid_, int testid_, sDS** ds_, int savedEnginePid_);
 
-	//-- these are needed to save trmin/max for each training feature
-	sDataSet* trainDS;
-	//-- these are needed to load trmin/max for each training feature
-	int sourceTSCnt;
-	int* TSfeaturesCnt;
-	int** TSfeature;
-	numtype** TStrMin;
-	numtype** TStrMax;
-	//--
-	void mallocTSinfo();
-	void freeTSinfo();
 
 };

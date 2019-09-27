@@ -22,6 +22,8 @@ struct sCfgParm : sObj {
 	EXPORT bool getVal(numtype** oVal, int* oValsCnt=nullptr);
 	EXPORT bool getVal(bool** oVal, int* oValsCnt=nullptr);
 
+	EXPORT bool setValS(const char* parmValS_);
+
 	void sCfgParm::decode(int elementId, int* oVal);
 
 private:

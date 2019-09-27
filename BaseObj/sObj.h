@@ -85,9 +85,9 @@ struct sObj {
 			} \
 	} catch (std::exception exc) { \
 		if (dbg->timing) { \
-			fail("[%s] %s FAILURE : %s . Exception: %s", timer->startTimeS, name->base, cmd, exc.what()); \
+			fail("[%s] %s FAILURE at %s(%d): %s . Exception: %s", timer->startTimeS, name->base, __FILE__, __LINE__, cmd, exc.what()); \
 		} else { \
-			fail("%s FAILURE : %s . Exception: %s", name->base, cmd, exc.what()); \
+			fail("%s FAILURE at %s(%d): %s . Exception: %s", name->base, __FILE__, __LINE__, cmd, exc.what()); \
 		} \
 	}\
 }

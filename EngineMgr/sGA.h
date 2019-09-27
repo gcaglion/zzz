@@ -6,8 +6,8 @@
 
 struct sGA : sCore {
 
-	EXPORT sGA(sObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sCoreLogger* persistor_, sGAparms* GAparms_);
-	EXPORT sGA(sCfgObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sGAparms* GAparms_);
+	EXPORT sGA(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sGAparms* GAparms_);
+	EXPORT sGA(sCfgObjParmsDef, sCoreLayout* layout_, sGAparms* GAparms_);
 	EXPORT ~sGA();
 
 	//-- local implementations of sCore virtual methods

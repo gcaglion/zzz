@@ -24,6 +24,6 @@ struct sDataSource : sCfgObj {
 
 	virtual void getStartDates(char* date0_, int datesCnt_, char*** oStartDates_); 
 	virtual void open();
-	virtual void load(char* pDate0, int pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar, numtype* oBarWidth)=0;
+	virtual void load(const char* pDate0, int pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar, numtype* oBarWidth)=0;
 
 };

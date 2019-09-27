@@ -50,10 +50,23 @@ sCfgKey::sCfgKey(sObjParmsDef, int linesCnt_, sCfgLine** cfgLine_, int startLine
 sCfgKey::~sCfgKey(){
 }
 
+void sCfgKey::setParm(const char* parmDesc_, const char* parmValS_) {
+	sObj* parmObj=nullptr;
+
+	//-- call sObj findChild on parmDesc
+	safecallSilent(this, findChild, parmDesc_, &parmObj);
+	if (parmObj==nullptr) {
+		//if (!ignoreError) fail("XML parameter not found. keyDesc=%s, parmDesc=%s", name->full, parmDesc);
+	} else {
+		if (!((sCfgParm*)parmObj)->setValS(parmValS_)) {
+			//if (!ignoreError) fail("Invalid XML parameter value. keyDesc=%s, parmDesc=%s, value string= \"%s\"", name->full, parmDesc, ((sCfgParm*)parmObj)->valS);
+		}
+	}
+}
 void sCfgKey::setDbg() {
 
 	//-- key-specific debugger parameters are initialized to defaults
-	bool dbg_verbose_=DEFAULT_DBG_VERBOSITY; bool dbg_timing_=DEFAULT_DBG_TIMING; bool dbg_dbgtoscreen_=DEFAULT_DBG_TO_SCREEN; bool dbg_dbgtofile_=DEFAULT_DBG_TO_FILE;
+	bool dbg_verbose_=false; bool dbg_timing_=false; bool dbg_dbgtoscreen_=true; bool dbg_dbgtofile_=false;
 	char* dbg_outfilepath_ = new char[MAX_PATH]; dbg_outfilepath_[0]='\0';
 
 	sObj* dbgKey=nullptr;

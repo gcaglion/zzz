@@ -1,9 +1,9 @@
 #include "sDUMB.h"
 
-sDUMB::sDUMB(sObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sCoreLogger* persistor_, sDUMBparms* DUMBparms_) : sCore(sObjParmsVal, nullptr, nullptr, Alg_, layout_, persistor_) {
+sDUMB::sDUMB(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sDUMBparms* DUMBparms_) : sCore(sObjParmsVal, nullptr, "", layout_, persistor_) {
 	parms=DUMBparms_;
 }
-sDUMB::sDUMB(sCfgObjParmsDef, sAlgebra* Alg_, sCoreLayout* layout_, sDUMBparms* DUMBparms_): sCore(sCfgObjParmsVal, Alg_, layout_) {
+sDUMB::sDUMB(sCfgObjParmsDef, sCoreLayout* layout_, sDUMBparms* DUMBparms_): sCore(sCfgObjParmsVal, layout_) {
 	safecall(cfgKey, getParm, &fixedTRSerror, "Parameters/FixedTRSerror");
 }
 sDUMB::~sDUMB(){}
@@ -30,7 +30,7 @@ void sDUMB::train(sCoreProcArgs* trainArgs) {
 	info("DUMB training complete.");
 }
 void sDUMB::infer(sCoreProcArgs* inferArgs) {
-	int tlen=inferArgs->ds->samplesCnt*inferArgs->ds->shape->predictionLen*inferArgs->ds->shape->featuresCnt;
+	int tlen=inferArgs->ds->samplesCnt*inferArgs->ds->targetLen*inferArgs->ds->featuresCnt;
 	for (int i=0; i<tlen; i++) inferArgs->ds->predictionSBF[i]=inferArgs->ds->targetSBF[i];
 }
 
