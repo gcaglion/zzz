@@ -362,20 +362,6 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 		}
 	}
 
-	/*FILE* f;
-	fopen_s(&f, "C:/temp/DataDump/oBar.csv", "w");
-	for (int fi=0; fi<selFcntTot; fi++) fprintf(f, "%f,", oBarB[fi]);
-	fprintf(f, ",%s\n", oBarBTimeS);
-	//--
-	int bi=0;
-	for (int i=0; i<(MT4engine->sampleLen+MT4engine->targetLen)*selFcntTot; i++) {
-		fprintf(f, "%f,", oBar[i]);
-		if ((i+1)%selFcntTot==0) {
-			fprintf(f, "%d,%s \n", i, oBarTimeS[bi]);
-			bi++;
-		}
-	}
-	fclose(f);*/
 	//--
 	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
 	mtTS->slide(MT4engine->targetLen); mtTS->dump();
