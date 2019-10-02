@@ -84,7 +84,7 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, const char* date0_, int s
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
 	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
 void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char*** oDate) {
@@ -112,7 +112,7 @@ void sOraData::getStartDates(char* symbol_, char* timeframe_, bool isFilled_, ch
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
 	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
 //-- Write
@@ -137,7 +137,7 @@ void sOraData::saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mse
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
 	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 
 }
@@ -205,7 +205,7 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int seqId, numtype 
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
 	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 
 }
@@ -292,7 +292,7 @@ void sOraData::findPid(int pid_, bool* found_) {
 		(*found_)=(i>0);
 
 	} catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 
 
@@ -381,7 +381,7 @@ void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
 	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
 void sOraData::saveCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W) {
@@ -417,7 +417,7 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 			}
 		}
 		catch (SQLException ex) {
-			fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+			fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 		}
 		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
@@ -482,7 +482,7 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
 	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 
 
@@ -535,7 +535,7 @@ void sOraData::loadCoreLoggerParms(int pid_, int tid_, int* readFrom, bool* save
 
 	}
 	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 
 
@@ -601,7 +601,7 @@ void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** lev
 		if (i==0) fail("Core Parameters not found for ProcessId=%d, ThreadId=%d", pid, tid);
 
 	} catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
 void sOraData::loadCoreGAparms(int pid, int tid, int* p1, numtype* p2) {
@@ -648,7 +648,7 @@ void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, n
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
 	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 
 }
@@ -782,7 +782,7 @@ void sOraData::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sam
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
 	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 
 	//--
@@ -808,7 +808,7 @@ int sOraData::getSavedEnginePids(int maxPids_, int* oPid) {
 
 		return i-1;
 	} catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 
 
@@ -841,7 +841,7 @@ void sOraData::loadDBConnInfo(int pid_, int tid_, char** oDBusername, char** oDB
 
 	}
 	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
 void sOraData::saveDBConnInfo(int pid_, int tid_, char* oDBusername, char* oDBpassword, char* oDBconnstring){	//-- always check this, first!
@@ -860,7 +860,7 @@ void sOraData::sqlExec(char* sqlS) {
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
 	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
 void sOraData::sqlGet(int len, int** valP, const char* sqlMask, ...) {
@@ -885,7 +885,7 @@ void sOraData::sqlGet(int len, int** valP, const char* sqlMask, ...) {
 
 	}
 	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
 
@@ -943,7 +943,7 @@ void sOraData::saveXMLconfig(int simulationId_, int pid_, int tid_, int fileId_,
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 	}
 	catch (SQLException ex) {
-		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 
 }
