@@ -232,6 +232,11 @@ void sTS::transform() {
 				}
 				break;
 			case DT_LOG:
+				if (val[curr]==EMPTY_VALUE) {
+					valTR[curr]=EMPTY_VALUE;
+				} else {
+					valTR[curr]=log(val[curr]);
+				}
 				break;
 			case DT_DELTALOG:
 				break;

@@ -576,6 +576,13 @@ void sDS::untransformSeq(int seqDT_, numtype* seqBase_, numtype* iTRval, numtype
 					}
 				}
 			}
+			if (seqDT_==DT_LOG) {
+				if (iTRval[curr]==EMPTY_VALUE) {
+					oBASEval[curr]=EMPTY_VALUE;
+				} else {
+					oBASEval[curr]=exp(iTRval[curr]);
+				}
+			}
 		}
 	}
 }

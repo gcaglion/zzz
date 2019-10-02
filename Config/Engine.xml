@@ -11,7 +11,7 @@
 				LevelRatio			= 1
 				LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
 				UseContext			= false
-				UseBias				= false
+				UseBias				= true
 			</Topology>
 			<Training>
 				MaxEpochs			= 150

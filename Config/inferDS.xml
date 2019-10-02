@@ -8,7 +8,7 @@
 	<TimeSerie>
 		HistoryLen			= 72
 		Date0				= 2018-07-30-03:00
-		DataTransformation	= DT_DELTA
+		DataTransformation	= DT_LOG
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
 
