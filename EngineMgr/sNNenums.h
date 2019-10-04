@@ -10,6 +10,7 @@
 #define NN_ACTIVATION_EXP4     2	// y = 1 / (1+exp(-4*x))	=> range is [ 0 ÷ 1]
 #define NN_ACTIVATION_RELU     3	// y=max(0,x)
 #define NN_ACTIVATION_SOFTPLUS 4	// y=ln(1+e^x)
+#define NN_ACTIVATION_TANH2    5	// y=a*tanh(b*x)			=> range is [-2 ÷ 2]
 
 //-- Backpropagation algorithms
 #define BP_STD			0

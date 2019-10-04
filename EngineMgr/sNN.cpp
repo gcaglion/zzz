@@ -76,6 +76,10 @@ void sNN::Activate(int level) {
 		retf=Alg->Tanh(nc, va, vF);
 		retd=Alg->dTanh(nc, va, vdF);
 		break;
+	case NN_ACTIVATION_TANH2:
+		retf=Alg->Tanh2(nc, va, vF);
+		retd=Alg->dTanh2(nc, va, vdF);
+		break;
 	case NN_ACTIVATION_EXP4:
 		retf=Alg->Exp4(nc, va, vF);
 		retd=Alg->dExp4(nc, va, vdF);

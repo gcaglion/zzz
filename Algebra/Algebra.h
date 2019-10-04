@@ -68,6 +68,8 @@ struct sAlgebra : public sObj {
 	//-- Activation Functions
 	EXPORT bool Tanh(int Vlen, numtype* in, numtype* out);
 	EXPORT bool dTanh(int Vlen, numtype* in, numtype* out);
+	EXPORT bool Tanh2(int Vlen, numtype* in, numtype* out);
+	EXPORT bool dTanh2(int Vlen, numtype* in, numtype* out);
 	EXPORT bool Exp4(int Vlen, numtype* in, numtype* out);
 	EXPORT bool dExp4(int Vlen, numtype* in, numtype* out);
 	EXPORT bool Relu(int Vlen, numtype* in, numtype* out);

@@ -487,13 +487,17 @@ __global__ void cudTanh_ker(int vlen, numtype* in, numtype* out) {
 	int i = threadIdx.x+blockIdx.x * blockDim.x;
 	if (i<vlen) out[i] = 1-tanhf(in[i])*tanhf(in[i]);
 }
-__global__ void ORIG_cuTanh_ker(int vlen, numtype* in, numtype* out) {
-	int i = blockIdx.x*blockDim.x+threadIdx.x;
-	if (i<vlen) out[i] = tanhf(in[i]);
+__global__ void cuTanh2_ker(int vlen, numtype* in, numtype* out) {
+	numtype a=1.716;
+	numtype b=2.0f/3.0f;
+	int i = threadIdx.x+blockIdx.x * blockDim.x;
+	if (i<vlen) out[i] = a*(exp(b*in[i])-exp(-b*in[i]))/(exp(b*in[i])+exp(-b*in[i]));
 }
-__global__ void ORIG_cudTanh_ker(int vlen, numtype* in, numtype* out) {
-	int i = blockIdx.x*blockDim.x+threadIdx.x;
-	if (i<vlen) out[i] = 1-tanhf(in[i])*tanhf(in[i]);
+__global__ void cudTanh2_ker(int vlen, numtype* in, numtype* out) {
+	numtype a=1.716;
+	numtype b=2.0f/3.0f;
+	int i = threadIdx.x+blockIdx.x * blockDim.x;
+	if (i<vlen) out[i] = 4*a*b*exp(2*b*in[i])/pow((exp(2*b*in[i])+1),2);
 }
 __global__ void cuExp4_ker(int vlen, numtype* in, numtype* out) {
 	int i = threadIdx.x+blockIdx.x * blockDim.x;
@@ -539,20 +543,56 @@ EXPORT bool Tanh_cu(int vlen, numtype* in, numtype* out) {
 	return((cudaGetLastError()==cudaSuccess));
 }
 EXPORT bool dTanh_cu(int vlen, numtype* in, numtype* out) {
-/*	int blockSize=64; // The launch configurator returned block size
-	int minGridSize; // The minimum grid size needed to achieve the // maximum occupancy for a full device 
-	int gridSize; // The actual grid size needed, based on input // size 
+	/*	int blockSize=64; // The launch configurator returned block size
+	int minGridSize; // The minimum grid size needed to achieve the // maximum occupancy for a full device
+	int gridSize; // The actual grid size needed, based on input // size
 	cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, (void*)cudTanh_ker, 0, vlen);
-	// Round up according to array size 
+	// Round up according to array size
 	gridSize = (vlen+blockSize-1)/blockSize;
 	cudTanh_ker<<< gridSize, blockSize>>> (vlen, in, out);
-*/
+	*/
 	dim3 gridDim;
 	dim3 blockDim;
 	blockDim.x = CUDA_BLOCK_SIZE;
 	gridDim.x = (vlen+blockDim.x-1)/blockDim.x;
 
 	cudTanh_ker<<< gridDim, blockDim>>> (vlen, in, out);
+
+	return((cudaGetLastError()==cudaSuccess));
+}
+EXPORT bool Tanh2_cu(int vlen, numtype* in, numtype* out) {
+	/*	int blockSize=64; // The launch configurator returned block size
+	int minGridSize; // The minimum grid size needed to achieve the // maximum occupancy for a full device
+	int gridSize; // The actual grid size needed, based on input // size
+	cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, (void*)cudTanh_ker, 0, vlen);
+	// Round up according to array size
+	gridSize = (vlen+blockSize-1)/blockSize;
+	cudTanh_ker<<< gridSize, blockSize>>> (vlen, in, out);
+	*/
+	dim3 gridDim;
+	dim3 blockDim;
+	blockDim.x = CUDA_BLOCK_SIZE;
+	gridDim.x = (vlen+blockDim.x-1)/blockDim.x;
+
+	cuTanh2_ker<<< gridDim, blockDim>>> (vlen, in, out);
+
+	return((cudaGetLastError()==cudaSuccess));
+}
+EXPORT bool dTanh2_cu(int vlen, numtype* in, numtype* out) {
+	/*	int blockSize=64; // The launch configurator returned block size
+	int minGridSize; // The minimum grid size needed to achieve the // maximum occupancy for a full device
+	int gridSize; // The actual grid size needed, based on input // size
+	cudaOccupancyMaxPotentialBlockSize(&minGridSize, &blockSize, (void*)cudTanh_ker, 0, vlen);
+	// Round up according to array size
+	gridSize = (vlen+blockSize-1)/blockSize;
+	cudTanh_ker<<< gridSize, blockSize>>> (vlen, in, out);
+	*/
+	dim3 gridDim;
+	dim3 blockDim;
+	blockDim.x = CUDA_BLOCK_SIZE;
+	gridDim.x = (vlen+blockDim.x-1)/blockDim.x;
+
+	cudTanh2_ker<<< gridDim, blockDim>>> (vlen, in, out);
 
 	return((cudaGetLastError()==cudaSuccess));
 }

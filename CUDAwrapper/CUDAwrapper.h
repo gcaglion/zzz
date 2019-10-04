@@ -62,6 +62,8 @@ EXPORT bool cuMtr_cublas(void* cublasH, int my, int mx, numtype* m, numtype* otm
 
 EXPORT bool Tanh_cu(int vlen, numtype* in, numtype* out);
 EXPORT bool dTanh_cu(int vlen, numtype* in, numtype* out);
+EXPORT bool Tanh2_cu(int vlen, numtype* in, numtype* out);
+EXPORT bool dTanh2_cu(int vlen, numtype* in, numtype* out);
 EXPORT bool Exp4_cu(int vlen, numtype* in, numtype* out);
 EXPORT bool dExp4_cu(int vlen, numtype* in, numtype* out);
 EXPORT bool Relu_cu(int vlen, numtype* in, numtype* out);

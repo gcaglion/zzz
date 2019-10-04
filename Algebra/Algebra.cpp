@@ -206,6 +206,22 @@ bool sAlgebra::dTanh(int Vlen, numtype* in, numtype* out) {
 	return true;
 #endif 
 }
+bool sAlgebra::Tanh2(int Vlen, numtype* in, numtype* out) {
+#ifdef USE_GPU 
+	return(Tanh2_cu(Vlen, in, out));
+#else 
+	fail("Not implemented!")
+		return false;
+#endif 
+}
+bool sAlgebra::dTanh2(int Vlen, numtype* in, numtype* out) {
+#ifdef USE_GPU 
+	return (dTanh2_cu(Vlen, in, out));
+#else 
+	fail("Not implemented!")
+	return false;
+#endif 
+}
 bool sAlgebra::Exp4(int Vlen, numtype* in, numtype* out) {
 #ifdef USE_GPU 
 	return(Exp4_cu(Vlen, in, out));

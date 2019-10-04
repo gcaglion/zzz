@@ -99,6 +99,10 @@ void sNNparms::setScaleMinMax() {
 			scaleMin[l] = -1;
 			scaleMax[l] = 1;
 			break;
+		case NN_ACTIVATION_TANH2:
+			scaleMin[l] = -2;
+			scaleMax[l] = 2;
+			break;
 		case NN_ACTIVATION_EXP4:
 			scaleMin[l] = 0;
 			scaleMax[l] = 1;

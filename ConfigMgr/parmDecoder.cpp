@@ -126,6 +126,7 @@ void sCfgParm::decode(int elementId, int* oVal) {
 	optionLookup(TP_BATCH, elementId);
 	optionLookup(TP_ONLINE, elementId);
 	optionLookup(NN_ACTIVATION_TANH, elementId);
+	optionLookup(NN_ACTIVATION_TANH2, elementId);
 	optionLookup(NN_ACTIVATION_EXP4, elementId);
 	optionLookup(NN_ACTIVATION_RELU, elementId);
 	optionLookup(NN_ACTIVATION_SOFTPLUS, elementId);

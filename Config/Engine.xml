@@ -9,7 +9,7 @@
 		<Parameters>
 			<Topology>
 				LevelRatio			= 1
-				LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+				LevelActivation		= NN_ACTIVATION_TANH2, NN_ACTIVATION_TANH2, NN_ACTIVATION_TANH2
 				UseContext			= false
 				UseBias				= false
 			</Topology>
