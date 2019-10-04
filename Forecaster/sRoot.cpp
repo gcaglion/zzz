@@ -218,7 +218,94 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 //-- temp stuff
 #include "../DataMgr/sTS.h"
 #include "../DataMgr/sDS.h"
+
 void sRoot::kaz() {
+
+	FILE* fs; if (fopen_s(&fs, "C:/temp/logs/manualSamples.csv", "r")!=0) return;
+	FILE* ft; if (fopen_s(&ft, "C:/temp/logs/manualTargets.csv", "r")!=0) return;
+	const int linesize=65536;
+	char line[linesize]; char* pline=&line[0];
+	int barId, featureId;
+	int sampleId;
+	int sampleLen=-1;
+	int targetLen=-1;
+	int featuresCnt=-1;
+	int samplesCnt=-1;
+	int offset;
+	
+	//-- Samples
+	while (fgets(pline, linesize, fs)!=NULL) samplesCnt++;
+	fseek(fs, 0, SEEK_SET);
+	//--
+	if (fgets(pline, linesize, fs)==NULL) {
+		return;
+	} else {
+		while (sscanf_s(pline, ",Bar%dF%d%n", &barId, &featureId, &offset)!=0) {
+			if (featureId>featuresCnt) featuresCnt++;
+			if (barId>sampleLen) sampleLen++;
+			pline+=offset;
+		}
+		featuresCnt++;
+		sampleLen++;
+	}
+	//--
+	numtype* sample=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	//--
+	int i=0;
+	while (fgets(pline, linesize, fs)!=NULL) {
+		sscanf_s(pline, "%d%n", &sampleId, &offset);
+		pline+=offset;
+		while (sscanf_s(pline, ",%f%n", &sample[i], &offset)!=0) {
+			i++;
+			pline+=offset;
+		}
+	}
+
+	//-- Targets
+	while (fgets(pline, linesize, ft)!=NULL) samplesCnt++;
+	fseek(ft, 0, SEEK_SET);
+	//--
+	if (fgets(pline, linesize, ft)==NULL) {
+		return;
+	} else {
+		while (sscanf_s(pline, ", Target%dF%d%n", &barId, &featureId, &offset)!=0) {
+			if (featureId>featuresCnt) featuresCnt++;
+			if (barId>targetLen) targetLen++;
+			pline+=offset;
+		}
+		featuresCnt++;
+		targetLen++;
+	}
+	//--
+	numtype* target=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	numtype* prediction=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	//--
+	i=0;
+	while (fgets(pline, linesize, ft)!=NULL) {
+		sscanf_s(pline, "%d%n", &sampleId, &offset);
+		pline+=offset;
+		while (sscanf_s(pline, ",%f%n", &target[i], &offset)!=0) {
+			i++;
+			pline+=offset;
+		}
+	}
+
+	//-- 5.1 create client persistor, if needed
+	safespawn(clientCfg, newsname("clientCfg"), defaultdbg, "Config/Client.xml");
+	bool saveClient;
+	safecall(clientCfg, setKey, "/Client");
+	safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
+	safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
+
+	//-- check for possible duplicate pid in db (through client persistor), and change it
+	safecall(this, getSafePid, clientLog, &pid);
+
+	int savedEnginePid=6740;
+	sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid);
+
+//	eng->infer(998, 0, samplesCnt, sample, prediction);
+
+
 	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/inferDS.xml");
 	/*sTS* ts1; safespawn(ts1, newsname("TS1"), defaultdbg, dsCfg, "/TimeSerie");
 	ts1->dump();
