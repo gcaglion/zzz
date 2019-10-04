@@ -1,42 +1,40 @@
-<Engine>
-	Type		= ENGINE_WNN
-	DecompLevel	= 4
-	WaveletType	= WNN_HAAR
-	
-	<Core0>
-		<! CoreLayoutL0NN.xml >
-		<! CoreParmsCommonL0.xml >
-		<! CorePersistor-Default.xml >
-	</Core0>
-	<Core1>
-		<! CoreLayoutL0NN.xml >
-		<! CoreParmsCommonL0.xml >
-		<! CorePersistor-Default.xml >
-	</Core1>
-	<Core2>
-		<! CoreLayoutL0NN.xml >
-		<! CoreParmsCommonL0.xml >
-		<! CorePersistor-Default.xml >
-	</Core2>
-	<Core3>
-		<! CoreLayoutL0NN.xml >
-		<! CoreParmsCommonL0.xml >
-		<! CorePersistor-Default.xml >
-	</Core3>
-	<Core4>
-		<! CoreLayoutL0NN.xml >
-		<! CoreParmsCommonL0.xml >
-		<! CorePersistor-Default.xml >
-	</Core4>
-	<Core5>
-		<Layout>
-			Type	= CORE_NN
-			Parents			= Core0, Core1, Core2, Core3, Core4
-			ParentsConnType	= CONN_DENSE, CONN_DENSE, CONN_DENSE, CONN_DENSE, CONN_DENSE
-		</Layout>
-		<! CoreParmsCommonL1.xml >
-		<! CorePersistor-Default.xml >
-	</Core5>
+Type		= ENGINE_WNN
+DecompLevel	= 4
+WaveletType	= WNN_HAAR
 
-		<! EnginePersistor-Default.xml >
-</Engine>
+<Core0>
+	<! CoreLayoutL0NN.xml >
+	<! CoreParmsCommonL0.xml >
+	<! CorePersistor-Default.xml >
+</Core0>
+<Core1>
+	<! CoreLayoutL0NN.xml >
+	<! CoreParmsCommonL0.xml >
+	<! CorePersistor-Default.xml >
+</Core1>
+<Core2>
+	<! CoreLayoutL0NN.xml >
+	<! CoreParmsCommonL0.xml >
+	<! CorePersistor-Default.xml >
+</Core2>
+<Core3>
+	<! CoreLayoutL0NN.xml >
+	<! CoreParmsCommonL0.xml >
+	<! CorePersistor-Default.xml >
+</Core3>
+<Core4>
+	<! CoreLayoutL0NN.xml >
+	<! CoreParmsCommonL0.xml >
+	<! CorePersistor-Default.xml >
+</Core4>
+<Core5>
+	<Layout>
+		Type	= CORE_NN
+		Parents			= Core0, Core1, Core2, Core3, Core4
+		ParentsConnType	= CONN_DENSE, CONN_DENSE, CONN_DENSE, CONN_DENSE, CONN_DENSE
+	</Layout>
+	<! CoreParmsCommonL1.xml >
+	<! CorePersistor-Default.xml >
+</Core5>
+
+	<! EnginePersistor-Default.xml >

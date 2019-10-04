@@ -427,8 +427,8 @@ void sOraData::loadCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W
 	try {
 
 		//-- 1. Weights
-		//sprintf_s(sqlS, SQL_MAXLEN, "select /*+ INDEX_FFS(CoreImage_NN_W CoreImage_NN_W_PK) */ WId, W from CoreImage_NN_W where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1", pid, tid, epoch);
-		sprintf_s(sqlS, SQL_MAXLEN, "select WId, W from CoreImage_NN_W where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1", pid, tid, epoch);
+		sprintf_s(sqlS, SQL_MAXLEN, "select /*+INDEX_FFS(CoreImage_NN_W CoreImage_NN_W_PK) Parallel_Index(20)*/ WId, W from CoreImage_NN_W where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1", pid, tid, epoch);
+		//sprintf_s(sqlS, SQL_MAXLEN, "select WId, W from CoreImage_NN_W where ProcessId=%d and ThreadId=%d and Epoch=%d order by 1", pid, tid, epoch);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		//-- this version uses arrayUpdate()
 		intLen = (ub2*)malloc(Wcnt*sizeof(int));
