@@ -457,7 +457,12 @@ void sEngine::infer(int testid_, int seqId_, sDS** inferDS_, sTS* inferTS_, int 
 	free(trgSeqTR); free(prdSeqTR);
 	free(trgSeqBASE); free(prdSeqBASE);
 }
-
+void sEngine::infer(int testid_, int seqId_, sDS* inferDS_, int batchSize_) {
+	//-- not working with WNN !!!
+	inferDS_->batchSize=batchSize_;
+	safecall(this, process, inferProc, testid_, &inferDS_, -1);
+	inferDS_->dump();
+}
 void sEngine::commit() {
 	for (int c=0; c<coresCnt; c++) {
 		safecall(core[c]->persistor, commit);

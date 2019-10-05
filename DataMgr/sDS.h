@@ -35,6 +35,7 @@ struct sDS : sCfgObj {
 	EXPORT sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_);
 	EXPORT sDS(sObjParmsDef, sDS* copyFromDS_);
 	EXPORT sDS(sObjParmsDef, sTS* fromTS_, int WNNsrc_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, char* dumpPath_=nullptr);
+	EXPORT sDS(sObjParmsDef, const char* srcFileName_);
 	EXPORT ~sDS();
 
 	EXPORT void invertSequence();

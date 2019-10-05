@@ -169,6 +169,69 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 	if (doDump) dump();
 
 }
+sDS::sDS(sObjParmsDef, const char* srcFileName_) : sCfgObj(sObjParmsVal, nullptr, "") {
+
+	sampleLen=-1;
+	targetLen=-1;
+	featuresCnt=-1;
+	samplesCnt=-1;
+	batchSize=1;
+
+	char srcFileName[MAX_PATH];
+	FILE* fs; 
+	getFullPath(srcFileName_, srcFileName);
+	char kaz[MAX_PATH]; splitFullFileName(srcFileName, dumpPath, kaz); //-- we set dumpPath to srcFile path
+	if (fopen_s(&fs, srcFileName, "r")!=0) fail("Could not open data file %s", srcFileName);
+
+	const int linesize=32768;
+	char line[linesize]; char* pline=&line[0];
+	int sampleId, barId, featureId;
+	int offset;
+
+	//-- count number of rows
+	while (fgets(pline, linesize, fs)!=NULL) samplesCnt++;
+	fseek(fs, 0, SEEK_SET);
+	//--
+	if (fgets(pline, linesize, fs)==NULL) {
+		return;
+	} else {
+		pline+=8;	//-- skip "SampleId"
+		while (sscanf_s(pline, ",Bar%dF%d%n", &barId, &featureId, &offset)!=0) {
+			if (featureId>featuresCnt) featuresCnt++;
+			if (barId>sampleLen) sampleLen++;
+			pline+=offset;
+		}
+		featuresCnt++;
+		sampleLen++;
+
+		sscanf_s(pline, ",%n", &offset);
+		pline+=offset;
+		while (sscanf_s(pline, ", Target%dF%d%n", &barId, &featureId, &offset)!=0) {
+			if (barId>targetLen) targetLen++;
+			pline+=offset;
+		}
+		targetLen++;	
+		pline=&line[0];
+	}
+	//--
+	mallocs1();
+	//--
+	int si=0, ti=0;
+	while (fgets(pline, linesize, fs)!=NULL) {
+		sscanf_s(pline, "%d%n", &sampleId, &offset);
+		pline+=offset;
+		while (sscanf_s(pline, ",%f%n", &sampleSBF[si], &offset)!=0) {
+			si++;
+			pline+=offset;
+		}
+		pline++; pline++;	// skips "|" between sample and target
+		while (sscanf_s(pline, ",%f%n", &targetSBF[ti], &offset)!=0) {
+			ti++;
+			pline+=offset;
+		}
+		pline=&line[0];
+	}
+}
 sDS::~sDS(){
 	free(sampleSBF); free(targetSBF); free(predictionSBF);
 	free(sampleBFS); free(targetBFS); free(predictionBFS);
@@ -327,7 +390,7 @@ void sDS::halveSequence() {
 	samplesCnt/=2;
 }
 void sDS::swapFirstLast() {
-	int s, b, f;
+	int b, f;
 	numtype* tmpSample=(numtype*)malloc(1*sampleLen*featuresCnt*sizeof(numtype));
 	numtype* tmpTarget=(numtype*)malloc(1*targetLen*featuresCnt*sizeof(numtype));
 	numtype* tmpPrediction=(numtype*)malloc(1*targetLen*featuresCnt*sizeof(numtype));

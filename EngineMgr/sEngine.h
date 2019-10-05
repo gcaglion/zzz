@@ -47,6 +47,7 @@ struct sEngine : sCfgObj {
 	void loadImage(int loadingPid_);
 	EXPORT void train(int testid_, sDS** trainDS_);
 	EXPORT void infer(int testid_, int seqId_, sDS** trainDS_, sTS* inferTS_, int savedEnginePid_);
+	EXPORT void infer(int testid_, int seqId_, sDS* inferDS_, int batchSize_);
 	//--
 	EXPORT void saveInfo();
 	//--
@@ -57,6 +58,10 @@ struct sEngine : sCfgObj {
 	numtype* DStrMin; numtype* DStrMax;
 	numtype** DSfftMin; numtype** DSfftMax;
 
+	const int trainProc = 0;
+	const int inferProc = 1;
+	const int loadProc = 2;
+
 private:
 	int clientPid;
 	sNN* NNc; sGA* GAc; sSVM* SVMc; sSOM* SOMc; sDUMB* DUMBc;
@@ -65,9 +70,6 @@ private:
 	void spawnCoresFromDB(int loadingPid);
 	void setCoreLayer(sCoreLayout* cl);
 	void setLayerProps();
-	const int trainProc = 0;
-	const int inferProc = 1;
-	const int loadProc = 2;
 	bool imageLoaded=false;
 	void process(int procid_, int testid_, sDS** ds_, int savedEnginePid_);
 
