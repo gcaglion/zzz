@@ -336,7 +336,6 @@ void sTS::slide(int steps_) {
 		timestamp[s][15]=49+kaz;	// 1,2,3...
 	}
 }
-
 void sTS::invertSequence(int skipLastN) {
 	numtype* ival=(numtype*)malloc(stepsCnt*featuresCnt*sizeof(numtype));
 	numtype* ivalTR=(numtype*)malloc(stepsCnt*featuresCnt*sizeof(numtype));
@@ -352,4 +351,29 @@ void sTS::invertSequence(int skipLastN) {
 	memcpy_s(valTR, stepsCnt*featuresCnt*sizeof(numtype), ivalTR, stepsCnt*featuresCnt*sizeof(numtype));
 
 	free(ival); free(ivalTR);
+}
+void sTS::duplicate() {
+
+	char** _timestamp=(char**)malloc(2*stepsCnt*sizeof(char*)); for (int i=0; i<2*stepsCnt; i++) _timestamp[i]=(char*)malloc(DATE_FORMAT_LEN);
+	numtype* _val=(numtype*)malloc(2*stepsCnt*featuresCnt*sizeof(numtype));
+	numtype* _valTR=(numtype*)malloc(2*stepsCnt*featuresCnt*sizeof(numtype));
+
+	for (int i=0; i<stepsCnt; i++) {
+		strcpy_s(_timestamp[i], DATE_FORMAT_LEN, timestamp[i]);
+		for (int f=0; f<featuresCnt; f++) {
+			_val[i*featuresCnt+f]=val[i*featuresCnt+f];
+			_valTR[i*featuresCnt+f]=valTR[i*featuresCnt+f];
+		}
+	}
+
+	for (int i=0; i<stepsCnt; i++) {
+		strcpy_s(_timestamp[stepsCnt+i], DATE_FORMAT_LEN, timestamp[i]); _timestamp[stepsCnt+i][0]='9';
+		for (int f=0; f<featuresCnt; f++) {
+			_valTR[(stepsCnt+i)*featuresCnt+f]=_valTR[i*featuresCnt+f];
+			_val[(stepsCnt+i)*featuresCnt+f]=_val[(stepsCnt+i-1)*featuresCnt+f]+_valTR[(stepsCnt+i)*featuresCnt+f];
+		}
+	}
+
+	stepsCnt*=2;
+	timestamp=_timestamp; val=_val; valTR=_valTR;
 }

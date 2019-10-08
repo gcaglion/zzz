@@ -221,14 +221,14 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 
 void sRoot::kaz() {
 
-	/*sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/inferDS.xml");
-	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
-	ds1->dump();*/
+	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/inferDS.xml");
+	/*sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
+	ds1->dump();
 	sDS* ds2; safespawn(ds2, newsname("ds2"), defaultdbg, "C:/temp/datadump/myds1.csv");
 	ds2->invertSequence();
-	ds2->dump();
+	ds2->dump();*/
 
-	//-- 5.1 create client persistor, if needed
+/*	//-- 5.1 create client persistor, if needed
 	safespawn(clientCfg, newsname("clientCfg"), defaultdbg, "Config/Client.xml");
 	bool saveClient;
 	safecall(clientCfg, setKey, "/Client");
@@ -243,12 +243,13 @@ void sRoot::kaz() {
 	int testid=0;
 	int inferBatchSize=32;
 	eng->infer(testid, 0, ds2, inferBatchSize);
+*/
 
-	/*sTS* ts1; safespawn(ts1, newsname("TS1"), defaultdbg, dsCfg, "/TimeSerie");
+	sTS* ts1; safespawn(ts1, newsname("TS1"), defaultdbg, dsCfg, "/TimeSerie");
 	ts1->dump();
-	ts1->slide(1);
+	ts1->duplicate();
 	ts1->dump();
-	return;*/
+	return;
 
 }
 
@@ -382,7 +383,8 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 
 	//--
 	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
-	mtTS->slide(MT4engine->targetLen); mtTS->dump();
+	//for (int i=0; i<1; i++) mtTS->slide(MT4engine->targetLen);
+	//mtTS->duplicate(); mtTS->dump();
 	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump,(char*)nullptr, true);
 	//--
 	

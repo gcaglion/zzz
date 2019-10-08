@@ -444,8 +444,8 @@ void sEngine::infer(int testid_, int seqId_, sDS** inferDS_, sTS* inferTS_, int 
 	for (int b=0; b<targetLen; b++) {
 		for (int f=0; f<featuresCnt; f++) {
 			//forecast[b*featuresCnt+f]=prdSeqBASE[c-1][(sampleLen)*featuresCnt+b*featuresCnt+f];							//-- predicted values from first sample
-			//forecast[b*featuresCnt+f]=prdSeqBASE[c-1][(sampleLen+batchSize-1)*featuresCnt+b*featuresCnt+f];				//-- predicted values from last sample
-			forecast[b*featuresCnt+f]=prdSeqBASE[c-1][(sampleLen+batchSize-1-targetLen)*featuresCnt+b*featuresCnt+f];		//-- predicted values from (last-1) sample
+			forecast[b*featuresCnt+f]=prdSeqBASE[c-1][(sampleLen+batchSize-1)*featuresCnt+b*featuresCnt+f];				//-- predicted values from last sample
+			//forecast[b*featuresCnt+f]=prdSeqBASE[c-1][(sampleLen+batchSize-1-1*targetLen)*featuresCnt+b*featuresCnt+f];		//-- predicted values from (last-1) sample
 
 			info("forecast[%d]=%f", b*featuresCnt+f, forecast[b*featuresCnt+f]);
 		}
