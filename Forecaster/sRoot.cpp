@@ -247,7 +247,7 @@ void sRoot::kaz() {
 
 	sTS* ts1; safespawn(ts1, newsname("TS1"), defaultdbg, dsCfg, "/TimeSerie");
 	ts1->dump();
-	ts1->duplicate();
+	//ts1->duplicate();
 	ts1->dump();
 	return;
 
