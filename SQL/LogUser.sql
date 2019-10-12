@@ -68,7 +68,30 @@ create table CoreImage_NN_W(
 	constraint CoreImage_NN_W_PK primary key( ProcessId, ThreadId, Epoch, WId )
 ) 
 organization index
-storage (initial 1024M minextents 8 pctincrease 0);
+partition by range(ProcessId)
+(
+partition p0 values less than (1000),
+partition p1 values less than (2000),
+partition p2 values less than (3000),
+partition p3 values less than (4000),
+partition p4 values less than (5000),
+partition p5 values less than (6000),
+partition p6 values less than (7000),
+partition p7 values less than (8000),
+partition p8 values less than (9000),
+partition p9 values less than (10000),
+partition p10 values less than (11000),
+partition p11 values less than (12000),
+partition p12 values less than (13000),
+partition p13 values less than (14000),
+partition p14 values less than (15000),
+partition p15 values less than (16000),
+partition p16 values less than (17000),
+partition p17 values less than (18000),
+partition p18 values less than (19000),
+partition p19 values less than (20000),
+partition p99 values less than (MAXVALUE)
+ );
 --alter table CoreImage_NN_W add constraint CoreImage_NN_W_PK primary key( ProcessId, ThreadId, Epoch, WId ) using index tablespace LogIdx;
 
 drop table CoreImage_NN_N purge;
