@@ -171,7 +171,8 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 		safecall(inferCfg->currentKey, getParm, &_dumpPath, "DumpPath");
 
 		sTS* inferTS; safespawn(inferTS, newsname("inferTimeSerie"), defaultdbg, inferCfg, "/TimeSerie");
-		//inferTS->slide(_inferTargetLen);
+		//inferTS->slide(1); 
+		//inferTS->dump();
 
 		//-- spawn engine from savedEnginePid_ with pid
 		safespawn(engine, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid_);
@@ -247,7 +248,7 @@ void sRoot::kaz() {
 
 	sTS* ts1; safespawn(ts1, newsname("TS1"), defaultdbg, dsCfg, "/TimeSerie");
 	ts1->dump();
-	//ts1->duplicate();
+	ts1->slide(2);
 	ts1->dump();
 	return;
 
@@ -360,7 +361,7 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	for (int b=0; b<targetBarsCnt; b++) {
 		sprintf_s(oBarTimeS[sampleBarsCnt+b], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
 		for (int f=0; f<selFcntTot; f++) {
-			oBar[fi]=EMPTY_VALUE;
+			oBar[fi]=oBar[(sampleBarsCnt-targetBarsCnt)*selFcntTot+b*selFcntTot+f];//EMPTY_VALUE;
 			fi++;
 		}
 	}
@@ -383,8 +384,8 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 
 	//--
 	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
-	//for (int i=0; i<1; i++) mtTS->slide(MT4engine->targetLen);
-	//mtTS->duplicate(); mtTS->dump();
+	//mtTS->slide(1);
+	mtTS->dump();
 	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump,(char*)nullptr, true);
 	//--
 	

@@ -425,14 +425,15 @@ void sEngine::infer(int testid_, int seqId_, sDS** inferDS_, sTS* inferTS_, int 
 		prdSeqBASE[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
 		//--
 
-		_ds->getSeq(TARGET, trgSeqTRS[c], inferDS_[0]); //dumpArrayH(seqLen[c]*_ds->featuresCnt, trgSeqTRS[c], "C:/temp/trgSeqTRS.csv");
-		_ds->getSeq(PREDICTION, prdSeqTRS[c], inferDS_[0]); //dumpArrayH(seqLen[c]*_ds->featuresCnt, prdSeqTRS[c], "C:/temp/prdSeqTRS.csv");
+		_ds->getSeq(TARGET, trgSeqTRS[c], inferDS_[0]);
+		_ds->getSeq(PREDICTION, prdSeqTRS[c], inferDS_[0]);
 		_ds->unscale();
 		_ds->getSeq(TARGET, trgSeqTR[c], inferDS_[0]);
 		_ds->getSeq(PREDICTION, prdSeqTR[c], inferDS_[0]);
 		_ds->untransformSeq(inferTS_->dt, inferTS_->valB, trgSeqTR[c], inferTS_->val, trgSeqBASE[c]);
 		_ds->untransformSeq(inferTS_->dt, inferTS_->valB, prdSeqTR[c], inferTS_->val, prdSeqBASE[c]);
 
+		sprintf_s(dmpfname, MAX_PATH, "C:/temp/logs/trgSeqBASE%0d.csv", seqId_); dumpArrayH(seqLen*_ds->featuresCnt, trgSeqBASE[c], dmpfname);
 		sprintf_s(dmpfname, MAX_PATH, "C:/temp/logs/prdSeqBASE%0d.csv", seqId_); dumpArrayH(seqLen*_ds->featuresCnt, prdSeqBASE[c], dmpfname);
 
 		if (core[c]->persistor->saveRunFlag) {
@@ -446,6 +447,7 @@ void sEngine::infer(int testid_, int seqId_, sDS** inferDS_, sTS* inferTS_, int 
 			//forecast[b*featuresCnt+f]=prdSeqBASE[c-1][(sampleLen)*featuresCnt+b*featuresCnt+f];							//-- predicted values from first sample
 			forecast[b*featuresCnt+f]=prdSeqBASE[c-1][(sampleLen+batchSize-1)*featuresCnt+b*featuresCnt+f];				//-- predicted values from last sample
 			//forecast[b*featuresCnt+f]=prdSeqBASE[c-1][(sampleLen+batchSize-1-1*targetLen)*featuresCnt+b*featuresCnt+f];		//-- predicted values from (last-1) sample
+			//forecast[b*featuresCnt+f]=prdSeqBASE[c-1][(sampleLen+batchSize-1-1)*featuresCnt+b*featuresCnt+f];		//-- predicted values from (last-1) sample
 
 			info("forecast[%d]=%f", b*featuresCnt+f, forecast[b*featuresCnt+f]);
 		}
