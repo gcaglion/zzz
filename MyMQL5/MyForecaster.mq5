@@ -30,6 +30,7 @@ input int  Max_Retries			= 3;
 input double TradeVol			= 0.1;
 input double RiskRatio			= 0.20;
 input double ForecastTolerance	= 2;
+input bool tradeClose			= true;
 
 //--- local variables
 int vDataTransformation=DataTransformation;
@@ -62,7 +63,7 @@ int vtime[]; string vtimeS[];
 double vopenB[], vhighB[], vlowB[], vcloseB[], vvolumeB[];
 int vtimeB[]; string vtimeSB[];
 double vopenF[], vhighF[], vlowF[], vcloseF[], vvolumeF[];
-double vForecastH, vForecastL;
+double vForecastH, vForecastL, vForecastC;
 //--
 MqlRates serierates[];
 //--
@@ -229,6 +230,7 @@ void OnTick() {
 		//-- take first bar from vhighF, vlowF
 		vForecastH=vhighF[tradeSerie*predictionLen+0];
 		vForecastL=vlowF[tradeSerie*predictionLen+0];
+		vForecastC=vcloseF[tradeSerie*predictionLen+0];
 		/*//==================================================
 		MqlRates rates[];
 		int copied=CopyRates(NULL, 0, 0, 2, rates);
@@ -236,7 +238,7 @@ void OnTick() {
 		StringConcatenate(ts, TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES)); printf("rates[0]=%s", ts);
 		StringConcatenate(ts, TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES)); printf("rates[1]=%s", ts);
 		//==================================================*/
-		printf("==== Sequence: %d ; Last Bar(%s): H=%6.5f ; L=%6.5f ; Forecast: H=%6.5f ; L=%6.5f", sequenceId, vtimeS[barsCnt-1], vhigh[barsCnt-1], vlow[barsCnt-1], vForecastH, vForecastL);
+		printf("==== Sequence: %d ; Last Bar(%s): H=%6.5f ; L=%6.5f ; C=%6.5f ; Forecast: H=%6.5f ; L=%6.5f ; C=%6.5f", sequenceId, vtimeS[barsCnt-1], vhigh[barsCnt-1], vlow[barsCnt-1], vclose[barsCnt-1], vForecastH, vForecastL, vForecastC);
 		//-- check for forecast consistency in first bar (H>L)
 		if (vForecastL>vForecastH) {
 			printf("Invalid Forecast: H=%6.5f ; L=%6.5f . Exiting...", vForecastH, vForecastL);
@@ -361,6 +363,7 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 
 		double fH=vForecastH;
 		double fL=vForecastL;
+		double fC=vForecastC;
 		double cH=tick.ask;
 		double cL=tick.bid;
 		double dH=fH-cH;
@@ -371,58 +374,85 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 		int spread=SymbolInfoInteger(Symbol(), SYMBOL_SPREAD);
 		double point=SymbolInfoDouble(Symbol(), SYMBOL_POINT);
 
-		printf("getTradeScenario(): cH=%6.5f , cL=%6.5f , fH=%6.5f , fL=%6.5f , dH=%6.5f , dL=%6.5f, minDist=%f , spread=%f", cH, cL, fH, fL, dH, dL, minDist, spread);
+		printf("getTradeScenario(): cH=%6.5f , cL=%6.5f , fH=%6.5f , fL=%6.5f , fC=%6.5f , dH=%6.5f , dL=%6.5f, minDist=%f , spread=%f", cH, cL, fH, fL, fC, dH, dL, minDist, spread);
 
-		//-- Current price (tick.ask) is below   ForecastL => BUY (1)
-		if (cH<fL) {
-			scenario = 1;
-			oTradeTP=fH-fTolerance;
-			expProfit=oTradeTP-cH;
-			expProfit=MathMax((minDist+spread)*point, expProfit);
-			oTradeTP=cH+expProfit;
-			expLoss=expProfit*riskRatio;
-			expLoss=MathMax((minDist+spread)*point, expLoss);
-			oTradeSL=cL-expLoss;
-			printf("Scenario 1 (BUY) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
-		}
+		if (tradeClose) {
+			//-- forecast Close is above current price high (ask)	=> BUY (1)
+			if (fC>cH) {
+				scenario=1;
+				oTradeTP=fC-fTolerance;
+				expProfit=oTradeTP-cH;
+				expProfit=MathMax((minDist+spread)*point, expProfit);
+				oTradeTP=cH+expProfit;
+				expLoss=expProfit*riskRatio;
+				expLoss=MathMax((minDist+spread)*point, expLoss);
+				oTradeSL=cL-expLoss;
+				printf("Scenario 1 (BUY) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
+			}
+			//-- forecast Close is below current price low (bid)	=> SELL (2)
+			if (fC<cL) {
+				scenario=2;
+				oTradeTP=fC+fTolerance;
+				expProfit=cL-oTradeTP;
+				expProfit=MathMax((minDist+spread)*point, expProfit);
+				oTradeTP=cL-expProfit;
+				expLoss=expProfit*riskRatio;
+				expLoss=MathMax((minDist+spread)*point, expLoss);
+				oTradeSL=cL+expLoss;
+				printf("Scenario 2 (SELL) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
+			}
+		} else {
+			//-- Current price (tick.ask) is below   ForecastL => BUY (1)
+			if (cH<fL) {
+				scenario = 1;
+				oTradeTP=fH-fTolerance;
+				expProfit=oTradeTP-cH;
+				expProfit=MathMax((minDist+spread)*point, expProfit);
+				oTradeTP=cH+expProfit;
+				expLoss=expProfit*riskRatio;
+				expLoss=MathMax((minDist+spread)*point, expLoss);
+				oTradeSL=cL-expLoss;
+				printf("Scenario 1 (BUY) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
+			}
 
-		//-- Current price is above   ForecastH  => SELL (2)
-		if (cL>fH) {
-			scenario = 2;
-			oTradeTP=fL+fTolerance;
-			expProfit=cL-oTradeTP;
-			expProfit=MathMax((minDist+spread)*point, expProfit);
-			oTradeTP=cL-expProfit;
-			expLoss=expProfit*riskRatio;
-			expLoss=MathMax((minDist+spread)*point, expLoss);
-			oTradeSL=cL+expLoss;
-			printf("Scenario 2 (SELL) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
-		}
+			//-- Current price is above   ForecastH  => SELL (2)
+			if (cL>fH) {
+				scenario = 2;
+				oTradeTP=fL+fTolerance;
+				expProfit=cL-oTradeTP;
+				expProfit=MathMax((minDist+spread)*point, expProfit);
+				oTradeTP=cL-expProfit;
+				expLoss=expProfit*riskRatio;
+				expLoss=MathMax((minDist+spread)*point, expLoss);
+				oTradeSL=cL+expLoss;
+				printf("Scenario 2 (SELL) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
+			}
 
-		//-- Current price is between ForecastL and ForecastH, closer to ForecastL  => BUY (3)
-		if (cH<=fH && cL>=fL && dL<dH) {
-			scenario = 3;
-			oTradeTP=fH-fTolerance;
-			expProfit=oTradeTP-cH;
-			expProfit=MathMax((minDist+spread)*point, expProfit);
-			oTradeTP=cH+expProfit;
-			expLoss=expProfit*riskRatio;
-			expLoss=MathMax((minDist+spread)*point, expLoss);
-			oTradeSL=cL-expLoss;
-			printf("Scenario 3 (BUY) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
-		}
+			//-- Current price is between ForecastL and ForecastH, closer to ForecastL  => BUY (3)
+			if (cH<=fH && cL>=fL && dL<dH) {
+				scenario = 3;
+				oTradeTP=fH-fTolerance;
+				expProfit=oTradeTP-cH;
+				expProfit=MathMax((minDist+spread)*point, expProfit);
+				oTradeTP=cH+expProfit;
+				expLoss=expProfit*riskRatio;
+				expLoss=MathMax((minDist+spread)*point, expLoss);
+				oTradeSL=cL-expLoss;
+				printf("Scenario 3 (BUY) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
+			}
 
-		//-- Current price is between ForecastL and ForecastH, closer to ForecastH  => SELL (4)
-		if (cH<=fH && cL>=fL && dH<dL) {
-			scenario = 4;
-			oTradeTP=fL+fTolerance;
-			expProfit=cL-oTradeTP;
-			expProfit=MathMax((minDist+spread)*point, expProfit);
-			oTradeTP=cL-expProfit;
-			expLoss=expProfit*riskRatio;
-			expLoss=MathMax((minDist+spread)*point, expLoss);
-			oTradeSL=cL+expLoss;
-			printf("Scenario 4 (SELL) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
+			//-- Current price is between ForecastL and ForecastH, closer to ForecastH  => SELL (4)
+			if (cH<=fH && cL>=fL && dH<dL) {
+				scenario = 4;
+				oTradeTP=fL+fTolerance;
+				expProfit=cL-oTradeTP;
+				expProfit=MathMax((minDist+spread)*point, expProfit);
+				oTradeTP=cL-expProfit;
+				expLoss=expProfit*riskRatio;
+				expLoss=MathMax((minDist+spread)*point, expLoss);
+				oTradeSL=cL+expLoss;
+				printf("Scenario 4 (SELL) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
+			}
 		}
 
 	}
