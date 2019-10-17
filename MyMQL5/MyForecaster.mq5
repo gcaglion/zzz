@@ -31,6 +31,7 @@ input double TradeVol			= 0.1;
 input double RiskRatio			= 0.20;
 input double ForecastTolerance	= 2;
 input bool tradeClose			= true;
+input bool NoStopLoss			= false;
 
 //--- local variables
 int vDataTransformation=DataTransformation;
@@ -267,27 +268,28 @@ void OnTick() {
 			}
 		}
 
-		//-- save tradeInfo, even if we do not trade
-		int idx=tradeSerie*barsCnt+barsCnt-1;
-		//printf("calling _saveTradeInfo() with lastBar = %s - %f|%f|%f|%f ; forecast = %f|%f|%f|%f", vtimeS[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0]);
-		if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], lastForecastO, lastForecastH, lastForecastL, lastForecastC, lastForecastV, vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0], tradeScenario, tradeResult, TPhit, SLhit)<0) {
-			printf("_saveTradeInfo() failed. see Forecaster logs.");
-			return;
-		}
 		lastForecastO=vopenF[tradeSerie*predictionLen+0];
 		lastForecastH=vhighF[tradeSerie*predictionLen+0];
 		lastForecastL=vlowF[tradeSerie*predictionLen+0];
 		lastForecastC=vcloseF[tradeSerie*predictionLen+0];
 		lastForecastV=vvolumeF[tradeSerie*predictionLen+0];
 
-		//-- save clientInfo
-		if (_saveClientInfo(vEnvS, sequenceId, TimeCurrent())<0) {
-			printf("_saveClientInfo() failed. see Forecaster logs.");
-			return;
-		}
+		if (SaveLogs) {
+			//-- save tradeInfo, even if we do not trade
+			int idx=tradeSerie*barsCnt+barsCnt-1;
+			if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], lastForecastO, lastForecastH, lastForecastL, lastForecastC, lastForecastV, vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0], tradeScenario, tradeResult, TPhit, SLhit)<0) {
+				printf("_saveTradeInfo() failed. see Forecaster logs.");
+				return;
+			}
+			//-- save clientInfo
+			if (_saveClientInfo(vEnvS, sequenceId, TimeCurrent())<0) {
+				printf("_saveClientInfo() failed. see Forecaster logs.");
+				return;
+			}
 
-		//-- commit
-		_commit(vEnvS);
+			//-- commit
+			_commit(vEnvS);
+		}
 	}
 	firstTick=false;
 	sequenceId++;
@@ -468,7 +470,7 @@ int NewTrade(int cmd, double volume, double TP, double SL) {
 	double ask=SymbolInfoDouble(symbol, SYMBOL_ASK);             // current price for closing SHORT
 	double open_price;	//--- receive the current open price for LONG positions
 
-	//SL=0;
+	if(NoStopLoss) SL=0;
 
 	string comment;
 	bool ret;

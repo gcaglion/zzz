@@ -128,7 +128,10 @@
     </Link>
     <PostBuildEvent>
       <Command>copy $(OutDir)\*.dll $(MT5UserPath)\MQL5\Experts
-copy $(OutDir)\*.dll $(MT5TesterPath)\MQL5\Experts</Command>
+copy $(OutDir)\*.dll $(MT5TesterPath)0\MQL5\Experts
+copy $(OutDir)\*.dll $(MT5TesterPath)1\MQL5\Experts
+copy $(OutDir)\*.dll $(MT5TesterPath)2\MQL5\Experts
+</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

@@ -8,8 +8,8 @@
 		</Layout>
 		<Parameters>
 			<Topology>
-				LevelRatio			= 5
-				LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
+				LevelRatio			= 2,1
+				LevelActivation		= NN_ACTIVATION_TANH,NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
 				UseContext			= false
 				UseBias				= false
 			</Topology>
@@ -21,7 +21,7 @@
 				StopOnInversion		= TRUE
 				BP_Algo				= BP_STD
 				<BP_Std>
-					LearningRate		= 0.01
+					LearningRate		= 0.005
 					LearningMomentum	= 0.8
 				</BP_Std>
 			</Training>

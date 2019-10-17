@@ -1,12 +1,12 @@
 	SampleLen	= 50
-	TargetLen	= 3
-	BatchSize	= 20
+	TargetLen	= 5
+	BatchSize	= 24
 	
-	Dump		= true
+	Dump		= false
 	DumpPath	= c:\temp\DataDump
 	
 	<TimeSerie>
-		HistoryLen			= 72
+		HistoryLen			= 78
 		Date0				= 2018-07-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
