@@ -30,8 +30,8 @@ input int  Max_Retries			= 3;
 input double TradeVol			= 0.1;
 input double RiskRatio			= 0.20;
 input double ForecastTolerance	= 2;
-input bool tradeClose			= true;
-input bool NoStopLoss			= false;
+input bool tradeClose			= false;
+input bool manualStops			= false;
 
 //--- local variables
 int vDataTransformation=DataTransformation;
@@ -174,6 +174,9 @@ void OnTick() {
 	vTicket=-1;
 	static int sequenceId=0;
 	int maxSteps=-1;
+	static double tradeTP=0;
+	static double tradeSL=0;
+	MqlTick tick;
 
 	static double lastForecastO=0;
 	static double lastForecastH=0;
@@ -182,6 +185,27 @@ void OnTick() {
 	static double lastForecastV=0;
 
 	if (maxSteps<0||sequenceId<maxSteps) {
+
+		//-- manually check for TP/SL
+		if (manualStops&&PositionSelect(Symbol())) {	
+			SymbolInfoTick(Symbol(), tick); //printf("ask=%f ; bid=%f ; tradeTP=%f ; tradeSL=%f", tick.ask, tick.bid, tradeTP, tradeSL);
+			if (PositionGetInteger(POSITION_TYPE)==POSITION_TYPE_BUY) {
+				if(tick.ask>=tradeTP){
+					printf("TP on BUY reached."); trade.PositionClose(Symbol(), 10);
+				}
+				if(tick.bid<=tradeSL){
+					printf("SL on BUY reached."); trade.PositionClose(Symbol(), 10);
+				}
+			} else {
+				if(tick.bid<=tradeTP){
+					printf("TP on SELL reached."); trade.PositionClose(Symbol(), 10); 
+				}
+				if(tick.ask>=tradeSL){
+					printf("SL on SELL reached."); trade.PositionClose(Symbol(), 10);
+				}
+			}
+		}
+
 		// Only do this if there's a new bar
 		static datetime Time0=0;
 		if (Time0==SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE)) return;
@@ -191,9 +215,11 @@ void OnTick() {
 		StringConcatenate(Time0S, TimeToString(Time0, TIME_DATE), ".", TimeToString(Time0, TIME_MINUTES));
 
 		//-- close existing position
-		printf("Closing existing position");
-		trade.PositionClose(Symbol(), 10);
-		//printf("trade.PositionClose() returned %d", trade.ResultRetcode());
+		if(PositionSelect(Symbol())) {
+			printf("Closing existing position");
+			trade.PositionClose(Symbol(), 10);
+			//printf("trade.PositionClose() returned %d", trade.ResultRetcode());
+		}
 		if (!firstTick&&trade.ResultRetcode()!=TRADE_RETCODE_DONE) {
 			//-- prev position has already been closed due to TP or SL
 			TPhit=true;
@@ -249,7 +275,6 @@ void OnTick() {
 
 			//-- define trade scenario based on current price level and forecast
 			double tradeVol=TradeVol;
-			double tradeTP, tradeSL;
 
 			tradeScenario=getTradeScenario(tradeTP, tradeSL); printf("trade scenario=%d ; tradeTP=%6.5f ; tradeSL=%6.5f", tradeScenario, tradeTP, tradeSL);
 			if (tradeScenario>=0) {
@@ -384,10 +409,10 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 				scenario=1;
 				oTradeTP=fC-fTolerance;
 				expProfit=oTradeTP-cH;
-				expProfit=MathMax((minDist+spread)*point, expProfit);
+				if (!manualStops) expProfit=MathMax((minDist+spread)*point, expProfit);
 				oTradeTP=cH+expProfit;
 				expLoss=expProfit*riskRatio;
-				expLoss=MathMax((minDist+spread)*point, expLoss);
+				if (!manualStops) expLoss=MathMax((minDist+spread)*point, expLoss);
 				oTradeSL=cL-expLoss;
 				printf("Scenario 1 (BUY) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 			}
@@ -396,10 +421,10 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 				scenario=2;
 				oTradeTP=fC+fTolerance;
 				expProfit=cL-oTradeTP;
-				expProfit=MathMax((minDist+spread)*point, expProfit);
+				if (!manualStops) expProfit=MathMax((minDist+spread)*point, expProfit);
 				oTradeTP=cL-expProfit;
 				expLoss=expProfit*riskRatio;
-				expLoss=MathMax((minDist+spread)*point, expLoss);
+				if (!manualStops) expLoss=MathMax((minDist+spread)*point, expLoss);
 				oTradeSL=cL+expLoss;
 				printf("Scenario 2 (SELL) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 			}
@@ -409,10 +434,10 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 				scenario = 1;
 				oTradeTP=fH-fTolerance;
 				expProfit=oTradeTP-cH;
-				expProfit=MathMax((minDist+spread)*point, expProfit);
+				if (!manualStops) expProfit=MathMax((minDist+spread)*point, expProfit);
 				oTradeTP=cH+expProfit;
 				expLoss=expProfit*riskRatio;
-				expLoss=MathMax((minDist+spread)*point, expLoss);
+				if (!manualStops) expLoss=MathMax((minDist+spread)*point, expLoss);
 				oTradeSL=cL-expLoss;
 				printf("Scenario 1 (BUY) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 			}
@@ -422,10 +447,10 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 				scenario = 2;
 				oTradeTP=fL+fTolerance;
 				expProfit=cL-oTradeTP;
-				expProfit=MathMax((minDist+spread)*point, expProfit);
+				if (!manualStops) expProfit=MathMax((minDist+spread)*point, expProfit);
 				oTradeTP=cL-expProfit;
 				expLoss=expProfit*riskRatio;
-				expLoss=MathMax((minDist+spread)*point, expLoss);
+				if (!manualStops) expLoss=MathMax((minDist+spread)*point, expLoss);
 				oTradeSL=cL+expLoss;
 				printf("Scenario 2 (SELL) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 			}
@@ -435,10 +460,10 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 				scenario = 3;
 				oTradeTP=fH-fTolerance;
 				expProfit=oTradeTP-cH;
-				expProfit=MathMax((minDist+spread)*point, expProfit);
+				if (!manualStops) expProfit=MathMax((minDist+spread)*point, expProfit);
 				oTradeTP=cH+expProfit;
 				expLoss=expProfit*riskRatio;
-				expLoss=MathMax((minDist+spread)*point, expLoss);
+				if (!manualStops) expLoss=MathMax((minDist+spread)*point, expLoss);
 				oTradeSL=cL-expLoss;
 				printf("Scenario 3 (BUY) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 			}
@@ -448,10 +473,10 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 				scenario = 4;
 				oTradeTP=fL+fTolerance;
 				expProfit=cL-oTradeTP;
-				expProfit=MathMax((minDist+spread)*point, expProfit);
+				if (!manualStops) expProfit=MathMax((minDist+spread)*point, expProfit);
 				oTradeTP=cL-expProfit;
 				expLoss=expProfit*riskRatio;
-				expLoss=MathMax((minDist+spread)*point, expLoss);
+				if (!manualStops) expLoss=MathMax((minDist+spread)*point, expLoss);
 				oTradeSL=cL+expLoss;
 				printf("Scenario 4 (SELL) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 			}
@@ -470,23 +495,24 @@ int NewTrade(int cmd, double volume, double TP, double SL) {
 	double ask=SymbolInfoDouble(symbol, SYMBOL_ASK);             // current price for closing SHORT
 	double open_price;	//--- receive the current open price for LONG positions
 
-	if(NoStopLoss) SL=0;
+	double tp=(manualStops) ? 0 : TP;
+	double sl=(manualStops) ? 0 : SL;
 
 	string comment;
 	bool ret;
 	if (cmd==1||cmd==3) {
 		//-- Buy
 		open_price=SymbolInfoDouble(symbol, SYMBOL_BID);
-		string comment=StringFormat("Buy  %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
-		//printf("calling trade.Buy() with open_price=%f , volume=%f , takeprofit=%5.4f , stoploss=%5.4f", open_price, volume, TP, SL);
-		ret=trade.Buy(volume, symbol, open_price, SL, TP, comment);
+		string comment=StringFormat("Buy  %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(sl, digits), DoubleToString(tp, digits));
+		//printf("calling trade.Buy() with open_price=%f , volume=%f , takeprofit=%5.4f , stoploss=%5.4f", open_price, volume, tp, sl);
+		ret=trade.Buy(volume, symbol, open_price, sl, tp, comment);
 	}
 	if (cmd==2||cmd==4) {
 		//-- Sell
 		open_price=SymbolInfoDouble(symbol, SYMBOL_ASK);
-		string comment=StringFormat("Sell %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(SL, digits), DoubleToString(TP, digits));
-		//printf("calling trade.Sell() with open_price=%f , volume=%f , takeprofit=%5.4f , stoploss=%5.4f", open_price, volume, TP, SL);
-		ret=trade.Sell(volume, symbol, open_price, SL, TP, comment);
+		string comment=StringFormat("Sell %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(sl, digits), DoubleToString(tp, digits));
+		//printf("calling trade.Sell() with open_price=%f , volume=%f , takeprofit=%5.4f , stoploss=%5.4f", open_price, volume, tp, sl);
+		ret=trade.Sell(volume, symbol, open_price, sl, tp, comment);
 	}
 	if (!ret) {
 		//--- failure message
