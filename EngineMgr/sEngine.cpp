@@ -279,7 +279,7 @@ void sEngine::process(int procid_, int testid_, sDS** ds_, int savedEnginePid_) 
 	HANDLE* procH;
 	int lsl0=0;
 
-	system("cls");
+	//system("cls");
 
 	for (int l=0; l<layersCnt; l++) {
 		
