@@ -19,6 +19,12 @@ void _commit(uchar& iEnv[]);
 int _destroyEnv(uchar& iEnv[]);
 #import
 
+enum SLhandling {
+	MinDist   = 1,
+	RiskRatio = 2,
+	Forecast  = 3
+};
+
 //--- input parameters - Forecaster dll stuff
 input int EnginePid				= 14308;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
@@ -31,7 +37,7 @@ input double TradeVol			= 0.1;
 input double RiskRatio			= 0.20;
 input double ForecastTolerance	= 2;
 input bool tradeClose			= false;
-input bool manualStops			= false;
+input SLhandling stopsHandling	= 3;
 
 //--- local variables
 int vDataTransformation=DataTransformation;
@@ -187,7 +193,7 @@ void OnTick() {
 	if (maxSteps<0||sequenceId<maxSteps) {
 
 		//-- manually check for TP/SL
-		if (manualStops&&PositionSelect(Symbol())) {
+		if (stopsHandling>1 && PositionSelect(Symbol())) {
 			SymbolInfoTick(Symbol(), tick); //printf("ask=%f ; bid=%f ; tradeTP=%f ; tradeSL=%f", tick.ask, tick.bid, tradeTP, tradeSL);
 			if (PositionGetInteger(POSITION_TYPE)==POSITION_TYPE_BUY) {
 				if (tick.bid>=tradeTP) {
@@ -344,6 +350,7 @@ bool loadBars() {
 		vcloseB[s]=serierates[1].close;
 		vvolumeB[s]=serierates[1].real_volume;
 		//printf("serie=%d ; time=%s ; OHLCV=%f|%f|%f|%f|%f", s, vtimeSB[s], vopenB[s], vhighB[s], vlowB[s], vcloseB[s], vvolumeB[s]);
+
 		//-- [historyLen] bars
 		for (int bar=0; bar<barsCnt; bar++) {
 			vtime[s*barsCnt+bar]=serierates[bar+2].time;// +TimeGMTOffset();
@@ -354,27 +361,6 @@ bool loadBars() {
 			vclose[s*barsCnt+bar]=serierates[bar+2].close;
 			vvolume[s*barsCnt+bar]=serierates[bar+2].real_volume; if (MathAbs(vvolume[s*barsCnt+bar])>10000) vvolume[s*barsCnt+bar]=0;
 		}
-
-		/*for (int kaz=0; kaz<predictionLen; kaz++) {
-		//-- slide by 1 forward
-		for (int bar=0; bar<(barsCnt-1); bar++) {
-		vtime[s*barsCnt+bar]=vtime[s*barsCnt+bar+1];
-		StringConcatenate(vtimeS[s*barsCnt+bar], TimeToString(vtime[s*barsCnt+bar], TIME_DATE), ".", TimeToString(vtime[s*barsCnt+bar], TIME_MINUTES));
-		vopen[s*barsCnt+bar]=vopen[s*barsCnt+bar+1];
-		vhigh[s*barsCnt+bar]=vhigh[s*barsCnt+bar+1];
-		vlow[s*barsCnt+bar]=vlow[s*barsCnt+bar+1];
-		vclose[s*barsCnt+bar]=vclose[s*barsCnt+bar+1];
-		vvolume[s*barsCnt+bar]=vvolume[s*barsCnt+bar+1];
-		}
-		//-- add last bar, same as previous
-		vtime[s*barsCnt+barsCnt-1]=vtime[s*barsCnt+barsCnt-1]+60*60*24;
-		StringConcatenate(vtimeS[s*barsCnt+barsCnt-1], TimeToString(vtime[s*barsCnt+barsCnt-1], TIME_DATE), ".", TimeToString(vtime[s*barsCnt+barsCnt-1], TIME_MINUTES));
-		vopen[s*barsCnt+barsCnt-1]=vopen[s*barsCnt+barsCnt-2];
-		vhigh[s*barsCnt+barsCnt-1]=vhigh[s*barsCnt+barsCnt-2];
-		vlow[s*barsCnt+barsCnt-1]=vlow[s*barsCnt+barsCnt-2];
-		vclose[s*barsCnt+barsCnt-1]=vclose[s*barsCnt+barsCnt-2];
-		vvolume[s*barsCnt+barsCnt-1]=vvolume[s*barsCnt+barsCnt-2];
-		}*/
 		//for (int bar=0; bar<barsCnt; bar++) printf("time[%d]=%s ; OHLCV[%d]=%f|%f|%f|%f|%f", bar, vtimeS[bar], bar, vopen[bar], vhigh[bar], vlow[bar], vclose[bar], vvolume[bar]);
 	}
 	return true;
@@ -409,11 +395,12 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 				scenario=1;
 				oTradeTP=fC-fTolerance;
 				expProfit=oTradeTP-cH;
-				if (!manualStops) expProfit=MathMax((minDist+spread)*point, expProfit);
+				if (stopsHandling==MinDist) expProfit=MathMax((minDist+spread)*point, expProfit);
 				oTradeTP=cH+expProfit;
 				expLoss=expProfit*riskRatio;
-				if (!manualStops) expLoss=MathMax((minDist+spread)*point, expLoss);
+				if (stopsHandling==MinDist) expLoss=MathMax((minDist+spread)*point, expLoss);
 				oTradeSL=cL-expLoss;
+				if (stopsHandling==Forecast) oTradeSL=fL;
 				printf("Scenario 1 (BUY) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 			}
 			//-- forecast Close is below current price low (bid)	=> SELL (2)
@@ -421,11 +408,12 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 				scenario=2;
 				oTradeTP=fC+fTolerance;
 				expProfit=cL-oTradeTP;
-				if (!manualStops) expProfit=MathMax((minDist+spread)*point, expProfit);
+				if (stopsHandling==MinDist) expProfit=MathMax((minDist+spread)*point, expProfit);
 				oTradeTP=cL-expProfit;
 				expLoss=expProfit*riskRatio;
-				if (!manualStops) expLoss=MathMax((minDist+spread)*point, expLoss);
+				if (stopsHandling==MinDist) expLoss=MathMax((minDist+spread)*point, expLoss);
 				oTradeSL=cL+expLoss;
+				if (stopsHandling==Forecast) oTradeSL=fH;
 				printf("Scenario 2 (SELL) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 			}
 		} else {
@@ -434,11 +422,12 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 				scenario = 1;
 				oTradeTP=fH-fTolerance;
 				expProfit=oTradeTP-cH;
-				if (!manualStops) expProfit=MathMax((minDist+spread)*point, expProfit);
+				if (stopsHandling==MinDist) expProfit=MathMax((minDist+spread)*point, expProfit);
 				oTradeTP=cH+expProfit;
 				expLoss=expProfit*riskRatio;
-				if (!manualStops) expLoss=MathMax((minDist+spread)*point, expLoss);
+				if (stopsHandling==MinDist) expLoss=MathMax((minDist+spread)*point, expLoss);
 				oTradeSL=cL-expLoss;
+				if (stopsHandling==Forecast) oTradeSL=fL;
 				printf("Scenario 1 (BUY) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 			}
 
@@ -447,11 +436,12 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 				scenario = 2;
 				oTradeTP=fL+fTolerance;
 				expProfit=cL-oTradeTP;
-				if (!manualStops) expProfit=MathMax((minDist+spread)*point, expProfit);
+				if (stopsHandling==MinDist) expProfit=MathMax((minDist+spread)*point, expProfit);
 				oTradeTP=cL-expProfit;
 				expLoss=expProfit*riskRatio;
-				if (!manualStops) expLoss=MathMax((minDist+spread)*point, expLoss);
+				if (stopsHandling==MinDist) expLoss=MathMax((minDist+spread)*point, expLoss);
 				oTradeSL=cL+expLoss;
+				if (stopsHandling==Forecast) oTradeSL=fH;
 				printf("Scenario 2 (SELL) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 			}
 
@@ -460,11 +450,12 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 				scenario = 3;
 				oTradeTP=fH-fTolerance;
 				expProfit=oTradeTP-cH;
-				if (!manualStops) expProfit=MathMax((minDist+spread)*point, expProfit);
+				if (stopsHandling==MinDist) expProfit=MathMax((minDist+spread)*point, expProfit);
 				oTradeTP=cH+expProfit;
 				expLoss=expProfit*riskRatio;
-				if (!manualStops) expLoss=MathMax((minDist+spread)*point, expLoss);
+				if (stopsHandling==MinDist) expLoss=MathMax((minDist+spread)*point, expLoss);
 				oTradeSL=cL-expLoss;
+				if (stopsHandling==Forecast) oTradeSL=fL;
 				printf("Scenario 3 (BUY) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 			}
 
@@ -473,11 +464,12 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 				scenario = 4;
 				oTradeTP=fL+fTolerance;
 				expProfit=cL-oTradeTP;
-				if (!manualStops) expProfit=MathMax((minDist+spread)*point, expProfit);
+				if (stopsHandling==MinDist) expProfit=MathMax((minDist+spread)*point, expProfit);
 				oTradeTP=cL-expProfit;
 				expLoss=expProfit*riskRatio;
-				if (!manualStops) expLoss=MathMax((minDist+spread)*point, expLoss);
+				if (stopsHandling==MinDist) expLoss=MathMax((minDist+spread)*point, expLoss);
 				oTradeSL=cL+expLoss;
+				if (stopsHandling==Forecast) oTradeSL=fH;
 				printf("Scenario 4 (SELL) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
 			}
 		}
@@ -495,8 +487,8 @@ int NewTrade(int cmd, double volume, double TP, double SL) {
 	double ask=SymbolInfoDouble(symbol, SYMBOL_ASK);             // current price for closing SHORT
 	double open_price;	//--- receive the current open price for LONG positions
 
-	double tp=(manualStops) ? 0 : TP;
-	double sl=(manualStops) ? 0 : SL;
+	double tp=(stopsHandling!=MinDist) ? 0 : TP;
+	double sl=(stopsHandling!=MinDist) ? 0 : SL;
 
 	string comment;
 	bool ret=false;
