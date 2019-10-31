@@ -190,17 +190,17 @@ void OnTick() {
 		if (manualStops&&PositionSelect(Symbol())) {	
 			SymbolInfoTick(Symbol(), tick); //printf("ask=%f ; bid=%f ; tradeTP=%f ; tradeSL=%f", tick.ask, tick.bid, tradeTP, tradeSL);
 			if (PositionGetInteger(POSITION_TYPE)==POSITION_TYPE_BUY) {
-				if(tick.ask>=tradeTP){
+				if(tick.bid>=tradeTP){
 					printf("TP on BUY reached."); trade.PositionClose(Symbol(), 10);
 				}
-				if(tick.bid<=tradeSL){
+				if(tick.ask<=tradeSL){
 					printf("SL on BUY reached."); trade.PositionClose(Symbol(), 10);
 				}
 			} else {
-				if(tick.bid<=tradeTP){
+				if(tick.ask<=tradeTP){
 					printf("TP on SELL reached."); trade.PositionClose(Symbol(), 10); 
 				}
-				if(tick.ask>=tradeSL){
+				if(tick.bid>=tradeSL){
 					printf("SL on SELL reached."); trade.PositionClose(Symbol(), 10);
 				}
 			}
@@ -293,12 +293,6 @@ void OnTick() {
 			}
 		}
 
-		lastForecastO=vopenF[tradeSerie*predictionLen+0];
-		lastForecastH=vhighF[tradeSerie*predictionLen+0];
-		lastForecastL=vlowF[tradeSerie*predictionLen+0];
-		lastForecastC=vcloseF[tradeSerie*predictionLen+0];
-		lastForecastV=vvolumeF[tradeSerie*predictionLen+0];
-
 		if (SaveLogs) {
 			//-- save tradeInfo, even if we do not trade
 			int idx=tradeSerie*barsCnt+barsCnt-1;
@@ -315,6 +309,13 @@ void OnTick() {
 			//-- commit
 			_commit(vEnvS);
 		}
+
+		lastForecastO=vopenF[tradeSerie*predictionLen+0];
+		lastForecastH=vhighF[tradeSerie*predictionLen+0];
+		lastForecastL=vlowF[tradeSerie*predictionLen+0];
+		lastForecastC=vcloseF[tradeSerie*predictionLen+0];
+		lastForecastV=vvolumeF[tradeSerie*predictionLen+0];
+
 	}
 	firstTick=false;
 	sequenceId++;
