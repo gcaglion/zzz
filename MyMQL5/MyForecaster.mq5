@@ -38,7 +38,7 @@ int vDataTransformation=DataTransformation;
 int vEnginePid=EnginePid;
 int vDumpData=DumpData;
 //--
-long vTicket;
+ulong vTicket;
 
 //--- miscellaneous variables
 string EnvS;
@@ -92,7 +92,7 @@ int OnInit() {
 
 	//--
 	printf("Creating Environment from saved engine (pid=%d) ...", vEnginePid);
-	if (_createEnv(AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vDataTransformation, vDumpData, vEnvS, historyLen, predictionLen, featuresCnt, batchSize)!=0) {
+	if (_createEnv((int)AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vDataTransformation, vDumpData, vEnvS, historyLen, predictionLen, featuresCnt, batchSize)!=0) {
 		printf("FAILURE: _createEnv() failed. see Forecaster logs.");
 		return -1;
 	}
@@ -100,8 +100,8 @@ int OnInit() {
 	printf("EnginePid=%d ; SampleLen/PredictionLen/FeaturesCnt/BatchSize=%d/%d/%d/%d ; EnvS=%s ; ClientXMLFile=%s", EnginePid, historyLen, predictionLen, featuresCnt, batchSize, EnvS, ClientXMLFile);
 	barsCnt=batchSize+historyLen-1;// +predictionLen;
 
-	//--
-	//printf("Getting TimeSeries Info from Client Config...");
+								   //--
+								   //printf("Getting TimeSeries Info from Client Config...");
 	if (_getSeriesInfo(vEnvS, seriesCnt, uSymbolsCSL, uTimeFramesCSL, uFeaturesCSL, chartTrade)!=0) {
 		printf("FAILURE: _getSeriesInfo() failed. see Forecaster logs.");
 		return -1;
@@ -168,7 +168,7 @@ int OnInit() {
 void OnTick() {
 
 	static bool firstTick=true;
-	int tradeScenario;
+	int tradeScenario=-1;
 	int tradeResult=-1;
 	datetime positionTime=0;
 	vTicket=-1;
@@ -187,20 +187,20 @@ void OnTick() {
 	if (maxSteps<0||sequenceId<maxSteps) {
 
 		//-- manually check for TP/SL
-		if (manualStops&&PositionSelect(Symbol())) {	
+		if (manualStops&&PositionSelect(Symbol())) {
 			SymbolInfoTick(Symbol(), tick); //printf("ask=%f ; bid=%f ; tradeTP=%f ; tradeSL=%f", tick.ask, tick.bid, tradeTP, tradeSL);
 			if (PositionGetInteger(POSITION_TYPE)==POSITION_TYPE_BUY) {
-				if(tick.bid>=tradeTP){
+				if (tick.bid>=tradeTP) {
 					printf("TP on BUY reached."); trade.PositionClose(Symbol(), 10);
 				}
-				if(tick.ask<=tradeSL){
+				if (tick.ask<=tradeSL) {
 					printf("SL on BUY reached."); trade.PositionClose(Symbol(), 10);
 				}
 			} else {
-				if(tick.ask<=tradeTP){
-					printf("TP on SELL reached."); trade.PositionClose(Symbol(), 10); 
+				if (tick.ask<=tradeTP) {
+					printf("TP on SELL reached."); trade.PositionClose(Symbol(), 10);
 				}
-				if(tick.bid>=tradeSL){
+				if (tick.bid>=tradeSL) {
 					printf("SL on SELL reached."); trade.PositionClose(Symbol(), 10);
 				}
 			}
@@ -210,12 +210,12 @@ void OnTick() {
 		static datetime Time0=0;
 		if (Time0==SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE)) return;
 
-		Time0 = SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE);
+		Time0 = (datetime)SeriesInfoInteger(Symbol(), Period(), SERIES_LASTBAR_DATE);
 		string Time0S;
 		StringConcatenate(Time0S, TimeToString(Time0, TIME_DATE), ".", TimeToString(Time0, TIME_MINUTES));
 
 		//-- close existing position
-		if(PositionSelect(Symbol())) {
+		if (PositionSelect(Symbol())) {
 			printf("Closing existing position");
 			trade.PositionClose(Symbol(), 10);
 			//printf("trade.PositionClose() returned %d", trade.ResultRetcode());
@@ -226,7 +226,7 @@ void OnTick() {
 		} else {
 			TPhit=false;
 		}
-		
+
 
 		//-- load bars into arrrays
 		//printf("Time0=%s . calling LoadBars()...", Time0S);
@@ -288,7 +288,7 @@ void OnTick() {
 				if (tradeResult==0) {
 					vTicket = PositionGetTicket(0);
 					int positionId=PositionSelect(Symbol());
-					positionTime=PositionGetInteger(POSITION_TIME);
+					positionTime=(datetime)PositionGetInteger(POSITION_TIME);
 				}
 			}
 		}
@@ -296,7 +296,7 @@ void OnTick() {
 		if (SaveLogs) {
 			//-- save tradeInfo, even if we do not trade
 			int idx=tradeSerie*barsCnt+barsCnt-1;
-			if (_saveTradeInfo(vEnvS, vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], lastForecastO, lastForecastH, lastForecastL, lastForecastC, lastForecastV, vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0], tradeScenario, tradeResult, TPhit, SLhit)<0) {
+			if (_saveTradeInfo(vEnvS, (int)vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], lastForecastO, lastForecastH, lastForecastL, lastForecastC, lastForecastV, vopenF[tradeSerie*predictionLen+0], vhighF[tradeSerie*predictionLen+0], vlowF[tradeSerie*predictionLen+0], vcloseF[tradeSerie*predictionLen+0], vvolumeF[tradeSerie*predictionLen+0], tradeScenario, tradeResult, TPhit, SLhit)<0) {
 				printf("_saveTradeInfo() failed. see Forecaster logs.");
 				return;
 			}
@@ -321,7 +321,7 @@ void OnTick() {
 	sequenceId++;
 }
 void OnDeinit(const int reason) {
-	CharArrayToString(vEnvS, EnvS);
+	EnvS=CharArrayToString(vEnvS);
 	printf("OnDeInit() called. EnvS=%s", EnvS);
 	if (EnvS!="00000000000000000000000000000000000000000000000000000000000000000") {
 		printf("calling _destroyEnv for vEnvS=%s", EnvS);
@@ -354,26 +354,26 @@ bool loadBars() {
 			vclose[s*barsCnt+bar]=serierates[bar+2].close;
 			vvolume[s*barsCnt+bar]=serierates[bar+2].real_volume; if (MathAbs(vvolume[s*barsCnt+bar])>10000) vvolume[s*barsCnt+bar]=0;
 		}
-		
+
 		/*for (int kaz=0; kaz<predictionLen; kaz++) {
-			//-- slide by 1 forward
-			for (int bar=0; bar<(barsCnt-1); bar++) {
-				vtime[s*barsCnt+bar]=vtime[s*barsCnt+bar+1];
-				StringConcatenate(vtimeS[s*barsCnt+bar], TimeToString(vtime[s*barsCnt+bar], TIME_DATE), ".", TimeToString(vtime[s*barsCnt+bar], TIME_MINUTES));
-				vopen[s*barsCnt+bar]=vopen[s*barsCnt+bar+1];
-				vhigh[s*barsCnt+bar]=vhigh[s*barsCnt+bar+1];
-				vlow[s*barsCnt+bar]=vlow[s*barsCnt+bar+1];
-				vclose[s*barsCnt+bar]=vclose[s*barsCnt+bar+1];
-				vvolume[s*barsCnt+bar]=vvolume[s*barsCnt+bar+1];
-			}
-			//-- add last bar, same as previous
-			vtime[s*barsCnt+barsCnt-1]=vtime[s*barsCnt+barsCnt-1]+60*60*24;
-			StringConcatenate(vtimeS[s*barsCnt+barsCnt-1], TimeToString(vtime[s*barsCnt+barsCnt-1], TIME_DATE), ".", TimeToString(vtime[s*barsCnt+barsCnt-1], TIME_MINUTES));
-			vopen[s*barsCnt+barsCnt-1]=vopen[s*barsCnt+barsCnt-2];
-			vhigh[s*barsCnt+barsCnt-1]=vhigh[s*barsCnt+barsCnt-2];
-			vlow[s*barsCnt+barsCnt-1]=vlow[s*barsCnt+barsCnt-2];
-			vclose[s*barsCnt+barsCnt-1]=vclose[s*barsCnt+barsCnt-2];
-			vvolume[s*barsCnt+barsCnt-1]=vvolume[s*barsCnt+barsCnt-2];
+		//-- slide by 1 forward
+		for (int bar=0; bar<(barsCnt-1); bar++) {
+		vtime[s*barsCnt+bar]=vtime[s*barsCnt+bar+1];
+		StringConcatenate(vtimeS[s*barsCnt+bar], TimeToString(vtime[s*barsCnt+bar], TIME_DATE), ".", TimeToString(vtime[s*barsCnt+bar], TIME_MINUTES));
+		vopen[s*barsCnt+bar]=vopen[s*barsCnt+bar+1];
+		vhigh[s*barsCnt+bar]=vhigh[s*barsCnt+bar+1];
+		vlow[s*barsCnt+bar]=vlow[s*barsCnt+bar+1];
+		vclose[s*barsCnt+bar]=vclose[s*barsCnt+bar+1];
+		vvolume[s*barsCnt+bar]=vvolume[s*barsCnt+bar+1];
+		}
+		//-- add last bar, same as previous
+		vtime[s*barsCnt+barsCnt-1]=vtime[s*barsCnt+barsCnt-1]+60*60*24;
+		StringConcatenate(vtimeS[s*barsCnt+barsCnt-1], TimeToString(vtime[s*barsCnt+barsCnt-1], TIME_DATE), ".", TimeToString(vtime[s*barsCnt+barsCnt-1], TIME_MINUTES));
+		vopen[s*barsCnt+barsCnt-1]=vopen[s*barsCnt+barsCnt-2];
+		vhigh[s*barsCnt+barsCnt-1]=vhigh[s*barsCnt+barsCnt-2];
+		vlow[s*barsCnt+barsCnt-1]=vlow[s*barsCnt+barsCnt-2];
+		vclose[s*barsCnt+barsCnt-1]=vclose[s*barsCnt+barsCnt-2];
+		vvolume[s*barsCnt+barsCnt-1]=vvolume[s*barsCnt+barsCnt-2];
 		}*/
 		//for (int bar=0; bar<barsCnt; bar++) printf("time[%d]=%s ; OHLCV[%d]=%f|%f|%f|%f|%f", bar, vtimeS[bar], bar, vopen[bar], vhigh[bar], vlow[bar], vclose[bar], vvolume[bar]);
 	}
@@ -398,9 +398,8 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 		double dL=cL-fL;
 		double expProfit, expLoss;
 
-		int minDist=SymbolInfoInteger(Symbol(), SYMBOL_TRADE_STOPS_LEVEL);
-		int spread=SymbolInfoInteger(Symbol(), SYMBOL_SPREAD);
-		double point=SymbolInfoDouble(Symbol(), SYMBOL_POINT);
+		long minDist=SymbolInfoInteger(Symbol(), SYMBOL_TRADE_STOPS_LEVEL);
+		long spread=SymbolInfoInteger(Symbol(), SYMBOL_SPREAD);
 
 		printf("getTradeScenario(): cH=%6.5f , cL=%6.5f , fH=%6.5f , fL=%6.5f , fC=%6.5f , dH=%6.5f , dL=%6.5f, minDist=%f , spread=%f", cH, cL, fH, fL, fC, dH, dL, minDist, spread);
 
@@ -431,7 +430,7 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 			}
 		} else {
 			//-- Current price (tick.ask) is below   ForecastL => BUY (1)
-			if (cH<fL) {
+			if (cL<fL) {
 				scenario = 1;
 				oTradeTP=fH-fTolerance;
 				expProfit=oTradeTP-cH;
@@ -444,7 +443,7 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 			}
 
 			//-- Current price is above   ForecastH  => SELL (2)
-			if (cL>fH) {
+			if (cH>fH) {
 				scenario = 2;
 				oTradeTP=fL+fTolerance;
 				expProfit=cL-oTradeTP;
@@ -500,18 +499,18 @@ int NewTrade(int cmd, double volume, double TP, double SL) {
 	double sl=(manualStops) ? 0 : SL;
 
 	string comment;
-	bool ret;
+	bool ret=false;
 	if (cmd==1||cmd==3) {
 		//-- Buy
 		open_price=SymbolInfoDouble(symbol, SYMBOL_BID);
-		string comment=StringFormat("Buy  %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(sl, digits), DoubleToString(tp, digits));
+		comment=StringFormat("Buy  %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(sl, digits), DoubleToString(tp, digits));
 		//printf("calling trade.Buy() with open_price=%f , volume=%f , takeprofit=%5.4f , stoploss=%5.4f", open_price, volume, tp, sl);
 		ret=trade.Buy(volume, symbol, open_price, sl, tp, comment);
 	}
 	if (cmd==2||cmd==4) {
 		//-- Sell
 		open_price=SymbolInfoDouble(symbol, SYMBOL_ASK);
-		string comment=StringFormat("Sell %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(sl, digits), DoubleToString(tp, digits));
+		comment=StringFormat("Sell %s %G lots at %s, SL=%s TP=%s", symbol, volume, DoubleToString(open_price, digits), DoubleToString(sl, digits), DoubleToString(tp, digits));
 		//printf("calling trade.Sell() with open_price=%f , volume=%f , takeprofit=%5.4f , stoploss=%5.4f", open_price, volume, tp, sl);
 		ret=trade.Sell(volume, symbol, open_price, sl, tp, comment);
 	}
@@ -532,13 +531,13 @@ void drawForecast(double H, double L) {
 	int copied=CopyRates(NULL, 0, 0, 2, rates);
 	if (copied<=0) Print("Error copying price data ", GetLastError());
 
-	string nameR, nameE;
-	StringConcatenate(nameE, "Forecast", TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES), " H=", DoubleToString(H, 5), " ; L=",DoubleToString(L,5));
+	string nameE;
+	StringConcatenate(nameE, "Forecast", TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES), " H=", DoubleToString(H, 5), " ; L=", DoubleToString(L, 5));
 
 	//	ObjectDelete(_Symbol, name);
 
 	//-- draw the rectangle between last bar and new bar
-	ObjectCreate(_Symbol, nameE, OBJ_ELLIPSE, 0, rates[1].time, H, rates[1].time, L, rates[0].time, (H+L)/2);
+	ObjectCreate(0, nameE, OBJ_ELLIPSE, 0, rates[1].time, H, rates[1].time, L, rates[0].time, (H+L)/2);
 	ObjectSetInteger(0, nameE, OBJPROP_COLOR, clrBlue);
 	ObjectSetInteger(0, nameE, OBJPROP_WIDTH, 2);
 	ObjectSetInteger(0, nameE, OBJPROP_HIDDEN, false);
