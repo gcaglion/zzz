@@ -526,10 +526,8 @@ void drawForecast(double H, double L) {
 	string nameE;
 	StringConcatenate(nameE, "Forecast", TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES), " H=", DoubleToString(H, 5), " ; L=", DoubleToString(L, 5));
 
-	//	ObjectDelete(_Symbol, name);
-
 	//-- draw the rectangle between last bar and new bar
-	ObjectCreate(0, nameE, OBJ_ELLIPSE, 0, rates[1].time, H, rates[1].time, L, rates[0].time, (H+L)/2);
+	ObjectCreate(0, nameE, OBJ_ELLIPSE, 0, rates[1].time, H, rates[1].time, L, (rates[0].time+rates[1].time)/2, (H+L)/2);
 	ObjectSetInteger(0, nameE, OBJPROP_COLOR, clrBlue);
 	ObjectSetInteger(0, nameE, OBJPROP_WIDTH, 2);
 	ObjectSetInteger(0, nameE, OBJPROP_HIDDEN, false);
