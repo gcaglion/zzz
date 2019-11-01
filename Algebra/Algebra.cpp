@@ -272,9 +272,14 @@ bool sAlgebra::dSoftPlus(int Vlen, numtype* in, numtype* out) {
 }
 
 //-- Vector functions
+
+//template <class T> void reduce(int size, int threads, int blocks, int whichKernel, T *d_idata, T *d_odata);
+extern void reduce(int what, int size, int threads, int blocks, int whichKernel, numtype *d_idata, numtype*d_odata);
+
 bool sAlgebra::Vssum(int vlen, numtype* v, numtype* ovssum) {
 	//-- if using GPU, the sum scalar also resides in GPU
 #ifdef USE_GPU
+	//reduce(SQUARED_SUM, vlen, 64,256, 1, v, ovssum); return true;
 	return(Vssum_cu(cublasH, vlen, v, ovssum));
 #else
 	(*ovssum)=0;
@@ -284,6 +289,7 @@ bool sAlgebra::Vssum(int vlen, numtype* v, numtype* ovssum) {
 }
 bool sAlgebra::Vnorm(int vlen, numtype* v, numtype* ovnorm) {
 #ifdef USE_GPU
+	//reduce(NORM, vlen, 64, 256, 6, v, ovnorm);	return true;
 	return(Vnorm_cu(cublasH, vlen, v, ovnorm));
 #else
 	numtype vssum=0;

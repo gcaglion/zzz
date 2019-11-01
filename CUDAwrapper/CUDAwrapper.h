@@ -14,6 +14,8 @@
 #define FAIL_INITCU "CUDA/CUBLAS Initialization Failed. \n"
 #define FAIL_CUDAMALLOC "CUDA malloc failed. \n"
 
+EXPORT void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThreads, int &blocks, int &threads);
+
 EXPORT void initCUDA();
 EXPORT void initCUBLAS(void* cublasH);
 EXPORT void initCURand(void* cuRandH);

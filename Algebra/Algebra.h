@@ -8,6 +8,7 @@
 
 #ifdef USE_GPU
 #include "../CUDAwrapper/CUDAwrapper.h"	//-- defines MAX_STREAMS
+#include "../CUDAwrapper/reduction_kernel.h"
 #else
 #define MAX_STREAMS 0
 #define MAX_CONTEXTS 0

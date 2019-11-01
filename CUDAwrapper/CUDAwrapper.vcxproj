@@ -12,9 +12,11 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="CUDAwrapper.cu" />
+    <CudaCompile Include="reduction_kernel.cu" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CUDAwrapper.h" />
+    <ClInclude Include="reduction_kernel.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{F0432EF9-9A71-4A19-A58D-0EF4191CFD18}</ProjectGuid>

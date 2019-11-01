@@ -44,6 +44,54 @@ static const char *cudaGetErrorEnum(cublasStatus_t error)
 
 	return "<unknown>";
 }
+unsigned int nextPow2(unsigned int x)
+{
+	--x;
+	x |= x>>1;
+	x |= x>>2;
+	x |= x>>4;
+	x |= x>>8;
+	x |= x>>16;
+	return ++x;
+}
+EXPORT void getNumBlocksAndThreads(int whichKernel, int n, int maxBlocks, int maxThreads, int &blocks, int &threads)
+{
+
+	//get device capability, to avoid block/grid size exceed the upper bound
+	cudaDeviceProp prop;
+	int device;
+	cudaGetDevice(&device);
+	cudaGetDeviceProperties(&prop, device);
+
+	if (whichKernel < 3)
+	{
+		threads = (n < maxThreads) ? nextPow2(n) : maxThreads;
+		blocks = (n+threads-1)/threads;
+	} else
+	{
+		threads = (n < maxThreads*2) ? nextPow2((n+1)/2) : maxThreads;
+		blocks = (n+(threads*2-1))/(threads*2);
+	}
+
+	if ((float)threads*blocks >(float)prop.maxGridSize[0]*prop.maxThreadsPerBlock)
+	{
+		printf("n is too large, please choose a smaller number!\n");
+	}
+
+	if (blocks > prop.maxGridSize[0])
+	{
+		printf("Grid size <%d> exceeds the device capability <%d>, set block size as %d (original %d)\n",
+			blocks, prop.maxGridSize[0], threads*2, threads);
+
+		blocks /= 2;
+		threads *= 2;
+	}
+
+	if (whichKernel==6)
+	{
+		blocks = min(maxBlocks, blocks);
+	}
+}
 
 EXPORT void initCUDA() {
 	// init CUDA GPU

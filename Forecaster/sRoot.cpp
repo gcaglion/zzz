@@ -222,6 +222,27 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 
 void sRoot::kaz() {
 
+	sAlgebra* Alg; safespawn(Alg, newsname("Alg"), defaultdbg);
+	long int vlen=33554432;
+	numtype* v_d; Alg->myMalloc(&v_d, vlen);
+	Alg->VinitRnd(vlen, v_d, -1, 1, Alg->cuRandH);
+	numtype* sum_d; Alg->myMalloc(&sum_d, 1);
+	numtype sum_h;
+
+	DWORD starttime=timeGetTime();
+	Alg->Vssum(vlen, v_d, sum_d);
+	Alg->devSync();
+	DWORD elapsed=timeGetTime()-starttime;
+	printf("elapsed=%d", elapsed);
+
+	Alg->d2h(&sum_h, sum_d, 1*sizeof(numtype));
+
+	numtype* v_h=(numtype*)malloc(vlen*sizeof(numtype));
+	Alg->d2h(v_h, v_d, vlen*sizeof(numtype), true);
+	sum_h=0; for (int i=0; i<vlen; i++) sum_h+=v_h[i]*v_h[i];
+	sum_h=sqrtf(sum_h);
+	return;
+
 	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/inferDS.xml");
 	/*sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
 	ds1->dump();
