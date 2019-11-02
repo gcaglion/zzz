@@ -22,6 +22,7 @@ struct sOraData : sCfgObj {
 	EXPORT sOraData(sCfgObjParmsDef);
 	EXPORT ~sOraData();
 	//--
+	EXPORT void getFutureBar(char* iSymbol_, char* iTF_, char* iDate0_, char* oDate1_, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV);
 	EXPORT void getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char*** oDate);
 	EXPORT void getFlatOHLCV2(char* pSymbol, char* pTF, const char* date0_, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar, numtype* oBarWidth);
 	//--

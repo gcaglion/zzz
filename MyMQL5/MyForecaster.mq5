@@ -12,6 +12,7 @@
 int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, int dt_, bool doDump_, uchar& oEnv[], int& oSampleLen_, int &oPredictionLen_, int &oFeaturesCnt_, int &oBatchSize_);
 int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[], bool& oChartTrade[]);
 int _getForecast(uchar& iEnv[], int seqId_, int seriesCnt_, int dt_, int& featMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
+int _getActualFuture(uchar& iEnv[], uchar& iSymbol_[], uchar& iTF_[], uchar& iDate0_[], uchar& oDate1_[], double &oBarO[], double &oBarH[], double &oBarL[], double &oBarC[], double &oBarV[]);
 //--
 int _saveTradeInfo(uchar& iEnv[], int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit);
 int _saveClientInfo(uchar& iEnv[], int sequenceId, long iTradeStartTime);
@@ -31,7 +32,7 @@ input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 input int DataTransformation	= 1;
 input bool DumpData				= true;
 input bool SaveLogs				= true;
-input int  Max_Retries			= 3;
+input bool GetActualFutureData	= false;
 //-- input parameters - Trade stuff
 input double TradeVol			= 0.1;
 input double RiskRatio			= 0.20;
@@ -264,13 +265,24 @@ void OnTick() {
 		vForecastH=vhighF[tradeSerie*predictionLen+0];
 		vForecastL=vlowF[tradeSerie*predictionLen+0];
 		vForecastC=vcloseF[tradeSerie*predictionLen+0];
-		/*//==================================================
-		MqlRates rates[];
-		int copied=CopyRates(NULL, 0, 0, 2, rates);
-		string ts;
-		StringConcatenate(ts, TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[0].time, TIME_MINUTES)); printf("rates[0]=%s", ts);
-		StringConcatenate(ts, TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES)); printf("rates[1]=%s", ts);
-		//==================================================*/
+
+		//=============== Get Actual Future Data, override forecast ======================
+		if (GetActualFutureData) {
+			string smb="EURUSD"; uchar smbS[]; StringToCharArray(smb, smbS);
+			string tf="H1"; uchar tfS[]; StringToCharArray(tf, tfS);
+			uchar t0s[]; StringToCharArray(Time0S, t0s);
+			string t1="01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"; uchar t1s[]; StringToCharArray(t1, t1s);
+
+			if (_getActualFuture(vEnvS, smbS, tfS, t0s, t1s, vopenF, vhighF, vlowF, vcloseF, vvolumeF)!=0) {
+				printf("_getActualFuture() FAILURE! Exiting...");
+				return;
+			}
+			vForecastH=vhighF[0];
+			vForecastL=vlowF[0];
+			vForecastC=vcloseF[0];
+		}
+		//===============================================================================
+
 		printf("==== Sequence: %d ; Last Bar(%s): H=%6.5f ; L=%6.5f ; C=%6.5f ; Forecast: H=%6.5f ; L=%6.5f ; C=%6.5f", sequenceId, vtimeS[barsCnt-1], vhigh[barsCnt-1], vlow[barsCnt-1], vclose[barsCnt-1], vForecastH, vForecastL, vForecastC);
 		//-- check for forecast consistency in first bar (H>L)
 		if (vForecastL>vForecastH) {

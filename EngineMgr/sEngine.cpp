@@ -433,8 +433,8 @@ void sEngine::infer(int testid_, int seqId_, sDS** inferDS_, sTS* inferTS_, int 
 		_ds->untransformSeq(inferTS_->dt, inferTS_->valB, trgSeqTR[c], inferTS_->val, trgSeqBASE[c]);
 		_ds->untransformSeq(inferTS_->dt, inferTS_->valB, prdSeqTR[c], inferTS_->val, prdSeqBASE[c]);
 
-		sprintf_s(dmpfname, MAX_PATH, "C:/temp/logs/trgSeqBASE%0d.csv", seqId_); dumpArrayH(seqLen*_ds->featuresCnt, trgSeqBASE[c], dmpfname);
-		sprintf_s(dmpfname, MAX_PATH, "C:/temp/logs/prdSeqBASE%0d.csv", seqId_); dumpArrayH(seqLen*_ds->featuresCnt, prdSeqBASE[c], dmpfname);
+		//sprintf_s(dmpfname, MAX_PATH, "C:/temp/logs/trgSeqBASE%0d.csv", seqId_); dumpArrayH(seqLen*_ds->featuresCnt, trgSeqBASE[c], dmpfname);
+		//sprintf_s(dmpfname, MAX_PATH, "C:/temp/logs/prdSeqBASE%0d.csv", seqId_); dumpArrayH(seqLen*_ds->featuresCnt, prdSeqBASE[c], dmpfname);
 
 		if (core[c]->persistor->saveRunFlag) {
 			core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, seqId_, core[c]->procArgs->mseR, \

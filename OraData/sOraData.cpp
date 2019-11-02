@@ -49,6 +49,36 @@ void sOraData::commit() {
 	if (conn!=nullptr) ((Connection*)conn)->commit();
 }
 //-- Read
+void sOraData::getFutureBar(char* iSymbol_, char* iTF_, char* iDate0_, char* oDate1_, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV) {
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	try {
+		//-- 1. History: open statement and result set
+		sprintf_s(sqlS, SQL_MAXLEN, "select to_char(newdatetime,'%s'), open, high, low, close, nvl(volume,0) from %s_%s where NewDateTime >= to_date('%s','%s') order by 1", DATE_FORMAT, iSymbol_, iTF_, iDate0_, DATE_FORMAT);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+		//-- 2. History: get all records
+		int i=0;
+		while (((ResultSet*)rset)->next()&&i<1) {
+			strcpy_s(oDate1_, DATE_FORMAT_LEN, ((ResultSet*)rset)->getString(1).c_str());
+			(*oBarO) = ((ResultSet*)rset)->getFloat(2);
+			(*oBarH) = ((ResultSet*)rset)->getFloat(3);
+			(*oBarL) = ((ResultSet*)rset)->getFloat(4);
+			(*oBarC) = ((ResultSet*)rset)->getFloat(5);
+			(*oBarV) = ((ResultSet*)rset)->getFloat(6);
+
+			i++;
+		}
+		if (i==0) fail("not enough records.");
+
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
+	}
+}
 void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, const char* date0_, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar, numtype* oBarWidth) {
 	int i;
 
