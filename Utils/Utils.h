@@ -33,3 +33,4 @@ EXPORT void gettimestamp(char* timeS, size_t timeSsize);
 EXPORT void MT4time2str(long iTime, int iTimeSsize, char* oTimeS);
 
 EXPORT void gotoxy(int x, int y);
+EXPORT void cls(HANDLE hConsole);
