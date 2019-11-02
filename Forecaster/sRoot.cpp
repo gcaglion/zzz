@@ -406,7 +406,7 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	//--
 	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
 	//mtTS->slide(1);
-	mtTS->dump();
+	//mtTS->dump();
 	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump,(char*)nullptr, true);
 	//--
 	
@@ -599,3 +599,36 @@ extern "C" __declspec(dllexport) int kaz(int barsCnt, sMqlRates bar[]) {
 	return 1;
 }
 
+void sRoot::getActualFuture(char* iSymbol_, char* iTF_, char* iDate0_, char* oDate1_, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV) {
+	info("%s() CheckPoint %d ; iSymbol=%s , iTF_=%s", __func__, 1, iSymbol_, iTF_);
+	sOraData* fxdbconn; safespawn(fxdbconn, newsname("futureFXDBconn"), defaultdbg, "History", "HistoryPwd", "Algo");
+	info("%s() CheckPoint %d ; iSymbol=%s , iTF_=%s", __func__, 2, iSymbol_, iTF_);
+	sFXDataSource* fxdb; safespawn(fxdb, newsname("futureFXDB"), dbg, fxdbconn, iSymbol_, iTF_, false);
+	info("%s() CheckPoint %d", __func__, 3);
+	safecall(fxdb, loadFuture, iSymbol_, iTF_, iDate0_, oDate1_, oBarO, oBarH, oBarL, oBarC, oBarV);
+	info("%s() CheckPoint %d ; oDate1=%s ; oBarH=%f ; oBarL=%f", __func__, 4, oDate1_, (*oBarH), (*oBarL));
+	//-- introduce some random error
+	srand((unsigned int)time(NULL));
+	numtype errMax=0.0000;
+	numtype kaz=(numtype)rand();
+	numtype errH=(numtype)rand()/RAND_MAX*2*errMax-errMax;
+	numtype errL=(numtype)rand()/RAND_MAX*2*errMax-errMax;
+	numtype errC=(numtype)rand()/RAND_MAX*2*errMax-errMax;
+	oBarH[0]+=errH; oBarL[0]+=errL; oBarC[0]+=errC;
+	delete fxdb;
+	delete fxdbconn;
+}
+extern "C" __declspec(dllexport) int _getActualFuture(char* iEnvS, char* iSymbol_, char* iTF_, char* iDate0_, char* oDate1_, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV) {
+	sRoot* env;
+	sscanf_s(iEnvS, "%p", &env);
+
+	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p . Calling env->getActualFuture()...", env);
+	try {
+		env->getActualFuture(iSymbol_, iTF_, iDate0_, oDate1_, oBarO, oBarH, oBarL, oBarC, oBarV);
+	}
+	catch (std::exception exc) {
+		return -1;
+	}
+
+	return 0;
+}

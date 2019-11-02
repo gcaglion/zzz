@@ -47,3 +47,6 @@ void sFXDataSource::getStartDates(char* date0_, int datesCnt_, char*** oStartDat
 		safecall(filedb, getStartDates, date0_, datesCnt_, oStartDates_);
 	}
 }
+void sFXDataSource::loadFuture(char* iSymbol_, char* iTF_, char* iDate0_, char* oDate1_, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV) {
+	safecall(oradb, getFutureBar, iSymbol_, iTF_, iDate0_, oDate1_, oBarO, oBarH, oBarL, oBarC, oBarV);
+}
