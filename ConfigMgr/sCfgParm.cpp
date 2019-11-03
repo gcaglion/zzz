@@ -12,7 +12,8 @@ sCfgParm::~sCfgParm() {
 //--
 bool sCfgParm::getVal(int* oVal, int* oValsCnt) { return(getVal(&oVal));}
 bool sCfgParm::getVal(char** oVal, int* oValsCnt) { return(getVal(&oVal));}
-bool sCfgParm::getVal(numtype* oVal, int* oValsCnt) { return(getVal(&oVal));}
+bool sCfgParm::getVal(numtype* oVal, int* oValsCnt) { return(getVal(&oVal)); }
+bool sCfgParm::getVal(altnumtype* oVal, int* oValsCnt) { return(getVal(&oVal)); }
 bool sCfgParm::getVal(bool* oVal, int* oValsCnt) { return(getVal(&oVal));}
 //--
 bool sCfgParm::getVal(int** oVal, int* oValsCnt) {
@@ -37,6 +38,13 @@ bool sCfgParm::getVal(numtype** oVal, int* oValsCnt) {
 	if (oValsCnt!=nullptr) (*oValsCnt)=valScnt;
 	for (int v=0; v<valScnt; v++) {
 		oVal[0][v]=(numtype)atof(valS[v]);
+	}
+	return true;
+}
+bool sCfgParm::getVal(altnumtype** oVal, int* oValsCnt) {
+	if (oValsCnt!=nullptr) (*oValsCnt)=valScnt;
+	for (int v=0; v<valScnt; v++) {
+		oVal[0][v]=(altnumtype)atof(valS[v]);
 	}
 	return true;
 }

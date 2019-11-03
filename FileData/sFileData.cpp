@@ -118,7 +118,7 @@ void sFileData::saveCoreSOMparms(int pid, int tid, int p1, numtype p2) {
 void sFileData::saveCoreDUMBparms(int pid, int tid, int p1, numtype p2) {
 	fail("Not implemented.");
 }
-void sFileData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, numtype* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_) {
+void sFileData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, float* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_) {
 	fail("Not implemented.");
 }
 void sFileData::loadCoreGAparms(int pid, int tid, int* p1, numtype* p2) {

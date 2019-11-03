@@ -7,8 +7,14 @@
 #include <stdio.h>
 #include <stdexcept>
 
+//#define DOUBLE_NUMTYPE
+#ifdef DOUBLE_NUMTYPE
+typedef double numtype;
+typedef float altnumtype;
+#else
 typedef float numtype;
 typedef double altnumtype;
+#endif
 
 #include "ConfigMgr/XMLdefs.h"
 #define DATE_FORMAT_LEN XMLKEY_PARM_VAL_MAXLEN

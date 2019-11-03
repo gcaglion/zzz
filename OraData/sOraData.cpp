@@ -159,8 +159,13 @@ void sOraData::saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mse
 			((Statement*)stmt)->setInt(2, tid);
 			((Statement*)stmt)->setInt(3, epoch);
 			((Statement*)stmt)->setInt(4, duration[epoch]);
+			#ifdef DOUBLE_NUMTYPE
+			((Statement*)stmt)->setDouble(5, mseT[epoch]);
+			((Statement*)stmt)->setDouble(6, mseV[epoch]);
+			#else
 			((Statement*)stmt)->setFloat(5, mseT[epoch]);
 			((Statement*)stmt)->setFloat(6, mseV[epoch]);
+			#endif
 			if (epoch<(mseCnt-1)) ((Statement*)stmt)->addIteration();
 		}
 		((Statement*)stmt)->executeUpdate();
@@ -188,7 +193,11 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int seqId, numtype 
 				((Statement*)stmt)->setInt(2, tid);
 				((Statement*)stmt)->setInt(3, npid);
 				((Statement*)stmt)->setInt(4, ntid);
+				#ifdef DOUBLE_NUMTYPE
+				((Statement*)stmt)->setDouble(5, mseR);
+				#else
 				((Statement*)stmt)->setFloat(5, mseR);
+				#endif
 				((Statement*)stmt)->setInt(6, step);
 				std::string str(posLabel[step]); ((Statement*)stmt)->setMaxParamSize(7, 64); ((Statement*)stmt)->setString(7, str);
 				((Statement*)stmt)->setInt(8, f);
@@ -196,34 +205,58 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int seqId, numtype 
 				if (actualTRS[step*featuresCnt_+f]==EMPTY_VALUE) {
 					((Statement*)stmt)->setNull(9, OCCIFLOAT);
 				} else {
+					#ifdef DOUBLE_NUMTYPE
+					((Statement*)stmt)->setDouble(9, actualTRS[step*featuresCnt_+f]);
+					#else
 					((Statement*)stmt)->setFloat(9, actualTRS[step*featuresCnt_+f]);
+					#endif
 				}
 				if (predictedTRS[step*featuresCnt_+f]==EMPTY_VALUE) {
 					((Statement*)stmt)->setNull(10, OCCIFLOAT);
 				} else {
+					#ifdef DOUBLE_NUMTYPE
+					((Statement*)stmt)->setDouble(10, predictedTRS[step*featuresCnt_+f]);
+					#else
 					((Statement*)stmt)->setFloat(10, predictedTRS[step*featuresCnt_+f]);
+					#endif
 				}
 
 				if (actualTR[step*featuresCnt_+f]==EMPTY_VALUE) {
 					((Statement*)stmt)->setNull(11, OCCIFLOAT);
 				} else {
+					#ifdef DOUBLE_NUMTYPE
+					((Statement*)stmt)->setDouble(11, actualTR[step*featuresCnt_+f]);
+					#else
 					((Statement*)stmt)->setFloat(11, actualTR[step*featuresCnt_+f]);
+					#endif
 				}
 				if (predictedTR[step*featuresCnt_+f]==EMPTY_VALUE) {
 					((Statement*)stmt)->setNull(12, OCCIFLOAT);
 				} else {
+					#ifdef DOUBLE_NUMTYPE
+					((Statement*)stmt)->setDouble(12, predictedTR[step*featuresCnt_+f]);
+					#else
 					((Statement*)stmt)->setFloat(12, predictedTR[step*featuresCnt_+f]);
+					#endif
 				}
 
 				if (actualBASE[step*featuresCnt_+f]==EMPTY_VALUE) {
 					((Statement*)stmt)->setNull(13, OCCIFLOAT);
 				} else {
+					#ifdef DOUBLE_NUMTYPE
+					((Statement*)stmt)->setDouble(13, actualBASE[step*featuresCnt_+f]);
+					#else
 					((Statement*)stmt)->setFloat(13, actualBASE[step*featuresCnt_+f]);
+					#endif
 				}
 				if (predictedBASE[step*featuresCnt_+f]==EMPTY_VALUE) {
 					((Statement*)stmt)->setNull(14, OCCIFLOAT);
 				} else {
+					#ifdef DOUBLE_NUMTYPE
+					((Statement*)stmt)->setDouble(14, predictedBASE[step*featuresCnt_+f]);
+					#else
 					((Statement*)stmt)->setFloat(14, predictedBASE[step*featuresCnt_+f]);
+					#endif
 				}
 				((Statement*)stmt)->setInt(15, seqId);
 
@@ -598,7 +631,7 @@ void sOraData::saveCoreDUMBparms(int pid, int tid, int p1, numtype p2) {
 	fail("Not implemented.");
 }
 //--
-void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, numtype* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_) {
+void sOraData::loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, float* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open) {}
@@ -660,6 +693,20 @@ void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, n
 			((Statement*)stmt)->setInt(1, pid_);
 			((Statement*)stmt)->setInt(2, tid_);
 			((Statement*)stmt)->setInt(3, i);
+#ifdef DOUBLE_NUMTYPE
+			((Statement*)stmt)->setDouble(4, delta_[i]);
+			((Statement*)stmt)->setDouble(5, mu_[i]);
+			((Statement*)stmt)->setDouble(6, alpha_[i]);
+			((Statement*)stmt)->setDouble(7, beta_[i]);
+			((Statement*)stmt)->setDouble(8, lambda_[i]);
+			((Statement*)stmt)->setDouble(9, lambdau_[i]);
+			((Statement*)stmt)->setDouble(10, Gtse_old_[i]);
+			((Statement*)stmt)->setDouble(11, Gtse_new_[i]);
+			((Statement*)stmt)->setDouble(12, comp_[i]);
+			((Statement*)stmt)->setDouble(13, pnorm_[i]);
+			((Statement*)stmt)->setDouble(14, rnorm_[i]);
+			((Statement*)stmt)->setDouble(15, dwnorm_[i]);
+#else
 			((Statement*)stmt)->setFloat(4, delta_[i]);
 			((Statement*)stmt)->setFloat(5, mu_[i]);
 			((Statement*)stmt)->setFloat(6, alpha_[i]);
@@ -672,6 +719,7 @@ void sOraData::saveCoreNNInternalsSCGD(int pid_, int tid_, int iterationsCnt_, n
 			((Statement*)stmt)->setFloat(13, pnorm_[i]);
 			((Statement*)stmt)->setFloat(14, rnorm_[i]);
 			((Statement*)stmt)->setFloat(15, dwnorm_[i]);
+#endif
 			if (i<(iterationsCnt_-1)) ((Statement*)stmt)->addIteration();
 		}
 		((Statement*)stmt)->executeUpdate();

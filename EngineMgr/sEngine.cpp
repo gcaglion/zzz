@@ -413,7 +413,7 @@ void sEngine::infer(int testid_, int seqId_, sDS** inferDS_, sTS* inferTS_, int 
 	numtype** trgSeqBASE=(numtype**)malloc(coresCnt*sizeof(numtype*));
 	numtype** prdSeqBASE=(numtype**)malloc(coresCnt*sizeof(numtype*));
 	int c;
-	char dmpfname[MAX_PATH];
+	char dmpfname[MAX_PATH]="";
 	for (c=0; c<coresCnt; c++) {
 		_ds=core[c]->procArgs->ds;
 		//-- mallocs

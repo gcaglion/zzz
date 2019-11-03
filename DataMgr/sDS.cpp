@@ -220,12 +220,20 @@ sDS::sDS(sObjParmsDef, const char* srcFileName_) : sCfgObj(sObjParmsVal, nullptr
 	while (fgets(pline, linesize, fs)!=NULL) {
 		sscanf_s(pline, "%d%n", &sampleId, &offset);
 		pline+=offset;
+		#ifdef DOUBLE_NUMTYPE
+		while (sscanf_s(pline, ",%lf%n", &sampleSBF[si], &offset)!=0) {
+		#else
 		while (sscanf_s(pline, ",%f%n", &sampleSBF[si], &offset)!=0) {
+		#endif
 			si++;
 			pline+=offset;
 		}
 		pline++; pline++;	// skips "|" between sample and target
+		#ifdef DOUBLE_NUMTYPE
+		while (sscanf_s(pline, ",%lf%n", &targetSBF[ti], &offset)!=0) {
+		#else
 		while (sscanf_s(pline, ",%f%n", &targetSBF[ti], &offset)!=0) {
+		#endif
 			ti++;
 			pline+=offset;
 		}

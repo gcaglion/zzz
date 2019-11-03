@@ -15,11 +15,13 @@ struct sCfgParm : sObj {
 	EXPORT bool getVal(int* oVal, int* oValsCnt);
 	EXPORT bool getVal(char** oVal, int* oValsCnt);
 	EXPORT bool getVal(numtype* oVal, int* oValsCnt);
+	EXPORT bool getVal(altnumtype* oVal, int* oValsCnt);
 	EXPORT bool getVal(bool* oVal, int* oValsCnt);
 	//--
 	EXPORT bool getVal(int** oVal, int* oValsCnt=nullptr);
 	EXPORT bool getVal(char*** oVal, int* oValsCnt=nullptr);
 	EXPORT bool getVal(numtype** oVal, int* oValsCnt=nullptr);
+	EXPORT bool getVal(altnumtype** oVal, int* oValsCnt=nullptr);
 	EXPORT bool getVal(bool** oVal, int* oValsCnt=nullptr);
 
 	EXPORT bool setValS(const char* parmValS_);

@@ -262,7 +262,11 @@ EXPORT bool loadArray_cu(int vlen, numtype* v, const char* fname){
 	FILE* f=fopen(fname, "r");
 	if (f==nullptr) return false;
 	for (int i=0; i<vlen; i++) {
-		if(fscanf(f, "%f\n", &fh)==0) return false;
+		#ifdef DOUBLE_NUMTYPE
+		if (fscanf(f, "%lf\n", &fh)==0) return false;
+		#else
+		if (fscanf(f, "%f\n", &fh)==0) return false;
+		#endif
 		vh[i]=fh;
 	}
 	if (cudaMemcpy(v, vh, vlen*sizeof(numtype), cudaMemcpyHostToDevice)!=cudaSuccess) return false;
@@ -273,16 +277,20 @@ EXPORT bool loadArray_cu(int vlen, numtype* v, const char* fname){
 
 //-- matrix functions
 EXPORT bool cuMtr_cublas(void* cublasH, int my, int mx, numtype* m, numtype* otm) {
-	float alpha=1;
-	float beta=0;
+	numtype alpha=1;
+	numtype beta=0;
+	#ifdef DOUBLE_NUMTYPE
+	if (cublasDgeam((*(cublasHandle_t*)cublasH), CUBLAS_OP_T, CUBLAS_OP_T, my, mx, &alpha, m, mx, &beta, m, mx, otm, my)!=CUBLAS_STATUS_SUCCESS) return false;
+	#else
 	if (cublasSgeam((*(cublasHandle_t*)cublasH), CUBLAS_OP_T, CUBLAS_OP_T, my, mx, &alpha, m, mx, &beta, m, mx, otm, my)!=CUBLAS_STATUS_SUCCESS) return false;
+	#endif
 	return true;
 }
 
 EXPORT bool MbyM_cu(void* cublasH, int Ay, int Ax, numtype Ascale, bool Atr, numtype* A, int By, int Bx, numtype Bscale, bool Btr, numtype* B, numtype* C) {
 
-	float *alpha = &Ascale;
-	float *beta = &Bscale;
+	numtype *alpha = &Ascale;
+	numtype *beta = &Bscale;
 
 	cublasOperation_t Aop=CUBLAS_OP_N;
 	cublasOperation_t Bop=CUBLAS_OP_N;
@@ -307,8 +315,11 @@ EXPORT bool MbyM_cu(void* cublasH, int Ay, int Ax, numtype Ascale, bool Atr, num
 	}
 
 	if (!Vinit_cu(m*n, C, 0, 0)) return false;
+#ifdef DOUBLE_NUMTYPE
+	if (cublasDgemm((*(cublasHandle_t*)cublasH), Bop, Aop, m, n, k, alpha, vB, ldB, vA, ldA, beta, C, ldC)!=CUBLAS_STATUS_SUCCESS) throw(new std::exception("call to cublasSgem()"));
+#else
 	if (cublasSgemm((*(cublasHandle_t*)cublasH), Bop, Aop, m, n, k, alpha, vB, ldB, vA, ldA, beta, C, ldC)!=CUBLAS_STATUS_SUCCESS) throw(new std::exception("call to cublasSgem()"));
-
+#endif
 	return true;
 }
 
@@ -404,7 +415,11 @@ EXPORT bool Sadd_cu(numtype* s1, numtype* s2, numtype* ssum) {
 
 //-- vector functions;
 EXPORT bool getMcol_cu(void* cublasH, int Ay, int Ax, numtype* A, int col, numtype* oCol) {
-	cublasStatus_t err=cublasScopy((*((cublasHandle_t*)cublasH)), Ax, A, Ax, oCol, 1);
+	#ifdef DOUBLE_NUMTYPE
+	cublasStatus_t err=cublasDcopy((*((cublasHandle_t*)cublasH)), Ax, A, Ax, oCol, 1);
+	#else
+	cublasStatus_t err=cublasScopy((*((cublasHandle_t*)cublasH)), Ax, A, Ax, oCol, 1); 
+	#endif
 	if (err!=CUBLAS_STATUS_SUCCESS) {
 		printf("getMcol_cu() CUBLAS error %d: %s\n", err, cudaGetErrorEnum(err));
 		return false;
@@ -472,12 +487,20 @@ EXPORT bool Vssum_cu(void* cublasH, int vlen, numtype* v, numtype* oVssum) {
 }
 
 EXPORT bool Vnorm_cu(void* cublasH, int Vlen, numtype* V,  numtype* oVssum) {
+	#ifdef DOUBLE_NUMTYPE
+	cublasStatus_t cur=cublasDnrm2((*(cublasHandle_t*)cublasH), Vlen, V, 1, oVssum);
+	#else
 	cublasStatus_t cur=cublasSnrm2((*(cublasHandle_t*)cublasH), Vlen, V, 1, oVssum);
+	#endif
 	if (cur!=CUBLAS_STATUS_SUCCESS) { printf("error code %d, line(%d)\n", cur, __LINE__); return false; }
 	return true;
 }
 EXPORT bool VdotV_cu(void* cublasH, int vlen, numtype* v1, numtype* v2, numtype* oVdotV){
+	#ifdef DOUBLE_NUMTYPE
+	cublasStatus_t cur=cublasDdot((*(cublasHandle_t*)cublasH), vlen, v1, 1, v2, 1, oVdotV);
+	#else
 	cublasStatus_t cur=cublasSdot((*(cublasHandle_t*)cublasH), vlen, v1, 1, v2, 1, oVdotV);
+	#endif
 	if (cur!=CUBLAS_STATUS_SUCCESS) { printf("error code %d, line(%d)\n", cur, __LINE__); return false; }
 	return true;
 }
@@ -510,7 +533,11 @@ EXPORT bool VinitRnd_cu(int vlen, numtype* v, numtype rndmin, numtype rndmax, vo
 	gridDim.x = (vlen+blockDim.x-1)/blockDim.x;
 
 	//-- Generate n floats on device, with  values between 0.0 and 1.0, where 0.0 is excluded and 1.0 is included
-	if(curandGenerateUniform((*(curandGenerator_t*)cuRandH), v, vlen) !=CURAND_STATUS_SUCCESS) return false;
+	#ifdef DOUBLE_NUMTYPE
+	if(curandGenerateUniformDouble((*(curandGenerator_t*)cuRandH), v, vlen) !=CURAND_STATUS_SUCCESS) return false;
+	#else
+	if (curandGenerateUniform((*(curandGenerator_t*)cuRandH), v, vlen)!=CURAND_STATUS_SUCCESS) return false;
+	#endif
 	//-- need to scale to rndmin<->rndmax
 	Vscale<<< gridDim, blockDim>>>(vlen, v, (rndmax-rndmin), rndmax-(rndmax-rndmin)*1);
 

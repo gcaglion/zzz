@@ -57,7 +57,7 @@ struct sOraData : sCfgObj {
 	EXPORT void saveCoreSVMparms(int pid, int tid, int p1, numtype p2);
 	EXPORT void saveCoreSOMparms(int pid, int tid, int p1, numtype p2);
 	EXPORT void saveCoreDUMBparms(int pid, int tid, int p1, numtype p2);
-	EXPORT void loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, numtype* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_);
+	EXPORT void loadCoreNNparms(int pid, int tid, char** levelRatioS_, char** levelActivationS_, bool* useContext_, bool* useBias_, int* maxEpochs_, float* targetMSE_, int* netSaveFrequency_, bool* stopOnDivergence_, int* BPalgo_, float* learningRate_, float* learningMomentum_);
 	EXPORT void loadCoreGAparms(int pid, int tid, int* p1, numtype* p2);
 	EXPORT void loadCoreSVMparms(int pid, int tid, int* p1, numtype* p2);
 	EXPORT void loadCoreSOMparms(int pid, int tid, int* p1, numtype* p2);
