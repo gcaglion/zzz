@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
 	try {
 		root=new sRoot(nullptr);	//-- nullptr says there's no GUI to call back with dbg messages
 		//-----------
-		//root->kaz(); terminate(true, "");
+		root->kazEnc(); terminate(true, "");
 		//-----------
 
 		if (argc<6) clifail;

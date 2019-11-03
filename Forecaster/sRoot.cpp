@@ -217,9 +217,6 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 }
 
 //-- temp stuff
-#include "../DataMgr/sTS.h"
-#include "../DataMgr/sDS.h"
-
 void sRoot::kaz() {
 
 	sAlgebra* Alg; safespawn(Alg, newsname("Alg"), defaultdbg);
@@ -274,7 +271,42 @@ void sRoot::kaz() {
 	return;
 
 }
+void sRoot::kazEnc() {
+	sAlgebra* Alg = new sAlgebra(nullptr, newsname("Alg"), defaultdbg, nullptr);
 
+	sCfg* tsCfg = new sCfg(nullptr, newsname("tsCfg"), defaultdbg, nullptr, "Config/trainDS.xml");
+	sTS* ts1 = new sTS(nullptr, newsname("ts1"), defaultdbg, nullptr, tsCfg, "/TimeSerie");
+
+	int sampleLen=25;
+	int samplesCnt=ts1->stepsCnt-sampleLen;
+	numtype* sample_h=(numtype*)malloc(samplesCnt*sampleLen*ts1->featuresCnt*sizeof(numtype));
+	int tsidxS, dsidxS=0;
+	for (int s=0; s<samplesCnt; s++) {
+		for (int b=0; b<sampleLen; b++) {
+			for (int f=0; f<ts1->featuresCnt; f++) {
+				tsidxS=(s+b)*ts1->featuresCnt+f;
+				sample_h[dsidxS]=ts1->valTR[tsidxS];
+				dsidxS++;
+			}
+		}
+	}
+	numtype* sample_d; Alg->myMalloc(&sample_d, samplesCnt*sampleLen*ts1->featuresCnt);
+	Alg->h2d(sample_d, sample_h, samplesCnt*sampleLen*ts1->featuresCnt*sizeof(numtype), true);
+
+	const int levelsCnt=4;
+	float levelRatio[levelsCnt-1]={ 0.5,1,0.5 };
+	numtype learningRate=0.01f;
+	numtype learningMomentum= 0.8f;
+	int activationFunction[levelsCnt*2-1]={ NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH };
+	sEncoder* enc= new sEncoder(nullptr, newsname("encoder1"), defaultdbg, nullptr, sampleLen*ts1->featuresCnt, levelsCnt, levelRatio, activationFunction, learningRate, learningMomentum);
+
+	int trainBatchSize=32;
+	int maxEpochs=50;
+	enc->train(samplesCnt, sampleLen, ts1->featuresCnt, sample_d, trainBatchSize, maxEpochs);
+
+	free(sample_h);
+	Alg->myFree(sample_d);
+}
 //-- GUI hooks
 extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
 	sRoot* root=nullptr;
