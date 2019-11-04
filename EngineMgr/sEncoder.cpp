@@ -193,9 +193,12 @@ void sEncoder::train(int samplesCnt, int sampleLen, int featuresCnt, numtype* sa
 	numtype ese_h;
 	numtype* mseT=(numtype*)malloc(maxEpochs*sizeof(numtype));
 
+	for (int l=0; l<(levelsCnt-1); l++) Alg->VinitRnd(weightsCnt[l], &W[levelFirstWeight[l]], -1/sqrtf((numtype)nodesCnt[l]), 1/sqrtf((numtype)nodesCnt[l]), Alg->cuRandH);
+
 	int batchCnt=(int)floor(samplesCnt/batchSize);
 	for (int e=0; e<maxEpochs; e++) {
 		epoch_starttime=timeGetTime();
+		Alg->Vinit(weightsCntTotal, dW, 0, 0);
 		Alg->Vinit(1, ese, 0, 0);
 		for (int b=0; b<batchCnt; b++) {
 			Alg->Vinit(1, bse, 0, 0);

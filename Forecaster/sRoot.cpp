@@ -300,7 +300,7 @@ void sRoot::kazEnc() {
 	int activationFunction[levelsCnt*2-1]={ NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH };
 	sEncoder* enc= new sEncoder(nullptr, newsname("encoder1"), defaultdbg, nullptr, sampleLen*ts1->featuresCnt, levelsCnt, levelRatio, activationFunction, learningRate, learningMomentum);
 
-	int trainBatchSize=32;
+	int trainBatchSize=15029;
 	int maxEpochs=50;
 	enc->train(samplesCnt, sampleLen, ts1->featuresCnt, sample_d, trainBatchSize, maxEpochs);
 
