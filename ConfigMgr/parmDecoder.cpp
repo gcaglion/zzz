@@ -68,6 +68,7 @@ void sCfgParm::decode(int elementId, int* oVal) {
 	optionLookup(ENGINE_XIE, elementId);
 	optionLookup(ENGINE_WNN, elementId);
 	optionLookup(ENGINE_CUSTOM, elementId);
+	optionLookup(WT_NONE, elementId);
 	optionLookup(WT_HAAR, elementId);
 	optionLookup(WT_DB1, elementId);
 	optionLookup(WT_DB2, elementId);

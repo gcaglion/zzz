@@ -291,7 +291,7 @@ void sNN::WU_std(){
 
 void sNN::loadBatchData(sDS* ds, int b) {
 	//-- set number of L0 neurons to load
-	int L0SampleNodesCnt=ds->sampleLen*ds->featuresCnt*procArgs->batchSize;
+	int L0SampleNodesCnt=ds->sampleLen*ds->featuresCnt*(procArgs->ds->WTlevel+1)*procArgs->batchSize;
 	//-- load batch samples on L0
 	Alg->d2d(&F[0], &sample_d[b*L0SampleNodesCnt], L0SampleNodesCnt*sizeof(numtype));
 	//-- load batch target on output level
@@ -483,7 +483,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	if (parms->useBias) resetBias();
 
 	//-- 0.4. convert samples and targets from SBF to BFS  in training dataset
-	trainArgs->ds->setBFS(procArgs->batchCnt, procArgs->batchSize);
+	//trainArgs->ds->setBFS(procArgs->batchCnt, procArgs->batchSize);
 
 	//-- pre-load the whole dataset (samples+targets) on GPU !
 	safecall(this, loadWholeDataSet);
@@ -812,11 +812,11 @@ int sNN::trainSCGD(sCoreProcArgs* procArgs) {
 	return k;
 }
 void sNN::loadWholeDataSet() {
-	int sampleSize=procArgs->ds->samplesCnt*procArgs->ds->sampleLen*procArgs->ds->featuresCnt;
+	int sampleSize=procArgs->ds->samplesCnt*procArgs->ds->sampleLen*procArgs->ds->featuresCnt*(procArgs->ds->WTlevel+1);
 	safecall(Alg, myMalloc, &sample_d, sampleSize);
-	safecall(Alg, h2d, sample_d, procArgs->ds->sampleBFS, (int)(sampleSize*sizeof(numtype)), true);
+	safecall(Alg, h2d, sample_d, procArgs->ds->sampleSBF, (int)(sampleSize*sizeof(numtype)), true);
 
-	int targetSize=procArgs->ds->samplesCnt*procArgs->ds->targetLen*procArgs->ds->featuresCnt;
+	int targetSize=procArgs->ds->samplesCnt*procArgs->ds->targetLen*procArgs->ds->featuresCnt*(procArgs->ds->WTlevel+1);
 	safecall(Alg, myMalloc, &target_d, targetSize);
-	safecall(Alg, h2d, target_d, procArgs->ds->targetBFS, (int)(targetSize*sizeof(numtype)), false);
+	safecall(Alg, h2d, target_d, procArgs->ds->targetSBF, (int)(targetSize*sizeof(numtype)), false);
 }

@@ -25,8 +25,8 @@ void sDS::buildFromTS(sTS* ts_) {
 		for (int bar=0; bar<sampleLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
 				tsidxS=(sample+bar)*featuresCnt+f;
-				for (int l=0; l<WTlevel; l++) {
-					sampleSBF[dsidxS] = ts_->FFTval[l][tsidxS];
+				for (int l=0; l<(WTlevel+1); l++) {
+					sampleSBF[dsidxS] = (WTlevel>0) ? ts_->FFTval[l][tsidxS] : ts_->valTR[tsidxS];
 					dsidxS++;
 				}
 			}
@@ -35,8 +35,8 @@ void sDS::buildFromTS(sTS* ts_) {
 		for (int bar=0; bar<targetLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
 				tsidxT=featuresCnt*sampleLen+(sample+bar)*featuresCnt+f;
-				for (int l=0; l<WTlevel; l++) {
-					targetSBF[dsidxT] = ts_->FFTval[l][tsidxT];
+				for (int l=0; l<(WTlevel+1); l++) {
+					targetSBF[dsidxT] = (WTlevel>0) ? ts_->FFTval[l][tsidxT] : ts_->valTR[tsidxT];
 					dsidxT++;
 				}
 			}

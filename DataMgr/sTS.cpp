@@ -262,6 +262,8 @@ void sTS::transform() {
 }
 
 void sTS::FFTcalc() {
+	if (WTtype==WT_NONE) return;
+
 	//-- mallocs lfa/hfd
 	numtype** lfa=(numtype**)malloc(featuresCnt*sizeof(numtype*));
 	for (int f=0; f<featuresCnt; f++) lfa[f]=(numtype*)malloc(stepsCnt*sizeof(numtype));
@@ -281,11 +283,6 @@ void sTS::FFTcalc() {
 	}
 	free(tmpf);
 
-	/*for (int f=0; f<featuresCnt; f++) {
-		dumpArrayH(stepsCnt, lfa[f], strBuild("lfa_F%d.csv", f).c_str());
-		for (int l=0; l<WTlevel; l++) dumpArrayH(stepsCnt, hfd[f][l], strBuild("hfd%d_F%d.csv",l,f).c_str());
-	}
-	*/
 	FFTval = (numtype**)malloc((WTlevel+1)*sizeof(numtype*));
 	FFTmin = (numtype**)malloc((WTlevel+1)*sizeof(numtype*));
 	FFTmax = (numtype**)malloc((WTlevel+1)*sizeof(numtype*));

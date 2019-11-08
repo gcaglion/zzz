@@ -106,7 +106,15 @@ EXPORT void WaweletDecomp(int pTSlen, numtype* pTS, int pDecompLevel, int pWawel
 		for (i = 0; i < pTSlen; i++) oHFD[n][i] = (numtype) SWTout[pTSlen*(n+1)+i];
 	}
 }
+EXPORT void WaveletRecomp(int pTSlen, int pDecompLevel, int pWaweletType, numtype* iLFA, numtype** iHFD, numtype* oTS) {
+	int i;
+	std::vector<double> SWTin; std::vector<double> SWTout;
+	std::vector<double> TSout;
 
+	for (i = 0; i < pTSlen; i++)
+//	iswt(swtop, pDecompLevel, wtypeDesc(pWaweletType), TSout);
+	V2P(pTSlen, oTS, TSout);
+}
 
 fftw_plan plan_forward_inp,plan_forward_filt, plan_backward;
 static unsigned int transient_size_of_fft = 0;

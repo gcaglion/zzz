@@ -24,6 +24,9 @@ void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsSampleLen_
 		(*ds_)[0]->TRmax=ts_->TRmax;
 		eng_->DStrMin=ts_->TRmin;
 		eng_->DStrMax=ts_->TRmax;
+
+		eng_->DSfftMin=ts_->FFTmin;
+		eng_->DSfftMax=ts_->FFTmax;
 	}
 	 
 	//-- timeseries wavelets, if engine is WNN

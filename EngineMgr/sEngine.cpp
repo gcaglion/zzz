@@ -417,12 +417,12 @@ void sEngine::infer(int testid_, int seqId_, sDS** inferDS_, sTS* inferTS_, int 
 	for (c=0; c<coresCnt; c++) {
 		_ds=core[c]->procArgs->ds;
 		//-- mallocs
-		trgSeqTRS[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
-		prdSeqTRS[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
-		trgSeqTR[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
-		prdSeqTR[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
-		trgSeqBASE[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
-		prdSeqBASE[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*sizeof(numtype));
+		trgSeqTRS[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*(_ds->WTlevel+1)*sizeof(numtype));
+		prdSeqTRS[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*(_ds->WTlevel+1)*sizeof(numtype));
+		trgSeqTR[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*(_ds->WTlevel+1)*sizeof(numtype));
+		prdSeqTR[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*(_ds->WTlevel+1)*sizeof(numtype));
+		trgSeqBASE[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*(_ds->WTlevel+1)*sizeof(numtype));
+		prdSeqBASE[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*(_ds->WTlevel+1)*sizeof(numtype));
 		//--
 
 		_ds->getSeq(TARGET, trgSeqTRS[c], inferDS_[0]);
