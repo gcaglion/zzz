@@ -2,18 +2,18 @@
 //#include <vld.h>
 
 void sDS::mallocs1() {
-	sampleSBF=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
-	targetSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	predictionSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	sampleBFS=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
-	targetBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	predictionBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	sampleSBF=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
+	targetSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
+	predictionSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
+	sampleBFS=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
+	targetBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
+	predictionBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
 	TRmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	TRmax=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	scaleM=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	scaleP=(numtype*)malloc(featuresCnt*sizeof(numtype));
 }
-void sDS::buildFromTS(sTS* ts_, int WNNsrc_) {
+void sDS::buildFromTS(sTS* ts_) {
 	
 	//-- check that ts historyLen is greater than ds sampleLen
 	if (!(ts_->stepsCnt>=(sampleLen+targetLen))) fail("not enough history in timeserie (%d) to build one sample/target (%d/%d)", ts_->stepsCnt, sampleLen, targetLen);
@@ -25,39 +25,35 @@ void sDS::buildFromTS(sTS* ts_, int WNNsrc_) {
 		for (int bar=0; bar<sampleLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
 				tsidxS=(sample+bar)*featuresCnt+f;
-				if (WNNsrc_==0) {
-					sampleSBF[dsidxS] = ts_->valTR[tsidxS];
-				} else {
-					sampleSBF[dsidxS] = ts_->FFTval[WNNsrc_-1][tsidxS];
+				for (int l=0; l<WTlevel; l++) {
+					sampleSBF[dsidxS] = ts_->FFTval[l][tsidxS];
+					dsidxS++;
 				}
-				dsidxS++;
 			}
 		}
 		//-- target
 		for (int bar=0; bar<targetLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
-				tsidxT=(sample+bar)*featuresCnt+f;
-				tsidxT+=featuresCnt*sampleLen;
-				if (WNNsrc_==0) {
-					targetSBF[dsidxT] = ts_->valTR[tsidxT];
-				} else {
-					targetSBF[dsidxT] = ts_->FFTval[WNNsrc_-1][tsidxT];
+				tsidxT=featuresCnt*sampleLen+(sample+bar)*featuresCnt+f;
+				for (int l=0; l<WTlevel; l++) {
+					targetSBF[dsidxT] = ts_->FFTval[l][tsidxT];
+					dsidxT++;
 				}
-				dsidxT++;
 			}
 		}
 	}
 }
 
-sDS::sDS(sObjParmsDef, sTS* fromTS_, int WNNsrc_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, "") {
+sDS::sDS(sObjParmsDef, sTS* fromTS_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, char* dumpPath_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	sampleLen=sampleLen_; targetLen=targetLen_; batchSize=batchSize_; doDump=doDump_;
 	featuresCnt=fromTS_->featuresCnt;
+	WTlevel=fromTS_->WTlevel;
 	samplesCnt=fromTS_->stepsCnt-sampleLen-targetLen+1;
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath); if (dumpPath_!=nullptr) strcpy_s(dumpPath, MAX_PATH, dumpPath_);
 
 	mallocs1();
 
-	safecall(this, buildFromTS, fromTS_, WNNsrc_);
+	safecall(this, buildFromTS, fromTS_);
 
 	//-- dump
 	if (doDump) dump();
@@ -78,11 +74,12 @@ sDS::sDS(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	if (_ts->doDump) _ts->dump();
 
 	featuresCnt=_ts->featuresCnt;
+	WTlevel=_ts->WTlevel;
 	samplesCnt=_ts->stepsCnt-sampleLen-targetLen+1;
 
 	mallocs1();
 
-	safecall(this, buildFromTS, _ts, 0);
+	safecall(this, buildFromTS, _ts);
 
 	//-- dump
 	if (doDump) dump();
@@ -434,24 +431,30 @@ void sDS::dump(bool isScaled) {
 		fprintf(dumpFile, "%d,", sample);
 		for (int bar=0; bar<sampleLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
-				fprintf(dumpFile, "%f,", sampleSBF[dsidxS]);
-				dsidxS++;
+				for (int l=0; l<WTlevel; l++) {
+					fprintf(dumpFile, "%f,", sampleSBF[dsidxS]);
+					dsidxS++;
+				}
 			}
 		}
 		fprintf(dumpFile, "|,");
 		//-- target
 		for (int bar=0; bar<targetLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
-				fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
+				for (int l=0; l<WTlevel; l++) {
+					fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
 				dsidxT++;
+				}
 			}
 		}
 		fprintf(dumpFile, "|,");
 		//-- prediction
 		for (int bar=0; bar<targetLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
-				fprintf(dumpFile, "%f,", predictionSBF[dsidxP]);
-				dsidxP++;
+				for (int l=0; l<WTlevel; l++) {
+					fprintf(dumpFile, "%f,", predictionSBF[dsidxP]);
+					dsidxP++;
+				}
 			}
 		}
 		fprintf(dumpFile, "\n");
@@ -471,19 +474,25 @@ void sDS::dumpPre(bool isScaled, FILE** dumpFile) {
 	fprintf((*dumpFile), "SampleId,");
 	for (b=0; b<(sampleLen); b++) {
 		for (f=0; f<featuresCnt; f++) {
-			fprintf((*dumpFile), "Bar%dF%d,", b, f);
+			for (int l=0; l<WTlevel; l++) {
+				fprintf((*dumpFile), "Bar%dF%dL%d,", b, f, l);
+			}
 		}
 	}
 	fprintf((*dumpFile), ",");
 	for (b=0; b<(targetLen); b++) {
 		for (f=0; f<featuresCnt; f++) {
-			fprintf((*dumpFile), "  Target%dF%d,", b, f);
+			for (int l=0; l<WTlevel; l++) {
+				fprintf((*dumpFile), "  Target%dF%dL%d,", b, f, l);
+			}
 		}
 	}
 	fprintf((*dumpFile), ",");
 	for (b=0; b<(targetLen); b++) {
 		for (f=0; f<featuresCnt; f++) {
-			fprintf((*dumpFile), "  Prediction%dF%d,", b, f);
+			for (int l=0; l<WTlevel; l++) {
+				fprintf((*dumpFile), "  Prediction%dF%dL%d,", b, f, l);
+			}
 		}
 	}
 	fprintf((*dumpFile), "\n");

@@ -14,7 +14,7 @@
 struct sTS : sCfgObj {
 
 	int stepsCnt;
-	int featuresCnt;	// total
+	int featuresCnt;
 	int dt;
 
 	char**  timestamp;
@@ -23,7 +23,8 @@ struct sTS : sCfgObj {
 	char* timestampB;
 	numtype* valB;
 
-	int decompLevel=0;
+	int WTtype;
+	int WTlevel;
 	numtype** FFTval;	//-- [decomplevel]
 	numtype** FFTmin;	//-- [decomplevel]
 	numtype** FFTmax;	//-- [decomplevel]
@@ -34,12 +35,12 @@ struct sTS : sCfgObj {
 	bool doDump;
 	char dumpPath[MAX_PATH];
 
-	EXPORT sTS(sObjParmsDef, int stepsCnt_, int featuresCnt_, int dt_, char** timestamp_, numtype* val_, char* timestampB_, numtype* valB_, bool doDump_, char* dumpPath_=nullptr);
+	EXPORT sTS(sObjParmsDef, int stepsCnt_, int featuresCnt_, int dt_, int WTtype_, int WTlevel_, char** timestamp_, numtype* val_, char* timestampB_, numtype* valB_, bool doDump_, char* dumpPath_=nullptr);
 	EXPORT sTS(sCfgObjParmsDef);
 	EXPORT ~sTS();
 
 	EXPORT void dump();
-	EXPORT void FFTcalc(int decompLevel_, int waveletType_);
+	EXPORT void FFTcalc();
 	EXPORT void slide(int steps_);
 	EXPORT void invertSequence(int skipLastN);
 	EXPORT void extend(int extraSteps_);

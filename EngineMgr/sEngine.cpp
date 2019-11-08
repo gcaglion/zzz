@@ -24,7 +24,7 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	DSfftMin=(numtype**)malloc(MAX_WAVELET_LEVELS*sizeof(numtype*)); for (int l=0; l<MAX_WAVELET_LEVELS; l++) DSfftMin[l]=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
 	DSfftMax=(numtype**)malloc(MAX_WAVELET_LEVELS*sizeof(numtype*)); for (int l=0; l<MAX_WAVELET_LEVELS; l++) DSfftMax[l]=(numtype*)malloc(MAX_TS_FEATURES*sizeof(numtype));
 	//-- 3. load info from FROM persistor
-	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &sampleLen, &targetLen, &featuresCnt, &batchSize, &WNNdecompLevel, &WNNwaveletType, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, DStrMin, DStrMax, DSfftMin, DSfftMax);
+	safecall(fromPersistor_, loadEngineInfo, loadingPid_, &type, &coresCnt, &sampleLen, &targetLen, &featuresCnt, &batchSize, &WTlevel, &WTtype, &persistor->saveToDB, &persistor->saveToFile, persistorDB, coreId, coreType, coreThreadId, coreParentsCnt, coreParent, coreParentConnType, DStrMin, DStrMax, DSfftMin, DSfftMax);
 	//-- 2. malloc one core, one coreLayout, one coreParms and one corePersistor for each core
 	core=(sCore**)malloc(coresCnt*sizeof(sCore*));
 	coreLayout=(sCoreLayout**)malloc(coresCnt*sizeof(sCoreLayout*));
@@ -56,9 +56,10 @@ sEngine::sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int load
 	}
 	free(coreParent); free(coreParentConnType); free(coreParentsCnt); free(coreType); free(coreThreadId); free(coreId);
 }
-sEngine::sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int batchSize_, int clientPid_) : sCfgObj(sCfgObjParmsVal) {
+sEngine::sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int WTlevel_, int WTtype_, int batchSize_, int clientPid_) : sCfgObj(sCfgObjParmsVal) {
 
-	sampleLen=sampleLen_; targetLen=targetLen_; featuresCnt=featuresCnt_; batchSize=batchSize_;
+	sampleLen=sampleLen_; targetLen=targetLen_; featuresCnt=featuresCnt_; WTlevel=WTlevel_; batchSize=batchSize_;
+	WTlevel=WTlevel_; WTtype=WTtype_;
 	forecast=(numtype*)malloc(targetLen*featuresCnt*sizeof(numtype));
 
 	layerCoresCnt=(int*)malloc(MAX_ENGINE_LAYERS*sizeof(int)); for (int l=0; l<MAX_ENGINE_LAYERS; l++) layerCoresCnt[l]=0;
@@ -71,13 +72,12 @@ sEngine::sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCn
 	safecall(cfgKey, getParm, &type, "Type");
 
 	//-- cores count
-	WNNdecompLevel=-1; WNNwaveletType=-1;
 	switch (type) {
-	case ENGINE_WNN:
+	/*case ENGINE_WNN:
 		safecall(cfgKey, getParm, &WNNdecompLevel, "DecompLevel");
 		safecall(cfgKey, getParm, &WNNwaveletType, "WaveletType");
 		coresCnt=WNNdecompLevel+2;
-		break;
+		break;*/
 	case ENGINE_XIE:
 		coresCnt=3;
 		break;
@@ -96,7 +96,7 @@ sEngine::sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCn
 
 	//-- 2. for each Core, create layout, setting base coreLayout properties  (type, desc, connType, outputCnt)
 	for (int c=0; c<coresCnt; c++) {
-		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, strBuild("Core%d/Layout", c), sampleLen*featuresCnt, targetLen*featuresCnt);
+		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, strBuild("Core%d/Layout", c), sampleLen*featuresCnt*(WTlevel+1), targetLen*featuresCnt*(WTlevel+1));
 	}
 	//--
 //	mallocTSinfo();
@@ -506,7 +506,7 @@ void sEngine::saveInfo() {
 	safecall(persistor, saveEngineInfo, \
 		clientPid, type, coresCnt, \
 		sampleLen, targetLen, featuresCnt, batchSize, \
-		WNNdecompLevel, WNNwaveletType, \
+		WTlevel, WTtype, \
 		persistor->saveToDB, persistor->saveToFile, persistor->oradb, \
 		coreId_, coreLayer_, coreType_, coreThreadId_, coreParentsCnt_, coreParent_, parentConnType_, \
 		DStrMin, DStrMax, DSfftMin, DSfftMax

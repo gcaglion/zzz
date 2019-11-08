@@ -11,10 +11,9 @@ sRoot::~sRoot() {}
 
 //-- core stuff
 void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsSampleLen_, int dsTargetLen_, int dsBatchSize_, bool dsDoDump_, char* dsDumpPath_, bool loadEngine_){
-	info("eng_->WNNdecompLevel=%d", eng_->WNNdecompLevel);
-	info("engine->type=%d", eng_->type);
-	(*ds_)=(sDS**)malloc((eng_->WNNdecompLevel+2)*sizeof(sDS*));
-	safespawn((*ds_)[0], newsname("dataSet_Base"), defaultdbg, ts_, 0, dsSampleLen_, dsTargetLen_, dsBatchSize_, dsDoDump_, dsDumpPath_);
+
+	(*ds_)=(sDS**)malloc((eng_->WTlevel+2)*sizeof(sDS*));
+	safespawn((*ds_)[0], newsname("dataSet_Base"), defaultdbg, ts_, dsSampleLen_, dsTargetLen_, dsBatchSize_, dsDoDump_, dsDumpPath_);
 
 	//-- update TRmin/max in (*ds_) , if inferring from a loaded engine
 	if (loadEngine_) {
@@ -28,8 +27,8 @@ void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsSampleLen_
 	}
 	 
 	//-- timeseries wavelets, if engine is WNN
-	if (eng_->type==ENGINE_WNN) {
-		safecall(ts_, FFTcalc, eng_->WNNdecompLevel, eng_->WNNwaveletType);
+/*	if (eng_->type==ENGINE_WNN) {
+		safecall(ts_, FFTcalc);
 		//-- build LFA dataset
 		safespawn((*ds_)[1], newsname("dataSet_LFA"), defaultdbg, ts_, 1, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
 		//-- build HFD datasets
@@ -48,10 +47,11 @@ void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsSampleLen_
 			eng_->DSfftMin=ts_->FFTmin;
 			eng_->DSfftMax=ts_->FFTmax;
 		}
-	}
+	}*/
 
 	//-- scale DSs
-	for(int d=0; d<(eng_->WNNdecompLevel+2); d++) safecall((*ds_)[d], scale, eng_->coreParms[d]->scaleMin[0], eng_->coreParms[d]->scaleMax[0]);
+	//for(int d=0; d<(eng_->WTlevel+2); d++) safecall((*ds_)[d], scale, eng_->coreParms[d]->scaleMin[0], eng_->coreParms[d]->scaleMax[0]);
+	safecall((*ds_)[0], scale, eng_->coreParms[0]->scaleMin[0], eng_->coreParms[0]->scaleMax[0]);
 
 }
 void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr, int overridesCnt_, char** overridePname_, char** overridePval_) {
@@ -98,7 +98,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		sTS* trainTS; safespawn(trainTS, newsname("trainTimeSerie"), defaultdbg, trainCfg, "/TimeSerie");
 
 		//-- 4. spawn engine the standard way
-		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/", _trainSampleLen, _trainTargetLen, trainTS->featuresCnt, _trainBatchSize, pid);
+		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/", _trainSampleLen, _trainTargetLen, trainTS->featuresCnt, trainTS->WTlevel, trainTS->WTtype, _trainBatchSize, pid);
 
 		//-- prepare datasets
 		sDS** trainDS; datasetPrepare(trainTS, engine, &trainDS, _trainSampleLen, _trainTargetLen, _trainBatchSize, _doDump, _dumpPath, false);
@@ -219,7 +219,7 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 //-- temp stuff
 void sRoot::kaz() {
 
-	sAlgebra* Alg; safespawn(Alg, newsname("Alg"), defaultdbg);
+/*	sAlgebra* Alg; safespawn(Alg, newsname("Alg"), defaultdbg);
 	long int vlen=33554432;
 	numtype* v_d; Alg->myMalloc(&v_d, vlen);
 	Alg->VinitRnd(vlen, v_d, -1, 1, Alg->cuRandH);
@@ -239,11 +239,11 @@ void sRoot::kaz() {
 	sum_h=0; for (int i=0; i<vlen; i++) sum_h+=v_h[i]*v_h[i];
 	sum_h=sqrtf(sum_h);
 	return;
-
-	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/inferDS.xml");
-	/*sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
+*/
+	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/trainDS.xml");
+	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
 	ds1->dump();
-	sDS* ds2; safespawn(ds2, newsname("ds2"), defaultdbg, "C:/temp/datadump/myds1.csv");
+	/*sDS* ds2; safespawn(ds2, newsname("ds2"), defaultdbg, "C:/temp/datadump/myds1.csv");
 	ds2->invertSequence();
 	ds2->dump();*/
 
@@ -436,7 +436,7 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	}
 
 	//--
-	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, selFcntTot, dt_, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
+	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, selFcntTot, dt_, MT4engine->WTtype, MT4engine->WTlevel, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
 	//mtTS->slide(1);
 	//mtTS->dump();
 	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump,(char*)nullptr, true);

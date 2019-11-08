@@ -11,6 +11,7 @@ struct sDS : sCfgObj {
 	int sampleLen;
 	int targetLen;
 	int featuresCnt;
+	int WTlevel;
 	int samplesCnt;
 	int batchSize;
 
@@ -34,7 +35,7 @@ struct sDS : sCfgObj {
 	EXPORT sDS(sCfgObjParmsDef);
 	EXPORT sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_);
 	EXPORT sDS(sObjParmsDef, sDS* copyFromDS_);
-	EXPORT sDS(sObjParmsDef, sTS* fromTS_, int WNNsrc_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, char* dumpPath_=nullptr);
+	EXPORT sDS(sObjParmsDef, sTS* fromTS_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, char* dumpPath_=nullptr);
 	EXPORT sDS(sObjParmsDef, const char* srcFileName_);
 	EXPORT ~sDS();
 
@@ -59,5 +60,5 @@ private:
 	void BFS2SBF(int batchSamplesCnt, int batchId, int barCnt, numtype* fromBFS, numtype* toSBF);
 	void dumpPre(bool isScaled, FILE** dumpFile);
 	void mallocs1();
-	void buildFromTS(sTS* ts_, int WNNsrc_);
+	void buildFromTS(sTS* ts_);
 };

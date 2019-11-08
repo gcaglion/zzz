@@ -20,8 +20,8 @@ struct sEngine : sCfgObj {
 
 	int type;
 
-	int WNNdecompLevel;
-	int WNNwaveletType;
+	int WTlevel;
+	int WTtype;
 
 	int coresCnt;
 	int layersCnt=0;
@@ -43,7 +43,7 @@ struct sEngine : sCfgObj {
 	numtype* forecast;
 
 	EXPORT sEngine(sObjParmsDef, sLogger* fromPersistor_, int clientPid_, int loadingPid_);
-	EXPORT sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int batchSize_, int clientPid_);
+	EXPORT sEngine(sCfgObjParmsDef, int sampleLen_, int targetLen_, int featuresCnt_, int WTlevel_, int WTtype_, int batchSize_, int clientPid_);
 	EXPORT ~sEngine();
 
 	void loadImage(int loadingPid_);
