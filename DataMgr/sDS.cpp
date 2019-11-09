@@ -443,7 +443,7 @@ void sDS::dump(bool isScaled) {
 			for (int f=0; f<featuresCnt; f++) {
 				for (int l=0; l<WTlevel; l++) {
 					fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
-				dsidxT++;
+					dsidxT++;
 				}
 			}
 		}
@@ -503,25 +503,31 @@ void sDS::getSeq(int trg_vs_prd, numtype* oVal, sDS* baseDS) {
 
 	for (int b=0; b<baseDS->sampleLen; b++) {
 		for (int f=0; f<baseDS->featuresCnt; f++) {
-			si=b*baseDS->featuresCnt+f;
-			oVal[ti]=(trg_vs_prd==TARGET) ? baseDS->sampleSBF[si]:EMPTY_VALUE;
-			ti++;
+			for (int l=0; l<(baseDS->WTlevel+1); l++) {
+				si=b*baseDS->featuresCnt+f*(baseDS->WTlevel+1)+l;
+				oVal[ti]=(trg_vs_prd==TARGET) ? baseDS->sampleSBF[si] : EMPTY_VALUE;
+				ti++;
+			}
 		}
 	}
 
 	for (int s=0; s<samplesCnt; s++) {
 		for (int f=0; f<featuresCnt; f++) {
-			si=s*targetLen*featuresCnt+f;
-			oVal[ti]=(trg_vs_prd==TARGET) ? targetSBF[si] : predictionSBF[si];
-			ti++;
+			for (int l=0; l<(baseDS->WTlevel+1); l++) {
+				si=s*targetLen*featuresCnt+f*(baseDS->WTlevel+1)+l;
+				oVal[ti]=(trg_vs_prd==TARGET) ? targetSBF[si] : predictionSBF[si];
+				ti++;
+			}
 		}
 	}
 
 	for (int b=1; b<targetLen; b++) {
 		for (int f=0; f<featuresCnt; f++) {
-			si=(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f;
-			oVal[ti]=(trg_vs_prd==TARGET) ? targetSBF[si] : predictionSBF[si];
-			ti++;
+			for (int l=0; l<(baseDS->WTlevel+1); l++) {
+				si=(samplesCnt-1)*targetLen*featuresCnt*(baseDS->WTlevel+1)+b*featuresCnt*(baseDS->WTlevel+1)+f*(baseDS->WTlevel+1)+l;
+				oVal[ti]=(trg_vs_prd==TARGET) ? targetSBF[si] : predictionSBF[si];
+				ti++;
+			}
 		}
 	}
 }

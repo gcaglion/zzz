@@ -243,8 +243,9 @@ void sRoot::kaz() {
 	sum_h=sqrtf(sum_h);
 	return;
 */
-	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/trainDS.xml");
+	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/inferDS.xml");
 	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
+	ds1->scale(-1,1);
 	ds1->dump();
 	/*sDS* ds2; safespawn(ds2, newsname("ds2"), defaultdbg, "C:/temp/datadump/myds1.csv");
 	ds2->invertSequence();
