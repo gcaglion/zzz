@@ -425,11 +425,11 @@ void sEngine::infer(int testid_, int seqId_, sDS** inferDS_, sTS* inferTS_, int 
 		prdSeqBASE[c]=(numtype*)malloc(seqLen*_ds->featuresCnt*(_ds->WTlevel+1)*sizeof(numtype));
 		//--
 
-		_ds->getSeq(TARGET, trgSeqTRS[c], inferDS_[0]);
-		_ds->getSeq(PREDICTION, prdSeqTRS[c], inferDS_[0]);
+		_ds->getSeq(TARGET, trgSeqTRS[c]);
+		_ds->getSeq(PREDICTION, prdSeqTRS[c]);
 		_ds->unscale();
-		_ds->getSeq(TARGET, trgSeqTR[c], inferDS_[0]);
-		_ds->getSeq(PREDICTION, prdSeqTR[c], inferDS_[0]);
+		_ds->getSeq(TARGET, trgSeqTR[c]);
+		_ds->getSeq(PREDICTION, prdSeqTR[c]);
 		_ds->untransformSeq(inferTS_->dt, inferTS_->valB, trgSeqTR[c], inferTS_->val, trgSeqBASE[c]);
 		_ds->untransformSeq(inferTS_->dt, inferTS_->valB, prdSeqTR[c], inferTS_->val, prdSeqBASE[c]);
 
@@ -438,7 +438,7 @@ void sEngine::infer(int testid_, int seqId_, sDS** inferDS_, sTS* inferTS_, int 
 
 		if (core[c]->persistor->saveRunFlag) {
 			core[c]->persistor->saveRun(core[c]->procArgs->pid, core[c]->procArgs->tid, core[c]->procArgs->npid, core[c]->procArgs->ntid, seqId_, core[c]->procArgs->mseR, \
-				seqLen, inferTS_->timestamp, _ds->featuresCnt, trgSeqTRS[c], prdSeqTRS[c], trgSeqTR[c], prdSeqTR[c], trgSeqBASE[c], prdSeqBASE[c]);
+				seqLen, inferTS_->timestamp, _ds->featuresCnt, _ds->WTlevel, trgSeqTRS[c], prdSeqTRS[c], trgSeqTR[c], prdSeqTR[c], trgSeqBASE[c], prdSeqBASE[c]);
 		}
 	}
 

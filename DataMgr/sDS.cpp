@@ -2,12 +2,9 @@
 //#include <vld.h>
 
 void sDS::mallocs1() {
-	sampleSBF=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
-	targetSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
-	predictionSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
-	sampleBFS=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
-	targetBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
-	predictionBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
+	sample=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
+	target=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
+	prediction=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*(WTlevel+1)*sizeof(numtype));
 	TRmin=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	TRmax=(numtype*)malloc(featuresCnt*sizeof(numtype));
 	scaleM=(numtype*)malloc(featuresCnt*sizeof(numtype));
@@ -20,13 +17,13 @@ void sDS::buildFromTS(sTS* ts_) {
 
 	//-- build samples/targets
 	int dsidxS=0, tsidxS=0, dsidxT=0, tsidxT=0;
-	for (int sample=0; sample<samplesCnt; sample++) {
+	for (int s=0; s<samplesCnt; s++) {
 		//-- sample
 		for (int bar=0; bar<sampleLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
-				tsidxS=(sample+bar)*featuresCnt+f;
+				tsidxS=(s+bar)*featuresCnt+f;
 				for (int l=0; l<(WTlevel+1); l++) {
-					sampleSBF[dsidxS] = (WTlevel>0) ? ts_->FFTval[l][tsidxS] : ts_->valTR[tsidxS];
+					sample[dsidxS] = (WTlevel>0) ? ts_->FFTval[l][tsidxS] : ts_->valTR[tsidxS];
 					dsidxS++;
 				}
 			}
@@ -34,9 +31,9 @@ void sDS::buildFromTS(sTS* ts_) {
 		//-- target
 		for (int bar=0; bar<targetLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
-				tsidxT=featuresCnt*sampleLen+(sample+bar)*featuresCnt+f;
+				tsidxT=featuresCnt*sampleLen+(s+bar)*featuresCnt+f;
 				for (int l=0; l<(WTlevel+1); l++) {
-					targetSBF[dsidxT] = (WTlevel>0) ? ts_->FFTval[l][tsidxT] : ts_->valTR[tsidxT];
+					target[dsidxT] = (WTlevel>0) ? ts_->FFTval[l][tsidxT] : ts_->valTR[tsidxT];
 					dsidxT++;
 				}
 			}
@@ -99,9 +96,9 @@ sDS::sDS(sObjParmsDef, sDS* copyFromDS_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	//-- mallocs
 	mallocs1();
 
-	//-- copy sample SBF from original DS
-	memcpy_s(sampleSBF, samplesCnt*sampleLen*featuresCnt*sizeof(numtype), copyFromDS_->sampleSBF, samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
-	memcpy_s(targetSBF, samplesCnt*targetLen*featuresCnt*sizeof(numtype), copyFromDS_->targetSBF, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	//-- copy sample  from original DS
+	memcpy_s(sample, samplesCnt*sampleLen*featuresCnt*sizeof(numtype), copyFromDS_->sample, samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	memcpy_s(target, samplesCnt*targetLen*featuresCnt*sizeof(numtype), copyFromDS_->target, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
 
 	//-- dump
 	if (doDump) dump();
@@ -129,25 +126,25 @@ sDS::sDS(sObjParmsDef, int parentDScnt_, sDS** parentDS_) : sCfgObj(sObjParmsVal
 
 	mallocs1();
 
-	//-- build sample SBF from parentDSs' predictionSBF
+	//-- build sample  from parentDSs' prediction
 	int sbfi=0; int i=0;
 	for (int s=0; s<samplesCnt; s++) {
 		for (int b=0; b<targetLen; b++) {
 				for (int d=0; d<parentDScnt_; d++) {
 					for (int f=0; f<featuresCnt; f++) {
 						sbfi=s*targetLen*featuresCnt+b*featuresCnt+f;
-						sampleSBF[i]=parentDS_[d]->predictionSBF[sbfi];
+						sample[i]=parentDS_[d]->prediction[sbfi];
 					i++;
 				}				
 			}
 		}
 	}
-	//-- build target SBF from parentDS[0] targetSBF
+	//-- build target  from parentDS[0] target
 	sbfi=0; i=0;
 	for (int s=0; s<samplesCnt; s++) {
 		for (int b=0; b<targetLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				targetSBF[i]=parentDS_[0]->targetSBF[i];
+				target[i]=parentDS_[0]->target[i];
 				i++;
 			}
 		}
@@ -218,18 +215,18 @@ sDS::sDS(sObjParmsDef, const char* srcFileName_) : sCfgObj(sObjParmsVal, nullptr
 		sscanf_s(pline, "%d%n", &sampleId, &offset);
 		pline+=offset;
 		#ifdef DOUBLE_NUMTYPE
-		while (sscanf_s(pline, ",%lf%n", &sampleSBF[si], &offset)!=0) {
+		while (sscanf_s(pline, ",%lf%n", &sample[si], &offset)!=0) {
 		#else
-		while (sscanf_s(pline, ",%f%n", &sampleSBF[si], &offset)!=0) {
+		while (sscanf_s(pline, ",%f%n", &sample[si], &offset)!=0) {
 		#endif
 			si++;
 			pline+=offset;
 		}
 		pline++; pline++;	// skips "|" between sample and target
 		#ifdef DOUBLE_NUMTYPE
-		while (sscanf_s(pline, ",%lf%n", &targetSBF[ti], &offset)!=0) {
+		while (sscanf_s(pline, ",%lf%n", &target[ti], &offset)!=0) {
 		#else
-		while (sscanf_s(pline, ",%f%n", &targetSBF[ti], &offset)!=0) {
+		while (sscanf_s(pline, ",%f%n", &target[ti], &offset)!=0) {
 		#endif
 			ti++;
 			pline+=offset;
@@ -238,8 +235,7 @@ sDS::sDS(sObjParmsDef, const char* srcFileName_) : sCfgObj(sObjParmsVal, nullptr
 	}
 }
 sDS::~sDS(){
-	free(sampleSBF); free(targetSBF); free(predictionSBF);
-	free(sampleBFS); free(targetBFS); free(predictionBFS);
+	free(sample); free(target); free(prediction);
 	//free(TRmin); free(TRmax); 
 	free(scaleM); free(scaleP);
 }
@@ -252,19 +248,19 @@ void sDS::invertSequence() {
 	for (int s=0; s<samplesCnt; s++) {
 		for(int b=0; b<sampleLen; b++){
 			for (int f=0; f<featuresCnt; f++) {
-				tmpSample[(samplesCnt-s-1)*sampleLen*featuresCnt+b*featuresCnt+f]=sampleSBF[s*sampleLen*featuresCnt+b*featuresCnt+f];
+				tmpSample[(samplesCnt-s-1)*sampleLen*featuresCnt+b*featuresCnt+f]=sample[s*sampleLen*featuresCnt+b*featuresCnt+f];
 			}
 		}
 		for (int b=0; b<targetLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				tmpTarget[(samplesCnt-s-1)*targetLen*featuresCnt+b*featuresCnt+f]=targetSBF[s*targetLen*featuresCnt+b*featuresCnt+f];
-				tmpPrediction[(samplesCnt-s-1)*targetLen*featuresCnt+b*featuresCnt+f]=predictionSBF[s*targetLen*featuresCnt+b*featuresCnt+f];
+				tmpTarget[(samplesCnt-s-1)*targetLen*featuresCnt+b*featuresCnt+f]=target[s*targetLen*featuresCnt+b*featuresCnt+f];
+				tmpPrediction[(samplesCnt-s-1)*targetLen*featuresCnt+b*featuresCnt+f]=prediction[s*targetLen*featuresCnt+b*featuresCnt+f];
 			}
 		}
 	}
-	memcpy_s(sampleSBF, samplesCnt*sampleLen*featuresCnt*sizeof(numtype), tmpSample, samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
-	memcpy_s(targetSBF, samplesCnt*targetLen*featuresCnt*sizeof(numtype), tmpTarget, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	memcpy_s(predictionSBF, samplesCnt*targetLen*featuresCnt*sizeof(numtype), tmpPrediction, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(sample, samplesCnt*sampleLen*featuresCnt*sizeof(numtype), tmpSample, samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	memcpy_s(target, samplesCnt*targetLen*featuresCnt*sizeof(numtype), tmpTarget, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(prediction, samplesCnt*targetLen*featuresCnt*sizeof(numtype), tmpPrediction, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
 
 	free(tmpSample); free(tmpTarget); free(tmpPrediction);
 }
@@ -276,120 +272,104 @@ void sDS::slideSequence(int steps) {
 	if (steps>0) {
 		for (int b=0; b<sampleLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				tmpSample[b*featuresCnt+f]=sampleSBF[0*sampleLen*featuresCnt+b*featuresCnt+f];
+				tmpSample[b*featuresCnt+f]=sample[0*sampleLen*featuresCnt+b*featuresCnt+f];
 			}
 		}
 		for (int b=0; b<targetLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				tmpTarget[b*featuresCnt+f]=targetSBF[0*targetLen*featuresCnt+b*featuresCnt+f];
-				tmpPrediction[b*featuresCnt+f]=predictionSBF[0*targetLen*featuresCnt+b*featuresCnt+f];
+				tmpTarget[b*featuresCnt+f]=target[0*targetLen*featuresCnt+b*featuresCnt+f];
+				tmpPrediction[b*featuresCnt+f]=prediction[0*targetLen*featuresCnt+b*featuresCnt+f];
 			}
 		}
 
 		for (int s=0; s<(samplesCnt-1); s++) {
 			for (int b=0; b<sampleLen; b++) {
 				for (int f=0; f<featuresCnt; f++) {
-					sampleSBF[s*sampleLen*featuresCnt+b*featuresCnt+f]=sampleSBF[(s+1)*sampleLen*featuresCnt+b*featuresCnt+f];
+					sample[s*sampleLen*featuresCnt+b*featuresCnt+f]=sample[(s+1)*sampleLen*featuresCnt+b*featuresCnt+f];
 				}
 			}
 			for (int b=0; b<targetLen; b++) {
 				for (int f=0; f<featuresCnt; f++) {
-					targetSBF[s*targetLen*featuresCnt+b*featuresCnt+f]=targetSBF[(s+1)*targetLen*featuresCnt+b*featuresCnt+f];
-					predictionSBF[s*targetLen*featuresCnt+b*featuresCnt+f]=predictionSBF[(s+1)*targetLen*featuresCnt+b*featuresCnt+f];
+					target[s*targetLen*featuresCnt+b*featuresCnt+f]=target[(s+1)*targetLen*featuresCnt+b*featuresCnt+f];
+					prediction[s*targetLen*featuresCnt+b*featuresCnt+f]=prediction[(s+1)*targetLen*featuresCnt+b*featuresCnt+f];
 				}
 			}
 		}
 
 		for (int b=0; b<sampleLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				sampleSBF[(samplesCnt-1)*sampleLen*featuresCnt+b*featuresCnt+f]=tmpSample[b*featuresCnt+f];
+				sample[(samplesCnt-1)*sampleLen*featuresCnt+b*featuresCnt+f]=tmpSample[b*featuresCnt+f];
 			}
 		}
 		for (int b=0; b<targetLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				targetSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f]=tmpTarget[b*featuresCnt+f];
-				predictionSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f]=tmpPrediction[b*featuresCnt+f];
+				target[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f]=tmpTarget[b*featuresCnt+f];
+				prediction[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f]=tmpPrediction[b*featuresCnt+f];
 			}
 		}
 	} else {
 		for (int b=0; b<sampleLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				tmpSample[b*featuresCnt+f]=sampleSBF[(samplesCnt-1)*sampleLen*featuresCnt+b*featuresCnt+f];
+				tmpSample[b*featuresCnt+f]=sample[(samplesCnt-1)*sampleLen*featuresCnt+b*featuresCnt+f];
 			}
 		}
 		for (int b=0; b<targetLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				tmpTarget[b*featuresCnt+f]=targetSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f];
-				tmpPrediction[b*featuresCnt+f]=predictionSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f];
+				tmpTarget[b*featuresCnt+f]=target[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f];
+				tmpPrediction[b*featuresCnt+f]=prediction[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f];
 			}
 		}
 
 		for (int s=(samplesCnt-2); s>=0; s--) {
 			for (int b=0; b<sampleLen; b++) {
 				for (int f=0; f<featuresCnt; f++) {
-					sampleSBF[(s+1)*sampleLen*featuresCnt+b*featuresCnt+f]=sampleSBF[s*sampleLen*featuresCnt+b*featuresCnt+f];
+					sample[(s+1)*sampleLen*featuresCnt+b*featuresCnt+f]=sample[s*sampleLen*featuresCnt+b*featuresCnt+f];
 				}
 			}
 			for (int b=0; b<targetLen; b++) {
 				for (int f=0; f<featuresCnt; f++) {
-					targetSBF[(s+1)*targetLen*featuresCnt+b*featuresCnt+f]=targetSBF[s*targetLen*featuresCnt+b*featuresCnt+f];
-					predictionSBF[(s+1)*targetLen*featuresCnt+b*featuresCnt+f]=predictionSBF[s*targetLen*featuresCnt+b*featuresCnt+f];
+					target[(s+1)*targetLen*featuresCnt+b*featuresCnt+f]=target[s*targetLen*featuresCnt+b*featuresCnt+f];
+					prediction[(s+1)*targetLen*featuresCnt+b*featuresCnt+f]=prediction[s*targetLen*featuresCnt+b*featuresCnt+f];
 				}
 			}
 		}
 
 		for (int b=0; b<sampleLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				sampleSBF[0*sampleLen*featuresCnt+b*featuresCnt+f]=tmpSample[b*featuresCnt+f];
+				sample[0*sampleLen*featuresCnt+b*featuresCnt+f]=tmpSample[b*featuresCnt+f];
 			}
 		}
 		for (int b=0; b<targetLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				targetSBF[0*targetLen*featuresCnt+b*featuresCnt+f]=tmpTarget[b*featuresCnt+f];
-				predictionSBF[0*targetLen*featuresCnt+b*featuresCnt+f]=tmpPrediction[b*featuresCnt+f];
+				target[0*targetLen*featuresCnt+b*featuresCnt+f]=tmpTarget[b*featuresCnt+f];
+				prediction[0*targetLen*featuresCnt+b*featuresCnt+f]=tmpPrediction[b*featuresCnt+f];
 			}
 		}
 	}
 	free(tmpSample); free(tmpTarget); free(tmpPrediction);
 }
 void sDS::duplicateSequence() {
-	numtype* sampleSBFbkp=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
-	numtype* targetSBFbkp=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	numtype* predictionSBFbkp=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	numtype* sampleBFSbkp=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
-	numtype* targetBFSbkp=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	numtype* predictionBFSbkp=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	numtype* samplebkp=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	numtype* targetbkp=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	numtype* predictionbkp=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
 
-	memcpy_s(sampleSBFbkp, samplesCnt*sampleLen*featuresCnt*sizeof(numtype), sampleSBF, samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
-	memcpy_s(targetSBFbkp, samplesCnt*targetLen*featuresCnt*sizeof(numtype), targetSBF, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	memcpy_s(predictionSBFbkp, samplesCnt*targetLen*featuresCnt*sizeof(numtype), predictionSBF, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	memcpy_s(sampleBFSbkp, samplesCnt*sampleLen*featuresCnt*sizeof(numtype), sampleBFS, samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
-	memcpy_s(targetBFSbkp, samplesCnt*targetLen*featuresCnt*sizeof(numtype), targetBFS, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	memcpy_s(predictionBFSbkp, samplesCnt*targetLen*featuresCnt*sizeof(numtype), predictionBFS, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(samplebkp, samplesCnt*sampleLen*featuresCnt*sizeof(numtype), sample, samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	memcpy_s(targetbkp, samplesCnt*targetLen*featuresCnt*sizeof(numtype), target, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(predictionbkp, samplesCnt*targetLen*featuresCnt*sizeof(numtype), prediction, samplesCnt*targetLen*featuresCnt*sizeof(numtype));
 
 	samplesCnt*=2;
-	free(sampleSBF); sampleSBF=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
-	free(targetSBF); targetSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	free(predictionSBF); predictionSBF=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	free(sampleBFS); sampleBFS=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
-	free(targetBFS); targetBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
-	free(predictionBFS); predictionBFS=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	free(sample); sample=(numtype*)malloc(samplesCnt*sampleLen*featuresCnt*sizeof(numtype));
+	free(target); target=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
+	free(prediction); prediction=(numtype*)malloc(samplesCnt*targetLen*featuresCnt*sizeof(numtype));
 
-	memcpy_s(&sampleSBF[0], samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype), sampleSBFbkp, samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype));
-	memcpy_s(&sampleSBF[samplesCnt/2*sampleLen*featuresCnt], samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype), sampleSBFbkp, samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype));
-	memcpy_s(&targetSBF[0], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), targetSBFbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
-	memcpy_s(&targetSBF[samplesCnt/2*targetLen*featuresCnt], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), targetSBFbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
-	memcpy_s(&predictionSBF[0], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), predictionSBFbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
-	memcpy_s(&predictionSBF[samplesCnt/2*targetLen*featuresCnt], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), predictionSBFbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
-	memcpy_s(&sampleBFS[0], samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype), sampleBFSbkp, samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype));
-	memcpy_s(&sampleBFS[samplesCnt/2*sampleLen*featuresCnt], samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype), sampleBFSbkp, samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype));
-	memcpy_s(&targetBFS[0], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), targetBFSbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
-	memcpy_s(&targetBFS[samplesCnt/2*targetLen*featuresCnt], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), targetBFSbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
-	memcpy_s(&predictionBFS[0], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), predictionBFSbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
-	memcpy_s(&predictionBFS[samplesCnt/2*targetLen*featuresCnt], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), predictionBFSbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&sample[0], samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype), samplebkp, samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&sample[samplesCnt/2*sampleLen*featuresCnt], samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype), samplebkp, samplesCnt/2*sampleLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&target[0], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), targetbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&target[samplesCnt/2*targetLen*featuresCnt], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), targetbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&prediction[0], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), predictionbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
+	memcpy_s(&prediction[samplesCnt/2*targetLen*featuresCnt], samplesCnt/2*targetLen*featuresCnt*sizeof(numtype), predictionbkp, samplesCnt/2*targetLen*featuresCnt*sizeof(numtype));
 
-	free(sampleSBFbkp); free(targetSBFbkp); free(predictionSBFbkp);
-	free(sampleBFSbkp); free(targetBFSbkp); free(predictionBFSbkp);
+	free(samplebkp); free(targetbkp); free(predictionbkp);
 }
 void sDS::halveSequence() {
 	samplesCnt/=2;
@@ -402,19 +382,19 @@ void sDS::swapFirstLast() {
 
 	for (b=0; b<sampleLen; b++) {
 		for (f=0; f<featuresCnt; f++) {
-			tmpSample[b*featuresCnt+f]=sampleSBF[0*sampleLen*featuresCnt+b*featuresCnt+f];
-			sampleSBF[0*sampleLen*featuresCnt+b*featuresCnt+f]=sampleSBF[(samplesCnt-1)*sampleLen*featuresCnt+b*featuresCnt+f];
-			sampleSBF[(samplesCnt-1)*sampleLen*featuresCnt+b*featuresCnt+f]=tmpSample[b*featuresCnt+f];
+			tmpSample[b*featuresCnt+f]=sample[0*sampleLen*featuresCnt+b*featuresCnt+f];
+			sample[0*sampleLen*featuresCnt+b*featuresCnt+f]=sample[(samplesCnt-1)*sampleLen*featuresCnt+b*featuresCnt+f];
+			sample[(samplesCnt-1)*sampleLen*featuresCnt+b*featuresCnt+f]=tmpSample[b*featuresCnt+f];
 		}
 	}
 	for (b=0; b<targetLen; b++) {
 		for (f=0; f<featuresCnt; f++) {
-			tmpTarget[b*featuresCnt+f]=targetSBF[0*targetLen*featuresCnt+b*featuresCnt+f];
-			targetSBF[0*targetLen*featuresCnt+b*featuresCnt+f]=targetSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f];
-			targetSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f]=tmpTarget[b*featuresCnt+f];
-			tmpPrediction[b*featuresCnt+f]=predictionSBF[0*targetLen*featuresCnt+b*featuresCnt+f];
-			predictionSBF[0*targetLen*featuresCnt+b*featuresCnt+f]=predictionSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f];
-			predictionSBF[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f]=tmpPrediction[b*featuresCnt+f];
+			tmpTarget[b*featuresCnt+f]=target[0*targetLen*featuresCnt+b*featuresCnt+f];
+			target[0*targetLen*featuresCnt+b*featuresCnt+f]=target[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f];
+			target[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f]=tmpTarget[b*featuresCnt+f];
+			tmpPrediction[b*featuresCnt+f]=prediction[0*targetLen*featuresCnt+b*featuresCnt+f];
+			prediction[0*targetLen*featuresCnt+b*featuresCnt+f]=prediction[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f];
+			prediction[(samplesCnt-1)*targetLen*featuresCnt+b*featuresCnt+f]=tmpPrediction[b*featuresCnt+f];
 		}
 	}
 
@@ -426,13 +406,13 @@ void sDS::dump(bool isScaled) {
 	dumpPre(isScaled, &dumpFile);
 
 	int dsidxS=0, dsidxT=0, dsidxP=0;
-	for (int sample=0; sample<samplesCnt; sample++) {
+	for (int s=0; s<samplesCnt; s++) {
 		//-- sample
-		fprintf(dumpFile, "%d,", sample);
+		fprintf(dumpFile, "%d,", s);
 		for (int bar=0; bar<sampleLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
 				for (int l=0; l<WTlevel; l++) {
-					fprintf(dumpFile, "%f,", sampleSBF[dsidxS]);
+					fprintf(dumpFile, "%f,", sample[dsidxS]);
 					dsidxS++;
 				}
 			}
@@ -442,7 +422,7 @@ void sDS::dump(bool isScaled) {
 		for (int bar=0; bar<targetLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
 				for (int l=0; l<WTlevel; l++) {
-					fprintf(dumpFile, "%f,", targetSBF[dsidxT]);
+					fprintf(dumpFile, "%f,", target[dsidxT]);
 					dsidxT++;
 				}
 			}
@@ -452,7 +432,7 @@ void sDS::dump(bool isScaled) {
 		for (int bar=0; bar<targetLen; bar++) {
 			for (int f=0; f<featuresCnt; f++) {
 				for (int l=0; l<WTlevel; l++) {
-					fprintf(dumpFile, "%f,", predictionSBF[dsidxP]);
+					fprintf(dumpFile, "%f,", prediction[dsidxP]);
 					dsidxP++;
 				}
 			}
@@ -498,14 +478,14 @@ void sDS::dumpPre(bool isScaled, FILE** dumpFile) {
 	fprintf((*dumpFile), "\n");
 }
 
-void sDS::getSeq(int trg_vs_prd, numtype* oVal, sDS* baseDS) {
+void sDS::getSeq(int trg_vs_prd, numtype* oVal) {
 	int si=0, ti=0;
 
-	for (int b=0; b<baseDS->sampleLen; b++) {
-		for (int f=0; f<baseDS->featuresCnt; f++) {
-			for (int l=0; l<(baseDS->WTlevel+1); l++) {
-				si=b*baseDS->featuresCnt+f*(baseDS->WTlevel+1)+l;
-				oVal[ti]=(trg_vs_prd==TARGET) ? baseDS->sampleSBF[si] : EMPTY_VALUE;
+	for (int b=0; b<sampleLen; b++) {
+		for (int f=0; f<featuresCnt; f++) {
+			for (int l=0; l<(WTlevel+1); l++) {
+				si=b*featuresCnt+f*(WTlevel+1)+l;
+				oVal[ti]=(trg_vs_prd==TARGET) ? sample[si] : EMPTY_VALUE;
 				ti++;
 			}
 		}
@@ -513,9 +493,9 @@ void sDS::getSeq(int trg_vs_prd, numtype* oVal, sDS* baseDS) {
 
 	for (int s=0; s<samplesCnt; s++) {
 		for (int f=0; f<featuresCnt; f++) {
-			for (int l=0; l<(baseDS->WTlevel+1); l++) {
-				si=s*targetLen*featuresCnt+f*(baseDS->WTlevel+1)+l;
-				oVal[ti]=(trg_vs_prd==TARGET) ? targetSBF[si] : predictionSBF[si];
+			for (int l=0; l<(WTlevel+1); l++) {
+				si=s*targetLen*featuresCnt+f*(WTlevel+1)+l;
+				oVal[ti]=(trg_vs_prd==TARGET) ? target[si] : prediction[si];
 				ti++;
 			}
 		}
@@ -523,62 +503,13 @@ void sDS::getSeq(int trg_vs_prd, numtype* oVal, sDS* baseDS) {
 
 	for (int b=1; b<targetLen; b++) {
 		for (int f=0; f<featuresCnt; f++) {
-			for (int l=0; l<(baseDS->WTlevel+1); l++) {
-				si=(samplesCnt-1)*targetLen*featuresCnt*(baseDS->WTlevel+1)+b*featuresCnt*(baseDS->WTlevel+1)+f*(baseDS->WTlevel+1)+l;
-				oVal[ti]=(trg_vs_prd==TARGET) ? targetSBF[si] : predictionSBF[si];
+			for (int l=0; l<(WTlevel+1); l++) {
+				si=(samplesCnt-1)*targetLen*featuresCnt*(WTlevel+1)+b*featuresCnt*(WTlevel+1)+f*(WTlevel+1)+l;
+				oVal[ti]=(trg_vs_prd==TARGET) ? target[si] : prediction[si];
 				ti++;
 			}
 		}
 	}
-}
-
-void sDS::setBFS(int batchCnt, int batchSize) {
-	for (int b=0; b<batchCnt; b++) {
-		//-- populate BFS sample/target for every batch
-		SBF2BFS(batchSize, b, sampleLen, sampleSBF, sampleBFS);
-		SBF2BFS(batchSize, b, targetLen, targetSBF, targetBFS);
-	}
-}
-void sDS::setSBF(int batchCnt, int batchSize) {
-	for (int b=0; b<batchCnt; b++) {
-		//-- populate SBF predictionfor every batch
-		BFS2SBF(batchSize, b, targetLen, predictionBFS, predictionSBF);
-	}
-}
-void sDS::SBF2BFS(int batchSamplesCnt, int batchId, int barCnt, numtype* fromSBF, numtype* toBFS) {
-	int S=batchSamplesCnt;
-	int F=featuresCnt;
-	int B=barCnt;
-	int idx;
-	int idx0=batchId*B*F*S;
-	int i=idx0;
-	for (int bar=0; bar<B; bar++) {												// i1=bar	l1=B
-		for (int f=0; f<F; f++) {										// i2=f		l2=F
-			for (int s=0; s<S; s++) {										// i3=s		l3=S
-				idx=idx0+s*F*B+bar*F+f;
-				toBFS[i]=fromSBF[idx];
-				i++;
-			}
-		}
-	}
-}
-void sDS::BFS2SBF(int batchSamplesCnt, int batchId, int barCnt, numtype* fromBFS, numtype* toSBF) {
-	int S=batchSamplesCnt;
-	int F=featuresCnt;
-	int B=barCnt;
-	int idx;
-	int idx0=batchId*B*F*S;
-	int i=idx0;
-	for (int s=0; s<S; s++) {												// i1=s		l1=S
-		for (int bar=0; bar<B; bar++) {											// i2=bar	l1=B
-			for (int f=0; f<F; f++) {									// i3=f		l3=F
-				idx=idx0+bar*F*S+f*S+s;
-				toSBF[i]=fromBFS[idx];
-				i++;
-			}
-		}
-	}
-
 }
 
 void sDS::target2prediction() {
@@ -586,7 +517,7 @@ void sDS::target2prediction() {
 	for (int s=0; s<samplesCnt; s++) {
 		for (int b=0; b<targetLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				predictionSBF[i]=targetSBF[i];
+				prediction[i]=target[i];
 				i++;
 			}
 		}
@@ -604,14 +535,14 @@ void sDS::scale(float scaleMin_, float scaleMax_) {
 	for (int s=0; s<samplesCnt; s++) {
 		for (int b=0; b<sampleLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				sampleSBF[si]=sampleSBF[si]*scaleM[f]+scaleP[f];
+				sample[si]=sample[si]*scaleM[f]+scaleP[f];
 				si++;
 			}
 		}
 		for (int b=0; b<targetLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				targetSBF[ti]=(targetSBF[ti]==EMPTY_VALUE) ? EMPTY_VALUE : targetSBF[ti]*scaleM[f]+scaleP[f];
-				predictionSBF[ti]=predictionSBF[ti]*scaleM[f]+scaleP[f];
+				target[ti]=(target[ti]==EMPTY_VALUE) ? EMPTY_VALUE : target[ti]*scaleM[f]+scaleP[f];
+				prediction[ti]=prediction[ti]*scaleM[f]+scaleP[f];
 				ti++;
 			}
 		}
@@ -623,14 +554,14 @@ void sDS::unscale() {
 	for (int s=0; s<samplesCnt; s++) {
 		for (int b=0; b<sampleLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				sampleSBF[si]=(sampleSBF[si]==EMPTY_VALUE) ? EMPTY_VALUE : (sampleSBF[si]-scaleP[f])/scaleM[f];
+				sample[si]=(sample[si]==EMPTY_VALUE) ? EMPTY_VALUE : (sample[si]-scaleP[f])/scaleM[f];
 				si++;
 			}
 		}
 		for (int b=0; b<targetLen; b++) {
 			for (int f=0; f<featuresCnt; f++) {
-				targetSBF[ti]=(targetSBF[ti]==EMPTY_VALUE) ? EMPTY_VALUE : (targetSBF[ti]-scaleP[f])/scaleM[f];
-				predictionSBF[ti]=(predictionSBF[ti]-scaleP[f])/scaleM[f];
+				target[ti]=(target[ti]==EMPTY_VALUE) ? EMPTY_VALUE : (target[ti]-scaleP[f])/scaleM[f];
+				prediction[ti]=(prediction[ti]-scaleP[f])/scaleM[f];
 				ti++;
 			}
 		}

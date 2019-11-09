@@ -31,7 +31,7 @@ void sDUMB::train(sCoreProcArgs* trainArgs) {
 }
 void sDUMB::infer(sCoreProcArgs* inferArgs) {
 	int tlen=inferArgs->ds->samplesCnt*inferArgs->ds->targetLen*inferArgs->ds->featuresCnt;
-	for (int i=0; i<tlen; i++) inferArgs->ds->predictionSBF[i]=inferArgs->ds->targetSBF[i];
+	for (int i=0; i<tlen; i++) inferArgs->ds->prediction[i]=inferArgs->ds->target[i];
 }
 
 void sDUMB::saveImage(int pid, int tid, int epoch) {

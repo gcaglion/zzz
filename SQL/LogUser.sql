@@ -27,6 +27,7 @@ create table RunLog(
 	Pos number,
 	PosLabel varchar2(64),
 	Feature number,
+	WTlevel number,
 	ActualTRS number,
 	PredictedTRS number,
 	ActualTR number,
@@ -34,7 +35,7 @@ create table RunLog(
 	ActualBASE number,
 	PredictedBASE number
 ) storage (initial 1024M minextents 8 pctincrease 0);
-alter table RunLog add constraint RunLog_PK primary key( ProcessId, ThreadId, Pos, Feature ) using index tablespace LogIdx;
+alter table RunLog add constraint RunLog_PK primary key( ProcessId, ThreadId, Pos, Feature, WTlevel ) using index tablespace LogIdx;
 
 drop table ClientInfo purge;
 create table ClientInfo(

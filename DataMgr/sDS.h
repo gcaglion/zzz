@@ -19,13 +19,9 @@ struct sDS : sCfgObj {
 	char dumpPath[MAX_PATH];
 
 	//-- sample, target, prediction are stored in  order (Sample-Bar-Feature)
-	numtype* sampleSBF;
-	numtype* targetSBF;
-	numtype* predictionSBF;
-	//-- network training requires BFS ordering
-	numtype* sampleBFS;
-	numtype* targetBFS;
-	numtype* predictionBFS;
+	numtype* sample;
+	numtype* target;
+	numtype* prediction;
 
 	numtype* TRmin;
 	numtype* TRmax;
@@ -48,16 +44,12 @@ struct sDS : sCfgObj {
 	EXPORT void dump(bool isScaled=false);
 	EXPORT void scale(float scaleMin_, float scaleMax_);
 	EXPORT void unscale();
-	EXPORT void getSeq(int trg_vs_prd, numtype* oVal, sDS* baseDS);
+	EXPORT void getSeq(int trg_vs_prd, numtype* oVal);
 	EXPORT void untransformSeq(int seqDT_, numtype* seqBase_, numtype* iTRval, numtype* iActualVal, numtype* oBASEval);
 
 	EXPORT void target2prediction();
 
-	EXPORT void setBFS(int batchCnt, int batchSize);
-	EXPORT void setSBF(int batchCnt, int batchSize);
 private:
-	void SBF2BFS(int batchSamplesCnt, int batchId, int barCnt, numtype* fromSBF, numtype* toBFS);
-	void BFS2SBF(int batchSamplesCnt, int batchId, int barCnt, numtype* fromBFS, numtype* toSBF);
 	void dumpPre(bool isScaled, FILE** dumpFile);
 	void mallocs1();
 	void buildFromTS(sTS* ts_);

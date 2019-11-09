@@ -315,7 +315,7 @@ void sNN::ForwardPass(sDS* ds, int batchId, bool inferring) {
 	CEtimeTot+=((DWORD)(timeGetTime()-CEstart));
 
 	//-- 4. if Inferring, save results for current batch in batchPrediction
-	if (inferring) Alg->d2h(&ds->predictionBFS[batchId*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+	if (inferring) Alg->d2h(&ds->prediction[batchId*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 
 }
 void sNN::BackwardPass(sDS* ds, int batchId, bool updateWeights) {
@@ -482,9 +482,6 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	//--- init bias neurons
 	if (parms->useBias) resetBias();
 
-	//-- 0.4. convert samples and targets from SBF to BFS  in training dataset
-	//trainArgs->ds->setBFS(procArgs->batchCnt, procArgs->batchSize);
-
 	//-- pre-load the whole dataset (samples+targets) on GPU !
 	safecall(this, loadWholeDataSet);
 
@@ -588,9 +585,6 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	tid=inferArgs->tid;
 	testid=inferArgs->testid;
 
-	//-- 0.4. convert samples and targets from SBF to BFS  in inference dataset
-	inferArgs->ds->setBFS(procArgs->batchCnt, procArgs->batchSize);
-
 	//-- pre-load the whole dataset (samples+targets) on GPU !
 	safecall(this, loadWholeDataSet);
 
@@ -598,12 +592,9 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 
 	//-- timing
 	inferStartTime=timeGetTime();
-	
+
 	Alg->Vinit(1, tse, 0, 0); for (int b=0; b<procArgs->batchCnt; b++) safecallSilent(this, ForwardPass, inferArgs->ds, b, true); Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
 	procArgs->mseR=tse_h/nodesCnt[outputLevel]/procArgs->batchCnt;
-
-	//-- 0.4. convert samples and targets back from BFS to SBF in inference dataset
-	inferArgs->ds->setSBF(procArgs->batchCnt, procArgs->batchSize);
 
 }
 
@@ -814,9 +805,9 @@ int sNN::trainSCGD(sCoreProcArgs* procArgs) {
 void sNN::loadWholeDataSet() {
 	int sampleSize=procArgs->ds->samplesCnt*procArgs->ds->sampleLen*procArgs->ds->featuresCnt*(procArgs->ds->WTlevel+1);
 	safecall(Alg, myMalloc, &sample_d, sampleSize);
-	safecall(Alg, h2d, sample_d, procArgs->ds->sampleSBF, (int)(sampleSize*sizeof(numtype)), true);
+	safecall(Alg, h2d, sample_d, procArgs->ds->sample, (int)(sampleSize*sizeof(numtype)), true);
 
 	int targetSize=procArgs->ds->samplesCnt*procArgs->ds->targetLen*procArgs->ds->featuresCnt*(procArgs->ds->WTlevel+1);
 	safecall(Alg, myMalloc, &target_d, targetSize);
-	safecall(Alg, h2d, target_d, procArgs->ds->targetSBF, (int)(targetSize*sizeof(numtype)), false);
+	safecall(Alg, h2d, target_d, procArgs->ds->target, (int)(targetSize*sizeof(numtype)), false);
 }
