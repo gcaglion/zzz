@@ -248,6 +248,11 @@ void sRoot::kaz() {
 	sTS2* ts; safespawn(ts, newsname("ts2"), defaultdbg, dsCfg, "/TimeSerie");
 	ts->scale(-1, 1);
 
+	numtype* sample;
+	numtype* target;
+	int samplesCnt;
+	ts->getDataSet(20, 3, &samplesCnt, &sample, &target);
+
 	for (int s=0; s<ts->stepsCnt; s++) {
 		for (int i=0; i<2; i++) {
 			for (int d=0; d<ts->dataSourcesCnt[i]; d++) {

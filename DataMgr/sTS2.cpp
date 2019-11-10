@@ -347,6 +347,40 @@ void sTS2::dump(bool predicted) {
 	dumpToFile(dumpFileOUTPRDTR, 1, prdTR);
 }
 
+void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, numtype** oSample, numtype** oTarget) {
+	(*oSamplesCnt)=stepsCnt-sampleLen_-targetLen_+1;
+
+	
+	int sampleSize=0; int step=0;
+	for (int bar=0; bar<sampleLen_; bar++) {
+		for (int d=0; d<dataSourcesCnt[0]; d++) {
+			for (int f=0; f<featuresCnt[0][d]; f++) {
+				for (int l=0; l<(WTlevel[0]+2); l++) {
+					sampleSize++;
+				}
+			}
+		}
+	}
+	
+	(*oSample)=(numtype*)malloc(sampleSize*(*oSamplesCnt)*sizeof(numtype));
+
+	int dsidx=0;
+	for (int s=0; s<(*oSamplesCnt); s++) {
+		for (int bar=0; bar<sampleLen_; bar++) {
+			for (int d=0; d<dataSourcesCnt[0]; d++) {
+				for (int f=0; f<featuresCnt[0][d]; f++) {
+					for (int l=0; l<(WTlevel[0]+2); l++) {
+						(*oSample)[dsidx] = valTRS[step][0][d][f][l];
+						dsidx++;
+					}
+				}
+			}
+		}
+		step++;
+	}
+
+}
+
 sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &stepsCnt, "HistoryLen");
 	safecall(cfgKey, getParm, &dt, "DataTransformation");
@@ -447,7 +481,6 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 
 }
-
 sTS2::~sTS2() {
 	for (int i=0; i<2; i++) {
 		for (int d=0; d<dataSourcesCnt[i]; d++) {
