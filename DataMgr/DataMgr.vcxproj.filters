@@ -36,6 +36,9 @@
     <ClCompile Include="sDS.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sTS2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DataSource_enums.h">
@@ -69,6 +72,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sDS.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sTS2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

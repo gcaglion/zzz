@@ -220,6 +220,7 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 }
 
 //-- temp stuff
+#include "../DataMgr/sTS2.h"
 void sRoot::kaz() {
 
 /*	sAlgebra* Alg; safespawn(Alg, newsname("Alg"), defaultdbg);
@@ -244,6 +245,11 @@ void sRoot::kaz() {
 	return;
 */
 	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/inferDS.xml");
+	sTS2* ts; safespawn(ts, newsname("ts2"), defaultdbg, dsCfg, "/TimeSerie");
+	ts->dump();
+
+	return;
+
 	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
 	ds1->scale(-1,1);
 	ds1->dump();
