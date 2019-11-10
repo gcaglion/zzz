@@ -246,6 +246,22 @@ void sRoot::kaz() {
 */
 	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/inferDS.xml");
 	sTS2* ts; safespawn(ts, newsname("ts2"), defaultdbg, dsCfg, "/TimeSerie");
+	ts->scale(-1, 1);
+
+	for (int s=0; s<ts->stepsCnt; s++) {
+		for (int i=0; i<2; i++) {
+			for (int d=0; d<ts->dataSourcesCnt[i]; d++) {
+				for (int f=0; f<ts->featuresCnt[i][d]; f++) {
+					for (int l=0; l<(ts->WTlevel[i]+2); l++) {
+						ts->prdTRS[s][i][d][f][l]=ts->valTRS[s][i][d][f][l];
+					}
+				}
+			}
+		}
+	}
+	ts->unscale();
+	ts->untransform();
+
 	ts->dump();
 
 	return;
