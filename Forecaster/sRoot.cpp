@@ -247,7 +247,7 @@ void sRoot::kaz() {
 	sum_h=sqrtf(sum_h);
 	return;
 */
-	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/inferDS.xml");
+	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/trainDS.xml");
 	sTS2* ts; safespawn(ts, newsname("ts2"), defaultdbg, dsCfg, "/TimeSerie");
 	ts->scale(-1, 1);
 	ts->dump();

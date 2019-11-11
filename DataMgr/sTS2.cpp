@@ -380,9 +380,9 @@ void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, int* oIn
 
 	(*oOutputCnt)=0;
 	for (int bar=0; bar<targetLen_; bar++) {
-		for (int d=0; d<dataSourcesCnt[0]; d++) {
-			for (int f=0; f<featuresCnt[0][d]; f++) {
-				for (int l=0; l<(WTlevel[0]+2); l++) {
+		for (int d=0; d<dataSourcesCnt[1]; d++) {
+			for (int f=0; f<featuresCnt[1][d]; f++) {
+				for (int l=0; l<(WTlevel[1]+2); l++) {
 					(*oOutputCnt)++;
 				}
 			}
