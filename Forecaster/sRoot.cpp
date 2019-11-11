@@ -247,11 +247,37 @@ void sRoot::kaz() {
 	sCfg* dsCfg; safespawn(dsCfg, newsname("dsCfg"), defaultdbg, "Config/inferDS.xml");
 	sTS2* ts; safespawn(ts, newsname("ts2"), defaultdbg, dsCfg, "/TimeSerie");
 	ts->scale(-1, 1);
+	ts->dump();
+
+	sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), defaultdbg, "Config/Client.xml");
+	sLogger* clientLogger; safespawn(clientLogger, newsname("clientLogger"), defaultdbg, clientCfg, "/Client/Persistor");
+	safecall(this, getSafePid, clientLogger, &pid);
 
 	numtype* sample;
 	numtype* target;
 	int samplesCnt;
-	ts->getDataSet(20, 3, &samplesCnt, &sample, &target);
+	int sampleLen=20;
+	int targetLen=3;
+	ts->getDataSet(sampleLen, targetLen, &samplesCnt, &sample, &target);
+
+	int inputFeaturesCntTot=0;
+	for (int d=0; d<ts->dataSourcesCnt[0]; d++) inputFeaturesCntTot+=ts->featuresCnt[0][d];
+
+	int batchSize=1;
+
+	sCfg* engCfg; safespawn(engCfg, newsname("engCfg"), defaultdbg, "Config/Engine.xml");
+
+	sCoreLayout** coreLayout=(sCoreLayout**)malloc(1*sizeof(sCoreLayout*));
+	sNNparms* NNcp; sNN* NNc;
+	int c=0;
+	safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, strBuild("Core%d/Layout", c), sampleLen*inputFeaturesCntTot*(ts->WTlevel[0]+1), targetLen*inputFeaturesCntTot*(ts->WTlevel[0]+1));
+	safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
+	NNcp->setScaleMinMax();
+	safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", coreLayout[c], NNcp);
+	
+	//NNc->train2(999, samplesCnt, sample, target, batchSize);
+
+
 
 	for (int s=0; s<ts->stepsCnt; s++) {
 		for (int i=0; i<2; i++) {

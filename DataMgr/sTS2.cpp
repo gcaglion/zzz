@@ -351,7 +351,7 @@ void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, numtype*
 	(*oSamplesCnt)=stepsCnt-sampleLen_-targetLen_+1;
 
 	
-	int sampleSize=0; int step=0;
+	int sampleSize=0;
 	for (int bar=0; bar<sampleLen_; bar++) {
 		for (int d=0; d<dataSourcesCnt[0]; d++) {
 			for (int f=0; f<featuresCnt[0][d]; f++) {
@@ -361,7 +361,7 @@ void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, numtype*
 			}
 		}
 	}
-	
+
 	(*oSample)=(numtype*)malloc(sampleSize*(*oSamplesCnt)*sizeof(numtype));
 
 	int dsidx=0;
@@ -370,13 +370,39 @@ void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, numtype*
 			for (int d=0; d<dataSourcesCnt[0]; d++) {
 				for (int f=0; f<featuresCnt[0][d]; f++) {
 					for (int l=0; l<(WTlevel[0]+2); l++) {
-						(*oSample)[dsidx] = valTRS[step][0][d][f][l];
+						(*oSample)[dsidx] = valTRS[s+bar][0][d][f][l];
 						dsidx++;
 					}
 				}
 			}
 		}
-		step++;
+	}
+
+	int targetSize=0;
+	for (int bar=0; bar<targetLen_; bar++) {
+		for (int d=0; d<dataSourcesCnt[0]; d++) {
+			for (int f=0; f<featuresCnt[0][d]; f++) {
+				for (int l=0; l<(WTlevel[0]+2); l++) {
+					targetSize++;
+				}
+			}
+		}
+	}
+
+	(*oTarget)=(numtype*)malloc(targetSize*(*oSamplesCnt)*sizeof(numtype));
+
+	dsidx=0;
+	for (int s=0; s<(*oSamplesCnt); s++) {
+		for (int bar=0; bar<targetLen_; bar++) {
+			for (int d=0; d<dataSourcesCnt[1]; d++) {
+				for (int f=0; f<featuresCnt[1][d]; f++) {
+					for (int l=0; l<(WTlevel[1]+2); l++) {
+						(*oTarget)[dsidx] = valTRS[s+bar][1][d][f][l];
+						dsidx++;
+					}
+				}
+			}
+		}
 	}
 
 }
