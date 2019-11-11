@@ -1,19 +1,17 @@
 #pragma once
 
-#include "..\common.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "../Algebra/Algebra.h"
-#include "../DataMgr/sDS.h"
 #include "sCore.h"
 #include "sNNparms.h"
 #include "sNNenums.h"
 #include "sSCGD.h"
 
-struct sNN : sCore {
+struct sNN2 : sCore {
 
-	EXPORT sNN(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_);
-	EXPORT sNN(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
-	EXPORT ~sNN();
+	EXPORT sNN2(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_);
+	EXPORT sNN2(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
+	EXPORT ~sNN2();
 
 	//-- local implementations of sCore virtual methods
 	void setLayout();
@@ -29,9 +27,8 @@ private:
 
 	//-- NNParms
 	sNNparms* parms;
-	int pid, tid, testid;	//-- these are set from either procArgs or runArgs
 
-	//-- internal layout
+							//-- internal layout
 	int* nodesCnt;
 	int nodesCntTotal;
 	int outputLevel;
@@ -47,7 +44,7 @@ private:
 	numtype tse_h;
 
 	//-- set at each level according to ActivationFunction
-	float* scaleMin;	
+	float* scaleMin;
 	float* scaleMax;
 
 	numtype* a;
@@ -92,11 +89,11 @@ private:
 
 	void Ecalc();
 	void dEcalc();
-	void EcalcG(sDS* ds, numtype* inW, numtype* outE);
-	void dEcalcG(sDS* ds, numtype* inW, numtype* outdE);
+	void EcalcG(numtype* inW, numtype* outE);
+	void dEcalcG(numtype* inW, numtype* outdE);
 
-	void loadBatchData(sDS* ds, int b);
-	void ForwardPass(sDS* ds, int batchId, bool inferring);
+	void loadBatchData(int b);
+	void ForwardPass(int batchId, bool inferring);
 	//bool epochSummary(int epoch, DWORD starttime, bool displayProgress=true);
 	void showEpochStats(int e, DWORD eStart_);
 	void showEpochStatsG(int e, DWORD eStart_, bool success_, numtype rnorm_);
@@ -104,7 +101,7 @@ private:
 	void BP_std();
 	void WU_std();
 
-	void BackwardPass(sDS* ds, int batchId, bool updateWeights);
+	void BackwardPass(int batchId, bool updateWeights);
 	//-- malloc + init
 	void mallocNeurons();
 	void initNeurons();

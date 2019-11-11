@@ -7,17 +7,17 @@ sGA::sGA(sCfgObjParmsDef, sCoreLayout* layout_, sGAparms* GAparms_): sCore(sCfgO
 sGA::~sGA(){}
 
 //-- abstract methods implementations
-void sGA::setLayout(int batchSize_) {
+void sGA::setLayout() {
 
 }
 void sGA::mallocLayout() {
 	//-- malloc + init neurons ...
 }
-void sGA::train(sCoreProcArgs* trainArgs) {
-	trainArgs->mseCnt=10;
+void sGA::train() {
+	procArgs->mseCnt=10;
 	info("GA training complete.");
 }
-void sGA::infer(sCoreProcArgs* inferArgs) {
+void sGA::infer() {
 	fail("Not implemented.");
 }
 void sGA::saveImage(int pid, int tid, int epoch) {

@@ -221,6 +221,9 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 
 //-- temp stuff
 #include "../DataMgr/sTS2.h"
+#include "../EngineMgr/sCoreLayout.h"
+#include "../EngineMgr/sNNparms.h"
+#include "../EngineMgr/sNN2.h"
 void sRoot::kaz() {
 
 /*	sAlgebra* Alg; safespawn(Alg, newsname("Alg"), defaultdbg);
@@ -255,27 +258,41 @@ void sRoot::kaz() {
 
 	numtype* sample;
 	numtype* target;
+	numtype* prediction;
 	int samplesCnt;
+	int inputCnt;
+	int outputCnt;
 	int sampleLen=20;
 	int targetLen=3;
-	ts->getDataSet(sampleLen, targetLen, &samplesCnt, &sample, &target);
-
-	int inputFeaturesCntTot=0;
-	for (int d=0; d<ts->dataSourcesCnt[0]; d++) inputFeaturesCntTot+=ts->featuresCnt[0][d];
+	ts->getDataSet(sampleLen, targetLen, &samplesCnt, &inputCnt, &outputCnt, &sample, &target, &prediction);
 
 	int batchSize=1;
 
 	sCfg* engCfg; safespawn(engCfg, newsname("engCfg"), defaultdbg, "Config/Engine.xml");
 
 	sCoreLayout** coreLayout=(sCoreLayout**)malloc(1*sizeof(sCoreLayout*));
-	sNNparms* NNcp; sNN* NNc;
+	sNNparms* NNcp=nullptr; sNN2* NNc=nullptr;
 	int c=0;
-	safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, cfg, strBuild("Core%d/Layout", c), sampleLen*inputFeaturesCntTot*(ts->WTlevel[0]+1), targetLen*inputFeaturesCntTot*(ts->WTlevel[0]+1));
-	safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, cfg, strBuild("Core%d/Parameters", c));
+	safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, engCfg, strBuild("Core%d/Layout", c), inputCnt, outputCnt);
+	safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, engCfg, strBuild("Core%d/Parameters", c));
 	NNcp->setScaleMinMax();
-	safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, cfg, "../", coreLayout[c], NNcp);
-	
-	//NNc->train2(999, samplesCnt, sample, target, batchSize);
+	safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, engCfg, "../", coreLayout[c], NNcp);
+
+	sCoreProcArgs* trainArgs = new sCoreProcArgs();
+	trainArgs->testid=999;
+	trainArgs->samplesCnt=samplesCnt;
+	trainArgs->inputCnt=inputCnt;
+	trainArgs->outputCnt=outputCnt;
+	trainArgs->batchSize=batchSize;
+	trainArgs->batchCnt=(int)floor(samplesCnt/batchSize);
+	trainArgs->sample=sample;
+	trainArgs->target=target;
+	trainArgs->prediction=prediction;
+	trainArgs->pid=GetCurrentProcessId();
+	trainArgs->tid=GetCurrentThreadId();
+
+	NNc->procArgs=trainArgs;
+	NNc->train();
 
 
 
@@ -297,9 +314,9 @@ void sRoot::kaz() {
 
 	return;
 
-	sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
+	/*sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
 	ds1->scale(-1,1);
-	ds1->dump();
+	ds1->dump();*/
 	/*sDS* ds2; safespawn(ds2, newsname("ds2"), defaultdbg, "C:/temp/datadump/myds1.csv");
 	ds2->invertSequence();
 	ds2->dump();*/
@@ -321,11 +338,11 @@ void sRoot::kaz() {
 	eng->infer(testid, 0, ds2, inferBatchSize);
 */
 
-	sTS* ts1; safespawn(ts1, newsname("TS1"), defaultdbg, dsCfg, "/TimeSerie");
+	/*sTS* ts1; safespawn(ts1, newsname("TS1"), defaultdbg, dsCfg, "/TimeSerie");
 	ts1->dump();
 	ts1->slide(2);
 	ts1->dump();
-	return;
+	return;*/
 
 }
 void sRoot::kazEnc() {

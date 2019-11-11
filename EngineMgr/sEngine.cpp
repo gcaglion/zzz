@@ -234,8 +234,8 @@ DWORD coreThreadTrain(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
 	try {
 		//args->core->Alg->createGPUContext();
-		args->core->train(args->coreProcArgs);
-		if(!args->core->procArgs->quitAfterBreak) args->core->infer(args->coreProcArgs);
+		args->core->train();
+		if(!args->core->procArgs->quitAfterBreak) args->core->infer();
 		//args->core->Alg->destroyGPUContext();
 	} catch (...) {
 		args->coreProcArgs->excp=current_exception();
@@ -246,7 +246,7 @@ DWORD coreThreadInfer(LPVOID vargs_) {
 	sEngineProcArgs* args = (sEngineProcArgs*)vargs_;
 	try {
 		//args->core->Alg->createGPUContext();
-		args->core->infer(args->coreProcArgs);
+		args->core->infer();
 		//args->core->Alg->destroyGPUContext();
 	}
 	catch (...) {

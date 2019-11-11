@@ -384,13 +384,13 @@ void sNN::showEpochStatsG(int e, DWORD eStart_, bool success_, numtype Gtse_) {
 
 }
 //-- local implementations of sCore virtual methods
-void sNN::setLayout(int batchSamplesCnt_) {
+void sNN::setLayout() {
 	int l, nl;
 
 
 	//-- 0.3. set nodesCnt (single sample)
-	nodesCnt[0] = layout->inputCnt*batchSamplesCnt_;
-	nodesCnt[outputLevel] = layout->outputCnt*batchSamplesCnt_;
+	nodesCnt[0] = layout->inputCnt;
+	nodesCnt[outputLevel] = layout->outputCnt;
 	for (nl = 0; nl<(parms->levelsCnt-2); nl++) nodesCnt[nl+1] = (int)floor(nodesCnt[nl]*parms->levelRatio[nl]);
 
 	//-- add context neurons
@@ -447,20 +447,20 @@ BOOL WINAPI breakTraining(DWORD signal) {
 	return true;
 }
 
-void sNN::train(sCoreProcArgs* trainArgs) {
+void sNN::train() {
 	int l;
 	DWORD epoch_starttime;
 	DWORD training_starttime=timeGetTime();
 	int b;
 	bool hasInverted=false, hasDiverged=false, hasMinimized=false;
 
-	//-- extract training arguments from trainArgs into local variables
-	pid=trainArgs->pid;
-	tid=trainArgs->tid;
-	testid=trainArgs->testid;
+	//-- extract training arguments from procArgs into local variables
+	pid=procArgs->pid;
+	tid=procArgs->tid;
+	testid=procArgs->testid;
 
 	//-- set Layout. This should not change weightsCnt[] at all, just nodesCnt[]
-	setLayout(trainArgs->batchSize);
+	setLayout();
 
 	//-- 0. malloc + init neurons
 	mallocNeurons();
@@ -468,9 +468,9 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	createWeights();
 
 	//-- malloc mse[maxepochs], always host-side. We need to free them, first (see issue when running without training...)
-	trainArgs->duration=(int*)malloc(parms->MaxEpochs*sizeof(int));
-	trainArgs->mseT=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
-	trainArgs->mseV=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
+	procArgs->duration=(int*)malloc(parms->MaxEpochs*sizeof(int));
+	procArgs->mseT=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
+	procArgs->mseV=(numtype*)malloc(parms->MaxEpochs*sizeof(numtype));
 
 	//---- 0.2. Init W
 	for (l=0; l<(outputLevel); l++) Alg->VinitRnd(weightsCnt[l], &W[levelFirstWeight[l]], -1/sqrtf((numtype)nodesCnt[l]), 1/sqrtf((numtype)nodesCnt[l]), Alg->cuRandH);
@@ -490,7 +490,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 	if (parms->BP_Algo==BP_SCGD) {
 
 		//-- main algorithm
-		trainArgs->mseCnt=trainSCGD(trainArgs);
+		procArgs->mseCnt=trainSCGD(procArgs);
 
 	} else {
 
@@ -522,10 +522,10 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 			for (b=0; b<procArgs->batchCnt; b++) {
 
 				//-- forward pass, with targets
-				safecallSilent(this, ForwardPass, trainArgs->ds, b, false);
+				safecallSilent(this, ForwardPass, procArgs->ds, b, false);
 
 				//-- backward pass, with weights update
-				safecallSilent(this, BackwardPass, trainArgs->ds, b, true);
+				safecallSilent(this, BackwardPass, procArgs->ds, b, true);
 
 			}
 
@@ -558,7 +558,7 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 		}
 
 		float elapsed_tot=(float)timeGetTime()-(float)training_starttime;
-		float elapsed_avg=elapsed_tot/trainArgs->mseCnt;
+		float elapsed_avg=elapsed_tot/procArgs->mseCnt;
 /*		printf("\nTraining complete. Elapsed time: %0.1f seconds. Epoch average=%0.0f ms.\n", (elapsed_tot/(float)1000), elapsed_avg);
 		LDtimeAvg=(float)LDtimeTot/LDcnt; printf("LD count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", LDcnt, (LDtimeTot/(float)1000), LDtimeAvg);
 		FFtimeAvg=(float)FFtimeTot/FFcnt; printf("FF count=%d ; time-tot=%0.1f s. time-avg=%0.0f ms.\n", FFcnt, (FFtimeTot/(float)1000), FFtimeAvg);
@@ -575,15 +575,15 @@ void sNN::train(sCoreProcArgs* trainArgs) {
 */	}
 
 }
-void sNN::infer(sCoreProcArgs* inferArgs) {
+void sNN::infer() {
 
 	DWORD inferStartTime=timeGetTime();
 
-	//-- extract infering arguments from inferArgs into local variables
-	sDS* inferSet = inferArgs->ds;
-	pid=inferArgs->pid;
-	tid=inferArgs->tid;
-	testid=inferArgs->testid;
+	//-- extract infering arguments from procArgs into local variables
+	sDS* inferSet = procArgs->ds;
+	pid=procArgs->pid;
+	tid=procArgs->tid;
+	testid=procArgs->testid;
 
 	//-- pre-load the whole dataset (samples+targets) on GPU !
 	safecall(this, loadWholeDataSet);
@@ -593,7 +593,7 @@ void sNN::infer(sCoreProcArgs* inferArgs) {
 	//-- timing
 	inferStartTime=timeGetTime();
 
-	Alg->Vinit(1, tse, 0, 0); for (int b=0; b<procArgs->batchCnt; b++) safecallSilent(this, ForwardPass, inferArgs->ds, b, true); Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
+	Alg->Vinit(1, tse, 0, 0); for (int b=0; b<procArgs->batchCnt; b++) safecallSilent(this, ForwardPass, procArgs->ds, b, true); Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
 	procArgs->mseR=tse_h/nodesCnt[outputLevel]/procArgs->batchCnt;
 
 }
@@ -616,7 +616,7 @@ void sNN::saveImage(int pid, int tid, int epoch) {
 void sNN::loadImage(int pid, int tid, int epoch) {
 
 	//-- set Layout. This should not change weightsCnt[] at all, just nodesCnt[]
-	setLayout(procArgs->batchSize);
+	setLayout();
 
 	//-- 0. malloc + init neurons
 	mallocNeurons();

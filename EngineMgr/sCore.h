@@ -2,19 +2,25 @@
 #include "../common.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "../Algebra/Algebra.h"
-#include "../DataMgr/sDS.h"
 #include "sCoreLayout.h"
 #include "sCoreParms.h"
 #include "sCoreLogger.h"
 #include "Core_enums.h"
+#include "../DataMgr/sDS.h"
 
 //-- properties in sCoreProcArgs are common across core types
 struct sCoreProcArgs {
 	//-- common across train and infer
 	std::exception_ptr excp;
-	sDS* ds;
+	int samplesCnt;
+	int inputCnt;
+	int outputCnt;
 	int batchCnt;
 	int batchSize;
+	numtype* sample;
+	numtype* target;
+	numtype* prediction;
+	sDS* ds;	// REMOVE!
 	int pid;
 	int tid;
 	int testid;
@@ -49,10 +55,10 @@ struct sCore : sCfgObj {
 	//-- methods to be implemented indipendently by each subclass(sNN, sGA, ...)
 	
 	//-- Internal layout
-	virtual void setLayout(int batchSize_)=0;
-	virtual void mallocLayout()=0;
-	virtual void train(sCoreProcArgs* procArgs_)=0;
-	virtual void infer(sCoreProcArgs* procArgs_)=0;
+	virtual void setLayout()=0;
+	//virtual void mallocLayout()=0;
+	virtual void train()=0;
+	virtual void infer()=0;
 	//-- I/O	
 	virtual void saveImage(int pid, int tid, int epoch)=0;
 	virtual void loadImage(int pid, int tid, int epoch)=0;

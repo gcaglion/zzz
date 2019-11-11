@@ -57,9 +57,6 @@
     <ClInclude Include="sSVMparms.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sEngine.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sCoreLogger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -85,6 +82,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sEncoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sEngine.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sNN2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -122,9 +125,6 @@
     <ClCompile Include="sSVMparms.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sEngine.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sCoreLogger.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -138,6 +138,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sEncoder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sEngine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="sNN2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

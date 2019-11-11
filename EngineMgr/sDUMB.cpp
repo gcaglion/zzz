@@ -9,29 +9,29 @@ sDUMB::sDUMB(sCfgObjParmsDef, sCoreLayout* layout_, sDUMBparms* DUMBparms_): sCo
 sDUMB::~sDUMB(){}
 
 //-- abstract methods implementations
-void sDUMB::setLayout(int batchSize_) {
+void sDUMB::setLayout() {
 
 }
 void sDUMB::mallocLayout() {
 	//-- malloc + init neurons ...
 }
-void sDUMB::train(sCoreProcArgs* trainArgs) {
-	trainArgs->mseCnt=10;
+void sDUMB::train() {
+	procArgs->mseCnt=10;
 	//-- malloc mse[maxepochs], always host-side.
-	trainArgs->duration=(int*)malloc(trainArgs->mseCnt*sizeof(int));
-	trainArgs->mseT=(numtype*)malloc(trainArgs->mseCnt*sizeof(numtype));
-	trainArgs->mseV=(numtype*)malloc(trainArgs->mseCnt*sizeof(numtype));
+	procArgs->duration=(int*)malloc(procArgs->mseCnt*sizeof(int));
+	procArgs->mseT=(numtype*)malloc(procArgs->mseCnt*sizeof(numtype));
+	procArgs->mseV=(numtype*)malloc(procArgs->mseCnt*sizeof(numtype));
 
-	for (int e=0; e<trainArgs->mseCnt; e++) {
-		trainArgs->mseT[e]=1;
-		trainArgs->mseV[e]=0;
+	for (int e=0; e<procArgs->mseCnt; e++) {
+		procArgs->mseT[e]=1;
+		procArgs->mseV[e]=0;
 	}
 
 	info("DUMB training complete.");
 }
-void sDUMB::infer(sCoreProcArgs* inferArgs) {
-	int tlen=inferArgs->ds->samplesCnt*inferArgs->ds->targetLen*inferArgs->ds->featuresCnt;
-	for (int i=0; i<tlen; i++) inferArgs->ds->prediction[i]=inferArgs->ds->target[i];
+void sDUMB::infer() {
+	int tlen=procArgs->samplesCnt*procArgs->inputCnt;
+	for (int i=0; i<tlen; i++) procArgs->prediction[i]=procArgs->target[i];
 }
 
 void sDUMB::saveImage(int pid, int tid, int epoch) {

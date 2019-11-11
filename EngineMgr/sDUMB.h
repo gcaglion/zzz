@@ -13,10 +13,10 @@ struct sDUMB : sCore {
 	EXPORT ~sDUMB();
 
 	//-- local implementations of sCore virtual methods
-	void setLayout(int batchSamplesCnt_);
+	void setLayout();
 	void mallocLayout();
-	void train(sCoreProcArgs* trainArgs);
-	void infer(sCoreProcArgs* inferArgs);
+	void train();
+	void infer();
 	void saveImage(int pid, int tid, int epoch);
 	void loadImage(int pid, int tid, int epoch);
 };

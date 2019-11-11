@@ -7,17 +7,17 @@ sSOM::sSOM(sCfgObjParmsDef, sCoreLayout* layout_, sSOMparms* SOMparms_) : sCore(
 sSOM::~sSOM() {}
 
 //-- abstract methods implementations
-void sSOM::setLayout(int batchSize_) {
+void sSOM::setLayout() {
 
 }
 void sSOM::mallocLayout() {
 	//-- malloc + init neurons ...
 }
-void sSOM::train(sCoreProcArgs* trainArgs) {
-	trainArgs->mseCnt=10;
+void sSOM::train() {
+	procArgs->mseCnt=10;
 	info("GA training complete.");
 }
-void sSOM::infer(sCoreProcArgs* inferArgs) {
+void sSOM::infer() {
 	fail("Not implemented.");
 }
 void sSOM::saveImage(int pid, int tid, int epoch) {

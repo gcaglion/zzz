@@ -172,6 +172,7 @@
     <ClInclude Include="sNN.h" />
     <ClInclude Include="sEngine.h" />
     <ClInclude Include="Engine_enums.h" />
+    <ClInclude Include="sNN2.h" />
     <ClInclude Include="sNNenums.h" />
     <ClInclude Include="sNNparms.h" />
     <ClInclude Include="sCore.h" />
@@ -197,6 +198,7 @@
     <ClCompile Include="sCore.cpp" />
     <ClCompile Include="sCoreLayout.cpp" />
     <ClCompile Include="sCoreParms.cpp" />
+    <ClCompile Include="sNN2.cpp" />
     <ClCompile Include="sNNparms.cpp" />
     <ClCompile Include="sSCGD.cpp" />
     <ClCompile Include="sSOM.cpp" />
