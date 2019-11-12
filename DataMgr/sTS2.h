@@ -42,6 +42,7 @@ struct sTS2 :sCfgObj {
 	EXPORT void unscale();
 	EXPORT void untransform();
 	EXPORT void getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, int* oInputCnt, int* oOutputCnt, numtype** oSample, numtype** oTarget, numtype** oPrediction);
+	EXPORT void getPrediction(int samplesCnt_, int sampleLen_, int targetLen_, numtype* prediction_);
 
 private:
 	void dumpToFile(FILE* file, int i, numtype***** val_);

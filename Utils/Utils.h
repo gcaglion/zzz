@@ -10,6 +10,7 @@ EXPORT void V2P(int Len, numtype* P, std::vector<double> &V);
 EXPORT bool dumpArrayH(int vlen, numtype* v, const char* fname);
 
 EXPORT int MyRndInt(int rmin, int rmax);
+EXPORT void VinitRnd(int vlen, numtype rndmin, numtype rndmax, numtype* ov);
 EXPORT bool getFullPath(const char* iName, char* oName, char* startPath=nullptr);
 EXPORT bool getCurrentPath(char* oPath);
 EXPORT int getCharCnt(const char* str, char c);

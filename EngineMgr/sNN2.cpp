@@ -366,7 +366,36 @@ void sNN2::train() {
 	float elapsed_tot=(float)timeGetTime()-(float)training_starttime;
 	float elapsed_avg=elapsed_tot/procArgs->mseCnt;
 }
-void sNN2::infer(){}
+void sNN2::infer(){
+	DWORD inferStartTime=timeGetTime();
+
+	//-- pre-load the whole dataset (samples+targets) on GPU !
+	safecall(this, loadWholeDataSet);
+
+	//-- 1. infer all batches with one Forward pass ( loadSamples(b)+FF()+calcErr() ). No backward pass, obviously.
+
+	//-- timing
+	inferStartTime=timeGetTime();
+
+	Alg->Vinit(1, tse, 0, 0); 
+	for (int b=0; b<procArgs->batchCnt; b++) {
+		Alg->Vinit(weightsCntTotal, dW, 0, 0);
+		for (int s=0; s<procArgs->batchSize; s++) {
+			//-- 1. load sample/target
+			int sid=b*procArgs->batchSize*procArgs->inputCnt+s*procArgs->inputCnt;
+			int tid=b*procArgs->batchSize*procArgs->outputCnt+s*procArgs->outputCnt;
+			Alg->d2d(&F[0], &sample_d[sid], procArgs->inputCnt*sizeof(numtype));
+			Alg->d2d(&u[0], &target_d[tid], procArgs->outputCnt*sizeof(numtype));
+			//-- 2. fwd
+			FF();
+			//-- 3. calc e,tse
+			Ecalc();
+			//-- 4. Save results for current batch in batchPrediction
+			Alg->d2h(&procArgs->prediction[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+		}
+	}
+	procArgs->mseR=tse_h/nodesCnt[outputLevel]/procArgs->batchCnt;
+}
 
 void sNN2::loadWholeDataSet() {
 	int sampleSize=procArgs->samplesCnt*procArgs->inputCnt;

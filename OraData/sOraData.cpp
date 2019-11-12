@@ -176,6 +176,97 @@ void sOraData::saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mse
 	}
 
 }
+void sOraData::saveRun2(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char** posLabel, int i, int d, int f, int l, numtype***** actualTRS, numtype***** predictedTRS, numtype***** actualTR, numtype***** predictedTR, numtype***** actualBASE, numtype***** predictedBASE) {
+	int runidx=0;
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	try {
+		stmt = ((Connection*)conn)->createStatement("insert into RunLog (ProcessId, ThreadId, NetProcessId, NetThreadId, SequenceId, mseR, Pos, PosLabel, DataSource, Feature, WTlevel, ActualTRS, PredictedTRS, ActualTR, PredictedTR, ActualBASE, PredictedBASE) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08, :P09, :P10, :P11, :P12, :P13, :P14, :P15, :P16, :P17)");
+		((Statement*)stmt)->setMaxIterations(runStepsCnt);
+		for (int step=0; step<runStepsCnt; step++) {
+			((Statement*)stmt)->setInt(1, pid);
+			((Statement*)stmt)->setInt(2, tid);
+			((Statement*)stmt)->setInt(3, npid);
+			((Statement*)stmt)->setInt(4, ntid);
+			((Statement*)stmt)->setInt(5, seqId);
+			#ifdef DOUBLE_NUMTYPE
+			((Statement*)stmt)->setDouble(6, mseR);
+			#else
+			((Statement*)stmt)->setFloat(6, mseR);
+			#endif
+			((Statement*)stmt)->setInt(7, step);
+			std::string str(posLabel[step]); ((Statement*)stmt)->setMaxParamSize(8, 64); ((Statement*)stmt)->setString(8, str);
+			((Statement*)stmt)->setInt(9, d);
+			((Statement*)stmt)->setInt(10, f);
+			((Statement*)stmt)->setInt(11, l);
+			if (actualTRS[step][i][d][f][l]==EMPTY_VALUE) {
+				((Statement*)stmt)->setNull(12, OCCIFLOAT);
+			} else {
+				#ifdef DOUBLE_NUMTYPE
+				((Statement*)stmt)->setDouble(12, actualTRS[step][i][d][f][l]);
+				#else
+				((Statement*)stmt)->setFloat(12, actualTRS[step][i][d][f][l]);
+				#endif
+			}
+			if (predictedTRS[step][i][d][f][l]==EMPTY_VALUE) {
+				((Statement*)stmt)->setNull(13, OCCIFLOAT);
+			} else {
+				#ifdef DOUBLE_NUMTYPE
+				((Statement*)stmt)->setDouble(13, predictedTRS[step][i][d][f][l]);
+				#else
+				((Statement*)stmt)->setFloat(13, predictedTRS[step][i][d][f][l]);
+				#endif
+			}
+			if (actualTR[step][i][d][f][l]==EMPTY_VALUE) {
+				((Statement*)stmt)->setNull(14, OCCIFLOAT);
+			} else {
+				#ifdef DOUBLE_NUMTYPE
+				((Statement*)stmt)->setDouble(14, actualTR[step][i][d][f][l]);
+				#else
+				((Statement*)stmt)->setFloat(14, actualTR[step][i][d][f][l]);
+				#endif
+			}
+			if (predictedTR[step][i][d][f][l]==EMPTY_VALUE) {
+				((Statement*)stmt)->setNull(15, OCCIFLOAT);
+			} else {
+				#ifdef DOUBLE_NUMTYPE
+				((Statement*)stmt)->setDouble(15, predictedTR[step][i][d][f][l]);
+				#else
+				((Statement*)stmt)->setFloat(15, predictedTR[step][i][d][f][l]);
+				#endif
+			}
+			if (actualBASE[step][i][d][f][l]==EMPTY_VALUE) {
+				((Statement*)stmt)->setNull(16, OCCIFLOAT);
+			} else {
+				#ifdef DOUBLE_NUMTYPE
+				((Statement*)stmt)->setDouble(16, actualBASE[step][i][d][f][l]);
+				#else
+				((Statement*)stmt)->setFloat(16, actualBASE[step][i][d][f][l]);
+				#endif
+			}
+			if (predictedBASE[step][i][d][f][l]==EMPTY_VALUE) {
+				((Statement*)stmt)->setNull(17, OCCIFLOAT);
+			} else {
+				#ifdef DOUBLE_NUMTYPE
+				((Statement*)stmt)->setDouble(17, predictedBASE[step][i][d][f][l]);
+				#else
+				((Statement*)stmt)->setFloat(17, predictedBASE[step][i][d][f][l]);
+				#endif
+			}
+
+			if (runidx<(runStepsCnt-1)) ((Statement*)stmt)->addIteration();
+			runidx++;
+		}
+		((Statement*)stmt)->executeUpdate();
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
+	}
 void sOraData::saveRun(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char** posLabel, int featuresCnt_, int WTlevel_, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actualBASE, numtype* predictedBASE) {
 
 	int runCnt=runStepsCnt*featuresCnt_*(WTlevel_+1);
@@ -194,11 +285,11 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int seqId, numtype 
 					((Statement*)stmt)->setInt(2, tid);
 					((Statement*)stmt)->setInt(3, npid);
 					((Statement*)stmt)->setInt(4, ntid);
-#ifdef DOUBLE_NUMTYPE
+					#ifdef DOUBLE_NUMTYPE
 					((Statement*)stmt)->setDouble(5, mseR);
-#else
+					#else
 					((Statement*)stmt)->setFloat(5, mseR);
-#endif
+					#endif
 					((Statement*)stmt)->setInt(6, step);
 					std::string str(posLabel[step]); ((Statement*)stmt)->setMaxParamSize(7, 64); ((Statement*)stmt)->setString(7, str);
 					((Statement*)stmt)->setInt(8, f);
@@ -207,58 +298,58 @@ void sOraData::saveRun(int pid, int tid, int npid, int ntid, int seqId, numtype 
 					if (actualTRS[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]==EMPTY_VALUE) {
 						((Statement*)stmt)->setNull(10, OCCIFLOAT);
 					} else {
-#ifdef DOUBLE_NUMTYPE
+					#ifdef DOUBLE_NUMTYPE
 						((Statement*)stmt)->setDouble(10, actualTRS[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]);
-#else
+					#else
 						((Statement*)stmt)->setFloat(10, actualTRS[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]);
-#endif
+					#endif
 					}
 					if (predictedTRS[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]==EMPTY_VALUE) {
 						((Statement*)stmt)->setNull(11, OCCIFLOAT);
 					} else {
-#ifdef DOUBLE_NUMTYPE
+						#ifdef DOUBLE_NUMTYPE
 						((Statement*)stmt)->setDouble(11, predictedTRS[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]);
-#else
+						#else
 						((Statement*)stmt)->setFloat(11, predictedTRS[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]);
-#endif
+						#endif
 					}
 
 					if (actualTR[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]==EMPTY_VALUE) {
 						((Statement*)stmt)->setNull(12, OCCIFLOAT);
 					} else {
-#ifdef DOUBLE_NUMTYPE
+						#ifdef DOUBLE_NUMTYPE
 						((Statement*)stmt)->setDouble(12, actualTR[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]);
-#else
+						#else
 						((Statement*)stmt)->setFloat(12, actualTR[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]);
-#endif
+						#endif
 					}
 					if (predictedTR[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]==EMPTY_VALUE) {
 						((Statement*)stmt)->setNull(13, OCCIFLOAT);
 					} else {
-#ifdef DOUBLE_NUMTYPE
+						#ifdef DOUBLE_NUMTYPE
 						((Statement*)stmt)->setDouble(13, predictedTR[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]);
-#else
+						#else
 						((Statement*)stmt)->setFloat(13, predictedTR[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]);
-#endif
+						#endif
 					}
 
 					if (actualBASE[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]==EMPTY_VALUE) {
 						((Statement*)stmt)->setNull(14, OCCIFLOAT);
 					} else {
-#ifdef DOUBLE_NUMTYPE
+						#ifdef DOUBLE_NUMTYPE
 						((Statement*)stmt)->setDouble(14, actualBASE[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]);
-#else
+						#else
 						((Statement*)stmt)->setFloat(14, actualBASE[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]);
-#endif
+						#endif
 					}
 					if (predictedBASE[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]==EMPTY_VALUE) {
 						((Statement*)stmt)->setNull(15, OCCIFLOAT);
 					} else {
-#ifdef DOUBLE_NUMTYPE
+						#ifdef DOUBLE_NUMTYPE
 						((Statement*)stmt)->setDouble(15, predictedBASE[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]);
-#else
+						#else
 						((Statement*)stmt)->setFloat(15, predictedBASE[step*featuresCnt_*(WTlevel_+1)+f*(WTlevel_+1)+l]);
-#endif
+						#endif
 					}
 					((Statement*)stmt)->setInt(16, seqId);
 
