@@ -408,6 +408,43 @@ void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, int* oIn
 	(*oPrediction)=(numtype*)malloc((*oOutputCnt)*(*oSamplesCnt)*sizeof(numtype));
 
 }
+void sTS2::getPrediction(int samplesCnt_, int sampleLen_, int targetLen_, numtype* prediction_) {
+	int s, b, pidx;
+
+	for (b=0; b<sampleLen_; b++) {
+		for (int d=0; d<dataSourcesCnt[1]; d++) {
+			for (int f=0; f<featuresCnt[1][d]; f++) {
+				for (int l=0; l<(WTlevel[1]+2); l++) {
+					prdTRS[b][1][d][f][l]=EMPTY_VALUE;
+				}
+			}
+		}
+	}
+
+	int outputCnt=0;
+	for (int bar=0; bar<targetLen_; bar++) {
+		for (int d=0; d<dataSourcesCnt[1]; d++) {
+			for (int f=0; f<featuresCnt[1][d]; f++) {
+				for (int l=0; l<(WTlevel[1]+2); l++) {
+					outputCnt++;
+				}
+			}
+		}
+	}
+
+	int dsidx=0;
+	for (int s=b; s<samplesCnt_; s++) {
+		for (int d=0; d<dataSourcesCnt[1]; d++) {
+			for (int f=0; f<featuresCnt[1][d]; f++) {
+				for (int l=0; l<(WTlevel[1]+2); l++) {
+					prdTRS[s][1][d][f][l]=prediction_[dsidx];
+					dsidx+=outputCnt;
+				}
+			}
+		}
+	}
+
+}
 
 sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &stepsCnt, "HistoryLen");

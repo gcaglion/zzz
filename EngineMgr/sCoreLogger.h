@@ -22,7 +22,7 @@ struct sCoreLogger : sLogger {
 	sCoreLogger(sObjParmsDef, sLogger* persistor_, int pid_, int tid_);
 	~sCoreLogger();
 
-	void save(sLogger* persistor_, int pid_, int tid_);
+	EXPORT void save(sLogger* persistor_, int pid_, int tid_);
 
 private:
 	char** ffn;

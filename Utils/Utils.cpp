@@ -17,7 +17,9 @@ EXPORT bool dumpArrayH(int vlen, numtype* v, const char* fname) {
 	return true;
 }
 
-
+void VinitRnd(int vlen, numtype rndmin, numtype rndmax, numtype* ov) {
+	for(int i=0; i<vlen; i++) ov[i]=rndmin+(numtype)rand()/((numtype)RAND_MAX+1) * (rndmax-rndmin);
+}
 EXPORT int MyRndInt(int rmin, int rmax) {
 	int ret = -1;
 	while (ret<0) ret= (rmin+(rand()%rmax));
