@@ -6,7 +6,7 @@
 	DumpPath	= c:\temp\DataDump
 	
 	<TimeSerie>
-		HistoryLen			= 15000
+		HistoryLen			= 5000
 		Date0				= 2018-07-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
@@ -27,7 +27,7 @@
 				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
 			</DataSource2>
 			WaveletType	= WT_HAAR
-			DecompLevel = 2
+			DecompLevel = 4
 		</Input>
 		<Output>
 			DataSourcesCount		= 1

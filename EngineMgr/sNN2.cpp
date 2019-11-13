@@ -336,7 +336,7 @@ void sNN2::train() {
 
 		//-- 1.2. calc epoch MSE (for ALL batches), and check criteria for terminating training (targetMSE, Divergence)
 		Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
-		procArgs->mseT[epoch]=tse_h/nodesCnt[outputLevel]/procArgs->batchCnt;
+		procArgs->mseT[epoch]=tse_h/procArgs->samplesCnt/nodesCnt[outputLevel];
 		procArgs->mseV[epoch]=0;	// TO DO !
 									//-- 1.3. show epoch info
 		showEpochStats(epoch, epoch_starttime);
@@ -392,7 +392,7 @@ void sNN2::infer(){
 			Alg->d2h(&procArgs->prediction[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 		}
 	}
-	procArgs->mseR=tse_h/nodesCnt[outputLevel]/procArgs->batchCnt;
+	procArgs->mseR=tse_h/procArgs->samplesCnt/nodesCnt[outputLevel];
 }
 
 void sNN2::loadWholeDataSet() {
