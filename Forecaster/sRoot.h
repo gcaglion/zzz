@@ -1,12 +1,11 @@
 #pragma once
 
-#include "../DataMgr/sTS.h"
+#include "../DataMgr/sTS2.h"
 #include "../DataMgr/sFXDataSource.h"
 #include "../DataMgr/sGenericDataSource.h"
 #include "../DataMgr/sMT4DataSource.h"
 #include "../Logger/sLogger.h"
 #include "../Utils/Utils.h"
-#include "../EngineMgr/sEngine.h"
 
 class sdp {
 public:
@@ -30,7 +29,7 @@ struct sRoot : sCfgObj {
 	int MT4accountId;
 	int MT4enginePid;
 	int MT4sessionId;
-	sEngine* MT4engine;
+//	sEngine* MT4engine;
 	int MT4dt;
 	bool MT4doDump;
 	char MT4clientXMLFile[MAX_PATH];
@@ -60,7 +59,7 @@ private:
 	char cfgOverrideName[XMLLINE_MAXCNT][XMLKEY_PARM_NAME_MAXLEN];
 	char cfgOverrideValS[XMLKEY_PARM_MAXCNT][XMLKEY_PARM_VAL_MAXLEN*XMLKEY_PARM_VAL_MAXCNT];
 	//--
-	void datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsSampleLen_, int dsTargetLen_, int dsBatchSize_, bool dsDoDump_, char* dsDumpPath_, bool loadEngine_);
+//	void datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsSampleLen_, int dsTargetLen_, int dsBatchSize_, bool dsDoDump_, char* dsDumpPath_, bool loadEngine_);
 
 	//-- functions
 	void mallocSimulationDates(sCfg* clientCfg, int* simLen, char*** simTrainStart, char*** simInferStart, char*** simValidStart);
@@ -76,7 +75,7 @@ private:
 	sCfg* clientCfg; sCfg* trainCfg; sCfg* inferCfg; sCfg* engCfg;
 	//sLogger* trainLog;
 	//sLogger* inferLog;
-	sEngine* engine;
+	//sEngine* engine;
 	sLogger* clientLog;
 
 };

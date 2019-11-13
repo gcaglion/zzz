@@ -69,9 +69,6 @@
     <ClInclude Include="sDUMBenums.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sNN.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sNNenums.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -82,9 +79,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sEncoder.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sNN2.h">
@@ -99,9 +93,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sCoreParms.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sNN.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sNNparms.cpp">
@@ -138,9 +129,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sEncoder.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="sEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sNN2.cpp">

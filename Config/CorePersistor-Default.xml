@@ -2,7 +2,7 @@
 			saveMSE			= true
 			saveRun			= true
 			saveInternals	= true
-			saveImage		= false
+			saveImage		= true
 			readFrom		= OraData
 			saveToDB		= true
 			saveToFile		= false

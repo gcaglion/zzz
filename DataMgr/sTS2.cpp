@@ -417,7 +417,7 @@ void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, int* oIn
 
 }
 void sTS2::getPrediction(int samplesCnt_, int sampleLen_, int targetLen_, numtype* prediction_) {
-	int s, b, pidx;
+	int s, b;
 
 	for (b=0; b<sampleLen_; b++) {
 		for (int d=0; d<dataSourcesCnt[1]; d++) {

@@ -6,7 +6,6 @@
 #include "sCoreParms.h"
 #include "sCoreLogger.h"
 #include "Core_enums.h"
-#include "../DataMgr/sDS.h"
 
 //-- properties in sCoreProcArgs are common across core types
 struct sCoreProcArgs {
@@ -20,7 +19,6 @@ struct sCoreProcArgs {
 	numtype* sample;
 	numtype* target;
 	numtype* prediction;
-	sDS* ds;	// REMOVE!
 	int pid;
 	int tid;
 	int testid;

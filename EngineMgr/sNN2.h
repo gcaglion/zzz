@@ -13,6 +13,9 @@ struct sNN2 : sCore {
 	EXPORT sNN2(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
 	EXPORT ~sNN2();
 
+	//-- NNParms
+	sNNparms* parms;
+
 	//-- local implementations of sCore virtual methods
 	void setLayout();
 	void mallocLayout();
@@ -25,8 +28,6 @@ private:
 
 	int epoch;
 
-	//-- NNParms
-	sNNparms* parms;
 
 							//-- internal layout
 	int* nodesCnt;

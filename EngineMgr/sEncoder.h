@@ -1,6 +1,6 @@
 #pragma once
 #include "../ConfigMgr/sCfgObj.h"
-#include "../DataMgr/sTS.h"
+#include "../DataMgr/sTS2.h"
 #include "../Algebra/Algebra.h"
 #include "sNNenums.h"
 

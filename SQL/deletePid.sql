@@ -1,6 +1,8 @@
 set verify on
 undefine pid
 delete from CLIENTINFO where processid in(&&pid);
+delete from COREINFO where processid in(&&pid);
+delete from CORESCALINGINFO where processid in(&&pid);
 delete from COREIMAGE_NN_N where processid in(&&pid);
 delete from COREIMAGE_NN_W where processid in(&&pid);
 delete from CORELAYOUTS where enginepid in(&&pid);

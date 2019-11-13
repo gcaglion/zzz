@@ -30,9 +30,21 @@ sCoreLayout::sCoreLayout(sCfgObjParmsDef, int inputCnt_, int outputCnt_, int tid
 	//-- 3. restore cfg->currentKey from sCfgObj->bkpKey
 	cfg->currentKey=bkpKey;
 }
+sCoreLayout::sCoreLayout(sObjParmsDef, sLogger* persistor_, int pid_, int coreId_) : sCfgObj(sObjParmsVal, nullptr, "") {
+	//-- 0. mallocs
+	parentId=(int*)malloc(CORE_MAX_PARENTS*sizeof(int));
+	parentConnType=(int*)malloc(CORE_MAX_PARENTS*sizeof(int));
+	parentDesc=(char**)malloc(CORE_MAX_PARENTS*sizeof(char*)); for (int p=0; p<CORE_MAX_PARENTS; p++) parentDesc[p]=(char*)malloc(XMLKEY_PARM_VAL_MAXLEN);
+	//-- 1. load from db
+	//persistor_->loadCoreLayout(pid_, coreId_)
+}
 sCoreLayout::~sCoreLayout() {
 	free(parentId);
 	free(parentConnType);
 	for (int p=0; p<CORE_MAX_PARENTS; p++) free(parentDesc[p]);
 	free(parentDesc);
+}
+
+void sCoreLayout::save(sLogger* persistor_, int pid_, int tid_) {
+
 }

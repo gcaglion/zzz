@@ -3,7 +3,7 @@
 #include "..\common.h"
 #include "../ConfigMgr/sCfgObj.h"
 #include "../Algebra/Algebra.h"
-#include "../DataMgr/sDS.h"
+#include "../DataMgr/sTS2.h"
 #include "sCore.h"
 #include "sNNparms.h"
 #include "sNNenums.h"

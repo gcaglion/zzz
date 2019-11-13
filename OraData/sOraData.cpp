@@ -464,6 +464,71 @@ void sOraData::saveClientInfo(int pid, int sequenceId, int simulationId, int npi
 
 }
 
+void sOraData::saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int inputCnt_, int targetLen_, int outputCnt_, int batchSize_, numtype* trMin_, numtype* trMax_) {
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into CoreInfo(ProcessId, ThreadId, CoreType, sampleLen, targetLen, inputCnt, outputCnt, batchSize) values (%d, %d, %d, %d, %d, %d, %d, %d)", pid, tid, coreType_, sampleLen_, targetLen_, inputCnt_, outputCnt_, batchSize_);
+	safecall(this, sqlExec, sqlS);
+
+	for (int i=0; i<inputCnt_; i++) {
+		sprintf_s(sqlS, SQL_MAXLEN, "insert into CoreScalingInfo(ProcessId, ThreadId, InputId, TRmin, TRmax) values(%d, %d, %d, %f, %f)", pid, tid, i, trMin_[i], trMax_[i]);
+		safecall(this, sqlExec, sqlS);
+	}
+}
+void sOraData::loadCoreInfo(int pid, int tid, int* coreType_, int* sampleLen_, int* inputCnt_, int* targetLen_, int* outputCnt_, int* batchSize_, numtype* trMin_, numtype* trMax_) {
+	
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open) {}
+
+	sprintf_s(sqlS, SQL_MAXLEN, "select CoreType, SampleLen, TargetLen, InputCnt, OutputCnt, BatchSize from CoreInfo where ProcessId=%d and ThreadId=%d", pid, tid);
+	try {
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+
+		int i=0;
+		while (((ResultSet*)rset)->next()) {
+			(*coreType_)=((ResultSet*)rset)->getInt(1);
+			(*sampleLen_)=((ResultSet*)rset)->getInt(2);
+			(*inputCnt_)=((ResultSet*)rset)->getInt(3);
+			(*outputCnt_)=((ResultSet*)rset)->getInt(4);
+			(*batchSize_)=((ResultSet*)rset)->getInt(5);
+			i++;
+		}
+		if (i==0) fail("Core Info not found for ProcessId=%d, ThreadId=%d", pid, tid);
+
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+		sprintf_s(sqlS, SQL_MAXLEN, "select InputId, TRmin, TRmax from CoreScalingInfo where ProcessId=%d and ThreadId=%d order by InputId", pid, tid);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+		i=0;
+		while (((ResultSet*)rset)->next()) {
+			trMin_[i]=((ResultSet*)rset)->getFloat(2);
+			trMax_[i]=((ResultSet*)rset)->getFloat(3);
+			i++;
+		}
+		if (i==0) fail("Core Scaling Info not found for ProcessId=%d, ThreadId=%d", pid, tid);
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
+}
+//--
+void sOraData::saveCoreLayout(int pid, int tid, int parentCoresCnt, int* parentCore, int* parentConnType) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	for (int cp=0; cp<parentCoresCnt; cp++) {
+		sprintf_s(sqlS, SQL_MAXLEN, "insert into CoreLayouts(EnginePid, CoreId, ParentCoreId, ParentConnType) values(%d, %d, %d, %d)", pid, 0, parentCore[cp], parentConnType[cp]);
+		safecall(this, sqlExec, sqlS);
+	}
+}
+void sOraData::loadCoreLayout(int pid, int tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+
+}
+
 //-- Save/Load core images
 void sOraData::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F) {
 	ub2* intLen; ub2* floatLen;

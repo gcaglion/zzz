@@ -19,7 +19,7 @@ struct sCoreLogger : sLogger {
 	//-- from XML
 	sCoreLogger(sCfgObjParmsDef);
 	//-- from DB
-	sCoreLogger(sObjParmsDef, sLogger* persistor_, int pid_, int tid_);
+	EXPORT sCoreLogger(sObjParmsDef, sLogger* persistor_, int pid_, int tid_);
 	~sCoreLogger();
 
 	EXPORT void save(sLogger* persistor_, int pid_, int tid_);

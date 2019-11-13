@@ -9,6 +9,9 @@
 #include "../Wavelib/wavelet2d.h"
 #include "../BaseObj/sDbgMacros.h"
 
+
+#define MAX_TS_FEATURES 128
+
 struct sTS2 :sCfgObj {
 	int stepsCnt;
 	int* dataSourcesCnt;	// IN/OUT

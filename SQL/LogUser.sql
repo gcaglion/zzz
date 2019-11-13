@@ -3,6 +3,29 @@
 --grant dba to LogUser;
 --connect LogUser/LogPwd@Algo
 
+drop table CoreInfo purge;
+create table CoreInfo(
+	ProcessId number,
+	ThreadId number,
+	CoreType number,
+	sampleLen number,
+	targetLen number, 
+	inputCnt number,
+	outputCnt number,
+	batchSize number
+);
+alter table CoreInfo add constraint CoreInfo_PK primary key(ProcessId, ThreadId) using index tablespace LogIdx;
+
+drop table CoreScalingInfo;
+create table CoreScalingInfo(	
+	ProcessId number,
+	ThreadId number,
+	InputId number,
+	TRmin number,
+	TRmax number
+);
+alter table CoreScalingInfo add constraint CoreScalingInfo_PK primary key(ProcessId, ThreadId, InputId);
+
 drop table TrainLog purge;
 create table TrainLog(
 	ProcessId number,

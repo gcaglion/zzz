@@ -77,6 +77,20 @@ void sLogger::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* samp
 	if (source==OraData) safecall(oradb, loadEngineInfo, pid, engineType_, coresCnt, sampleLen_, predictionLen_, featuresCnt_, batchSize_, WNNdecompLevel_, WNNwaveletType_, saveToDB_, saveToFile_, dbconn_, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType, trMin_, trMax_, fftMin_, fftMax_);
 	//if (source==FileData) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, saveToDB_, saveToFile_, "DioPorco", coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
 }
+//--
+void sLogger::saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int inputCnt_, int targetLen_, int outputCnt_, int batchSize_, numtype* trMin_, numtype* trMax_) {
+	if (source==OraData) safecall(oradb, saveCoreInfo, pid, tid, coreType_, sampleLen_, inputCnt_, targetLen_, outputCnt_, batchSize_, trMin_, trMax_);
+}
+void sLogger::loadCoreInfo(int pid, int tid, int* coreType_, int* sampleLen_, int* inputCnt_, int* targetLen_, int* outputCnt_, int* batchSize_, numtype* trMin_, numtype* trMax_) {
+	if (source==OraData) safecall(oradb, loadCoreInfo, pid, tid, coreType_, sampleLen_, inputCnt_, targetLen_, outputCnt_, batchSize_, trMin_, trMax_);
+}
+//--
+void sLogger::saveCoreLayout(int pid, int tid, int parentCoresCnt, int* parentCore, int* parentConnType) {
+	if (source==OraData) safecall(oradb, saveCoreLayout, pid, tid, parentCoresCnt, parentCore, parentConnType);
+}
+void sLogger::loadCoreLayout(int pid, int tid, int* parentCoresCnt, int** parentCore, int** parentConnType) {
+	if (source==OraData) safecall(oradb, loadCoreLayout, pid, tid, parentCoresCnt, parentCore, parentConnType);
+}
 //-- Save/Load Core<XXX>Image
 void sLogger::saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F) {
 	if (saveToDB) safecall(oradb, saveCoreNNImage, pid, tid, epoch, Wcnt, W, Fcnt, F);

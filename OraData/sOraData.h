@@ -42,6 +42,12 @@ struct sOraData : sCfgObj {
 	EXPORT void loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* batchSize_, int* WNNdecompLevel_, int* WNNwaveletType_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_, numtype** fftMin_, numtype** fftMax_);
 	EXPORT int getSavedEnginePids(int maxPids_, int* oPid);
 	//--
+	EXPORT void saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int inputCnt_, int targetLen_, int outputCnt_, int batchSize_, numtype* trMin_, numtype* trMax_);
+	EXPORT void loadCoreInfo(int pid, int tid, int* coreType_, int* sampleLen_, int* inputCnt_, int* targetLen_, int* outputCnt_, int* batchSize_, numtype* trMin_, numtype* trMax_);
+	//--
+	EXPORT void saveCoreLayout(int pid, int tid, int parentCoresCnt, int* parentCore, int* parentConnType);
+	EXPORT void loadCoreLayout(int pid, int tid, int* parentCoresCnt, int** parentCore, int** parentConnType);
+
 	EXPORT void saveCoreNNImage(int pid, int tid, int epoch, int Wcnt, numtype* W, int Fcnt, numtype* F);
 	EXPORT void saveCoreGAImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
 	EXPORT void saveCoreSOMImage(int pid, int tid, int epoch, int Wcnt, numtype* W);
