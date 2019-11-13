@@ -328,12 +328,18 @@ void sTS2::dump(bool predicted) {
 	sprintf_s(dumpFileName, "%s/%s_OUT_ACT_TR_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
 	FILE* dumpFileOUTACTTR;
 	if (fopen_s(&dumpFileOUTACTTR, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
+	sprintf_s(dumpFileName, "%s/%s_OUT_ACT_TRS_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	FILE* dumpFileOUTACTTRS;
+	if (fopen_s(&dumpFileOUTACTTRS, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 	sprintf_s(dumpFileName, "%s/%s_OUT_PRD_BASE_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
 	FILE* dumpFileOUTPRDBASE;
 	if (fopen_s(&dumpFileOUTPRDBASE, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 	sprintf_s(dumpFileName, "%s/%s_OUT_PRD_TR_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
 	FILE* dumpFileOUTPRDTR;
 	if (fopen_s(&dumpFileOUTPRDTR, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
+	sprintf_s(dumpFileName, "%s/%s_OUT_PRD_TRS_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	FILE* dumpFileOUTPRDTRS;
+	if (fopen_s(&dumpFileOUTPRDTRS, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
 	dumpToFile(dumpFileINACTBASE, 0, val);
 	dumpToFile(dumpFileINACTTR, 0, valTR);
@@ -343,8 +349,10 @@ void sTS2::dump(bool predicted) {
 	dumpToFile(dumpFileINPRDBASE, 0, prd);
 	dumpToFile(dumpFileOUTACTBASE, 1, val);
 	dumpToFile(dumpFileOUTACTTR, 1, valTR);
+	dumpToFile(dumpFileOUTACTTRS, 1, valTRS);
 	dumpToFile(dumpFileOUTPRDBASE, 1, prd);
 	dumpToFile(dumpFileOUTPRDTR, 1, prdTR);
+	dumpToFile(dumpFileOUTPRDTRS, 1, prdTRS);
 }
 
 void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, int* oInputCnt, int* oOutputCnt, numtype** oSample, numtype** oTarget, numtype** oPrediction) {
@@ -397,7 +405,7 @@ void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, int* oIn
 			for (int d=0; d<dataSourcesCnt[1]; d++) {
 				for (int f=0; f<featuresCnt[1][d]; f++) {
 					for (int l=0; l<(WTlevel[1]+2); l++) {
-						(*oTarget)[dsidx] = valTRS[s+bar][1][d][f][l];
+						(*oTarget)[dsidx] = valTRS[s+sampleLen_+bar][1][d][f][l];
 						dsidx++;
 					}
 				}
@@ -433,11 +441,11 @@ void sTS2::getPrediction(int samplesCnt_, int sampleLen_, int targetLen_, numtyp
 	}
 
 	for (s=0; s<samplesCnt_; s++) {
-		for (b=0; b<targetLen_; b++) {
+		for (b=0; b<1; b++) {
 			for (int d=0; d<dataSourcesCnt[1]; d++) {
 				for (int f=0; f<featuresCnt[1][d]; f++) {
 					for (int l=0; l<(WTlevel[1]+2); l++) {
-						prdTRS[s+sampleLen_-1][1][d][f][l]=prediction_[(s)*outputCnt +b*dataSourcesCnt[1]*featuresCnt[1][d]*(WTlevel[1]+2) +d*featuresCnt[1][d]*(WTlevel[1]+2) +f*(WTlevel[1]+2) +l];
+						prdTRS[s+sampleLen_][1][d][f][l]=prediction_[(s)*outputCnt +b*dataSourcesCnt[1]*featuresCnt[1][d]*(WTlevel[1]+2) +d*featuresCnt[1][d]*(WTlevel[1]+2) +f*(WTlevel[1]+2) +l];
 					}
 				}
 			}

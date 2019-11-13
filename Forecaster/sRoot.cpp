@@ -315,7 +315,11 @@ void sRoot::kaz() {
 	//==== Infer on training set ===
 	NNc->infer();
 	//VinitRnd(trainOutputCnt*trainSamplesCnt, -1, 1, trainPrediction);
+	dumpArrayH(trainSamplesCnt*trainOutputCnt, trainTarget, "C:/temp/trainTarget.csv");
+	dumpArrayH(trainSamplesCnt*trainOutputCnt, trainPrediction, "C:/temp/trainPrediction.csv");
 
+	
+	//memcpy_s(trainPrediction, trainOutputCnt*trainSamplesCnt*sizeof(numtype), trainTarget, trainOutputCnt*trainSamplesCnt*sizeof(numtype));
 	//-- get predictions into ts->prdTRS
 	trainTS->getPrediction(trainSamplesCnt, trainSampleLen, trainTargetLen, trainPrediction);
 	//-- unscale prdTRS into prdTR

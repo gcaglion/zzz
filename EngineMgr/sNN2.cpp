@@ -83,7 +83,6 @@ sNN2::~sNN2() {
 	Alg->myFree(u);
 	Alg->myFree(tse);
 	Alg->myFree(se);
-	Alg->myFree(a);
 	Alg->myFree(W);
 	Alg->myFree(prevW);
 	Alg->myFree(dW);
@@ -379,7 +378,6 @@ void sNN2::infer(){
 
 	Alg->Vinit(1, tse, 0, 0); 
 	for (int b=0; b<procArgs->batchCnt; b++) {
-		Alg->Vinit(weightsCntTotal, dW, 0, 0);
 		for (int s=0; s<procArgs->batchSize; s++) {
 			//-- 1. load sample/target
 			int sid=b*procArgs->batchSize*procArgs->inputCnt+s*procArgs->inputCnt;
