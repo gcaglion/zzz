@@ -1,4 +1,5 @@
 #include "sNN2.h"
+#include <vld.h>
 
 void sNN2::setLayout() {
 	int l, nl;
@@ -87,6 +88,12 @@ sNN2::~sNN2() {
 	Alg->myFree(prevW);
 	Alg->myFree(dW);
 	Alg->myFree(dJdW);
+
+	free(nodesCnt);
+	free(weightsCnt);
+	free(ctxStart);
+	free(levelFirstNode);
+	free(levelFirstWeight);
 }
 
 void sNN2::mallocNeurons() {

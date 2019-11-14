@@ -249,13 +249,23 @@ void sRoot::kaz() {
 */
 	
 	int testid=999;
-
+	int seqId_=0;
 	int action=1;	//-- 0:train ; 1:infer
+	int idx;
 
 	sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), defaultdbg, "Config/Client.xml");
 	sLogger* clientLogger; safespawn(clientLogger, newsname("clientLogger"), defaultdbg, clientCfg, "/Client/Persistor");
 	safecall(this, getSafePid, clientLogger, &pid);
 
+	int sampleLen;
+	int targetLen;
+	int batchSize;
+	int samplesCnt;
+	int inputCnt;
+	int outputCnt;
+	numtype* sample;
+	numtype* target;
+	numtype* prediction;
 	numtype* trMinIN;
 	numtype* trMaxIN;
 	numtype* trMinOUT;
@@ -263,45 +273,39 @@ void sRoot::kaz() {
 
 	if (action==0) {
 		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), defaultdbg, "Config/trainDS.xml");
-		int trainSampleLen; safecall(trainCfg->currentKey, getParm, &trainSampleLen, "SampleLen");
-		int trainTargetLen; safecall(trainCfg->currentKey, getParm, &trainTargetLen, "TargetLen");
-		int trainBatchSize; safecall(trainCfg->currentKey, getParm, &trainBatchSize, "BatchSize");
+		safecall(trainCfg->currentKey, getParm, &sampleLen, "SampleLen");
+		safecall(trainCfg->currentKey, getParm, &targetLen, "TargetLen");
+		safecall(trainCfg->currentKey, getParm, &batchSize, "BatchSize");
 		sTS2* trainTS; safespawn(trainTS, newsname("trainTS"), defaultdbg, trainCfg, "/TimeSerie");
 		trainTS->scale(-1, 1);
 		//	trainTS->dump();
 
-		numtype* trainSample;
-		numtype* trainTarget;
-		numtype* trainPrediction;
-		int trainSamplesCnt;
-		int trainInputCnt;
-		int trainOutputCnt;
-		trainTS->getDataSet(trainSampleLen, trainTargetLen, &trainSamplesCnt, &trainInputCnt, &trainOutputCnt, &trainSample, &trainTarget, &trainPrediction);
+		safecall(trainTS, getDataSet, sampleLen, targetLen, &samplesCnt, &inputCnt, &outputCnt, &sample, &target, &prediction);
 
 		sCfg* engCfg; safespawn(engCfg, newsname("engCfg"), defaultdbg, "Config/Engine.xml");
 		sCoreLayout** coreLayout=(sCoreLayout**)malloc(1*sizeof(sCoreLayout*));
 		sNNparms* NNcp=nullptr; sNN2* NNc=nullptr;
 		int c=0;
-		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, engCfg, strBuild("Core%d/Layout", c), trainInputCnt, trainOutputCnt);
+		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, engCfg, strBuild("Core%d/Layout", c), inputCnt, outputCnt);
 		safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, engCfg, strBuild("Core%d/Parameters", c));
 		NNcp->setScaleMinMax();
 		safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, engCfg, "../", coreLayout[c], NNcp);
 
 		sCoreProcArgs* trainArgs = new sCoreProcArgs();
 		trainArgs->testid=testid;
-		trainArgs->samplesCnt=trainSamplesCnt;
-		trainArgs->inputCnt=trainInputCnt;
-		trainArgs->outputCnt=trainOutputCnt;
-		trainArgs->batchSize=trainBatchSize;
-		trainArgs->batchCnt=(int)floor(trainSamplesCnt/trainBatchSize);
-		trainArgs->sample=trainSample;
-		trainArgs->target=trainTarget;
-		trainArgs->prediction=trainPrediction;
+		trainArgs->samplesCnt=samplesCnt;
+		trainArgs->inputCnt=inputCnt;
+		trainArgs->outputCnt=outputCnt;
+		trainArgs->batchSize=batchSize;
+		trainArgs->batchCnt=(int)floor(samplesCnt/batchSize);
+		trainArgs->sample=sample;
+		trainArgs->target=target;
+		trainArgs->prediction=prediction;
 		trainArgs->pid=pid;
 		trainArgs->tid=GetCurrentThreadId();
 
 		NNc->procArgs=trainArgs;
-		NNc->train();
+		safecall(NNc, train);
 
 		if (!NNc->procArgs->quitAfterBreak) {
 			if (NNc->persistor->saveMSEFlag) safecall(NNc->persistor, saveMSE, NNc->procArgs->pid, NNc->procArgs->tid, NNc->procArgs->mseCnt, NNc->procArgs->duration, NNc->procArgs->mseT, NNc->procArgs->mseV);
@@ -312,19 +316,15 @@ void sRoot::kaz() {
 		}
 
 		//==== Infer on training set ===
-		NNc->infer();
-		//VinitRnd(trainOutputCnt*trainSamplesCnt, -1, 1, trainPrediction);
-		//dumpArrayH(trainSamplesCnt*trainOutputCnt, trainTarget, "C:/temp/trainTarget.csv");
-		//dumpArrayH(trainSamplesCnt*trainOutputCnt, trainPrediction, "C:/temp/trainPrediction.csv");
+		safecall(NNc, infer);
 
 		//-- get predictions into ts->prdTRS
-		trainTS->getPrediction(trainSamplesCnt, trainSampleLen, trainTargetLen, trainPrediction);
+		trainTS->getPrediction(samplesCnt, sampleLen, targetLen, prediction);
 		//-- unscale prdTRS into prdTR
 		trainTS->unscale();
 		//-- untransform prdTR into prd
 		trainTS->untransform();
 		//-- persist (OUTPUT only)
-		int seqId_=0;
 		if (NNc->persistor->saveRunFlag) {
 			for (int d=0; d<trainTS->dataSourcesCnt[1]; d++) {
 				for (int f=0; f<trainTS->featuresCnt[1][d]; f++) {
@@ -337,11 +337,11 @@ void sRoot::kaz() {
 			}
 		}
 		//==============================
-		trMinIN=(numtype*)malloc(trainInputCnt*sizeof(numtype));
-		trMaxIN=(numtype*)malloc(trainInputCnt*sizeof(numtype));
-		trMinOUT=(numtype*)malloc(trainOutputCnt*sizeof(numtype));
-		trMaxOUT=(numtype*)malloc(trainOutputCnt*sizeof(numtype));
-		int idx=0;
+		trMinIN=(numtype*)malloc(inputCnt*sizeof(numtype));
+		trMaxIN=(numtype*)malloc(inputCnt*sizeof(numtype));
+		trMinOUT=(numtype*)malloc(outputCnt*sizeof(numtype));
+		trMaxOUT=(numtype*)malloc(outputCnt*sizeof(numtype));
+		idx=0;
 		for (int d=0; d<trainTS->dataSourcesCnt[0]; d++) {
 			for (int f=0; f<trainTS->featuresCnt[0][d]; f++) {
 				for (int l=0; l<(trainTS->WTlevel[0]+2); l++) {
@@ -361,12 +361,13 @@ void sRoot::kaz() {
 				}
 			}
 		}
-		safecall(clientLogger, saveCoreInfo, pid, trainArgs->tid, CORE_NN, trainSampleLen, trainInputCnt, trainTargetLen, trainOutputCnt, trainBatchSize, trMinIN, trMaxIN, trMinOUT, trMaxOUT);
+		safecall(clientLogger, saveCoreInfo, pid, trainArgs->tid, CORE_NN, sampleLen, inputCnt, targetLen, outputCnt, batchSize, trMinIN, trMaxIN, trMinOUT, trMaxOUT);
 		safecall(NNc->layout, save, clientLogger, pid, trainArgs->tid);
 		safecall(NNc->persistor, save, clientLogger, pid, trainArgs->tid);
 		safecall(NNc->parms, save, clientLogger, pid, trainArgs->tid);
 
-		free(trMinIN); free(trMaxIN);
+		free(trMinIN); free(trMaxIN); free(trMinOUT); free(trMaxOUT);
+		free(trainArgs);
 
 		timer->stop(endtimeS);
 		safecall(clientLogger, saveClientInfo, pid, 0, testid, pid, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0], "", "", true, false, "", "", "", "");
@@ -376,31 +377,25 @@ void sRoot::kaz() {
 
 	} else {
 		sCfg* inferCfg; safespawn(inferCfg, newsname("inferCfg"), defaultdbg, "Config/inferDS.xml");
-		int inferSampleLen; safecall(inferCfg->currentKey, getParm, &inferSampleLen, "SampleLen");
-		int inferTargetLen; safecall(inferCfg->currentKey, getParm, &inferTargetLen, "TargetLen");
-		int inferBatchSize; safecall(inferCfg->currentKey, getParm, &inferBatchSize, "BatchSize");
+		safecall(inferCfg->currentKey, getParm, &sampleLen, "SampleLen");
+		safecall(inferCfg->currentKey, getParm, &targetLen, "TargetLen");
+		safecall(inferCfg->currentKey, getParm, &batchSize, "BatchSize");
 		sTS2* inferTS; safespawn(inferTS, newsname("inferTS"), defaultdbg, inferCfg, "/TimeSerie");
 
 		//==== Infer on infer set    ===
-		numtype* inferSample;
-		numtype* inferTarget;
-		numtype* inferPrediction;
-		int inferSamplesCnt;
-		int inferInputCnt;
-		int inferOutputCnt;
-		int savedCorePid=6307;
-		int savedCoreTid=7152;
+		int savedCorePid=11558;
+		int savedCoreTid=17388;
 
 		sCoreLayout* NNcLayout; safespawn(NNcLayout, newsname("NNcLayout"), defaultdbg, clientLogger, savedCorePid, savedCoreTid);
 		int savedCoreType; numtype* trMinIN; numtype* trMaxIN;
-		clientLogger->loadCoreInfo(savedCorePid, savedCoreTid, &savedCoreType, &inferSampleLen, &inferInputCnt, &inferTargetLen, &inferOutputCnt, &inferBatchSize, &trMinIN, &trMaxIN, &trMinOUT, &trMaxOUT);
-		NNcLayout->inputCnt=inferInputCnt; NNcLayout->outputCnt=inferOutputCnt;
+		clientLogger->loadCoreInfo(savedCorePid, savedCoreTid, &savedCoreType, &sampleLen, &inputCnt, &targetLen, &outputCnt, &batchSize, &trMinIN, &trMaxIN, &trMinOUT, &trMaxOUT);
+		NNcLayout->inputCnt=inputCnt; NNcLayout->outputCnt=outputCnt;
 		sCoreLogger* NNcPersistor; safespawn(NNcPersistor, newsname("NNcPersistor"), defaultdbg, clientLogger, savedCorePid, savedCoreTid);
 		sNNparms* NNcParms; safespawn(NNcParms, newsname("NNcParms"), defaultdbg, clientLogger, savedCorePid, savedCoreTid);
 		sNN2* NNc; safespawn(NNc, newsname("inferNNcore"), defaultdbg, NNcLayout, NNcPersistor, NNcParms);
 		safecall(NNc, loadImage, savedCorePid, savedCoreTid, -1);
 
-		int idx=0;
+		idx=0;
 		for (int d=0; d<inferTS->dataSourcesCnt[0]; d++) {
 			for (int f=0; f<inferTS->featuresCnt[0][d]; f++) {
 				for (int l=0; l<(inferTS->WTlevel[0]+2); l++) {
@@ -426,31 +421,30 @@ void sRoot::kaz() {
 		//-- consistency checks: 
 		//...........................
 
-		inferTS->getDataSet(inferSampleLen, inferTargetLen, &inferSamplesCnt, &inferInputCnt, &inferOutputCnt, &inferSample, &inferTarget, &inferPrediction);
+		safecall(inferTS, getDataSet, sampleLen, targetLen, &samplesCnt, &inputCnt, &outputCnt, &sample, &target, &prediction);
 
 		sCoreProcArgs* inferArgs = new sCoreProcArgs();
 		inferArgs->testid=999;
-		inferArgs->samplesCnt=inferSamplesCnt;
-		inferArgs->inputCnt=inferInputCnt;
-		inferArgs->outputCnt=inferOutputCnt;
-		inferArgs->batchSize=inferBatchSize;
-		inferArgs->batchCnt=(int)floor(inferSamplesCnt/inferBatchSize);
-		inferArgs->sample=inferSample;
-		inferArgs->target=inferTarget;
-		inferArgs->prediction=inferPrediction;
+		inferArgs->samplesCnt=samplesCnt;
+		inferArgs->inputCnt=inputCnt;
+		inferArgs->outputCnt=outputCnt;
+		inferArgs->batchSize=batchSize;
+		inferArgs->batchCnt=(int)floor(samplesCnt/batchSize);
+		inferArgs->sample=sample;
+		inferArgs->target=target;
+		inferArgs->prediction=prediction;
 		inferArgs->pid=pid;
 		inferArgs->tid=GetCurrentThreadId();
 
 		NNc->procArgs=inferArgs;
 		NNc->infer();
 		//-- get predictions into ts->prdTRS
-		inferTS->getPrediction(inferSamplesCnt, inferSampleLen, inferTargetLen, inferPrediction);
+		inferTS->getPrediction(samplesCnt, sampleLen, targetLen, prediction);
 		//-- unscale prdTRS into prdTR
 		inferTS->unscale();
 		//-- untransform prdTR into prd
 		inferTS->untransform();
 		//-- persist (OUTPUT only)
-		int seqId_=0;
 		if (NNc->persistor->saveRunFlag) {
 			for (int d=0; d<inferTS->dataSourcesCnt[1]; d++) {
 				for (int f=0; f<inferTS->featuresCnt[1][d]; f++) {
@@ -472,6 +466,7 @@ void sRoot::kaz() {
 		NNc->persistor->commit();
 		clientLogger->commit();
 
+		free(inferArgs);
 	}
 
 
@@ -515,8 +510,8 @@ void sRoot::kaz() {
 	int savedEnginePid=6740;
 	sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid);
 	int testid=0;
-	int inferBatchSize=32;
-	eng->infer(testid, 0, ds2, inferBatchSize);
+	int batchSize=32;
+	eng->infer(testid, 0, ds2, batchSize);
 */
 
 	/*sTS* ts1; safespawn(ts1, newsname("TS1"), defaultdbg, dsCfg, "/TimeSerie");

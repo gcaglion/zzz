@@ -1,4 +1,5 @@
 #include "sTS2.h"
+#include <vld.h>
 
 #ifndef MAX_TS_FEATURES
 #define MAX_TS_FEATURES 128
@@ -556,15 +557,24 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 			free(tmpvalx); free(tmpvalBx);
 		}
 	}
+	for (int i=0; i<2; i++) {
+		for (int d=0; d<dataSourcesCnt[i]; d++) {
+			free(selF[i][d]);
+		}
+		free(selF[i]);
+	}
+	free(selF);
 	for (int i=0; i<stepsCnt; i++) free(tmptime[i]);
 	free(tmptime); free(tmptimeB);
 	free(dsrc);
-
 	if (doDump) dump();
 
 
 }
 sTS2::~sTS2() {
+
+	free(WTtype); free(WTlevel);
+
 	for (int i=0; i<2; i++) {
 		for (int d=0; d<dataSourcesCnt[i]; d++) {
 			for (int f=0; f<featuresCnt[i][d]; f++) {
@@ -572,7 +582,7 @@ sTS2::~sTS2() {
 			}
 			free(TRmin[i][d]); free(TRmax[i][d]); free(scaleM[i][d]); free(scaleP[i][d]); free(valB[i][d]);
 		}
-		free(TRmin[i]); free(TRmax[i]); free(scaleM[i]); free(scaleP[i]); free(valB[i]);
+		free(TRmin[i]); free(TRmax[i]); free(scaleM[i]); free(scaleP[i]); free(valB[i]); 
 	}
 	free(TRmin); free(TRmax); free(scaleM); free(scaleP); free(valB);
 	free(timestampB);
@@ -596,4 +606,8 @@ sTS2::~sTS2() {
 	free(val); free(valTR); free(valTRS);
 	free(prd); free(prdTR); free(prdTRS);
 	for (int i=0; i<stepsCnt; i++) free(timestamp[i]); free(timestamp);
+
+	for (int i=0; i<2; i++) free(featuresCnt[i]);
+	free(featuresCnt);
+	free(dataSourcesCnt);
 }

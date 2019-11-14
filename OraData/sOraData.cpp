@@ -1,6 +1,7 @@
 #include "sOraData.h"
 #include "sOraDBcommon.h"
 #include <iostream>
+#include <vld.h>
 
 sOraData::sOraData(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	//-- 1. get Parameters
