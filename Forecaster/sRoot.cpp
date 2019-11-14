@@ -266,10 +266,10 @@ void sRoot::kaz() {
 	numtype* sample;
 	numtype* target;
 	numtype* prediction;
-	numtype* trMinIN;
-	numtype* trMaxIN;
-	numtype* trMinOUT;
-	numtype* trMaxOUT;
+	numtype* trMinIN=nullptr;
+	numtype* trMaxIN=nullptr;
+	numtype* trMinOUT=nullptr;
+	numtype* trMaxOUT=nullptr;
 
 	if (action==0) {
 		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), defaultdbg, "Config/trainDS.xml");
@@ -383,18 +383,21 @@ void sRoot::kaz() {
 		sTS2* inferTS; safespawn(inferTS, newsname("inferTS"), defaultdbg, inferCfg, "/TimeSerie");
 
 		//==== Infer on infer set    ===
-		int savedCorePid=11558;
-		int savedCoreTid=17388;
+		int savedEnginePid=11558;
 
-		sCoreLayout* NNcLayout; safespawn(NNcLayout, newsname("NNcLayout"), defaultdbg, clientLogger, savedCorePid, savedCoreTid);
-		int savedCoreType; numtype* trMinIN; numtype* trMaxIN;
-		clientLogger->loadCoreInfo(savedCorePid, savedCoreTid, &savedCoreType, &sampleLen, &inputCnt, &targetLen, &outputCnt, &batchSize, &trMinIN, &trMaxIN, &trMinOUT, &trMaxOUT);
-		NNcLayout->inputCnt=inputCnt; NNcLayout->outputCnt=outputCnt;
-		sCoreLogger* NNcPersistor; safespawn(NNcPersistor, newsname("NNcPersistor"), defaultdbg, clientLogger, savedCorePid, savedCoreTid);
-		sNNparms* NNcParms; safespawn(NNcParms, newsname("NNcParms"), defaultdbg, clientLogger, savedCorePid, savedCoreTid);
-		sNN2* NNc; safespawn(NNc, newsname("inferNNcore"), defaultdbg, NNcLayout, NNcPersistor, NNcParms);
-		safecall(NNc, loadImage, savedCorePid, savedCoreTid, -1);
-
+		sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, clientLogger, pid, savedEnginePid);
+		sCoreLayout* NNcLayout; sCoreLogger* NNcPersistor; sNNparms* NNcParms; sNN2* NNc=nullptr;
+		int savedCoreType; 
+		for (int c=0; c<eng->coresCnt; c++) {
+			safespawn(NNcLayout, newsname("NNcLayout"), defaultdbg, clientLogger, savedEnginePid, eng->coreThreadId[c]);
+			clientLogger->loadCoreInfo(savedEnginePid, eng->coreThreadId[c], &savedCoreType, &sampleLen, &inputCnt, &targetLen, &outputCnt, &batchSize, &trMinIN, &trMaxIN, &trMinOUT, &trMaxOUT);
+			NNcLayout->inputCnt=inputCnt; NNcLayout->outputCnt=outputCnt;
+			safespawn(NNcPersistor, newsname("NNcPersistor"), defaultdbg, clientLogger, savedEnginePid, eng->coreThreadId[c]);
+			safespawn(NNcParms, newsname("NNcParms"), defaultdbg, clientLogger, savedEnginePid, eng->coreThreadId[c]);
+			safespawn(NNc, newsname("inferNNcore"), defaultdbg, NNcLayout, NNcPersistor, NNcParms);
+			safecall(NNc, loadImage, savedEnginePid, eng->coreThreadId[c], -1);
+		}
+		
 		idx=0;
 		for (int d=0; d<inferTS->dataSourcesCnt[0]; d++) {
 			for (int f=0; f<inferTS->featuresCnt[0][d]; f++) {
@@ -686,13 +689,13 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	}
 
 	//--
-	sTS* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, selFcntTot, dt_, MT4engine->WTtype, MT4engine->WTlevel, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
+	sTS2* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, seriesCnt_, selFcnt, dt_, MT4engine->WTtype, MT4engine->WTlevel, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
 	//mtTS->slide(1);
 	//mtTS->dump();
-	sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump,(char*)nullptr, true);
+	//sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump,(char*)nullptr, true);
 	//--
 	
-	safecall(MT4engine, infer, MT4accountId, seqId_, mtDS, mtTS, MT4enginePid);
+	safecall(MT4engine, infer, MT4accountId, seqId_, mtTS, MT4enginePid);
 
 	for (int b=0; b<MT4engine->targetLen; b++) {
 		for (int f=0; f<MT4engine->featuresCnt; f++) {
@@ -871,16 +874,6 @@ extern "C" __declspec(dllexport) int _destroyEnv(char* iEnvS) {
 }
 
 //--
-//#pragma pack(1)
-extern "C" __declspec(dllexport) int kaz(int barsCnt, sMqlRates bar[]) {
-	FILE* kazf;
-	fopen_s(&kazf, "C:/temp/bars.csv", "w");
-	fprintf(kazf, "=======\n");
-	for (int b=0; b<barsCnt; b++) fprintf(kazf, "%f,%f,%f,%f \n", bar[b].open, bar[b].high, bar[b].low, bar[b].close, bar[b].tick_volume, bar[b].spread, bar[b].real_volume);
-	fclose(kazf);
-	return 1;
-}
-
 void sRoot::getActualFuture(char* iSymbol_, char* iTF_, char* iDate0_, char* oDate1_, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV) {
 	info("%s() CheckPoint %d ; iSymbol=%s , iTF_=%s", __func__, 1, iSymbol_, iTF_);
 	sOraData* fxdbconn; safespawn(fxdbconn, newsname("futureFXDBconn"), defaultdbg, "History", "HistoryPwd", "Algo");

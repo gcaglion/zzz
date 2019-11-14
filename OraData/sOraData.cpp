@@ -1,7 +1,7 @@
 #include "sOraData.h"
 #include "sOraDBcommon.h"
 #include <iostream>
-#include <vld.h>
+//#include <vld.h>
 
 sOraData::sOraData(sObjParmsDef, const char* DBUserName_, const char* DBPassword_, const char* DBConnString_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	//-- 1. get Parameters
@@ -946,6 +946,16 @@ void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleL
 	}
 
 }
+void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, int batchSize_, int WNNdecompLevel_, int WNNwaveletType_) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	//-- 1. ENGINES
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt, DataBatchSize, WNNdecompLevel, WNNwaveletType) values(%d, %d, %d, %d, %d, %d, %d, %d)", pid, engineType, sampleLen_, predictionLen_, featuresCnt_, batchSize_, WNNdecompLevel_, WNNwaveletType_);
+	safecall(this, sqlExec, sqlS);
+
+}
 void sOraData::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* batchSize_, int* WNNdecompLevel_, int* WNNwaveletType_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_, numtype** fftMin_, numtype** fftMax_) {
 
 	//-- always check this, first!
@@ -1046,6 +1056,69 @@ void sOraData::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sam
 	}
 
 	//--
+}
+void sOraData::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* batchSize_, int* WNNdecompLevel_, int* WNNwaveletType_) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	//-- nested statement and result set
+	try {
+		//-- 0. engine type, data shape and persistor
+		sprintf_s(sqlS, SQL_MAXLEN, "select EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt, DataBatchSize, WNNdecompLevel, WNNwaveletType from Engines where ProcessId= %d", pid);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+		int i=0;
+		while (((ResultSet*)rset)->next()) {
+			(*engineType_)=((ResultSet*)rset)->getInt(1);
+			(*sampleLen_)=((ResultSet*)rset)->getInt(2);
+			(*predictionLen_)=((ResultSet*)rset)->getInt(3);
+			(*featuresCnt_)=((ResultSet*)rset)->getInt(4);
+			(*batchSize_)=((ResultSet*)rset)->getInt(5);
+			(*WNNdecompLevel_)=((ResultSet*)rset)->getInt(6);
+			(*WNNwaveletType_)=((ResultSet*)rset)->getInt(7);
+			i++;
+		}
+		if (i==0) fail("Engine pid %d not found.", pid);
+
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
+	//--
+}
+void sOraData::loadEngineCoresInfo(int pid, int* coresCnt_, int** coreType_, int** coreThreadId_, int** coreLayer_) {
+
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	//-- nested statement and result set
+	try {
+		//-- 0. engine type, data shape and persistor
+		sprintf_s(sqlS, SQL_MAXLEN, "select CoreType, CoreThreadId, Layer from EngineCores where EnginePid = %d", pid);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+		int i=0;
+		while (((ResultSet*)rset)->next()) {
+			(*coreType_)[i]=((ResultSet*)rset)->getInt(1);
+			(*coreThreadId_)[i]=((ResultSet*)rset)->getInt(2);
+			(*coreLayer_)[i]=((ResultSet*)rset)->getInt(3);
+			i++;
+		}
+		if (i==0) fail("Engine pid %d not found.", pid);
+		(*coresCnt_)=i;
+
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
+	}
 }
 int sOraData::getSavedEnginePids(int maxPids_, int* oPid) {
 	

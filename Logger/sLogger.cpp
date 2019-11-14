@@ -77,6 +77,17 @@ void sLogger::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* samp
 	if (source==OraData) safecall(oradb, loadEngineInfo, pid, engineType_, coresCnt, sampleLen_, predictionLen_, featuresCnt_, batchSize_, WNNdecompLevel_, WNNwaveletType_, saveToDB_, saveToFile_, dbconn_, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType, trMin_, trMax_, fftMin_, fftMax_);
 	//if (source==FileData) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, saveToDB_, saveToFile_, "DioPorco", coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
 }
+void sLogger::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, int batchSize_, int WNNdecompLevel_, int WNNwaveletType_) {
+	if (saveToDB) safecall(oradb, saveEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, batchSize_, WNNdecompLevel_, WNNwaveletType_);
+	//if (saveToFile) safecall(filedb, saveEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType);
+}
+void sLogger::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* batchSize_, int* WNNdecompLevel_, int* WNNwaveletType_) {
+	if (source==OraData) safecall(oradb, loadEngineInfo, pid, engineType_, coresCnt, sampleLen_, predictionLen_, featuresCnt_, batchSize_, WNNdecompLevel_, WNNwaveletType_);
+	//if (source==FileData) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, saveToDB_, saveToFile_, "DioPorco", coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
+}
+void sLogger::loadEngineCoresInfo(int pid, int* coresCnt_, int** coreType_, int** coreThreadId_, int** coreLayer_) {
+	if (source==OraData) safecall(oradb, loadEngineCoresInfo, pid, coresCnt_ , coreType_, coreThreadId_ , coreLayer_);
+}
 //--
 void sLogger::saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int inputCnt_, int targetLen_, int outputCnt_, int batchSize_, numtype* trMinIN_, numtype* trMaxIN_, numtype* trMinOUT_, numtype* trMaxOUT_) {
 	if (source==OraData) safecall(oradb, saveCoreInfo, pid, tid, coreType_, sampleLen_, inputCnt_, targetLen_, outputCnt_, batchSize_, trMinIN_, trMaxIN_, trMinOUT_, trMaxOUT_);

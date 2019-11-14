@@ -1,5 +1,5 @@
 #include "sNN2.h"
-#include <vld.h>
+//#include <vld.h>
 
 void sNN2::setLayout() {
 	int l, nl;

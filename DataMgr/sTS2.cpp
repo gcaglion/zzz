@@ -1,5 +1,5 @@
 #include "sTS2.h"
-#include <vld.h>
+//#include <vld.h>
 
 #ifndef MAX_TS_FEATURES
 #define MAX_TS_FEATURES 128
@@ -570,6 +570,9 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	if (doDump) dump();
 
 
+}
+sTS2::sTS2(sObjParmsDef, int stepsCnt_, int dataSourcesCnt_, int* featuresCnt_, int dt_, int WTtype_, int WTlevel_, char** timestamp_, numtype* val_, char* timestampB_, numtype* valB_, bool doDump_) : sCfgObj(sObjParmsVal, nullptr, "") {
+	fail("Not Implemented.");
 }
 sTS2::~sTS2() {
 

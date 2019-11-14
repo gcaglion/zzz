@@ -1,5 +1,6 @@
 #pragma once
 
+#include "../EngineMgr/sEngine.h"
 #include "../DataMgr/sTS2.h"
 #include "../DataMgr/sFXDataSource.h"
 #include "../DataMgr/sGenericDataSource.h"
@@ -29,7 +30,7 @@ struct sRoot : sCfgObj {
 	int MT4accountId;
 	int MT4enginePid;
 	int MT4sessionId;
-//	sEngine* MT4engine;
+	sEngine* MT4engine;
 	int MT4dt;
 	bool MT4doDump;
 	char MT4clientXMLFile[MAX_PATH];
