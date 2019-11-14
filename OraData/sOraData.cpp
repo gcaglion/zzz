@@ -464,7 +464,7 @@ void sOraData::saveClientInfo(int pid, int sequenceId, int simulationId, int npi
 
 }
 
-void sOraData::saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int inputCnt_, int targetLen_, int outputCnt_, int batchSize_, numtype* trMin_, numtype* trMax_) {
+void sOraData::saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int inputCnt_, int targetLen_, int outputCnt_, int batchSize_, numtype* trMinIN_, numtype* trMaxIN_, numtype* trMinOUT_, numtype* trMaxOUT_) {
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
@@ -472,11 +472,15 @@ void sOraData::saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int
 	safecall(this, sqlExec, sqlS);
 
 	for (int i=0; i<(inputCnt_/sampleLen_); i++) {
-		sprintf_s(sqlS, SQL_MAXLEN, "insert into CoreScalingInfo(ProcessId, ThreadId, InputId, TRmin, TRmax) values(%d, %d, %d, %f, %f)", pid, tid, i, trMin_[i], trMax_[i]);
+		sprintf_s(sqlS, SQL_MAXLEN, "insert into CoreScalingInfo(ProcessId, ThreadId, CoreSide, InputId, TRmin, TRmax) values(%d, %d, %d, %d, %f, %f)", pid, tid, 0, i, trMinIN_[i], trMaxIN_[i]);
+		safecall(this, sqlExec, sqlS);
+	}
+	for (int i=0; i<(outputCnt_/targetLen_); i++) {
+		sprintf_s(sqlS, SQL_MAXLEN, "insert into CoreScalingInfo(ProcessId, ThreadId, CoreSide, InputId, TRmin, TRmax) values(%d, %d, %d, %d, %f, %f)", pid, tid, 1, i, trMinOUT_[i], trMaxOUT_[i]);
 		safecall(this, sqlExec, sqlS);
 	}
 }
-void sOraData::loadCoreInfo(int pid, int tid, int* coreType_, int* sampleLen_, int* inputCnt_, int* targetLen_, int* outputCnt_, int* batchSize_, numtype** trMin_, numtype** trMax_) {
+void sOraData::loadCoreInfo(int pid, int tid, int* coreType_, int* sampleLen_, int* inputCnt_, int* targetLen_, int* outputCnt_, int* batchSize_, numtype** trMinIN_, numtype** trMaxIN_, numtype** trMinOUT_, numtype** trMaxOUT_) {
 	
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open) {}
@@ -498,19 +502,34 @@ void sOraData::loadCoreInfo(int pid, int tid, int* coreType_, int* sampleLen_, i
 		}
 		if (i==0) fail("Core Info not found for ProcessId=%d, ThreadId=%d", pid, tid);
 
-		(*trMin_)=(numtype*)malloc((*inputCnt_)*sizeof(numtype));
-		(*trMax_)=(numtype*)malloc((*inputCnt_)*sizeof(numtype));
+		(*trMinIN_)=(numtype*)malloc((*inputCnt_)*sizeof(numtype));
+		(*trMaxIN_)=(numtype*)malloc((*inputCnt_)*sizeof(numtype));
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
-		sprintf_s(sqlS, SQL_MAXLEN, "select InputId, TRmin, TRmax from CoreScalingInfo where ProcessId=%d and ThreadId=%d order by InputId", pid, tid);
+		sprintf_s(sqlS, SQL_MAXLEN, "select InputId, TRmin, TRmax from CoreScalingInfo where ProcessId=%d and ThreadId=%d and CoreSide=0 order by InputId", pid, tid);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 		i=0;
 		while (((ResultSet*)rset)->next()) {
-			(*trMin_)[i]=((ResultSet*)rset)->getFloat(2);
-			(*trMax_)[i]=((ResultSet*)rset)->getFloat(3);
+			(*trMinIN_)[i]=((ResultSet*)rset)->getFloat(2);
+			(*trMaxIN_)[i]=((ResultSet*)rset)->getFloat(3);
 			i++;
 		}
 		if (i==0) fail("Core Scaling Info not found for ProcessId=%d, ThreadId=%d", pid, tid);
+
+		(*trMinOUT_)=(numtype*)malloc((*outputCnt_)*sizeof(numtype));
+		(*trMaxOUT_)=(numtype*)malloc((*outputCnt_)*sizeof(numtype));
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+		sprintf_s(sqlS, SQL_MAXLEN, "select InputId, TRmin, TRmax from CoreScalingInfo where ProcessId=%d and ThreadId=%d and CoreSide=1 order by InputId", pid, tid);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+		i=0;
+		while (((ResultSet*)rset)->next()) {
+			(*trMinOUT_)[i]=((ResultSet*)rset)->getFloat(2);
+			(*trMaxOUT_)[i]=((ResultSet*)rset)->getFloat(3);
+			i++;
+		}
+		if (i==0) fail("Core Scaling Info not found for ProcessId=%d, ThreadId=%d", pid, tid);
+
 	}
 	catch (SQLException ex) {
 		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());

@@ -256,6 +256,11 @@ void sRoot::kaz() {
 	sLogger* clientLogger; safespawn(clientLogger, newsname("clientLogger"), defaultdbg, clientCfg, "/Client/Persistor");
 	safecall(this, getSafePid, clientLogger, &pid);
 
+	numtype* trMinIN;
+	numtype* trMaxIN;
+	numtype* trMinOUT;
+	numtype* trMaxOUT;
+
 	if (action==0) {
 		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), defaultdbg, "Config/trainDS.xml");
 		int trainSampleLen; safecall(trainCfg->currentKey, getParm, &trainSampleLen, "SampleLen");
@@ -332,21 +337,31 @@ void sRoot::kaz() {
 			}
 		}
 		//==============================
-		numtype* trMinIN=(numtype*)malloc(trainInputCnt*sizeof(numtype));
-		numtype* trMaxIN=(numtype*)malloc(trainInputCnt*sizeof(numtype));
+		trMinIN=(numtype*)malloc(trainInputCnt*sizeof(numtype));
+		trMaxIN=(numtype*)malloc(trainInputCnt*sizeof(numtype));
+		trMinOUT=(numtype*)malloc(trainOutputCnt*sizeof(numtype));
+		trMaxOUT=(numtype*)malloc(trainOutputCnt*sizeof(numtype));
 		int idx=0;
-		for (int i=0; i<2; i++) {
-			for (int d=0; d<trainTS->dataSourcesCnt[i]; d++) {
-				for (int f=0; f<trainTS->featuresCnt[i][d]; f++) {
-					for (int l=0; l<(trainTS->WTlevel[i]+2); l++) {
-						trMinIN[idx]=trainTS->TRmin[i][d][f][l];
-						trMaxIN[idx]=trainTS->TRmax[i][d][f][l];
-						idx++;
-					}
+		for (int d=0; d<trainTS->dataSourcesCnt[0]; d++) {
+			for (int f=0; f<trainTS->featuresCnt[0][d]; f++) {
+				for (int l=0; l<(trainTS->WTlevel[0]+2); l++) {
+					trMinIN[idx]=trainTS->TRmin[0][d][f][l];
+					trMaxIN[idx]=trainTS->TRmax[0][d][f][l];
+					idx++;
 				}
 			}
 		}
-		safecall(clientLogger, saveCoreInfo, pid, trainArgs->tid, CORE_NN, trainSampleLen, trainInputCnt, trainTargetLen, trainOutputCnt, trainBatchSize, trMinIN, trMaxIN);
+		idx=0;
+		for (int d=0; d<trainTS->dataSourcesCnt[1]; d++) {
+			for (int f=0; f<trainTS->featuresCnt[1][d]; f++) {
+				for (int l=0; l<(trainTS->WTlevel[1]+2); l++) {
+					trMinOUT[idx]=trainTS->TRmin[1][d][f][l];
+					trMaxOUT[idx]=trainTS->TRmax[1][d][f][l];
+					idx++;
+				}
+			}
+		}
+		safecall(clientLogger, saveCoreInfo, pid, trainArgs->tid, CORE_NN, trainSampleLen, trainInputCnt, trainTargetLen, trainOutputCnt, trainBatchSize, trMinIN, trMaxIN, trMinOUT, trMaxOUT);
 		safecall(NNc->layout, save, clientLogger, pid, trainArgs->tid);
 		safecall(NNc->persistor, save, clientLogger, pid, trainArgs->tid);
 		safecall(NNc->parms, save, clientLogger, pid, trainArgs->tid);
@@ -373,30 +388,39 @@ void sRoot::kaz() {
 		int inferSamplesCnt;
 		int inferInputCnt;
 		int inferOutputCnt;
-		int savedCorePid=10348;
-		int savedCoreTid=8908;
+		int savedCorePid=6307;
+		int savedCoreTid=7152;
 
 		sCoreLayout* NNcLayout; safespawn(NNcLayout, newsname("NNcLayout"), defaultdbg, clientLogger, savedCorePid, savedCoreTid);
 		int savedCoreType; numtype* trMinIN; numtype* trMaxIN;
-		clientLogger->loadCoreInfo(savedCorePid, savedCoreTid, &savedCoreType, &inferSampleLen, &inferInputCnt, &inferTargetLen, &inferOutputCnt, &inferBatchSize, &trMinIN, &trMaxIN);
-		NNcLayout->inputCnt=1200; NNcLayout->outputCnt=6;
+		clientLogger->loadCoreInfo(savedCorePid, savedCoreTid, &savedCoreType, &inferSampleLen, &inferInputCnt, &inferTargetLen, &inferOutputCnt, &inferBatchSize, &trMinIN, &trMaxIN, &trMinOUT, &trMaxOUT);
+		NNcLayout->inputCnt=inferInputCnt; NNcLayout->outputCnt=inferOutputCnt;
 		sCoreLogger* NNcPersistor; safespawn(NNcPersistor, newsname("NNcPersistor"), defaultdbg, clientLogger, savedCorePid, savedCoreTid);
 		sNNparms* NNcParms; safespawn(NNcParms, newsname("NNcParms"), defaultdbg, clientLogger, savedCorePid, savedCoreTid);
 		sNN2* NNc; safespawn(NNc, newsname("inferNNcore"), defaultdbg, NNcLayout, NNcPersistor, NNcParms);
 		safecall(NNc, loadImage, savedCorePid, savedCoreTid, -1);
 
 		int idx=0;
-		for(int i=0; i<2; i++) {
-			for (int d=0; d<inferTS->dataSourcesCnt[i]; d++) {
-				for (int f=0; f<inferTS->featuresCnt[i][d]; f++) {
-					for (int l=0; l<(inferTS->WTlevel[i]+2); l++) {
-						inferTS->TRmin[i][d][f][l]=trMinIN[idx];
-						inferTS->TRmax[i][d][f][l]=trMaxIN[idx];
-						idx++;
-					}
+		for (int d=0; d<inferTS->dataSourcesCnt[0]; d++) {
+			for (int f=0; f<inferTS->featuresCnt[0][d]; f++) {
+				for (int l=0; l<(inferTS->WTlevel[0]+2); l++) {
+					inferTS->TRmin[0][d][f][l]=trMinIN[idx];
+					inferTS->TRmax[0][d][f][l]=trMaxIN[idx];
+					idx++;
 				}
 			}
 		}
+		idx=0;
+		for (int d=0; d<inferTS->dataSourcesCnt[1]; d++) {
+			for (int f=0; f<inferTS->featuresCnt[1][d]; f++) {
+				for (int l=0; l<(inferTS->WTlevel[1]+2); l++) {
+					inferTS->TRmin[1][d][f][l]=trMinOUT[idx];
+					inferTS->TRmax[1][d][f][l]=trMaxOUT[idx];
+					idx++;
+				}
+			}
+		}
+
 		inferTS->scale(-1, 1);
 
 		//-- consistency checks: 

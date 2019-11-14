@@ -16,15 +16,16 @@ create table CoreInfo(
 );
 alter table CoreInfo add constraint CoreInfo_PK primary key(ProcessId, ThreadId) using index tablespace LogIdx;
 
-drop table CoreScalingInfo;
+drop table CoreScalingInfo purge;
 create table CoreScalingInfo(	
 	ProcessId number,
 	ThreadId number,
+	CoreSide number,
 	InputId number,
 	TRmin number,
 	TRmax number
 );
-alter table CoreScalingInfo add constraint CoreScalingInfo_PK primary key(ProcessId, ThreadId, InputId);
+alter table CoreScalingInfo add constraint CoreScalingInfo_PK primary key(ProcessId, ThreadId, CoreSide, InputId);
 
 drop table TrainLog purge;
 create table TrainLog(

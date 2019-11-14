@@ -78,11 +78,11 @@ void sLogger::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* samp
 	//if (source==FileData) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, saveToDB_, saveToFile_, "DioPorco", coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
 }
 //--
-void sLogger::saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int inputCnt_, int targetLen_, int outputCnt_, int batchSize_, numtype* trMin_, numtype* trMax_) {
-	if (source==OraData) safecall(oradb, saveCoreInfo, pid, tid, coreType_, sampleLen_, inputCnt_, targetLen_, outputCnt_, batchSize_, trMin_, trMax_);
+void sLogger::saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int inputCnt_, int targetLen_, int outputCnt_, int batchSize_, numtype* trMinIN_, numtype* trMaxIN_, numtype* trMinOUT_, numtype* trMaxOUT_) {
+	if (source==OraData) safecall(oradb, saveCoreInfo, pid, tid, coreType_, sampleLen_, inputCnt_, targetLen_, outputCnt_, batchSize_, trMinIN_, trMaxIN_, trMinOUT_, trMaxOUT_);
 }
-void sLogger::loadCoreInfo(int pid, int tid, int* coreType_, int* sampleLen_, int* inputCnt_, int* targetLen_, int* outputCnt_, int* batchSize_, numtype** trMin_, numtype** trMax_) {
-	if (source==OraData) safecall(oradb, loadCoreInfo, pid, tid, coreType_, sampleLen_, inputCnt_, targetLen_, outputCnt_, batchSize_, trMin_, trMax_);
+void sLogger::loadCoreInfo(int pid, int tid, int* coreType_, int* sampleLen_, int* inputCnt_, int* targetLen_, int* outputCnt_, int* batchSize_, numtype** trMinIN_, numtype** trMaxIN_, numtype** trMinOUT_, numtype** trMaxOUT_) {
+	if (source==OraData) safecall(oradb, loadCoreInfo, pid, tid, coreType_, sampleLen_, inputCnt_, targetLen_, outputCnt_, batchSize_, trMinIN_, trMaxIN_, trMinOUT_, trMaxOUT_);
 }
 //--
 void sLogger::saveCoreLayout(int pid, int tid, int parentCoresCnt, int* parentCore, int* parentConnType) {
