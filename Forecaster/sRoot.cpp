@@ -358,7 +358,7 @@ void sRoot::kaz() {
 		clientLogger->commit();
 
 	} else {
-		sCfg* inferCfg; safespawn(inferCfg, newsname("inferCfg"), defaultdbg, "Config/inferDS.xml");
+		sCfg* inferCfg; safespawn(inferCfg, newsname("inferCfg"), defaultdbg, "Config/trainDS.xml");
 		int inferSampleLen; safecall(inferCfg->currentKey, getParm, &inferSampleLen, "SampleLen");
 		int inferTargetLen; safecall(inferCfg->currentKey, getParm, &inferTargetLen, "TargetLen");
 		int inferBatchSize; safecall(inferCfg->currentKey, getParm, &inferBatchSize, "BatchSize");
@@ -371,12 +371,10 @@ void sRoot::kaz() {
 		numtype* inferTarget;
 		numtype* inferPrediction;
 		int inferSamplesCnt;
-		int inferSampleLen;
-		int inferTargetLen;
 		int inferInputCnt;
 		int inferOutputCnt;
-		int savedCorePid=14207;
-		int savedCoreTid=10332;
+		int savedCorePid=5552;
+		int savedCoreTid=2776;
 
 		//-- consistency checks: 
 		//...........................
@@ -385,11 +383,13 @@ void sRoot::kaz() {
 
 		//sCoreLayout* NNcLayout = new sCoreLayout(clientLogger, savedCorePid, savedCoreTid);
 		sCoreLayout* NNcLayout; safespawn(NNcLayout, newsname("NNcLayout"), defaultdbg, clientLogger, savedCorePid, savedCoreTid);
-		int savedCoreType;
-		clientLogger->loadCoreInfo(savedCorePid, savedCoreTid, &savedCoreType, &inferSampleLen, &inferInputCnt, &inferTargetLen, &inferOutputCnt, &inferBatchSize, )
+		int savedCoreType; numtype* trMinIN; numtype* trMaxIN;
+		clientLogger->loadCoreInfo(savedCorePid, savedCoreTid, &savedCoreType, &inferSampleLen, &inferInputCnt, &inferTargetLen, &inferOutputCnt, &inferBatchSize, &trMinIN, &trMaxIN);
+		NNcLayout->inputCnt=1200; NNcLayout->outputCnt=6;
 		sCoreLogger* NNcPersistor; safespawn(NNcPersistor, newsname("NNcPersistor"), defaultdbg, clientLogger, savedCorePid, savedCoreTid);
 		sNNparms* NNcParms; safespawn(NNcParms, newsname("NNcParms"), defaultdbg, clientLogger, savedCorePid, savedCoreTid);
 		sNN2* NNc; safespawn(NNc, newsname("inferNNcore"), defaultdbg, NNcLayout, NNcPersistor, NNcParms);
+		safecall(NNc, loadImage, savedCorePid, savedCoreTid, -1);
 
 		sCoreProcArgs* inferArgs = new sCoreProcArgs();
 		inferArgs->testid=999;
@@ -404,10 +404,37 @@ void sRoot::kaz() {
 		inferArgs->pid=pid;
 		inferArgs->tid=GetCurrentThreadId();
 
-
 		NNc->procArgs=inferArgs;
 		NNc->infer();
+		//-- get predictions into ts->prdTRS
+		inferTS->getPrediction(inferSamplesCnt, inferSampleLen, inferTargetLen, inferPrediction);
+		//-- unscale prdTRS into prdTR
+		inferTS->unscale();
+		//-- untransform prdTR into prd
+		inferTS->untransform();
+		//-- persist (OUTPUT only)
+		int seqId_=0;
+		if (NNc->persistor->saveRunFlag) {
+			for (int d=0; d<inferTS->dataSourcesCnt[1]; d++) {
+				for (int f=0; f<inferTS->featuresCnt[1][d]; f++) {
+					for (int l=0; l<(inferTS->WTlevel[1]+2); l++) {
+						NNc->persistor->saveRun2(NNc->procArgs->pid, NNc->procArgs->tid, NNc->procArgs->npid, NNc->procArgs->ntid, seqId_, NNc->procArgs->mseR, \
+							inferTS->stepsCnt, inferTS->timestamp, 1, d, f, l, inferTS->valTRS, inferTS->prdTRS, inferTS->valTR, inferTS->prdTR, inferTS->val, inferTS->prd
+						);
+					}
+				}
+			}
+		}
 		//==============================
+
+		free(trMinIN); free(trMaxIN);
+
+		timer->stop(endtimeS);
+		clientLogger->saveClientInfo( pid, 0, testid, pid, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[0], "", false, true, "", "", "", "");
+
+		NNc->persistor->commit();
+		clientLogger->commit();
+
 	}
 
 

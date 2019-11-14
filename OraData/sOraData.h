@@ -43,7 +43,7 @@ struct sOraData : sCfgObj {
 	EXPORT int getSavedEnginePids(int maxPids_, int* oPid);
 	//--
 	EXPORT void saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int inputCnt_, int targetLen_, int outputCnt_, int batchSize_, numtype* trMin_, numtype* trMax_);
-	EXPORT void loadCoreInfo(int pid, int tid, int* coreType_, int* sampleLen_, int* inputCnt_, int* targetLen_, int* outputCnt_, int* batchSize_, numtype* trMin_, numtype* trMax_);
+	EXPORT void loadCoreInfo(int pid, int tid, int* coreType_, int* sampleLen_, int* inputCnt_, int* targetLen_, int* outputCnt_, int* batchSize_, numtype** trMin_, numtype** trMax_);
 	//--
 	EXPORT void saveCoreLayout(int pid, int tid, int parentCoresCnt, int* parentCore, int* parentConnType);
 	EXPORT void loadCoreLayout(int pid, int tid, int* parentCoresCnt, int** parentCore, int** parentConnType);

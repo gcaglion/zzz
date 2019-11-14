@@ -476,7 +476,7 @@ void sOraData::saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int
 		safecall(this, sqlExec, sqlS);
 	}
 }
-void sOraData::loadCoreInfo(int pid, int tid, int* coreType_, int* sampleLen_, int* inputCnt_, int* targetLen_, int* outputCnt_, int* batchSize_, numtype* trMin_, numtype* trMax_) {
+void sOraData::loadCoreInfo(int pid, int tid, int* coreType_, int* sampleLen_, int* inputCnt_, int* targetLen_, int* outputCnt_, int* batchSize_, numtype** trMin_, numtype** trMax_) {
 	
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open) {}
@@ -490,21 +490,24 @@ void sOraData::loadCoreInfo(int pid, int tid, int* coreType_, int* sampleLen_, i
 		while (((ResultSet*)rset)->next()) {
 			(*coreType_)=((ResultSet*)rset)->getInt(1);
 			(*sampleLen_)=((ResultSet*)rset)->getInt(2);
-			(*inputCnt_)=((ResultSet*)rset)->getInt(3);
-			(*outputCnt_)=((ResultSet*)rset)->getInt(4);
-			(*batchSize_)=((ResultSet*)rset)->getInt(5);
+			(*targetLen_)=((ResultSet*)rset)->getInt(3);
+			(*inputCnt_)=((ResultSet*)rset)->getInt(4);
+			(*outputCnt_)=((ResultSet*)rset)->getInt(5);
+			(*batchSize_)=((ResultSet*)rset)->getInt(6);
 			i++;
 		}
 		if (i==0) fail("Core Info not found for ProcessId=%d, ThreadId=%d", pid, tid);
 
+		(*trMin_)=(numtype*)malloc((*inputCnt_)*sizeof(numtype));
+		(*trMax_)=(numtype*)malloc((*inputCnt_)*sizeof(numtype));
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
 		sprintf_s(sqlS, SQL_MAXLEN, "select InputId, TRmin, TRmax from CoreScalingInfo where ProcessId=%d and ThreadId=%d order by InputId", pid, tid);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 		i=0;
 		while (((ResultSet*)rset)->next()) {
-			trMin_[i]=((ResultSet*)rset)->getFloat(2);
-			trMax_[i]=((ResultSet*)rset)->getFloat(3);
+			(*trMin_)[i]=((ResultSet*)rset)->getFloat(2);
+			(*trMax_)[i]=((ResultSet*)rset)->getFloat(3);
 			i++;
 		}
 		if (i==0) fail("Core Scaling Info not found for ProcessId=%d, ThreadId=%d", pid, tid);

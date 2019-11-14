@@ -18,7 +18,6 @@ struct sNN2 : sCore {
 
 	//-- local implementations of sCore virtual methods
 	void setLayout();
-	void mallocLayout();
 	void train();
 	void infer();
 	void saveImage(int pid, int tid, int epoch);

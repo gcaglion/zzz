@@ -392,6 +392,7 @@ void sNN2::infer(){
 			Alg->d2h(&procArgs->prediction[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 		}
 	}
+	Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);
 	procArgs->mseR=tse_h/procArgs->samplesCnt/nodesCnt[outputLevel];
 }
 

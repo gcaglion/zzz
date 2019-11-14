@@ -1,5 +1,5 @@
 	SampleLen	= 50
-	TargetLen	= 1
+	TargetLen	= 3
 	BatchSize	= 1
 	
 	Dump		= false
