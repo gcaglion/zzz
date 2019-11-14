@@ -471,7 +471,7 @@ void sOraData::saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int
 	sprintf_s(sqlS, SQL_MAXLEN, "insert into CoreInfo(ProcessId, ThreadId, CoreType, sampleLen, targetLen, inputCnt, outputCnt, batchSize) values (%d, %d, %d, %d, %d, %d, %d, %d)", pid, tid, coreType_, sampleLen_, targetLen_, inputCnt_, outputCnt_, batchSize_);
 	safecall(this, sqlExec, sqlS);
 
-	for (int i=0; i<inputCnt_; i++) {
+	for (int i=0; i<(inputCnt_/sampleLen_); i++) {
 		sprintf_s(sqlS, SQL_MAXLEN, "insert into CoreScalingInfo(ProcessId, ThreadId, InputId, TRmin, TRmax) values(%d, %d, %d, %f, %f)", pid, tid, i, trMin_[i], trMax_[i]);
 		safecall(this, sqlExec, sqlS);
 	}

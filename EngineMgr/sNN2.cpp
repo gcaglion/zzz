@@ -382,8 +382,8 @@ void sNN2::infer(){
 			//-- 1. load sample/target
 			int sid=b*procArgs->batchSize*procArgs->inputCnt+s*procArgs->inputCnt;
 			int tid=b*procArgs->batchSize*procArgs->outputCnt+s*procArgs->outputCnt;
-			Alg->d2d(&F[0], &sample_d[sid], procArgs->inputCnt*sizeof(numtype));
-			Alg->d2d(&u[0], &target_d[tid], procArgs->outputCnt*sizeof(numtype));
+			safecallSilent(Alg, d2d, &F[0], &sample_d[sid], procArgs->inputCnt*sizeof(numtype));
+			safecallSilent(Alg, d2d, &u[0], &target_d[tid], procArgs->outputCnt*sizeof(numtype));
 			//-- 2. fwd
 			FF();
 			//-- 3. calc e,tse

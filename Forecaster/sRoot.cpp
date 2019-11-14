@@ -335,12 +335,14 @@ void sRoot::kaz() {
 		numtype* trMinIN=(numtype*)malloc(trainInputCnt*sizeof(numtype));
 		numtype* trMaxIN=(numtype*)malloc(trainInputCnt*sizeof(numtype));
 		int idx=0;
-		for (int d=0; d<trainTS->dataSourcesCnt[0]; d++) {
-			for (int f=0; f<trainTS->featuresCnt[0][d]; f++) {
-				for (int l=0; l<(trainTS->WTlevel[0]+2); l++) {
-					trMinIN[idx]=trainTS->TRmin[0][d][f][l];
-					trMaxIN[idx]=trainTS->TRmin[0][d][f][l];
-					idx++;
+		for (int i=0; i<2; i++) {
+			for (int d=0; d<trainTS->dataSourcesCnt[i]; d++) {
+				for (int f=0; f<trainTS->featuresCnt[i][d]; f++) {
+					for (int l=0; l<(trainTS->WTlevel[i]+2); l++) {
+						trMinIN[idx]=trainTS->TRmin[i][d][f][l];
+						trMaxIN[idx]=trainTS->TRmax[i][d][f][l];
+						idx++;
+					}
 				}
 			}
 		}
@@ -358,13 +360,11 @@ void sRoot::kaz() {
 		clientLogger->commit();
 
 	} else {
-		sCfg* inferCfg; safespawn(inferCfg, newsname("inferCfg"), defaultdbg, "Config/trainDS.xml");
+		sCfg* inferCfg; safespawn(inferCfg, newsname("inferCfg"), defaultdbg, "Config/inferDS.xml");
 		int inferSampleLen; safecall(inferCfg->currentKey, getParm, &inferSampleLen, "SampleLen");
 		int inferTargetLen; safecall(inferCfg->currentKey, getParm, &inferTargetLen, "TargetLen");
 		int inferBatchSize; safecall(inferCfg->currentKey, getParm, &inferBatchSize, "BatchSize");
 		sTS2* inferTS; safespawn(inferTS, newsname("inferTS"), defaultdbg, inferCfg, "/TimeSerie");
-		inferTS->scale(-1, 1);
-		//	inferTS->dump();
 
 		//==== Infer on infer set    ===
 		numtype* inferSample;
@@ -373,15 +373,9 @@ void sRoot::kaz() {
 		int inferSamplesCnt;
 		int inferInputCnt;
 		int inferOutputCnt;
-		int savedCorePid=5552;
-		int savedCoreTid=2776;
+		int savedCorePid=10348;
+		int savedCoreTid=8908;
 
-		//-- consistency checks: 
-		//...........................
-
-		inferTS->getDataSet(inferSampleLen, inferTargetLen, &inferSamplesCnt, &inferInputCnt, &inferOutputCnt, &inferSample, &inferTarget, &inferPrediction);
-
-		//sCoreLayout* NNcLayout = new sCoreLayout(clientLogger, savedCorePid, savedCoreTid);
 		sCoreLayout* NNcLayout; safespawn(NNcLayout, newsname("NNcLayout"), defaultdbg, clientLogger, savedCorePid, savedCoreTid);
 		int savedCoreType; numtype* trMinIN; numtype* trMaxIN;
 		clientLogger->loadCoreInfo(savedCorePid, savedCoreTid, &savedCoreType, &inferSampleLen, &inferInputCnt, &inferTargetLen, &inferOutputCnt, &inferBatchSize, &trMinIN, &trMaxIN);
@@ -390,6 +384,25 @@ void sRoot::kaz() {
 		sNNparms* NNcParms; safespawn(NNcParms, newsname("NNcParms"), defaultdbg, clientLogger, savedCorePid, savedCoreTid);
 		sNN2* NNc; safespawn(NNc, newsname("inferNNcore"), defaultdbg, NNcLayout, NNcPersistor, NNcParms);
 		safecall(NNc, loadImage, savedCorePid, savedCoreTid, -1);
+
+		int idx=0;
+		for(int i=0; i<2; i++) {
+			for (int d=0; d<inferTS->dataSourcesCnt[i]; d++) {
+				for (int f=0; f<inferTS->featuresCnt[i][d]; f++) {
+					for (int l=0; l<(inferTS->WTlevel[i]+2); l++) {
+						inferTS->TRmin[i][d][f][l]=trMinIN[idx];
+						inferTS->TRmax[i][d][f][l]=trMaxIN[idx];
+						idx++;
+					}
+				}
+			}
+		}
+		inferTS->scale(-1, 1);
+
+		//-- consistency checks: 
+		//...........................
+
+		inferTS->getDataSet(inferSampleLen, inferTargetLen, &inferSamplesCnt, &inferInputCnt, &inferOutputCnt, &inferSample, &inferTarget, &inferPrediction);
 
 		sCoreProcArgs* inferArgs = new sCoreProcArgs();
 		inferArgs->testid=999;
@@ -418,7 +431,7 @@ void sRoot::kaz() {
 			for (int d=0; d<inferTS->dataSourcesCnt[1]; d++) {
 				for (int f=0; f<inferTS->featuresCnt[1][d]; f++) {
 					for (int l=0; l<(inferTS->WTlevel[1]+2); l++) {
-						NNc->persistor->saveRun2(NNc->procArgs->pid, NNc->procArgs->tid, NNc->procArgs->npid, NNc->procArgs->ntid, seqId_, NNc->procArgs->mseR, \
+						safecall(NNc->persistor, saveRun2, NNc->procArgs->pid, NNc->procArgs->tid, NNc->procArgs->npid, NNc->procArgs->ntid, seqId_, NNc->procArgs->mseR, \
 							inferTS->stepsCnt, inferTS->timestamp, 1, d, f, l, inferTS->valTRS, inferTS->prdTRS, inferTS->valTR, inferTS->prdTR, inferTS->val, inferTS->prd
 						);
 					}
