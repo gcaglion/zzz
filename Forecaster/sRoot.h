@@ -72,11 +72,7 @@ private:
 	char inferffname[MAX_PATH];
 	char engineffname[MAX_PATH];
 	char endtimeS[TIMER_ELAPSED_FORMAT_LEN];
-	sCfg* clientCfg; sCfg* trainCfg; sCfg* inferCfg; sCfg* engCfg;
-	//sLogger* trainLog;
-	//sLogger* inferLog;
-	//sEngine* engine;
-	sLogger* clientLog;
+	int _sampleLen, _targetLen, _batchSize;
 
 };
 

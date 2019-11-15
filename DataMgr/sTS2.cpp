@@ -573,8 +573,6 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 }
 sTS2::sTS2(sObjParmsDef, int stepsCnt_, int dataSourcesCnt_, int* featuresCnt_, int dt_, int WTtype_, int WTlevel_, char** timestamp_, numtype* val_, char* timestampB_, numtype* valB_, bool doDump_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	
-	dumpArrayH(318, val_, "C:/temp/logs/val.csv");
-
 	stepsCnt=stepsCnt_; dt=dt_; doDump=doDump_;
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	
@@ -593,8 +591,8 @@ sTS2::sTS2(sObjParmsDef, int stepsCnt_, int dataSourcesCnt_, int* featuresCnt_, 
 	mallocs1();
 	
 	int idx;
-	//-- *val comes in flat, ordered by [step][dsXfeature]. We need to put these values in the appropriate val sub-array, with WTlevel=0
-/*	idx=0;
+/*	//-- *val comes in flat, ordered by [step][dsXfeature]. We need to put these values in the appropriate val sub-array, with WTlevel=0
+	idx=0;
 	for (int s=0; s<stepsCnt; s++) {
 		for (int d=0; d<dataSourcesCnt[i]; d++) {
 			for (int f=0; f<featuresCnt[i][d]; f++) {
@@ -614,10 +612,10 @@ sTS2::sTS2(sObjParmsDef, int stepsCnt_, int dataSourcesCnt_, int* featuresCnt_, 
 	}
 
 	//-- timestamps
-/*	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s], DATE_FORMAT_LEN, timestamp_[s]);
+	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s], DATE_FORMAT_LEN, timestamp_[s]);
 	//-- timestampB
 	strcpy_s(timestampB, DATE_FORMAT_LEN, timestampB_);
-*/
+
 	//-- now we need to calc wavelets. This also sets val alt WTlevel 0
 	for (int d=0; d<dataSourcesCnt[i]; d++) {
 		for (int f=0; f<featuresCnt[i][d]; f++) {
@@ -630,8 +628,6 @@ sTS2::sTS2(sObjParmsDef, int stepsCnt_, int dataSourcesCnt_, int* featuresCnt_, 
 			for (int l=0; l<(WTlevel[i]+2); l++) transform(i, d, f, l);
 		}
 	}
-
-	dump();
 
 }
 sTS2::~sTS2() {

@@ -1,4 +1,5 @@
 #include "sEngine.h"
+//#include <vld.h>
 
 void sEngine::mallocs() {
 	coreType = (int*)malloc(MAX_ENGINE_CORES*sizeof(int));
@@ -38,6 +39,7 @@ sEngine::~sEngine(){
 	free(coreThreadId);
 	free(coreLayer);
 	free(core);
+	free(forecast);
 }
 
 void sEngine::train(int simulationId_, sTS2* trainTS_, int sampleLen_, int targetLen_, int batchSize_) {
@@ -53,6 +55,7 @@ void sEngine::train(int simulationId_, sTS2* trainTS_, int sampleLen_, int targe
 	trainTS_->scale(NNcp->scaleMin[0], NNcp->scaleMax[0]);
 
 	safecall(trainTS_, getDataSet, sampleLen, targetLen, &samplesCnt, &inputCnt, &outputCnt, &sample, &target, &prediction);
+	forecast=(numtype*)malloc(outputCnt*sizeof(numtype));
 
 	sNN2* NNc; safespawn(NNc, newsname("Core%d_NN", 0), defaultdbg, cfg, "../", inputCnt, outputCnt, NNcp);
 	core[0]=NNc;
@@ -158,6 +161,8 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 
 	}
 	
+	forecast=(numtype*)malloc(outputCnt*sizeof(numtype));
+
 	core[0]->infer();
 
 	//-- get predictions into ts->prdTRS

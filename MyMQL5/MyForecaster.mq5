@@ -27,7 +27,7 @@ enum SLhandling {
 };
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 14308;
+input int EnginePid				= 13148;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 input int DataTransformation	= 1;
 input bool DumpData				= true;
@@ -252,7 +252,7 @@ void OnTick() {
 		int tradeSerie=-1;
 		for (int s=0; s<seriesCnt; s++) {
 			for (int bar=0; bar<predictionLen; bar++) {
-				//printf("OHLCV Forecast, serie %d: %f|%f|%f|%f|%f", s, (vopenF[s*predictionLen+bar]<0) ? 0 : vopenF[s*predictionLen+bar], (vhighF[s*predictionLen+bar]<0) ? 0 : vhighF[s*predictionLen+bar], (vlowF[s*predictionLen+bar]<0) ? 0 : vlowF[s*predictionLen+bar], (vcloseF[s*predictionLen+bar]<0) ? 0 : vcloseF[s*predictionLen+bar], (vvolumeF[s*predictionLen+bar]<0) ? 0 : vvolumeF[s*predictionLen+bar]);
+				printf("OHLCV Forecast, serie %d: %f|%f|%f|%f|%f", s, (vopenF[s*predictionLen+bar]<0) ? 0 : vopenF[s*predictionLen+bar], (vhighF[s*predictionLen+bar]<0) ? 0 : vhighF[s*predictionLen+bar], (vlowF[s*predictionLen+bar]<0) ? 0 : vlowF[s*predictionLen+bar], (vcloseF[s*predictionLen+bar]<0) ? 0 : vcloseF[s*predictionLen+bar], (vvolumeF[s*predictionLen+bar]<0) ? 0 : vvolumeF[s*predictionLen+bar]);
 				if (StringCompare(serieSymbol[s], Symbol())==0&&getTimeFrameEnum(serieTimeFrame[s])==Period()) tradeSerie=s;
 			}
 		}

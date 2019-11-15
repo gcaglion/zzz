@@ -17,7 +17,7 @@ int main(int argc, char* argv[]) {
 	try {
 		root=new sRoot(nullptr);	//-- nullptr says there's no GUI to call back with dbg messages
 		//-----------
-		root->kaz(); terminate(true, "");
+		//root->kaz(); terminate(true, "");
 		//-----------
 
 		if (argc<6) clifail;
@@ -35,9 +35,9 @@ int main(int argc, char* argv[]) {
 		}
 
 		if (_stricmp(argv[1], "Train")==0) {
-			//root->trainClient(atoi(argv[2]), argv[3], argv[4], argv[5], nullptr, overridesCnt, overridePname, overridePval);
+			root->trainClient(atoi(argv[2]), argv[3], argv[4], argv[5], nullptr, overridesCnt, overridePname, overridePval);
 		} else if (_stricmp(argv[1], "Infer")==0) {
-			//root->inferClient(atoi(argv[2]), argv[3], argv[4], atoi(argv[5]), nullptr, overridesCnt, overridePname, overridePval);
+			root->inferClient(atoi(argv[2]), argv[3], argv[4], atoi(argv[5]), nullptr, overridesCnt, overridePname, overridePval);
 		} else { clifail; }
 	}
 	catch (std::exception exc) {

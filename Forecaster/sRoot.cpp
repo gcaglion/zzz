@@ -10,65 +10,17 @@ sRoot::sRoot(NativeReportProgress* progressReporter) : sCfgObj(nullptr, newsname
 sRoot::~sRoot() {}
 
 //-- core stuff
-/*void sRoot::datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsSampleLen_, int dsTargetLen_, int dsBatchSize_, bool dsDoDump_, char* dsDumpPath_, bool loadEngine_){
-
-	(*ds_)=(sDS**)malloc((eng_->WTlevel+2)*sizeof(sDS*));
-	safespawn((*ds_)[0], newsname("dataSet_Base"), defaultdbg, ts_, dsSampleLen_, dsTargetLen_, dsBatchSize_, dsDoDump_, dsDumpPath_);
-
-	//-- update TRmin/max in (*ds_) , if inferring from a loaded engine
-	if (loadEngine_) {
-		(*ds_)[0]->TRmin=eng_->DStrMin;
-		(*ds_)[0]->TRmax=eng_->DStrMax;
-	} else {
-		(*ds_)[0]->TRmin=ts_->TRmin;
-		(*ds_)[0]->TRmax=ts_->TRmax;
-		eng_->DStrMin=ts_->TRmin;
-		eng_->DStrMax=ts_->TRmax;
-
-		eng_->DSfftMin=ts_->FFTmin;
-		eng_->DSfftMax=ts_->FFTmax;
-	}
-	 
-	//-- timeseries wavelets, if engine is WNN
-	if (eng_->type==ENGINE_WNN) {
-		safecall(ts_, FFTcalc);
-		//-- build LFA dataset
-		safespawn((*ds_)[1], newsname("dataSet_LFA"), defaultdbg, ts_, 1, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
-		//-- build HFD datasets
-		for (int l=0; l<eng_->WNNdecompLevel; l++) safespawn((*ds_)[2+l], newsname("dataSet_HFD%d", l), defaultdbg, ts_, 2+l, eng_->sampleLen, eng_->targetLen, dsBatchSize_, dsDoDump_, dsDumpPath_);
-		//-- update TRmin/max
-		if (loadEngine_) {
-			for (int d=1; d<(eng_->WNNdecompLevel+1); d++) {
-				(*ds_)[d]->TRmin=eng_->DSfftMin[d-1];
-				(*ds_)[d]->TRmax=eng_->DSfftMax[d-1];
-			}
-		} else {
-			for (int d=1; d<(eng_->WNNdecompLevel+1); d++) {
-				(*ds_)[d]->TRmin=ts_->FFTmin[d-1];
-				(*ds_)[d]->TRmax=ts_->FFTmax[d-1];
-			}
-			eng_->DSfftMin=ts_->FFTmin;
-			eng_->DSfftMax=ts_->FFTmax;
-		}
-	}
-
-	//-- scale DSs
-	//for(int d=0; d<(eng_->WTlevel+2); d++) safecall((*ds_)[d], scale, eng_->coreParms[d]->scaleMin[0], eng_->coreParms[d]->scaleMax[0]);
-	safecall((*ds_)[0], scale, eng_->coreParms[0]->scaleMin[0], eng_->coreParms[0]->scaleMax[0]);
-
-}
 void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress* progressPtr, int overridesCnt_, char** overridePname_, char** overridePval_) {
-
+	
 	try {
 		//-- 0. set full file name for each of the input files
 		getFullPath(clientXMLfile_, clientffname);
 		getFullPath(trainXMLfile_, trainffname);
 		getFullPath(engineXMLfile_, engineffname);
 
-		//-- 1. load separate sCfg* for client, trainDataset, Engine
-		safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname, 0, overridesCnt_, overridePname_, overridePval_);
-		safespawn(trainCfg, newsname("trainCfg"), defaultdbg, trainffname, 0, overridesCnt_, overridePname_, overridePval_);
-		safespawn(engCfg, newsname("engineCfg"), defaultdbg, engineffname, 0, overridesCnt_, overridePname_, overridePval_);
+		sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
+		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), defaultdbg, trainffname);
+		sCfg* engCfg; safespawn(engCfg, newsname("engCfg"), defaultdbg, engineffname);
 
 		//-- 1.1. override parameters from command line
 		for (int o=0; o<overridesCnt_; o++) {
@@ -82,132 +34,70 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 			}
 		}
 
-		//-- 5. create client persistor, if needed
-		bool saveClient;
-		safecall(clientCfg, setKey, "/Client");
-		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
-		safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
+		sLogger* clientLogger; safespawn(clientLogger, newsname("clientLogger"), defaultdbg, clientCfg, "/Client/Persistor");
+		safecall(this, getSafePid, clientLogger, &pid);
 
-		//-- check for possible duplicate pid in db (through client persistor), and change it
-		safecall(this, getSafePid, clientLog, &pid);
+		safecall(trainCfg->currentKey, getParm, &_sampleLen, "SampleLen");
+		safecall(trainCfg->currentKey, getParm, &_targetLen, "TargetLen");
+		safecall(trainCfg->currentKey, getParm, &_batchSize, "BatchSize");
+		sTS2* trainTS; safespawn(trainTS, newsname("trainTS"), defaultdbg, trainCfg, "/TimeSerie");
 
-		int _trainSampleLen, _trainTargetLen, _trainBatchSize; bool _doDump; char _dp[MAX_PATH]; char* _dumpPath=&_dp[0];
-		safecall(trainCfg->currentKey, getParm, &_trainSampleLen, "SampleLen");
-		safecall(trainCfg->currentKey, getParm, &_trainTargetLen, "TargetLen");
-		safecall(trainCfg->currentKey, getParm, &_trainBatchSize, "BatchSize");
-		safecall(trainCfg->currentKey, getParm, &_doDump, "Dump");
-		safecall(trainCfg->currentKey, getParm, &_dumpPath, "DumpPath");
+		sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, engCfg, "/");
 
-		sTS* trainTS; safespawn(trainTS, newsname("trainTimeSerie"), defaultdbg, trainCfg, "/TimeSerie");
-
-		//-- 4. spawn engine the standard way
-		safespawn(engine, newsname("TrainEngine"), defaultdbg, engCfg, "/", _trainSampleLen, _trainTargetLen, trainTS->featuresCnt, trainTS->WTlevel, trainTS->WTtype, _trainBatchSize, pid);
-
-		//-- prepare datasets
-		sDS** trainDS; datasetPrepare(trainTS, engine, &trainDS, _trainSampleLen, _trainTargetLen, _trainBatchSize, _doDump, _dumpPath, false);
-
-		//-- training cycle core
-		timer->start();
-
-		//-- do training (also populates datasets)
-		safecall(engine, train, simulationId_, trainDS);
+		safecall(eng, train, simulationId_, trainTS, _sampleLen, _targetLen, _batchSize);
 
 		//-- check if break with no save was requested
-		if (engine->core[0]->procArgs->quitAfterBreak) return;
+		if (eng->core[0]->procArgs->quitAfterBreak) return;
 
-		//-- do infer on training data, without reloading engine
-		safecall(engine, infer, simulationId_, 0, trainDS, trainTS, 0);
-
-		//-- Commit engine persistor data
-		safecall(engine, commit);
-		//-- stop timer, and save client info
 		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, 0, simulationId_, pid, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0], "", "", true, false, clientffname, "", trainffname, engineffname);
-		//-- persist XML config parameters for Client,DataSet,Engine
-		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
-		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 1, trainCfg);
-		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 3, engCfg);
-		//-- Commit clientpersistor data
-		safecall(clientLog, commit);
+		safecall(clientLogger, saveClientInfo, pid, 0, simulationId_, pid, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0], "", "", true, false, "", "", "", "");
+
+		eng->commit();
+		clientLogger->commit();
 
 	}
 	catch (std::exception exc) {
 		fail("Exception=%s", exc.what());
 	}
-
 
 }
 void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const char* inferXMLfile_, int savedEnginePid_, NativeReportProgress* progressPtr, int overridesCnt_, char** overridePname_, char** overridePval_) {
+	//-- 0. set full file name for each of the input files
+	getFullPath(clientXMLfile_, clientffname);
+	getFullPath(inferXMLfile_, inferffname);
 
-	try {
-		//-- 0. set full file name for each of the input files
-		getFullPath(clientXMLfile_, clientffname);
-		getFullPath(inferXMLfile_, inferffname);
+	//-- 1. load separate sCfg* for client, inferDataset, Engine
+	sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
+	sCfg* inferCfg; safespawn(inferCfg, newsname("inferCfg"), defaultdbg, inferffname);
 
-		//-- 1. load separate sCfg* for client, inferDataset, Engine
-		safespawn(clientCfg, newsname("clientCfg"), defaultdbg, clientffname);
-		safespawn(inferCfg, newsname("inferCfg"), defaultdbg, inferffname);
-
-		//-- 1.1. override parameters from command line
-		for (int o=0; o<overridesCnt_; o++) {
-			replace(overridePname_[o], '.', '/');
-			if (overridePname_[o][0]=='c'&&overridePname_[o][1]=='l'&&overridePname_[o][2]=='i') {}
-			if (overridePname_[o][0]=='d'&&overridePname_[o][1]=='s') {
-				inferCfg->rootKey->setParm(&overridePname_[o][3], overridePval_[o]);
-			}
+	//-- 1.1. override parameters from command line
+	for (int o=0; o<overridesCnt_; o++) {
+		replace(overridePname_[o], '.', '/');
+		if (overridePname_[o][0]=='c'&&overridePname_[o][1]=='l'&&overridePname_[o][2]=='i') {}
+		if (overridePname_[o][0]=='d'&&overridePname_[o][1]=='s') {
+			inferCfg->rootKey->setParm(&overridePname_[o][3], overridePval_[o]);
 		}
-
-		//-- 5.1 create client persistor, if needed
-		bool saveClient;
-		safecall(clientCfg, setKey, "/Client");
-		safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
-		safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
-
-		//-- check for possible duplicate pid in db (through client persistor), and change it
-		safecall(this, getSafePid, clientLog, &pid);
-
-		int _inferSampleLen, _inferTargetLen, _inferBatchSize; bool _doDump;  char _dp[MAX_PATH]; char* _dumpPath=&_dp[0];
-		safecall(inferCfg->currentKey, getParm, &_inferSampleLen, "SampleLen");
-		safecall(inferCfg->currentKey, getParm, &_inferTargetLen, "TargetLen");
-		safecall(inferCfg->currentKey, getParm, &_inferBatchSize, "BatchSize");
-		safecall(inferCfg->currentKey, getParm, &_doDump, "Dump");
-		safecall(inferCfg->currentKey, getParm, &_dumpPath, "DumpPath");
-
-		sTS* inferTS; safespawn(inferTS, newsname("inferTimeSerie"), defaultdbg, inferCfg, "/TimeSerie");
-		//inferTS->slide(1); 
-		//inferTS->dump();
-
-		//-- spawn engine from savedEnginePid_ with pid
-		safespawn(engine, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid_);
-		
-		//-- prepare datasets
-		sDS** inferDS; datasetPrepare(inferTS, engine, &inferDS, _inferSampleLen, _inferTargetLen, _inferBatchSize, _doDump, _dumpPath, true);
-
-		//-- core infer cycle
-		timer->start();
-
-		//-- do inference (also populates datasets)
-		safecall(engine, infer, simulationId_, 0, inferDS, inferTS, savedEnginePid_);
-
-		//-- commit engine persistor data
-		safecall(engine, commit);
-		//-- stop timer, and save client info
-		timer->stop(endtimeS);
-		safecall(clientLog, saveClientInfo, pid, 0, simulationId_, savedEnginePid_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[0], "", false, true, clientffname, "", inferffname, "");
-		//-- persist XML config parameters for Client,DataSet,Engine
-		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
-		safecall(clientLog, saveXMLconfig, simulationId_, pid, 0, 2, inferCfg);
-		//-- Commit clientpersistor data
-		safecall(clientLog, commit);
-
-	}
-	catch (std::exception exc) {
-		fail("Exception=%s", exc.what());
 	}
 
+	sLogger* clientLogger; safespawn(clientLogger, newsname("clientLogger"), defaultdbg, clientCfg, "/Client/Persistor");
+	safecall(this, getSafePid, clientLogger, &pid);
 
+	safecall(inferCfg->currentKey, getParm, &_sampleLen, "SampleLen");
+	safecall(inferCfg->currentKey, getParm, &_targetLen, "TargetLen");
+	safecall(inferCfg->currentKey, getParm, &_batchSize, "BatchSize");
+	sTS2* inferTS; safespawn(inferTS, newsname("inferTS"), defaultdbg, inferCfg, "/TimeSerie");
+
+	sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, clientLogger, pid, savedEnginePid_);
+
+	safecall(eng, infer, simulationId_, 0, inferTS, savedEnginePid_);
+
+	timer->stop(endtimeS);
+	clientLogger->saveClientInfo(pid, 0, simulationId_, savedEnginePid_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[0], "", false, true, "", "", "", "");
+
+	eng->commit();
+	clientLogger->commit();
 }
-*/
+
 //-- utils stuff
 void sRoot::getSafePid(sLogger* persistor, int* pid) {
 	//-- look for pid in ClientInfo. if found, reduce by 1 until we find an unused pid
@@ -252,165 +142,19 @@ void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iB
 	VinitRnd(n, -1, 1, (*iBaseBarC));
 	VinitRnd(n, -1, 1, (*iBaseBarV));
 }
+
 void sRoot::kaz() {
-
-/*	sAlgebra* Alg; safespawn(Alg, newsname("Alg"), defaultdbg);
-	long int vlen=33554432;
-	numtype* v_d; Alg->myMalloc(&v_d, vlen);
-	Alg->VinitRnd(vlen, v_d, -1, 1, Alg->cuRandH);
-	numtype* sum_d; Alg->myMalloc(&sum_d, 1);
-	numtype sum_h;
-
-	DWORD starttime=timeGetTime();
-	Alg->Vssum(vlen, v_d, sum_d);
-	Alg->devSync();
-	DWORD elapsed=timeGetTime()-starttime;
-	printf("elapsed=%d", elapsed);
-
-	Alg->d2h(&sum_h, sum_d, 1*sizeof(numtype));
-
-	numtype* v_h=(numtype*)malloc(vlen*sizeof(numtype));
-	Alg->d2h(v_h, v_d, vlen*sizeof(numtype), true);
-	sum_h=0; for (int i=0; i<vlen; i++) sum_h+=v_h[i]*v_h[i];
-	sum_h=sqrtf(sum_h);
-	return;
-*/
-	
-	sCfg* cliCfg; safespawn(cliCfg, newsname("clientCfg"), defaultdbg, "Config/Client.xml");
-	sLogger* cliLog; safespawn(cliLog, newsname("clientLogger"), defaultdbg, cliCfg, "/Client/Persistor");
-	safespawn(MT4engine, newsname("MTengine"), defaultdbg, cliLog, pid, 188);
-	int sampleBarsCnt=MT4engine->sampleLen+MT4engine->batchSize-1;
-	int targetBarsCnt=MT4engine->targetLen;
-	long* iBarT; double* iBarO; double* iBarH; double* iBarL; double* iBarC; double* iBarV;
-	long* iBaseBarT; double* iBaseBarO; double* iBaseBarH; double* iBaseBarL; double* iBaseBarC; double* iBaseBarV;
-	createBars(sampleBarsCnt+targetBarsCnt, &iBarT, &iBarO, &iBarH, &iBarL, &iBarC, &iBarV, &iBaseBarT, &iBaseBarO, &iBaseBarH, &iBaseBarL, &iBaseBarC, &iBaseBarV);
-
-	const int seriesCnt=2;
-	int dt=1;
-	int featureMask[seriesCnt]={ 11110, 1100 };
-	getForecast(0, seriesCnt, dt, featureMask, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, nullptr, nullptr, nullptr, nullptr, nullptr);
-	
-
-	int testid=999;
-	int seqId_=0;
-	int action=1;	//-- 0:train ; 1:infer
-
-	sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), defaultdbg, "Config/Client.xml");
-	sLogger* clientLogger; safespawn(clientLogger, newsname("clientLogger"), defaultdbg, clientCfg, "/Client/Persistor");
-	safecall(this, getSafePid, clientLogger, &pid);
-
-	if (action==0) {
-
-		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), defaultdbg, "Config/trainDS.xml");
-		sCfg* engCfg; safespawn(engCfg, newsname("engCfg"), defaultdbg, "Config/Engine.xml");
-
-		int _sampleLen, _targetLen, _batchSize;
-		safecall(trainCfg->currentKey, getParm, &_sampleLen, "SampleLen");
-		safecall(trainCfg->currentKey, getParm, &_targetLen, "TargetLen");
-		safecall(trainCfg->currentKey, getParm, &_batchSize, "BatchSize");
-		sTS2* trainTS; safespawn(trainTS, newsname("trainTS"), defaultdbg, trainCfg, "/TimeSerie");
-
-		sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, engCfg, "/");
-
-		safecall(eng, train, testid, trainTS, _sampleLen, _targetLen, _batchSize);
-
-
-		//==============================
-
-		timer->stop(endtimeS);
-		safecall(clientLogger, saveClientInfo, pid, 0, testid, pid, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0], "", "", true, false, "", "", "", "");
-
-		eng->commit();
-		clientLogger->commit();
-
-	} else {
-		sCfg* inferCfg; safespawn(inferCfg, newsname("inferCfg"), defaultdbg, "Config/inferDS.xml");
-
-		int _sampleLen, _targetLen, _batchSize;
-		safecall(inferCfg->currentKey, getParm, &_sampleLen, "SampleLen");
-		safecall(inferCfg->currentKey, getParm, &_targetLen, "TargetLen");
-		safecall(inferCfg->currentKey, getParm, &_batchSize, "BatchSize");
-		sTS2* inferTS; safespawn(inferTS, newsname("inferTS"), defaultdbg, inferCfg, "/TimeSerie");
-
-		//==== Infer on infer set    ===
-		int savedEnginePid=188;
-
-		sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, clientLogger, pid, savedEnginePid);
-		
-		//-- consistency checks: 
-		//...........................
-
-		safecall(eng, infer, testid, seqId_, inferTS, savedEnginePid);
-
-		timer->stop(endtimeS);
-		clientLogger->saveClientInfo( pid, 0, testid, pid, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[0], "", false, true, "", "", "", "");
-
-		eng->commit();
-		clientLogger->commit();
-
-	}
-
-
-
-
-	/*for (int s=0; s<ts->stepsCnt; s++) {
-		for (int i=0; i<2; i++) {
-			for (int d=0; d<ts->dataSourcesCnt[i]; d++) {
-				for (int f=0; f<ts->featuresCnt[i][d]; f++) {
-					for (int l=0; l<(ts->WTlevel[i]+2); l++) {
-						ts->prdTRS[s][i][d][f][l]=ts->valTRS[s][i][d][f][l];
-					}
-				}
-			}
-		}
-	}
-	ts->unscale();
-	ts->untransform();
-
-	ts->dump();
-	*/
-	return;
-
-	/*sDS* ds1; safespawn(ds1, newsname("ds1"), defaultdbg, dsCfg, "/");
-	ds1->scale(-1,1);
-	ds1->dump();*/
-	/*sDS* ds2; safespawn(ds2, newsname("ds2"), defaultdbg, "C:/temp/datadump/myds1.csv");
-	ds2->invertSequence();
-	ds2->dump();*/
-
-/*	//-- 5.1 create client persistor, if needed
-	safespawn(clientCfg, newsname("clientCfg"), defaultdbg, "Config/Client.xml");
-	bool saveClient;
-	safecall(clientCfg, setKey, "/Client");
-	safecall(clientCfg->currentKey, getParm, &saveClient, "saveClient");
-	safespawn(clientLog, newsname("ClientLogger"), defaultdbg, clientCfg, "Persistor");
-
-	//-- check for possible duplicate pid in db (through client persistor), and change it
-	safecall(this, getSafePid, clientLog, &pid);
-
-	int savedEnginePid=6740;
-	sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, clientLog, pid, savedEnginePid);
-	int testid=0;
-	int batchSize=32;
-	eng->infer(testid, 0, ds2, batchSize);
-*/
-
-	/*sTS* ts1; safespawn(ts1, newsname("TS1"), defaultdbg, dsCfg, "/TimeSerie");
-	ts1->dump();
-	ts1->slide(2);
-	ts1->dump();
-	return;*/
 
 }
 /*void sRoot::kazEnc() {
 	sAlgebra* Alg = new sAlgebra(nullptr, newsname("Alg"), defaultdbg, nullptr);
 
 	sCfg* tsCfg = new sCfg(nullptr, newsname("tsCfg"), defaultdbg, nullptr, "Config/trainDS.xml");
-	sTS* ts1 = new sTS(nullptr, newsname("ts1"), defaultdbg, nullptr, tsCfg, "/TimeSerie");
+	sTS2* ts1 = new sTS2(nullptr, newsname("ts1"), defaultdbg, nullptr, tsCfg, "/TimeSerie");
 
 	int sampleLen=25;
 	int samplesCnt=ts1->stepsCnt-sampleLen;
-	numtype* sample_h=(numtype*)malloc(samplesCnt*sampleLen*ts1->featuresCnt*sizeof(numtype));
+	numtype* sample_h=(numtype*)malloc(samplesCnt*sampleLen*ts1->*sizeof(numtype));
 	int tsidxS, dsidxS=0;
 	for (int s=0; s<samplesCnt; s++) {
 		for (int b=0; b<sampleLen; b++) {
@@ -438,8 +182,9 @@ void sRoot::kaz() {
 	free(sample_h);
 	Alg->myFree(sample_d);
 }
-*///-- GUI hooks
-/*extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
+*/
+//-- GUI hooks
+extern "C" __declspec(dllexport) int _trainClient(int simulationId_, const char* clientXMLfile_, const char* trainXMLfile_, const char* engineXMLfile_, NativeReportProgress progressPtr) {
 	sRoot* root=nullptr;
 	try {
 		root=new sRoot(&progressPtr);
@@ -464,7 +209,7 @@ extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char*
 	}
 	terminate(true, "");
 }
-*/
+
 //-- MT4 stuff
 
 #define MT_MAX_SERIES_CNT 12
@@ -515,8 +260,8 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 		if (_featureMask[serie]>=100) { selF[serie][selFcnt[serie]]=FXLOW; selFcnt[serie]++; _featureMask[serie]-=100; }		//-- LOW is selected
 		if (_featureMask[serie]>=10) { selF[serie][selFcnt[serie]]=FXCLOSE; selFcnt[serie]++; _featureMask[serie]-=10; }		//-- CLOSE is selected
 		if (_featureMask[serie]>=1) { selF[serie][selFcnt[serie]]=FXVOLUME; selFcnt[serie]++; _featureMask[serie]-=1; }			//-- VOLUME is selected
-		info("serie[%d] featuresCnt=%d", serie, selFcnt[serie]);
-		for (int sf=0; sf<selFcnt[serie]; sf++) info("serie[%d] feature [%d]=%d", serie, sf, selF[serie][sf]);
+		//info("serie[%d] featuresCnt=%d", serie, selFcnt[serie]);
+		//for (int sf=0; sf<selFcnt[serie]; sf++) info("serie[%d] feature [%d]=%d", serie, sf, selF[serie][sf]);
 		selFcntTot+=selFcnt[serie];
 	}
 
@@ -526,10 +271,11 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	long oBarTime;
 	char** oBarTimeS=(char**)malloc((sampleBarsCnt+targetBarsCnt)*sizeof(char*)); for (int b=0; b<(sampleBarsCnt+targetBarsCnt); b++) oBarTimeS[b]=(char*)malloc(DATE_FORMAT_LEN);
 	int fi=0;
+
 	for (int b=0; b<(sampleBarsCnt); b++) {
 		for (int s=0; s<seriesCnt_; s++) {
-			//oBarTime=iBarT[s*MT4engine->sampleLen+b];
-			//MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarTimeS[b]);
+			oBarTime=iBarT[s*MT4engine->sampleLen+b];
+			MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarTimeS[b]);
 			for (int f=0; f<selFcnt[s]; f++) {
 				if (selF[s][f]==FXOPEN)   oBar[fi]=(numtype)iBarO[s*MT4engine->sampleLen+b];
 				if (selF[s][f]==FXHIGH)   oBar[fi]=(numtype)iBarH[s*MT4engine->sampleLen+b];
@@ -541,11 +287,9 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 		}
 	}
 	//--
-	dumpArrayH(fi-1, oBar, "C:/temp/logs/oBar.csv");
-	return;
 
 	for (int b=0; b<targetBarsCnt; b++) {
-		//sprintf_s(oBarTimeS[sampleBarsCnt+b], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
+		sprintf_s(oBarTimeS[sampleBarsCnt+b], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
 		for (int f=0; f<selFcntTot; f++) {
 			oBar[fi]=oBar[(sampleBarsCnt-targetBarsCnt)*selFcntTot+b*selFcntTot+f];//EMPTY_VALUE;
 			fi++;
@@ -556,8 +300,8 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	char* oBarBTimeS=(char*)malloc(DATE_FORMAT_LEN);
 	fi=0;
 	for (int s=0; s<seriesCnt_; s++) {
-		//oBarTime=iBaseBarT[0];
-		//MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarBTimeS);
+		oBarTime=iBaseBarT[0];
+		MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarBTimeS);
 		for (int f=0; f<selFcnt[s]; f++) {
 			if (selF[s][f]==FXOPEN)   oBarB[fi]=(numtype)iBaseBarO[s];
 			if (selF[s][f]==FXHIGH)   oBarB[fi]=(numtype)iBaseBarH[s];
@@ -569,22 +313,18 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	}
 
 	//--
-	sTS2* mtTS= new sTS2(this, newsname("MTtimeSerie"), defaultdbg, nullptr, sampleBarsCnt+targetBarsCnt, seriesCnt_, selFcnt, dt_, MT4engine->WTtype[0], MT4engine->WTlevel[0], oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
-	//safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, seriesCnt_, selFcnt, dt_, MT4engine->WTtype[0], MT4engine->WTlevel[0], oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
-	mtTS->dump();
-	return;
+	sTS2* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, seriesCnt_, selFcnt, dt_, MT4engine->WTtype[0], MT4engine->WTlevel[0], oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
 
 	safecall(MT4engine, infer, MT4accountId, seqId_, mtTS, MT4enginePid);
+	mtTS->dump();
 
-	/*for (int b=0; b<MT4engine->targetLen; b++) {
-		for (int f=0; f<MT4engine->featuresCnt; f++) {
-			info("forecast[%d]= %f", b*MT4engine->featuresCnt+f, MT4engine->forecast[b*MT4engine->featuresCnt+f]);
-		}
-	}*/
 	fi=0;
 	for (int b=0; b<MT4engine->targetLen; b++) {
 		for (int s=0; s<seriesCnt_; s++) {
 			for (int sf=0; sf<selFcnt[s]; sf++) {
+				
+				MT4engine->forecast[fi]=mtTS->prd[sampleBarsCnt+b][0][s][sf][0];
+
 				if (selF[s][sf]==FXOPEN) oForecastO[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
 				if (selF[s][sf]==FXHIGH) oForecastH[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
 				if (selF[s][sf]==FXLOW) oForecastL[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
@@ -597,10 +337,6 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	}
 
 	safecall(MT4engine, commit);
-
-	//-- cleanup
-
-	return;
 
 }
 void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit) {
@@ -644,8 +380,9 @@ void sRoot::MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeatur
 
 	(*oSampleLen_)=MT4engine->sampleLen;
 	(*oPredictionLen_)=MT4engine->targetLen;
+	(*oFeaturesCnt_)=MT4engine->inputCnt/MT4engine->sampleLen/(MT4engine->WTlevel[0]+2);
 	(*oBatchSize)=MT4engine->batchSize;
-	info("Engine spawned from DB. sampleLen=%d ; targetLen=%d ; batchSize=%d", MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize);
+	info("Engine spawned from DB. sampleLen=%d ; targetLen=%d ; featuresCnt=%d ; batchSize=%d", (*oSampleLen_), (*oPredictionLen_), (*oFeaturesCnt_), (*oBatchSize));
 	info("Environment initialized and Engine created for Account Number %d inferring from Engine pid %d using config from %s", MT4accountId, MT4enginePid, MT4clientXMLFile);
 }
 void sRoot::MT4commit(){

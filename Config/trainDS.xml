@@ -13,7 +13,7 @@
 		DumpPath			= c:\temp\DataDump
 
 		<Input>
-			DataSourcesCount		= 1
+			DataSourcesCount		= 3
 			<DataSource0>
 				<! FXDB-EURUSDH1.xml >
 				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
