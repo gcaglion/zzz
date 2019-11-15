@@ -1,9 +1,9 @@
 #include "sSVM.h"
 
-sSVM::sSVM(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sSVMparms* SVMparms_) : sCore(sObjParmsVal, nullptr, nullptr, layout_, persistor_) {
+sSVM::sSVM(sObjParmsDef, int inputCnt_, int outputCnt_, sCoreLogger* persistor_, sSVMparms* SVMparms_) : sCore(sObjParmsVal, nullptr, nullptr, inputCnt_, outputCnt_, persistor_) {
 	parms=SVMparms_;
 }
-sSVM::sSVM(sCfgObjParmsDef, sCoreLayout* layout_, sSVMparms* SVMparms_) : sCore(sCfgObjParmsVal, layout_) {}
+sSVM::sSVM(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sSVMparms* SVMparms_) : sCore(sCfgObjParmsVal, inputCnt_, outputCnt_) {}
 sSVM::~sSVM() {}
 
 //-- abstract methods implementations

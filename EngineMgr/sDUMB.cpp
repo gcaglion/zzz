@@ -1,9 +1,9 @@
 #include "sDUMB.h"
 
-sDUMB::sDUMB(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sDUMBparms* DUMBparms_) : sCore(sObjParmsVal, nullptr, "", layout_, persistor_) {
+sDUMB::sDUMB(sObjParmsDef, int inputCnt_, int outputCnt_, sCoreLogger* persistor_, sDUMBparms* DUMBparms_) : sCore(sObjParmsVal, nullptr, "", inputCnt_, outputCnt_, persistor_) {
 	parms=DUMBparms_;
 }
-sDUMB::sDUMB(sCfgObjParmsDef, sCoreLayout* layout_, sDUMBparms* DUMBparms_): sCore(sCfgObjParmsVal, layout_) {
+sDUMB::sDUMB(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sDUMBparms* DUMBparms_): sCore(sCfgObjParmsVal, inputCnt_, outputCnt_) {
 	safecall(cfgKey, getParm, &fixedTRSerror, "Parameters/FixedTRSerror");
 }
 sDUMB::~sDUMB(){}
@@ -30,7 +30,7 @@ void sDUMB::train() {
 	info("DUMB training complete.");
 }
 void sDUMB::infer() {
-	int tlen=procArgs->samplesCnt*procArgs->inputCnt;
+	int tlen=procArgs->samplesCnt*inputCnt;
 	for (int i=0; i<tlen; i++) procArgs->prediction[i]=procArgs->target[i];
 }
 

@@ -8,8 +8,8 @@ struct sDUMB : sCore {
 
 	float fixedTRSerror;
 
-	EXPORT sDUMB(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sDUMBparms* DUMBparms_);
-	EXPORT sDUMB(sCfgObjParmsDef, sCoreLayout* layout_, sDUMBparms* DUMBparms_);
+	EXPORT sDUMB(sObjParmsDef, int inputCnt_, int outputCnt_, sCoreLogger* persistor_, sDUMBparms* DUMBparms_);
+	EXPORT sDUMB(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sDUMBparms* DUMBparms_);
 	EXPORT ~sDUMB();
 
 	//-- local implementations of sCore virtual methods

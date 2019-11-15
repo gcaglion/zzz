@@ -1,12 +1,14 @@
 #include "sCore.h"
 
-sCore::sCore(sCfgObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_) : sCfgObj(sCfgObjParmsVal) {
-	layout=layout_;
+sCore::sCore(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sCoreLogger* persistor_) : sCfgObj(sCfgObjParmsVal) {
+	inputCnt=inputCnt_; outputCnt=outputCnt_;
 	persistor=persistor_;
+	procArgs=new sCoreProcArgs();
 	safespawn(Alg, newsname("%s_Algebra", name->base), defaultdbg);
 }
-sCore::sCore(sCfgObjParmsDef, sCoreLayout* layout_) : sCfgObj(sCfgObjParmsVal) {
-	layout=layout_;
+sCore::sCore(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgObjParmsVal) {
+	inputCnt=inputCnt_; outputCnt=outputCnt_;
+	procArgs=new sCoreProcArgs();
 	safespawn(Alg, newsname("%s_Algebra", name->base), defaultdbg);
 
 	//-- 1. get Parameters
@@ -15,4 +17,6 @@ sCore::sCore(sCfgObjParmsDef, sCoreLayout* layout_) : sCfgObj(sCfgObjParmsVal) {
 	cfg->currentKey=bkpKey;
 
 }
-sCore::~sCore() {}
+sCore::~sCore() {
+	delete procArgs;
+}

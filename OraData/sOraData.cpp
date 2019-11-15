@@ -946,13 +946,13 @@ void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleL
 	}
 
 }
-void sOraData::saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, int batchSize_, int WNNdecompLevel_, int WNNwaveletType_) {
+void sOraData::saveEngineInfo(int pid, int engineType, int sampleLen_, int predictionLen_, int batchSize_, int WNNdecompLevel_, int WNNwaveletType_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
 	//-- 1. ENGINES
-	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType, DataSampleLen, DataPredictionLen, DataFeaturesCnt, DataBatchSize, WNNdecompLevel, WNNwaveletType) values(%d, %d, %d, %d, %d, %d, %d, %d)", pid, engineType, sampleLen_, predictionLen_, featuresCnt_, batchSize_, WNNdecompLevel_, WNNwaveletType_);
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into Engines(ProcessId, EngineType, DataSampleLen, DataPredictionLen, DataBatchSize, WNNdecompLevel, WNNwaveletType) values(%d, %d, %d, %d, %d, %d, %d)", pid, engineType, sampleLen_, predictionLen_, batchSize_, WNNdecompLevel_, WNNwaveletType_);
 	safecall(this, sqlExec, sqlS);
 
 }
@@ -1057,7 +1057,7 @@ void sOraData::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sam
 
 	//--
 }
-void sOraData::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* batchSize_, int* WNNdecompLevel_, int* WNNwaveletType_) {
+void sOraData::loadEngineInfo(int pid, int* engineType_, int* sampleLen_, int* predictionLen_, int* batchSize_, int* WNNdecompLevel_, int* WNNwaveletType_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -1073,7 +1073,6 @@ void sOraData::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sam
 			(*engineType_)=((ResultSet*)rset)->getInt(1);
 			(*sampleLen_)=((ResultSet*)rset)->getInt(2);
 			(*predictionLen_)=((ResultSet*)rset)->getInt(3);
-			(*featuresCnt_)=((ResultSet*)rset)->getInt(4);
 			(*batchSize_)=((ResultSet*)rset)->getInt(5);
 			(*WNNdecompLevel_)=((ResultSet*)rset)->getInt(6);
 			(*WNNwaveletType_)=((ResultSet*)rset)->getInt(7);
@@ -1090,6 +1089,14 @@ void sOraData::loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sam
 	}
 
 	//--
+}
+void sOraData::saveEngineCoreInfo(int pid, int coreId_, int layer_, int tid, int coreType_) {
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	sprintf_s(sqlS, SQL_MAXLEN, "insert into EngineCores(EnginePid, CoreId, Layer, CoreThreadId, CoreType) values(%d, %d, %d, %d, %d)", pid, coreId_, layer_, tid, coreType_);
+	safecall(this, sqlExec, sqlS);
+
 }
 void sOraData::loadEngineCoresInfo(int pid, int* coresCnt_, int** coreType_, int** coreThreadId_, int** coreLayer_) {
 
@@ -1119,6 +1126,36 @@ void sOraData::loadEngineCoresInfo(int pid, int* coresCnt_, int** coreType_, int
 	catch (SQLException ex) {
 		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
+}
+void sOraData::saveEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int* WTlevel_, int* WTtype_) {
+	//-- always check this, first!
+	if (!isOpen) safecall(this, open);
+
+	try {
+		stmt = ((Connection*)conn)->createStatement("insert into EngineData(ProcessId, EngineSide, DataSource, Feature, WTlevel, WTtype) values(:P01, :P02, :P03, :P04, :P05, :P06)");
+		for (int i=0; i<2; i++) {
+			for (int d=0; d<dataSourcesCnt_[i]; d++) {
+				for (int f=0; f<featuresCnt_[i][d]; f++) {
+					for (int l=0; l<(WTlevel_[i]+2); l++) {
+						((Statement*)stmt)->setInt(1, pid);
+						((Statement*)stmt)->setInt(2, i);
+						((Statement*)stmt)->setInt(3, d);
+						((Statement*)stmt)->setInt(4, f);
+						((Statement*)stmt)->setInt(5, l);
+						((Statement*)stmt)->setInt(6, WTtype_[i]);
+
+						((Statement*)stmt)->addIteration();
+					}
+				}
+			}
+		}
+		((Statement*)stmt)->executeUpdate();
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+	}
+	catch (SQLException ex) {
+		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
+	}
+
 }
 int sOraData::getSavedEnginePids(int maxPids_, int* oPid) {
 	

@@ -12,8 +12,6 @@ struct sCoreProcArgs {
 	//-- common across train and infer
 	std::exception_ptr excp;
 	int samplesCnt;
-	int inputCnt;
-	int outputCnt;
 	int batchCnt;
 	int batchSize;
 	numtype* sample;
@@ -39,15 +37,17 @@ struct sCoreProcArgs {
 struct sCore : sCfgObj {
 
 	sCoreParms* parms;
-	sCoreLayout* layout;
+	//sCoreLayout* layout;
+	int inputCnt;
+	int outputCnt;
 	sCoreLogger* persistor;
 	sCoreProcArgs* procArgs;
 
 	//-- MyAlgebra common structures
 	sAlgebra* Alg;
 
-	EXPORT sCore(sCfgObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_);
-	EXPORT sCore(sCfgObjParmsDef, sCoreLayout* layout_);
+	EXPORT sCore(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sCoreLogger* persistor_);
+	EXPORT sCore(sCfgObjParmsDef, int inputCnt_, int outputCnt_);
 	EXPORT ~sCore();
 
 	//-- methods to be implemented indipendently by each subclass(sNN, sGA, ...)

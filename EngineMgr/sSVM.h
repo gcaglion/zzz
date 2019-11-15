@@ -5,8 +5,8 @@
 #include "sSVMparms.h"
 
 struct sSVM : sCore {
-	EXPORT sSVM(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sSVMparms* SVMparms_);
-	EXPORT sSVM(sCfgObjParmsDef, sCoreLayout* layout_, sSVMparms* SVMparms_);
+	EXPORT sSVM(sObjParmsDef, int inputCnt_, int outputCnt_, sCoreLogger* persistor_, sSVMparms* SVMparms_);
+	EXPORT sSVM(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sSVMparms* SVMparms_);
 	EXPORT ~sSVM();
 
 	//-- local implementations of sCore virtual methods

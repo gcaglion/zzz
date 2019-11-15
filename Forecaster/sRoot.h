@@ -49,7 +49,7 @@ struct sRoot : sCfgObj {
 	//-- temp stuff
 	EXPORT void kaz();
 	EXPORT void kazEnc();
-
+	
 private:
 
 	//-- variables
@@ -63,7 +63,6 @@ private:
 //	void datasetPrepare(sTS* ts_, sEngine* eng_, sDS*** ds_, int dsSampleLen_, int dsTargetLen_, int dsBatchSize_, bool dsDoDump_, char* dsDumpPath_, bool loadEngine_);
 
 	//-- functions
-	void mallocSimulationDates(sCfg* clientCfg, int* simLen, char*** simTrainStart, char*** simInferStart, char*** simValidStart);
 	void getSafePid(sLogger* persistor, int* pid);
 
 	//-- the following are used by both trainClient() and inferClient()

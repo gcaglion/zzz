@@ -9,8 +9,8 @@
 
 struct sNN2 : sCore {
 
-	EXPORT sNN2(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_);
-	EXPORT sNN2(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_);
+	EXPORT sNN2(sObjParmsDef, int inputCnt_, int outputCnt_, sCoreLogger* persistor_, sNNparms* NNparms_);
+	EXPORT sNN2(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sNNparms* NNparms_);
 	EXPORT ~sNN2();
 
 	//-- NNParms

@@ -3,6 +3,18 @@
 --grant dba to LogUser;
 --connect LogUser/LogPwd@Algo
 
+drop table EngineData purge;
+create table EngineData(
+	ProcessId number,
+	EngineSide number,
+	DataSource number,
+	Feature number,
+	WTlevel number,
+	WTtype number,
+	constraint EngineData_PK primary key(ProcessId, EngineSide, DataSource, Feature, WTlevel)
+)
+organization index;
+
 drop table CoreInfo purge;
 create table CoreInfo(
 	ProcessId number,

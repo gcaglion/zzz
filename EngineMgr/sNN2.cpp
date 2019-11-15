@@ -6,8 +6,8 @@ void sNN2::setLayout() {
 
 
 	//-- 0.3. set nodesCnt (single sample)
-	nodesCnt[0] = layout->inputCnt;
-	nodesCnt[outputLevel] = layout->outputCnt;
+	nodesCnt[0] = inputCnt;
+	nodesCnt[outputLevel] = outputCnt;
 	for (nl = 0; nl<(parms->levelsCnt-2); nl++) nodesCnt[nl+1] = (int)floor(nodesCnt[nl]*parms->levelRatio[nl]);
 
 	//-- add context neurons
@@ -69,10 +69,10 @@ void sNN2::sNNcommon(sNNparms* NNparms_) {
 
 }
 
-sNN2::sNN2(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sObjParmsVal, nullptr, "", layout_, persistor_) {
+sNN2::sNN2(sObjParmsDef, int inputCnt_, int outputCnt_, sCoreLogger* persistor_, sNNparms* NNparms_) : sCore(sObjParmsVal, nullptr, "", inputCnt_, outputCnt_, persistor_) {
 	sNNcommon(NNparms_);
 }
-sNN2::sNN2(sCfgObjParmsDef, sCoreLayout* layout_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, layout_) {
+sNN2::sNN2(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sNNparms* NNparms_) : sCore(sCfgObjParmsVal, inputCnt_, outputCnt_) {
 	sNNcommon(NNparms_);
 }
 sNN2::~sNN2() {
@@ -324,10 +324,10 @@ void sNN2::train() {
 			Alg->Vinit(weightsCntTotal, dW, 0, 0);
 			for (int s=0; s<procArgs->batchSize; s++) {
 				//-- 1. load sample/target
-				int sid=b*procArgs->batchSize*procArgs->inputCnt+s*procArgs->inputCnt;
-				int tid=b*procArgs->batchSize*procArgs->outputCnt+s*procArgs->outputCnt;
-				Alg->d2d(&F[0], &sample_d[sid], procArgs->inputCnt*sizeof(numtype));
-				Alg->d2d(&u[0], &target_d[tid], procArgs->outputCnt*sizeof(numtype));
+				int sid=b*procArgs->batchSize*inputCnt+s*inputCnt;
+				int tid=b*procArgs->batchSize*outputCnt+s*outputCnt;
+				Alg->d2d(&F[0], &sample_d[sid], inputCnt*sizeof(numtype));
+				Alg->d2d(&u[0], &target_d[tid], outputCnt*sizeof(numtype));
 				//-- 2. fwd
 				FF();
 				//-- 3. calc e,tse
@@ -387,10 +387,10 @@ void sNN2::infer(){
 	for (int b=0; b<procArgs->batchCnt; b++) {
 		for (int s=0; s<procArgs->batchSize; s++) {
 			//-- 1. load sample/target
-			int sid=b*procArgs->batchSize*procArgs->inputCnt+s*procArgs->inputCnt;
-			int tid=b*procArgs->batchSize*procArgs->outputCnt+s*procArgs->outputCnt;
-			safecallSilent(Alg, d2d, &F[0], &sample_d[sid], procArgs->inputCnt*sizeof(numtype));
-			safecallSilent(Alg, d2d, &u[0], &target_d[tid], procArgs->outputCnt*sizeof(numtype));
+			int sid=b*procArgs->batchSize*inputCnt+s*inputCnt;
+			int tid=b*procArgs->batchSize*outputCnt+s*outputCnt;
+			safecallSilent(Alg, d2d, &F[0], &sample_d[sid], inputCnt*sizeof(numtype));
+			safecallSilent(Alg, d2d, &u[0], &target_d[tid], outputCnt*sizeof(numtype));
 			//-- 2. fwd
 			FF();
 			//-- 3. calc e,tse
@@ -404,11 +404,11 @@ void sNN2::infer(){
 }
 
 void sNN2::loadWholeDataSet() {
-	int sampleSize=procArgs->samplesCnt*procArgs->inputCnt;
+	int sampleSize=procArgs->samplesCnt*inputCnt;
 	safecall(Alg, myMalloc, &sample_d, sampleSize);
 	safecall(Alg, h2d, sample_d, procArgs->sample, (int)(sampleSize*sizeof(numtype)), true);
 
-	int targetSize=procArgs->samplesCnt*procArgs->outputCnt;
+	int targetSize=procArgs->samplesCnt*outputCnt;
 	safecall(Alg, myMalloc, &target_d, targetSize);
 	safecall(Alg, h2d, target_d, procArgs->target, (int)(targetSize*sizeof(numtype)), false);
 }

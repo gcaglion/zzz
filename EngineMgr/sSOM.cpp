@@ -1,9 +1,9 @@
 #include "sSOM.h"
 
-sSOM::sSOM(sObjParmsDef, sCoreLayout* layout_, sCoreLogger* persistor_, sSOMparms* SOMparms_) : sCore(sObjParmsVal, nullptr, nullptr, layout_, persistor_) {
+sSOM::sSOM(sObjParmsDef, int inputCnt_, int outputCnt_, sCoreLogger* persistor_, sSOMparms* SOMparms_) : sCore(sObjParmsVal, nullptr, nullptr, inputCnt_, outputCnt_, persistor_) {
 	parms=SOMparms_;
 }
-sSOM::sSOM(sCfgObjParmsDef, sCoreLayout* layout_, sSOMparms* SOMparms_) : sCore(sCfgObjParmsVal, layout_){}
+sSOM::sSOM(sCfgObjParmsDef, int inputCnt_, int outputCnt_, sSOMparms* SOMparms_) : sCore(sCfgObjParmsVal, inputCnt_, outputCnt_){}
 sSOM::~sSOM() {}
 
 //-- abstract methods implementations

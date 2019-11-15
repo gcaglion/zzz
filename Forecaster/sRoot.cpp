@@ -224,6 +224,34 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 #include "../EngineMgr/sCoreLayout.h"
 #include "../EngineMgr/sNNparms.h"
 #include "../EngineMgr/sNN2.h"
+
+void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iBarL, double** iBarC, double** iBarV, long** iBaseBarT, double** iBaseBarO, double** iBaseBarH, double** iBaseBarL, double** iBaseBarC, double** iBaseBarV) {
+	srand(timeGetTime());
+	(*iBarT)=(long*)malloc(n*sizeof(long));
+	(*iBarO)=(double*)malloc(n*sizeof(double));
+	(*iBarH)=(double*)malloc(n*sizeof(double));
+	(*iBarL)=(double*)malloc(n*sizeof(double));
+	(*iBarC)=(double*)malloc(n*sizeof(double));
+	(*iBarV)=(double*)malloc(n*sizeof(double));
+	(*iBaseBarT)=(long*)malloc(n*sizeof(long));
+	(*iBaseBarO)=(double*)malloc(n*sizeof(double));
+	(*iBaseBarH)=(double*)malloc(n*sizeof(double));
+	(*iBaseBarL)=(double*)malloc(n*sizeof(double));
+	(*iBaseBarC)=(double*)malloc(n*sizeof(double));
+	(*iBaseBarV)=(double*)malloc(n*sizeof(double));
+	for (int i=0; i<n; i++) (*iBarT)[i]=rand();
+	VinitRnd(n, -1, 1, (*iBarO));
+	VinitRnd(n, -1, 1, (*iBarH));
+	VinitRnd(n, -1, 1, (*iBarL));
+	VinitRnd(n, -1, 1, (*iBarC));
+	VinitRnd(n, -1, 1, (*iBarV));
+	for (int i=0; i<n; i++) (*iBaseBarT)[i]=rand();
+	VinitRnd(n, -1, 1, (*iBaseBarO));
+	VinitRnd(n, -1, 1, (*iBaseBarH));
+	VinitRnd(n, -1, 1, (*iBaseBarL));
+	VinitRnd(n, -1, 1, (*iBaseBarC));
+	VinitRnd(n, -1, 1, (*iBaseBarV));
+}
 void sRoot::kaz() {
 
 /*	sAlgebra* Alg; safespawn(Alg, newsname("Alg"), defaultdbg);
@@ -248,228 +276,78 @@ void sRoot::kaz() {
 	return;
 */
 	
+	sCfg* cliCfg; safespawn(cliCfg, newsname("clientCfg"), defaultdbg, "Config/Client.xml");
+	sLogger* cliLog; safespawn(cliLog, newsname("clientLogger"), defaultdbg, cliCfg, "/Client/Persistor");
+	safespawn(MT4engine, newsname("MTengine"), defaultdbg, cliLog, pid, 188);
+	int sampleBarsCnt=MT4engine->sampleLen+MT4engine->batchSize-1;
+	int targetBarsCnt=MT4engine->targetLen;
+	long* iBarT; double* iBarO; double* iBarH; double* iBarL; double* iBarC; double* iBarV;
+	long* iBaseBarT; double* iBaseBarO; double* iBaseBarH; double* iBaseBarL; double* iBaseBarC; double* iBaseBarV;
+	createBars(sampleBarsCnt+targetBarsCnt, &iBarT, &iBarO, &iBarH, &iBarL, &iBarC, &iBarV, &iBaseBarT, &iBaseBarO, &iBaseBarH, &iBaseBarL, &iBaseBarC, &iBaseBarV);
+
+	const int seriesCnt=2;
+	int dt=1;
+	int featureMask[seriesCnt]={ 11110, 1100 };
+	getForecast(0, seriesCnt, dt, featureMask, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, nullptr, nullptr, nullptr, nullptr, nullptr);
+	
+
 	int testid=999;
 	int seqId_=0;
 	int action=1;	//-- 0:train ; 1:infer
-	int idx;
 
 	sCfg* clientCfg; safespawn(clientCfg, newsname("clientCfg"), defaultdbg, "Config/Client.xml");
 	sLogger* clientLogger; safespawn(clientLogger, newsname("clientLogger"), defaultdbg, clientCfg, "/Client/Persistor");
 	safecall(this, getSafePid, clientLogger, &pid);
 
-	int sampleLen;
-	int targetLen;
-	int batchSize;
-	int samplesCnt;
-	int inputCnt;
-	int outputCnt;
-	numtype* sample;
-	numtype* target;
-	numtype* prediction;
-	numtype* trMinIN=nullptr;
-	numtype* trMaxIN=nullptr;
-	numtype* trMinOUT=nullptr;
-	numtype* trMaxOUT=nullptr;
-
 	if (action==0) {
+
 		sCfg* trainCfg; safespawn(trainCfg, newsname("trainCfg"), defaultdbg, "Config/trainDS.xml");
-		safecall(trainCfg->currentKey, getParm, &sampleLen, "SampleLen");
-		safecall(trainCfg->currentKey, getParm, &targetLen, "TargetLen");
-		safecall(trainCfg->currentKey, getParm, &batchSize, "BatchSize");
-		sTS2* trainTS; safespawn(trainTS, newsname("trainTS"), defaultdbg, trainCfg, "/TimeSerie");
-		trainTS->scale(-1, 1);
-		//	trainTS->dump();
-
-		safecall(trainTS, getDataSet, sampleLen, targetLen, &samplesCnt, &inputCnt, &outputCnt, &sample, &target, &prediction);
-
 		sCfg* engCfg; safespawn(engCfg, newsname("engCfg"), defaultdbg, "Config/Engine.xml");
-		sCoreLayout** coreLayout=(sCoreLayout**)malloc(1*sizeof(sCoreLayout*));
-		sNNparms* NNcp=nullptr; sNN2* NNc=nullptr;
-		int c=0;
-		safespawn(coreLayout[c], newsname("CoreLayout%d", c), defaultdbg, engCfg, strBuild("Core%d/Layout", c), inputCnt, outputCnt);
-		safespawn(NNcp, newsname("Core%d_NNparms", c), defaultdbg, engCfg, strBuild("Core%d/Parameters", c));
-		NNcp->setScaleMinMax();
-		safespawn(NNc, newsname("Core%d_NN", c), defaultdbg, engCfg, "../", coreLayout[c], NNcp);
 
-		sCoreProcArgs* trainArgs = new sCoreProcArgs();
-		trainArgs->testid=testid;
-		trainArgs->samplesCnt=samplesCnt;
-		trainArgs->inputCnt=inputCnt;
-		trainArgs->outputCnt=outputCnt;
-		trainArgs->batchSize=batchSize;
-		trainArgs->batchCnt=(int)floor(samplesCnt/batchSize);
-		trainArgs->sample=sample;
-		trainArgs->target=target;
-		trainArgs->prediction=prediction;
-		trainArgs->pid=pid;
-		trainArgs->tid=GetCurrentThreadId();
+		int _sampleLen, _targetLen, _batchSize;
+		safecall(trainCfg->currentKey, getParm, &_sampleLen, "SampleLen");
+		safecall(trainCfg->currentKey, getParm, &_targetLen, "TargetLen");
+		safecall(trainCfg->currentKey, getParm, &_batchSize, "BatchSize");
+		sTS2* trainTS; safespawn(trainTS, newsname("trainTS"), defaultdbg, trainCfg, "/TimeSerie");
 
-		NNc->procArgs=trainArgs;
-		safecall(NNc, train);
+		sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, engCfg, "/");
 
-		if (!NNc->procArgs->quitAfterBreak) {
-			if (NNc->persistor->saveMSEFlag) safecall(NNc->persistor, saveMSE, NNc->procArgs->pid, NNc->procArgs->tid, NNc->procArgs->mseCnt, NNc->procArgs->duration, NNc->procArgs->mseT, NNc->procArgs->mseV);
-			if (NNc->persistor->saveImageFlag) safecall(NNc, saveImage, NNc->procArgs->pid, NNc->procArgs->tid, NNc->procArgs->mseCnt-1);
-			free(NNc->procArgs->mseT);
-			free(NNc->procArgs->mseV);
-			free(NNc->procArgs->duration);
-		}
+		safecall(eng, train, testid, trainTS, _sampleLen, _targetLen, _batchSize);
 
-		//==== Infer on training set ===
-		safecall(NNc, infer);
 
-		//-- get predictions into ts->prdTRS
-		trainTS->getPrediction(samplesCnt, sampleLen, targetLen, prediction);
-		//-- unscale prdTRS into prdTR
-		trainTS->unscale();
-		//-- untransform prdTR into prd
-		trainTS->untransform();
-		//-- persist (OUTPUT only)
-		if (NNc->persistor->saveRunFlag) {
-			for (int d=0; d<trainTS->dataSourcesCnt[1]; d++) {
-				for (int f=0; f<trainTS->featuresCnt[1][d]; f++) {
-					for (int l=0; l<(trainTS->WTlevel[1]+2); l++) {
-						NNc->persistor->saveRun2(NNc->procArgs->pid, NNc->procArgs->tid, NNc->procArgs->npid, NNc->procArgs->ntid, seqId_, NNc->procArgs->mseR, \
-							trainTS->stepsCnt, trainTS->timestamp, 1, d, f, l, trainTS->valTRS, trainTS->prdTRS, trainTS->valTR, trainTS->prdTR, trainTS->val, trainTS->prd
-						);
-					}
-				}
-			}
-		}
 		//==============================
-		trMinIN=(numtype*)malloc(inputCnt*sizeof(numtype));
-		trMaxIN=(numtype*)malloc(inputCnt*sizeof(numtype));
-		trMinOUT=(numtype*)malloc(outputCnt*sizeof(numtype));
-		trMaxOUT=(numtype*)malloc(outputCnt*sizeof(numtype));
-		idx=0;
-		for (int d=0; d<trainTS->dataSourcesCnt[0]; d++) {
-			for (int f=0; f<trainTS->featuresCnt[0][d]; f++) {
-				for (int l=0; l<(trainTS->WTlevel[0]+2); l++) {
-					trMinIN[idx]=trainTS->TRmin[0][d][f][l];
-					trMaxIN[idx]=trainTS->TRmax[0][d][f][l];
-					idx++;
-				}
-			}
-		}
-		idx=0;
-		for (int d=0; d<trainTS->dataSourcesCnt[1]; d++) {
-			for (int f=0; f<trainTS->featuresCnt[1][d]; f++) {
-				for (int l=0; l<(trainTS->WTlevel[1]+2); l++) {
-					trMinOUT[idx]=trainTS->TRmin[1][d][f][l];
-					trMaxOUT[idx]=trainTS->TRmax[1][d][f][l];
-					idx++;
-				}
-			}
-		}
-		safecall(clientLogger, saveCoreInfo, pid, trainArgs->tid, CORE_NN, sampleLen, inputCnt, targetLen, outputCnt, batchSize, trMinIN, trMaxIN, trMinOUT, trMaxOUT);
-		safecall(NNc->layout, save, clientLogger, pid, trainArgs->tid);
-		safecall(NNc->persistor, save, clientLogger, pid, trainArgs->tid);
-		safecall(NNc->parms, save, clientLogger, pid, trainArgs->tid);
-
-		free(trMinIN); free(trMaxIN); free(trMinOUT); free(trMaxOUT);
-		free(trainArgs);
 
 		timer->stop(endtimeS);
 		safecall(clientLogger, saveClientInfo, pid, 0, testid, pid, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0], "", "", true, false, "", "", "", "");
 
-		NNc->persistor->commit();
+		eng->commit();
 		clientLogger->commit();
 
 	} else {
 		sCfg* inferCfg; safespawn(inferCfg, newsname("inferCfg"), defaultdbg, "Config/inferDS.xml");
-		safecall(inferCfg->currentKey, getParm, &sampleLen, "SampleLen");
-		safecall(inferCfg->currentKey, getParm, &targetLen, "TargetLen");
-		safecall(inferCfg->currentKey, getParm, &batchSize, "BatchSize");
+
+		int _sampleLen, _targetLen, _batchSize;
+		safecall(inferCfg->currentKey, getParm, &_sampleLen, "SampleLen");
+		safecall(inferCfg->currentKey, getParm, &_targetLen, "TargetLen");
+		safecall(inferCfg->currentKey, getParm, &_batchSize, "BatchSize");
 		sTS2* inferTS; safespawn(inferTS, newsname("inferTS"), defaultdbg, inferCfg, "/TimeSerie");
 
 		//==== Infer on infer set    ===
-		int savedEnginePid=11558;
+		int savedEnginePid=188;
 
 		sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, clientLogger, pid, savedEnginePid);
-		sCoreLayout* NNcLayout; sCoreLogger* NNcPersistor; sNNparms* NNcParms; sNN2* NNc=nullptr;
-		int savedCoreType; 
-		for (int c=0; c<eng->coresCnt; c++) {
-			safespawn(NNcLayout, newsname("NNcLayout"), defaultdbg, clientLogger, savedEnginePid, eng->coreThreadId[c]);
-			clientLogger->loadCoreInfo(savedEnginePid, eng->coreThreadId[c], &savedCoreType, &sampleLen, &inputCnt, &targetLen, &outputCnt, &batchSize, &trMinIN, &trMaxIN, &trMinOUT, &trMaxOUT);
-			NNcLayout->inputCnt=inputCnt; NNcLayout->outputCnt=outputCnt;
-			safespawn(NNcPersistor, newsname("NNcPersistor"), defaultdbg, clientLogger, savedEnginePid, eng->coreThreadId[c]);
-			safespawn(NNcParms, newsname("NNcParms"), defaultdbg, clientLogger, savedEnginePid, eng->coreThreadId[c]);
-			safespawn(NNc, newsname("inferNNcore"), defaultdbg, NNcLayout, NNcPersistor, NNcParms);
-			safecall(NNc, loadImage, savedEnginePid, eng->coreThreadId[c], -1);
-		}
 		
-		idx=0;
-		for (int d=0; d<inferTS->dataSourcesCnt[0]; d++) {
-			for (int f=0; f<inferTS->featuresCnt[0][d]; f++) {
-				for (int l=0; l<(inferTS->WTlevel[0]+2); l++) {
-					inferTS->TRmin[0][d][f][l]=trMinIN[idx];
-					inferTS->TRmax[0][d][f][l]=trMaxIN[idx];
-					idx++;
-				}
-			}
-		}
-		idx=0;
-		for (int d=0; d<inferTS->dataSourcesCnt[1]; d++) {
-			for (int f=0; f<inferTS->featuresCnt[1][d]; f++) {
-				for (int l=0; l<(inferTS->WTlevel[1]+2); l++) {
-					inferTS->TRmin[1][d][f][l]=trMinOUT[idx];
-					inferTS->TRmax[1][d][f][l]=trMaxOUT[idx];
-					idx++;
-				}
-			}
-		}
-
-		inferTS->scale(-1, 1);
-
 		//-- consistency checks: 
 		//...........................
 
-		safecall(inferTS, getDataSet, sampleLen, targetLen, &samplesCnt, &inputCnt, &outputCnt, &sample, &target, &prediction);
-
-		sCoreProcArgs* inferArgs = new sCoreProcArgs();
-		inferArgs->testid=999;
-		inferArgs->samplesCnt=samplesCnt;
-		inferArgs->inputCnt=inputCnt;
-		inferArgs->outputCnt=outputCnt;
-		inferArgs->batchSize=batchSize;
-		inferArgs->batchCnt=(int)floor(samplesCnt/batchSize);
-		inferArgs->sample=sample;
-		inferArgs->target=target;
-		inferArgs->prediction=prediction;
-		inferArgs->pid=pid;
-		inferArgs->tid=GetCurrentThreadId();
-
-		NNc->procArgs=inferArgs;
-		NNc->infer();
-		//-- get predictions into ts->prdTRS
-		inferTS->getPrediction(samplesCnt, sampleLen, targetLen, prediction);
-		//-- unscale prdTRS into prdTR
-		inferTS->unscale();
-		//-- untransform prdTR into prd
-		inferTS->untransform();
-		//-- persist (OUTPUT only)
-		if (NNc->persistor->saveRunFlag) {
-			for (int d=0; d<inferTS->dataSourcesCnt[1]; d++) {
-				for (int f=0; f<inferTS->featuresCnt[1][d]; f++) {
-					for (int l=0; l<(inferTS->WTlevel[1]+2); l++) {
-						safecall(NNc->persistor, saveRun2, NNc->procArgs->pid, NNc->procArgs->tid, NNc->procArgs->npid, NNc->procArgs->ntid, seqId_, NNc->procArgs->mseR, \
-							inferTS->stepsCnt, inferTS->timestamp, 1, d, f, l, inferTS->valTRS, inferTS->prdTRS, inferTS->valTR, inferTS->prdTR, inferTS->val, inferTS->prd
-						);
-					}
-				}
-			}
-		}
-		//==============================
-
-		free(trMinIN); free(trMaxIN);
+		safecall(eng, infer, testid, seqId_, inferTS, savedEnginePid);
 
 		timer->stop(endtimeS);
 		clientLogger->saveClientInfo( pid, 0, testid, pid, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[0], "", false, true, "", "", "", "");
 
-		NNc->persistor->commit();
+		eng->commit();
 		clientLogger->commit();
 
-		free(inferArgs);
 	}
 
 
@@ -588,7 +466,7 @@ extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char*
 }
 */
 //-- MT4 stuff
-/*
+
 #define MT_MAX_SERIES_CNT 12
 void sRoot::getSeriesInfo(int* oSeriesCnt_, char* oSymbolsCSL_, char* oTimeFramesCSL_, char* oFeaturesCSL_, bool* oChartTrade_) {
 
@@ -622,7 +500,6 @@ void sRoot::getSeriesInfo(int* oSeriesCnt_, char* oSymbolsCSL_, char* oTimeFrame
 }
 
 void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
-
 	//-- need to make a local copy of featureMask_, as it gets changed just to get selFcnt
 	int* _featureMask=(int*)malloc(seriesCnt_*sizeof(int));
 	memcpy_s(_featureMask, seriesCnt_*sizeof(int), featureMask_, seriesCnt_*sizeof(int));
@@ -651,8 +528,8 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	int fi=0;
 	for (int b=0; b<(sampleBarsCnt); b++) {
 		for (int s=0; s<seriesCnt_; s++) {
-			oBarTime=iBarT[s*MT4engine->sampleLen+b];
-			MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarTimeS[b]);
+			//oBarTime=iBarT[s*MT4engine->sampleLen+b];
+			//MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarTimeS[b]);
 			for (int f=0; f<selFcnt[s]; f++) {
 				if (selF[s][f]==FXOPEN)   oBar[fi]=(numtype)iBarO[s*MT4engine->sampleLen+b];
 				if (selF[s][f]==FXHIGH)   oBar[fi]=(numtype)iBarH[s*MT4engine->sampleLen+b];
@@ -664,8 +541,11 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 		}
 	}
 	//--
+	dumpArrayH(fi-1, oBar, "C:/temp/logs/oBar.csv");
+	return;
+
 	for (int b=0; b<targetBarsCnt; b++) {
-		sprintf_s(oBarTimeS[sampleBarsCnt+b], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
+		//sprintf_s(oBarTimeS[sampleBarsCnt+b], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
 		for (int f=0; f<selFcntTot; f++) {
 			oBar[fi]=oBar[(sampleBarsCnt-targetBarsCnt)*selFcntTot+b*selFcntTot+f];//EMPTY_VALUE;
 			fi++;
@@ -676,8 +556,8 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	char* oBarBTimeS=(char*)malloc(DATE_FORMAT_LEN);
 	fi=0;
 	for (int s=0; s<seriesCnt_; s++) {
-		oBarTime=iBaseBarT[0];
-		MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarBTimeS);
+		//oBarTime=iBaseBarT[0];
+		//MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarBTimeS);
 		for (int f=0; f<selFcnt[s]; f++) {
 			if (selF[s][f]==FXOPEN)   oBarB[fi]=(numtype)iBaseBarO[s];
 			if (selF[s][f]==FXHIGH)   oBarB[fi]=(numtype)iBaseBarH[s];
@@ -689,19 +569,18 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	}
 
 	//--
-	sTS2* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, seriesCnt_, selFcnt, dt_, MT4engine->WTtype, MT4engine->WTlevel, oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
-	//mtTS->slide(1);
-	//mtTS->dump();
-	//sDS** mtDS; safecall(this, datasetPrepare, mtTS, MT4engine, &mtDS, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump,(char*)nullptr, true);
-	//--
-	
+	sTS2* mtTS= new sTS2(this, newsname("MTtimeSerie"), defaultdbg, nullptr, sampleBarsCnt+targetBarsCnt, seriesCnt_, selFcnt, dt_, MT4engine->WTtype[0], MT4engine->WTlevel[0], oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
+	//safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, seriesCnt_, selFcnt, dt_, MT4engine->WTtype[0], MT4engine->WTlevel[0], oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
+	mtTS->dump();
+	return;
+
 	safecall(MT4engine, infer, MT4accountId, seqId_, mtTS, MT4enginePid);
 
-	for (int b=0; b<MT4engine->targetLen; b++) {
+	/*for (int b=0; b<MT4engine->targetLen; b++) {
 		for (int f=0; f<MT4engine->featuresCnt; f++) {
 			info("forecast[%d]= %f", b*MT4engine->featuresCnt+f, MT4engine->forecast[b*MT4engine->featuresCnt+f]);
 		}
-	}
+	}*/
 	fi=0;
 	for (int b=0; b<MT4engine->targetLen; b++) {
 		for (int s=0; s<seriesCnt_; s++) {
@@ -765,9 +644,8 @@ void sRoot::MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeatur
 
 	(*oSampleLen_)=MT4engine->sampleLen;
 	(*oPredictionLen_)=MT4engine->targetLen;
-	(*oFeaturesCnt_)=MT4engine->featuresCnt;
 	(*oBatchSize)=MT4engine->batchSize;
-	info("Engine spawned from DB. sampleLen=%d ; targetLen=%d ; featuresCnt=%d ; batchSize=%d", MT4engine->sampleLen, MT4engine->targetLen, MT4engine->featuresCnt, MT4engine->batchSize);
+	info("Engine spawned from DB. sampleLen=%d ; targetLen=%d ; batchSize=%d", MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize);
 	info("Environment initialized and Engine created for Account Number %d inferring from Engine pid %d using config from %s", MT4accountId, MT4enginePid, MT4clientXMLFile);
 }
 void sRoot::MT4commit(){
@@ -907,4 +785,3 @@ extern "C" __declspec(dllexport) int _getActualFuture(char* iEnvS, char* iSymbol
 
 	return 0;
 }
-*/
