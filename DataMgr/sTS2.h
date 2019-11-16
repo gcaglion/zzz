@@ -38,7 +38,11 @@ struct sTS2 :sCfgObj {
 	char dumpPath[MAX_PATH];
 
 	EXPORT sTS2(sCfgObjParmsDef);
-	EXPORT sTS2(sObjParmsDef, int stepsCnt_, int dataSourcesCnt_, int* featuresCnt_, int dt_, int WTtype_, int WTlevel_, char** timestamp_, numtype* val_, char* timestampB_, numtype* valB_, bool doDump_);
+	EXPORT sTS2(sObjParmsDef, \
+		int stepsCnt_, char** timestamp_, char* timestampB_, int dt_, bool doDump_, \
+		int INdataSourcesCnt_, int* INfeaturesCnt_, int INWTtype_, int INWTlevel_, numtype* INval_, numtype* INvalB_, \
+		int OUTdataSourcesCnt_, int* OUTfeaturesCnt_, int OUTWTtype_, int OUTWTlevel_, numtype* OUTval_, numtype* OUTvalB_\
+	);
 	EXPORT ~sTS2();
 	EXPORT void dump(bool predicted=false);
 	EXPORT void scale(float scaleMin_, float scaleMax_);

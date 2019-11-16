@@ -81,8 +81,8 @@ void sLogger::saveEngineInfo(int pid, int engineType, int sampleLen_, int predic
 	if (saveToDB) safecall(oradb, saveEngineInfo, pid, engineType, sampleLen_, predictionLen_, batchSize_, WNNdecompLevel_, WNNwaveletType_);
 	//if (saveToFile) safecall(filedb, saveEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, coreId, coreType, tid, parentCoresCnt, parentCore, parentConnType);
 }
-void sLogger::loadEngineInfo(int pid, int* engineType_, int* sampleLen_, int* predictionLen_, int* batchSize_, int* WNNdecompLevel_, int* WNNwaveletType_) {
-	if (source==OraData) safecall(oradb, loadEngineInfo, pid, engineType_, sampleLen_, predictionLen_, batchSize_, WNNdecompLevel_, WNNwaveletType_);
+void sLogger::loadEngineInfo(int pid, int* engineType_, int* sampleLen_, int* predictionLen_, int* batchSize_) {
+	if (source==OraData) safecall(oradb, loadEngineInfo, pid, engineType_, sampleLen_, predictionLen_, batchSize_);
 	//if (source==FileData) safecall(filedb, loadEngineInfo, pid, engineType, coresCnt, sampleLen_, predictionLen_, featuresCnt_, saveToDB_, saveToFile_, "DioPorco", coreId, coreType, coreThreadId, parentCoresCnt, parentCore, parentConnType);
 }
 void sLogger::saveEngineCoreInfo(int pid, int coreId_, int layer_, int tid, int coreType_) {
@@ -94,6 +94,9 @@ void sLogger::loadEngineCoresInfo(int pid, int* coresCnt_, int** coreType_, int*
 //--
 void sLogger::saveEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int* WTlevel_, int* WTtype_) {
 	if (source==OraData) safecall(oradb, saveEngineData, pid, dataSourcesCnt_, featuresCnt_, WTlevel_, WTtype_);
+}
+void sLogger::loadEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int* WTlevel_, int* WTtype_) {
+	if (source==OraData) safecall(oradb, loadEngineData, pid, dataSourcesCnt_, featuresCnt_, WTlevel_, WTtype_);
 }
 //--
 void sLogger::saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int inputCnt_, int targetLen_, int outputCnt_, int batchSize_, numtype* trMinIN_, numtype* trMaxIN_, numtype* trMinOUT_, numtype* trMaxOUT_) {

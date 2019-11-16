@@ -46,11 +46,12 @@ struct sLogger : sCfgObj {
 	EXPORT void saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, int batchSize_, int WNNdecompLevel_, int WNNwaveletType_, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreLayer, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_, numtype** fftMin_, numtype** fftMax_);
 	EXPORT void loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* batchSize_, int* WNNdecompLevel_, int* WNNwaveletType_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_, numtype** fftMin_, numtype** fftMax_);
 	EXPORT void saveEngineInfo(int pid, int engineType, int sampleLen_, int predictionLen_, int batchSize_, int WNNdecompLevel_, int WNNwaveletType_);
-	EXPORT void loadEngineInfo(int pid, int* engineType_, int* sampleLen_, int* predictionLen_, int* batchSize_, int* WNNdecompLevel_, int* WNNwaveletType_);
+	EXPORT void loadEngineInfo(int pid, int* engineType_, int* sampleLen_, int* predictionLen_, int* batchSize_);
 	EXPORT void saveEngineCoreInfo(int pid, int coreId_, int layer_, int tid, int coreType_);
 	EXPORT void loadEngineCoresInfo(int pid, int* coresCnt_, int** coreType_, int** coreThreadId_, int** coreLayer_);
 	//--
 	EXPORT void saveEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int* WTlevel_, int* WTtype_);
+	EXPORT void loadEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int* WTlevel_, int* WTtype_);
 	//--
 	EXPORT void saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int inputCnt_, int targetLen_, int outputCnt_, int batchSize_, numtype* trMinIN_, numtype* trMaxIN_, numtype* trMinOUT_, numtype* trMaxOUT_);
 	EXPORT void loadCoreInfo(int pid, int tid, int* coreType_, int* sampleLen_, int* inputCnt_, int* targetLen_, int* outputCnt_, int* batchSize_, numtype** trMinIN_, numtype** trMaxIN_, numtype** trMinOUT_, numtype** trMaxOUT_);

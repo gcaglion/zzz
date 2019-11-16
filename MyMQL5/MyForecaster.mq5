@@ -27,10 +27,10 @@ enum SLhandling {
 };
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 13148;
+input int EnginePid				= 5744;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 input int DataTransformation	= 1;
-input bool DumpData				= true;
+input bool DumpData				= false;
 input bool SaveLogs				= true;
 input bool GetActualFutureData	= false;
 //-- input parameters - Trade stuff

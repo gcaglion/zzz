@@ -416,6 +416,34 @@ void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, int* oIn
 
 	(*oPrediction)=(numtype*)malloc((*oOutputCnt)*(*oSamplesCnt)*sizeof(numtype));
 
+	//-- Print
+	char fdsname[MAX_PATH]; sprintf_s(fdsname, "%s/dataSet_%p.csv", dumpPath, this);
+	FILE* fds; fopen_s(&fds, fdsname, "w");
+	fprintf(fds, "SampleId");
+	for (int bar=0; bar<sampleLen_; bar++) {
+		for (int d=0; d<dataSourcesCnt[0]; d++) {
+			for (int f=0; f<featuresCnt[0][d]; f++) {
+				for (int l=0; l<(WTlevel[0]+2); l++) {
+					fprintf(fds, ",B%dD%dF%dL%d", bar,d,f,l);
+				}
+			}
+		}
+	}
+	dsidx=0;
+	for (int s=0; s<(*oSamplesCnt); s++) {
+		fprintf(fds, "\n%d", s);
+		for (int bar=0; bar<sampleLen_; bar++) {
+			for (int d=0; d<dataSourcesCnt[0]; d++) {
+				for (int f=0; f<featuresCnt[0][d]; f++) {
+					for (int l=0; l<(WTlevel[0]+2); l++) {
+						fprintf(fds, ",%f", (*oSample)[dsidx]);
+						dsidx++;
+					}
+				}
+			}
+		}
+	}
+	fclose(fds);
 }
 void sTS2::getPrediction(int samplesCnt_, int sampleLen_, int targetLen_, numtype* prediction_) {
 	int s, b;
@@ -571,7 +599,11 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 
 }
-sTS2::sTS2(sObjParmsDef, int stepsCnt_, int dataSourcesCnt_, int* featuresCnt_, int dt_, int WTtype_, int WTlevel_, char** timestamp_, numtype* val_, char* timestampB_, numtype* valB_, bool doDump_) : sCfgObj(sObjParmsVal, nullptr, "") {
+sTS2::sTS2(sObjParmsDef, \
+	int stepsCnt_, char** timestamp_, char* timestampB_, int dt_, bool doDump_, \
+	int INdataSourcesCnt_, int* INfeaturesCnt_, int INWTtype_, int INWTlevel_, numtype* INval_, numtype* INvalB_, \
+	int OUTdataSourcesCnt_, int* OUTfeaturesCnt_, int OUTWTtype_, int OUTWTlevel_, numtype* OUTval_, numtype* OUTvalB_\
+) : sCfgObj(sObjParmsVal, nullptr, "") {
 	
 	stepsCnt=stepsCnt_; dt=dt_; doDump=doDump_;
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
@@ -581,45 +613,66 @@ sTS2::sTS2(sObjParmsDef, int stepsCnt_, int dataSourcesCnt_, int* featuresCnt_, 
 	dataSourcesCnt=(int*)malloc(2*sizeof(int));
 	sDataSource*** dsrc=(sDataSource***)malloc(2*sizeof(sDataSource**));
 	featuresCnt=(int**)malloc(2*sizeof(int*));
-	
-	int i=0;	//-- we only built INPUT side
-	dataSourcesCnt[i]=dataSourcesCnt_;
-	featuresCnt[i]=(int*)malloc(dataSourcesCnt[i]*sizeof(int));
-	for (int d=0; d<dataSourcesCnt[i]; d++) featuresCnt[i][d]=featuresCnt_[d];
-	WTtype[i]=WTtype_; WTlevel[i]=WTlevel_;
-	
+
+	dataSourcesCnt[0]=INdataSourcesCnt_;
+	featuresCnt[0]=(int*)malloc(dataSourcesCnt[0]*sizeof(int));
+	for (int d=0; d<dataSourcesCnt[0]; d++) featuresCnt[0][d]=INfeaturesCnt_[d];
+	WTtype[0]=INWTtype_; WTlevel[0]=INWTlevel_;
+	//--
+	dataSourcesCnt[1]=OUTdataSourcesCnt_;
+	featuresCnt[1]=(int*)malloc(dataSourcesCnt[1]*sizeof(int));
+	for (int d=0; d<dataSourcesCnt[1]; d++) featuresCnt[1][d]=OUTfeaturesCnt_[d];
+	WTtype[1]=OUTWTtype_; WTlevel[1]=OUTWTlevel_;
+
 	mallocs1();
-	
-	int idx;
-/*	//-- *val comes in flat, ordered by [step][dsXfeature]. We need to put these values in the appropriate val sub-array, with WTlevel=0
-	idx=0;
-	for (int s=0; s<stepsCnt; s++) {
-		for (int d=0; d<dataSourcesCnt[i]; d++) {
-			for (int f=0; f<featuresCnt[i][d]; f++) {
-				val[s][i][d][f][0]=val_[idx];
-				idx++;
-			}
-		}
-	}
-*/
-	//-- *valB comes in flat, ordered by [dsXfeature]
-	idx=0;
-	for (int d=0; d<dataSourcesCnt[i]; d++) {
-		for (int f=0; f<featuresCnt[i][d]; f++) {
-			valB[i][d][f][0]=valB_[idx];
-			idx++;
-		}
-	}
 
 	//-- timestamps
 	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s], DATE_FORMAT_LEN, timestamp_[s]);
 	//-- timestampB
 	strcpy_s(timestampB, DATE_FORMAT_LEN, timestampB_);
 
-	//-- now we need to calc wavelets. This also sets val alt WTlevel 0
+	//=== BUILDING INPUT SIDE ===
+	int i=0;
+	int idx=0;
+	//-- *val comes in flat, ordered by [step][dsXfeature]. We need to put these values in the appropriate val sub-array, with WTlevel=0
+	for (int s=0; s<stepsCnt; s++) {
+		for (int d=0; d<dataSourcesCnt[i]; d++) {
+			for (int f=0; f<featuresCnt[i][d]; f++) {
+				val[s][i][d][f][0]=INval_[idx];
+				idx++;
+			}
+		}
+	}
+	//-- now we need to calc wavelets.
+	numtype* tmpvalx=(numtype*)malloc(stepsCnt*sizeof(numtype));
+	numtype* lfa=(numtype*)malloc(stepsCnt*sizeof(numtype));
+	numtype** hfd=(numtype**)malloc(WTlevel[i]*sizeof(numtype*)); for (int l=0; l<WTlevel[i]; l++) hfd[l]=(numtype*)malloc(stepsCnt*sizeof(numtype));
 	for (int d=0; d<dataSourcesCnt[i]; d++) {
 		for (int f=0; f<featuresCnt[i][d]; f++) {
-			WTcalc(i, d, f, val_);
+			for (int s=0; s<stepsCnt; s++) {
+				tmpvalx[s]=val[s][i][d][f][0];
+			}
+			WaweletDecomp(stepsCnt, tmpvalx, WTlevel[i], WTtype[i], lfa, hfd);
+			for (int s=0; s<stepsCnt; s++) {
+				val[s][i][d][f][1]=lfa[s];
+				for (int l=0; l<WTlevel[i]; l++) val[s][i][d][f][l+2]=hfd[l][s];
+			}
+		}
+	}
+	for (int l=0; l<WTlevel[i]; l++) free(hfd[l]);
+	free(lfa); free(hfd);
+
+	//-- *valB comes in flat, ordered by [dsXfeature]
+	idx=0;
+	for (int d=0; d<dataSourcesCnt[i]; d++) {
+		for (int f=0; f<featuresCnt[i][d]; f++) {
+			valB[i][d][f][0]=INvalB_[idx];
+			idx++;
+		}
+	}
+
+	for (int d=0; d<dataSourcesCnt[i]; d++) {
+		for (int f=0; f<featuresCnt[i][d]; f++) {
 			//-- base values for each level. we don't have it, so we set it equal to the first value of the level serie
 			for (int l=1; l<(WTlevel[i]+2); l++) {
 				valB[i][d][f][l]=val[0][i][d][f][l];
@@ -629,9 +682,19 @@ sTS2::sTS2(sObjParmsDef, int stepsCnt_, int dataSourcesCnt_, int* featuresCnt_, 
 		}
 	}
 
+	//=== BUILDING OUTPUT SIDE ===
+	i=1;
+	//-- *valB comes in flat, ordered by [dsXfeature]
+	idx=0;
+	for (int d=0; d<dataSourcesCnt[i]; d++) {
+		for (int f=0; f<featuresCnt[i][d]; f++) {
+			//valB[i][d][f][0]=OUTvalB_[idx];
+			idx++;
+		}
+	}
+
 }
 sTS2::~sTS2() {
-
 	free(WTtype); free(WTlevel);
 
 	for (int i=0; i<2; i++) {

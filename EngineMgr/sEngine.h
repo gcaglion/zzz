@@ -29,6 +29,9 @@ struct sEngine : sCfgObj {
 	int samplesCnt;
 	int inputCnt;
 	int outputCnt;
+
+	int dataSourcesCnt[2];
+	int* featuresCnt[2];
 	int WTlevel[2];
 	int WTtype[2];
 

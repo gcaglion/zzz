@@ -244,7 +244,11 @@ void sRoot::getSeriesInfo(int* oSeriesCnt_, char* oSymbolsCSL_, char* oTimeFrame
 
 }
 
-void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
+void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, \
+						long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV,	\
+						long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV,	\
+						double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV \
+						) {
 	//-- need to make a local copy of featureMask_, as it gets changed just to get selFcnt
 	int* _featureMask=(int*)malloc(seriesCnt_*sizeof(int));
 	memcpy_s(_featureMask, seriesCnt_*sizeof(int), featureMask_, seriesCnt_*sizeof(int));
@@ -287,7 +291,7 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 		}
 	}
 	//--
-
+	
 	for (int b=0; b<targetBarsCnt; b++) {
 		sprintf_s(oBarTimeS[sampleBarsCnt+b], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
 		for (int f=0; f<selFcntTot; f++) {
@@ -313,10 +317,12 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	}
 
 	//--
-	sTS2* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, sampleBarsCnt+targetBarsCnt, seriesCnt_, selFcnt, dt_, MT4engine->WTtype[0], MT4engine->WTlevel[0], oBarTimeS, oBar, oBarBTimeS, oBarB, MT4doDump);
-
+	sTS2* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, \
+		sampleBarsCnt+targetBarsCnt, oBarTimeS, oBarBTimeS, dt_, MT4doDump, \
+		seriesCnt_, selFcnt, MT4engine->WTtype[0], MT4engine->WTlevel[0], oBar, oBarB, \
+		MT4engine->dataSourcesCnt[1], MT4engine->featuresCnt[1], MT4engine->WTtype[1], MT4engine->WTlevel[1], (numtype*)nullptr, (numtype*)nullptr
+	);
 	safecall(MT4engine, infer, MT4accountId, seqId_, mtTS, MT4enginePid);
-	mtTS->dump();
 
 	fi=0;
 	for (int b=0; b<MT4engine->targetLen; b++) {

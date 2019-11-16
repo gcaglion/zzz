@@ -18,7 +18,8 @@ sEngine::sEngine(sObjParmsDef, sLogger* persistor_, int clientPid_, int savedEng
 	mallocs();
 	pid=clientPid_;
 	safecall(persistor_, loadEngineCoresInfo, savedEnginePid_, &coresCnt, &coreType, &coreThreadId, &coreLayer);
-	safecall(persistor_, loadEngineInfo, savedEnginePid_, &type, &sampleLen, &targetLen, &batchSize, &WTlevel[0], &WTtype[0]);
+	safecall(persistor_, loadEngineInfo, savedEnginePid_, &type, &sampleLen, &targetLen, &batchSize);
+	safecall(persistor_, loadEngineData, savedEnginePid_, dataSourcesCnt, featuresCnt, WTlevel, WTtype);
 
 	sNNparms* NNcp=nullptr; sNN2* NNc=nullptr; sCoreLogger* NNcl;
 	for (int c=0; c<coresCnt; c++) {
@@ -32,22 +33,19 @@ sEngine::sEngine(sObjParmsDef, sLogger* persistor_, int clientPid_, int savedEng
 
 		safecall(NNc, loadImage, savedEnginePid_, coreThreadId[c], -1);
 	}
-
+	
 }
 sEngine::~sEngine(){
 	free(coreType);
 	free(coreThreadId);
 	free(coreLayer);
 	free(core);
-	free(forecast);
+	//free(forecast);
 }
 
 void sEngine::train(int simulationId_, sTS2* trainTS_, int sampleLen_, int targetLen_, int batchSize_) {
 	sampleLen=sampleLen_; targetLen=targetLen_; batchSize=batchSize_;
-	for (int i=0; i<2; i++) {
-		WTlevel[i]=trainTS_->WTlevel[i];
-		WTtype[i]=trainTS_->WTtype[i];
-	}
+
 	//===== ONLY WORKING WITH 1 NN CORE ===
 	sNNparms* NNcp; safespawn(NNcp, newsname("Core%d_NNparms", 0), defaultdbg, cfg, strBuild("Core%d/Parameters", 0));
 	NNcp->setScaleMinMax();
@@ -107,8 +105,8 @@ void sEngine::train(int simulationId_, sTS2* trainTS_, int sampleLen_, int targe
 		}
 	}
 
-	safecall(persistor, saveEngineInfo, pid, type, sampleLen, targetLen, batchSize, WTlevel[0], WTtype[0]);
-//	safecall(persistor, saveEngineData, pid, trainTS_->dataSourcesCnt, trainTS_->featuresCnt, trainTS_->WTlevel, trainTS_->WTtype);
+	safecall(persistor, saveEngineInfo, pid, type, sampleLen, targetLen, batchSize, trainTS_->WTlevel[0], trainTS_->WTtype[0]);
+	safecall(persistor, saveEngineData, pid, trainTS_->dataSourcesCnt, trainTS_->featuresCnt, trainTS_->WTlevel, trainTS_->WTtype);
 	for (int c=0; c<coresCnt; c++) {
 		safecall(persistor, saveEngineCoreInfo, pid, c, 0, core[c]->procArgs->tid, coreType[c]);
 		safecall(persistor, saveCoreInfo, pid, core[c]->procArgs->tid, CORE_NN, sampleLen, inputCnt, targetLen, outputCnt, batchSize, trMinIN, trMaxIN, trMinOUT, trMaxOUT);
@@ -123,6 +121,7 @@ void sEngine::train(int simulationId_, sTS2* trainTS_, int sampleLen_, int targe
 }
 void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEnginePid_) {
 	if (savedEnginePid_>0) {
+
 		int idx=0;
 		for (int d=0; d<inferTS_->dataSourcesCnt[0]; d++) {
 			for (int f=0; f<inferTS_->featuresCnt[0][d]; f++) {
@@ -160,10 +159,10 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 		core[0]->procArgs->tid=GetCurrentThreadId();
 
 	}
-	
+
 	forecast=(numtype*)malloc(outputCnt*sizeof(numtype));
 
-	core[0]->infer();
+	safecall(core[0], infer);
 
 	//-- get predictions into ts->prdTRS
 	inferTS_->getPrediction(samplesCnt, sampleLen, targetLen, prediction);
@@ -171,12 +170,13 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 	inferTS_->unscale();
 	//-- untransform prdTR into prd
 	inferTS_->untransform();
+
 	//-- persist (OUTPUT only)
 	if (core[0]->persistor->saveRunFlag) {
 		for (int d=0; d<inferTS_->dataSourcesCnt[1]; d++) {
 			for (int f=0; f<inferTS_->featuresCnt[1][d]; f++) {
 				for (int l=0; l<(inferTS_->WTlevel[1]+2); l++) {
-					core[0]->persistor->saveRun2(core[0]->procArgs->pid, core[0]->procArgs->tid, core[0]->procArgs->npid, core[0]->procArgs->ntid, seqId_, core[0]->procArgs->mseR, \
+					safecall(core[0]->persistor, saveRun2, core[0]->procArgs->pid, core[0]->procArgs->tid, core[0]->procArgs->npid, core[0]->procArgs->ntid, seqId_, core[0]->procArgs->mseR, \
 						inferTS_->stepsCnt, inferTS_->timestamp, 1, d, f, l, inferTS_->valTRS, inferTS_->prdTRS, inferTS_->valTR, inferTS_->prdTR, inferTS_->val, inferTS_->prd
 					);
 				}

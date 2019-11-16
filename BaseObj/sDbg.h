@@ -27,6 +27,7 @@ struct sDbg {
 	char* outfilepath;
 	char* outfilename;
 	char* outfilefullname;
+	FILE* outfile;
 	//--
 	char msg[DBG_MSG_MAXLEN];
 	char stack[DBG_STACK_MAXLEN];
@@ -72,7 +73,6 @@ struct sDbg {
 	}
 
 private:
-	FILE* outfile;
 	svard* msgSvard;
 	
 
@@ -81,4 +81,4 @@ private:
 #define defaultdbg new sDbg()
 #define erronlydbg new sDbg(false)
 #define clonedbg(fromDbg) new sDbg(fromDbg->verbose, fromDbg->timing, fromDbg->dbgtoscreen, fromDbg->dbgtofile, fromDbg->outfilepath)
-#define checkpoint(id) info("%s->%s() Checkpoint %d", name->base, __func__, id);
+#define checkpoint(id) info("%s->%s() Checkpoint %d", name->base, __func__, id); fflush(dbg->outfile);
