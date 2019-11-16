@@ -129,13 +129,13 @@ void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iB
 	(*iBaseBarL)=(double*)malloc(n*sizeof(double));
 	(*iBaseBarC)=(double*)malloc(n*sizeof(double));
 	(*iBaseBarV)=(double*)malloc(n*sizeof(double));
-	for (int i=0; i<n; i++) (*iBarT)[i]=rand();
+	for (int i=0; i<n; i++) (*iBarT)[i]=100;
 	VinitRnd(n, -1, 1, (*iBarO));
 	VinitRnd(n, -1, 1, (*iBarH));
 	VinitRnd(n, -1, 1, (*iBarL));
 	VinitRnd(n, -1, 1, (*iBarC));
 	VinitRnd(n, -1, 1, (*iBarV));
-	for (int i=0; i<n; i++) (*iBaseBarT)[i]=rand();
+	for (int i=0; i<n; i++) (*iBaseBarT)[i]=100;
 	VinitRnd(n, -1, 1, (*iBaseBarO));
 	VinitRnd(n, -1, 1, (*iBaseBarH));
 	VinitRnd(n, -1, 1, (*iBaseBarL));
@@ -145,6 +145,29 @@ void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iB
 
 void sRoot::kaz() {
 
+	int iseriesCnt=3;
+	int* ifeatureMask=(int*)malloc(iseriesCnt*sizeof(int)); ifeatureMask[0]=11110; ifeatureMask[1]=01100; ifeatureMask[2]=11110;
+	int isampleLen=50;
+	int isampleBarsCnt=isampleLen;
+	int itargetBarsCnt=3;
+	int* iselFcnt=(int*)malloc(iseriesCnt*sizeof(int)); iselFcnt[0]=4; iselFcnt[1]=2; iselFcnt[2]=4;
+
+	long* iBarT, *iBaseBarT;
+	double* iBarO, *iBarH, *iBarL, *iBarC, *iBarV, *iBaseBarO, *iBaseBarH, *iBaseBarL, *iBaseBarC, *iBaseBarV;
+	createBars(isampleLen, &iBarT, &iBarO, &iBarH, &iBarL, &iBarC, &iBarV, &iBaseBarT, &iBaseBarO, &iBaseBarH, &iBaseBarL, &iBaseBarC, &iBaseBarV);
+
+	int oseriesCnt=1;
+	int* ofeatureMask=(int*)malloc(oseriesCnt*sizeof(int)); ofeatureMask[0]=01100;
+	int osampleLen=50;
+	int osampleBarsCnt=osampleLen;
+	int otargetBarsCnt=3;
+	int* oselFcnt=(int*)malloc(oseriesCnt*sizeof(int)); oselFcnt[0]=2; 
+
+	long* oBarT, *oBaseBarT;
+	double *oBarO, *oBarH, *oBarL, *oBarC, *oBarV, *oBaseBarO, *oBaseBarH, *oBaseBarL, *oBaseBarC, *oBaseBarV;
+	createBars(osampleLen, &oBarT, &oBarO, &oBarH, &oBarL, &oBarC, &oBarV, &oBaseBarT, &oBaseBarO, &oBaseBarH, &oBaseBarL, &oBaseBarC, &oBaseBarV);
+
+	getForecast(0, 1, iseriesCnt, ifeatureMask, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oseriesCnt, ofeatureMask, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, nullptr, nullptr, nullptr, nullptr, nullptr);
 }
 /*void sRoot::kazEnc() {
 	sAlgebra* Alg = new sAlgebra(nullptr, newsname("Alg"), defaultdbg, nullptr);
@@ -244,98 +267,124 @@ void sRoot::getSeriesInfo(int* oSeriesCnt_, char* oSymbolsCSL_, char* oTimeFrame
 
 }
 
-void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, \
-						long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV,	\
-						long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV,	\
-						double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV \
-						) {
+void sRoot::MTpreprocess(int seriesCnt_, int* featureMask_, int sampleLen, int sampleBarsCnt, int targetBarsCnt, int** selFcnt, int*** selF, long* BarT, double* BarO, double* BarH, double* BarL, double* BarC, double* BarV, long* BaseBarT, double* BaseBarO, double* BaseBarH, double* BaseBarL, double* BaseBarC, double* BaseBarV, char*** BarTimeS, char** BarBTimeS, numtype** Bar, numtype** BarB) {
 	//-- need to make a local copy of featureMask_, as it gets changed just to get selFcnt
 	int* _featureMask=(int*)malloc(seriesCnt_*sizeof(int));
 	memcpy_s(_featureMask, seriesCnt_*sizeof(int), featureMask_, seriesCnt_*sizeof(int));
 	//-- _featureMask to selectedFeature[]
 	int selFcntTot=0;
-	int* selFcnt=(int*)malloc(seriesCnt_*sizeof(int));
-	int** selF=(int**)malloc(seriesCnt_*sizeof(int*));
+	(*selFcnt)=(int*)malloc(seriesCnt_*sizeof(int));
+	(*selF)=(int**)malloc(seriesCnt_*sizeof(int*));
 	for (int serie=0; serie<seriesCnt_; serie++) {
-		selFcnt[serie]=0;
-		selF[serie]=(int*)malloc(5*sizeof(int));
-		if (_featureMask[serie]>=10000) { selF[serie][selFcnt[serie]]=FXOPEN; selFcnt[serie]++; _featureMask[serie]-=10000; }	//-- OPEN is selected
-		if (_featureMask[serie]>=1000) { selF[serie][selFcnt[serie]]=FXHIGH; selFcnt[serie]++; _featureMask[serie]-=1000; }		//-- HIGH is selected
-		if (_featureMask[serie]>=100) { selF[serie][selFcnt[serie]]=FXLOW; selFcnt[serie]++; _featureMask[serie]-=100; }		//-- LOW is selected
-		if (_featureMask[serie]>=10) { selF[serie][selFcnt[serie]]=FXCLOSE; selFcnt[serie]++; _featureMask[serie]-=10; }		//-- CLOSE is selected
-		if (_featureMask[serie]>=1) { selF[serie][selFcnt[serie]]=FXVOLUME; selFcnt[serie]++; _featureMask[serie]-=1; }			//-- VOLUME is selected
-		//info("serie[%d] featuresCnt=%d", serie, selFcnt[serie]);
-		//for (int sf=0; sf<selFcnt[serie]; sf++) info("serie[%d] feature [%d]=%d", serie, sf, selF[serie][sf]);
-		selFcntTot+=selFcnt[serie];
+		(*selFcnt)[serie]=0;
+		(*selF)[serie]=(int*)malloc(5*sizeof(int));
+		if (_featureMask[serie]>=10000) { (*selF)[serie][(*selFcnt)[serie]]=FXOPEN; (*selFcnt)[serie]++; _featureMask[serie]-=10000; }	//-- OPEN is selected
+		if (_featureMask[serie]>=1000) { (*selF)[serie][(*selFcnt)[serie]]=FXHIGH; (*selFcnt)[serie]++; _featureMask[serie]-=1000; }		//-- HIGH is selected
+		if (_featureMask[serie]>=100) { (*selF)[serie][(*selFcnt)[serie]]=FXLOW; (*selFcnt)[serie]++; _featureMask[serie]-=100; }		//-- LOW is selected
+		if (_featureMask[serie]>=10) { (*selF)[serie][(*selFcnt)[serie]]=FXCLOSE; (*selFcnt)[serie]++; _featureMask[serie]-=10; }		//-- CLOSE is selected
+		if (_featureMask[serie]>=1) { (*selF)[serie][(*selFcnt)[serie]]=FXVOLUME; (*selFcnt)[serie]++; _featureMask[serie]-=1; }			//-- VOLUME is selected
+																																//info("serie[%d] featuresCnt=%d", serie, selFcnt[serie]);
+																																//for (int sf=0; sf<selFcnt[serie]; sf++) info("serie[%d] feature [%d]=%d", serie, sf, selF[serie][sf]);
+		selFcntTot+=(*selFcnt)[serie];
 	}
 
-	int sampleBarsCnt=MT4engine->sampleLen+MT4engine->batchSize-1;
-	int targetBarsCnt=MT4engine->targetLen;
-	numtype* oBar=(numtype*)malloc((sampleBarsCnt+targetBarsCnt)*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
+	(*Bar)=(numtype*)malloc((sampleBarsCnt+targetBarsCnt)*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
 	long oBarTime;
-	char** oBarTimeS=(char**)malloc((sampleBarsCnt+targetBarsCnt)*sizeof(char*)); for (int b=0; b<(sampleBarsCnt+targetBarsCnt); b++) oBarTimeS[b]=(char*)malloc(DATE_FORMAT_LEN);
+	(*BarTimeS)=(char**)malloc((sampleBarsCnt+targetBarsCnt)*sizeof(char*)); for (int b=0; b<(sampleBarsCnt+targetBarsCnt); b++) (*BarTimeS)[b]=(char*)malloc(DATE_FORMAT_LEN);
 	int fi=0;
 
 	for (int b=0; b<(sampleBarsCnt); b++) {
 		for (int s=0; s<seriesCnt_; s++) {
-			oBarTime=iBarT[s*MT4engine->sampleLen+b];
-			MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarTimeS[b]);
-			for (int f=0; f<selFcnt[s]; f++) {
-				if (selF[s][f]==FXOPEN)   oBar[fi]=(numtype)iBarO[s*MT4engine->sampleLen+b];
-				if (selF[s][f]==FXHIGH)   oBar[fi]=(numtype)iBarH[s*MT4engine->sampleLen+b];
-				if (selF[s][f]==FXLOW)    oBar[fi]=(numtype)iBarL[s*MT4engine->sampleLen+b];
-				if (selF[s][f]==FXCLOSE)  oBar[fi]=(numtype)iBarC[s*MT4engine->sampleLen+b];
-				if (selF[s][f]==FXVOLUME) oBar[fi]=(numtype)iBarV[s*MT4engine->sampleLen+b];
-				fi++;
-			}
+			oBarTime=BarT[s*sampleLen+b];
+			MT4time2str(oBarTime, DATE_FORMAT_LEN, (*BarTimeS)[b]);
+			for (int f=0; f<(*selFcnt)[s]; f++) {
+				if ((*selF)[s][f]==FXOPEN)   (*Bar)[fi]=(numtype)BarO[s*sampleLen+b];
+				if ((*selF)[s][f]==FXHIGH)   (*Bar)[fi]=(numtype)BarH[s*sampleLen+b];
+				if ((*selF)[s][f]==FXLOW)    (*Bar)[fi]=(numtype)BarL[s*sampleLen+b];
+				if ((*selF)[s][f]==FXCLOSE)  (*Bar)[fi]=(numtype)BarC[s*sampleLen+b];
+				if ((*selF)[s][f]==FXVOLUME) (*Bar)[fi]=(numtype)BarV[s*sampleLen+b];
+				fi++;			}
 		}
 	}
 	//--
-	
+
 	for (int b=0; b<targetBarsCnt; b++) {
-		sprintf_s(oBarTimeS[sampleBarsCnt+b], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
+		sprintf_s((*BarTimeS)[sampleBarsCnt+b], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
 		for (int f=0; f<selFcntTot; f++) {
-			oBar[fi]=oBar[(sampleBarsCnt-targetBarsCnt)*selFcntTot+b*selFcntTot+f];//EMPTY_VALUE;
+			(*Bar)[fi]=(*Bar)[(sampleBarsCnt-targetBarsCnt)*selFcntTot+b*selFcntTot+f];//EMPTY_VALUE;
 			fi++;
 		}
 	}
 	//--
-	numtype* oBarB=(numtype*)malloc(selFcntTot*sizeof(numtype));
-	char* oBarBTimeS=(char*)malloc(DATE_FORMAT_LEN);
+	(*BarB)=(numtype*)malloc(selFcntTot*sizeof(numtype));
+	(*BarBTimeS)=(char*)malloc(DATE_FORMAT_LEN);
 	fi=0;
 	for (int s=0; s<seriesCnt_; s++) {
-		oBarTime=iBaseBarT[0];
-		MT4time2str(oBarTime, DATE_FORMAT_LEN, oBarBTimeS);
-		for (int f=0; f<selFcnt[s]; f++) {
-			if (selF[s][f]==FXOPEN)   oBarB[fi]=(numtype)iBaseBarO[s];
-			if (selF[s][f]==FXHIGH)   oBarB[fi]=(numtype)iBaseBarH[s];
-			if (selF[s][f]==FXLOW)    oBarB[fi]=(numtype)iBaseBarL[s];
-			if (selF[s][f]==FXCLOSE)  oBarB[fi]=(numtype)iBaseBarC[s];
-			if (selF[s][f]==FXVOLUME) oBarB[fi]=(numtype)iBaseBarV[s];
+		oBarTime=BaseBarT[0];
+		MT4time2str(oBarTime, DATE_FORMAT_LEN, (*BarBTimeS));
+		for (int f=0; f<(*selFcnt)[s]; f++) {
+			if ((*selF)[s][f]==FXOPEN)	  (*BarB)[fi]=(numtype)BaseBarO[s];
+			if ((*selF)[s][f]==FXHIGH)   (*BarB)[fi]=(numtype)BaseBarH[s];
+			if ((*selF)[s][f]==FXLOW)    (*BarB)[fi]=(numtype)BaseBarL[s];
+			if ((*selF)[s][f]==FXCLOSE)  (*BarB)[fi]=(numtype)BaseBarC[s];
+			if ((*selF)[s][f]==FXVOLUME) (*BarB)[fi]=(numtype)BaseBarV[s];
 			fi++;
 		}
 	}
+}
+void sRoot::getForecast(int seqId_, int dt_, \
+	int iseriesCnt_, int* ifeatureMask_, \
+	long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, \
+	long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, \
+	int oseriesCnt_, int* ofeatureMask_, \
+	long* oBarT, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV, \
+	long* oBaseBarT, double* oBaseBarO, double* oBaseBarH, double* oBaseBarL, double* oBaseBarC, double* oBaseBarV, \
+	double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV \
+) {
 
-	//--
-	sTS2* mtTS; safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, \
-		sampleBarsCnt+targetBarsCnt, oBarTimeS, oBarBTimeS, dt_, MT4doDump, \
-		seriesCnt_, selFcnt, MT4engine->WTtype[0], MT4engine->WTlevel[0], oBar, oBarB, \
-		MT4engine->dataSourcesCnt[1], MT4engine->featuresCnt[1], MT4engine->WTtype[1], MT4engine->WTlevel[1], (numtype*)nullptr, (numtype*)nullptr
+	int sampleBarsCnt=MT4engine->sampleLen+MT4engine->batchSize-1;
+	int targetBarsCnt=MT4engine->targetLen;
+//	int sampleBarsCnt=50;// MT4engine->sampleLen+MT4engine->batchSize-1;
+//	int targetBarsCnt=3;// MT4engine->targetLen;
+//	int sampleLen=50;
+
+	char** iBarTimeS; char* iBarBTimeS; int* iselFcnt; int** iselF;
+	char** oBarTimeS; char* oBarBTimeS; int* oselFcnt; int** oselF;
+	numtype* iBar; numtype* iBarB;
+	numtype* oBar; numtype* oBarB;
+	MTpreprocess(iseriesCnt_, ifeatureMask_, MT4engine->sampleLen, sampleBarsCnt, targetBarsCnt, &iselFcnt, &iselF, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, &iBarTimeS, &iBarBTimeS, &iBar, &iBarB);
+	MTpreprocess(oseriesCnt_, ofeatureMask_, MT4engine->sampleLen, sampleBarsCnt, targetBarsCnt, &oselFcnt, &oselF, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, &oBarTimeS, &oBarBTimeS, &oBar, &oBarB);
+	//	MTpreprocess(iseriesCnt_, ifeatureMask_, /*MT4engine->*/sampleLen, sampleBarsCnt, targetBarsCnt, &iselFcnt, &iselF, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, &iBarTimeS, &iBarBTimeS, &iBar, &iBarB);
+	//	MTpreprocess(iseriesCnt_, ifeatureMask_, /*MT4engine->*/sampleLen, sampleBarsCnt, targetBarsCnt, &oselFcnt, &oselF, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, &oBarTimeS, &oBarBTimeS, &oBar, &oBarB);
+
+//	sTS2* mtTS;  safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, \
+//		sampleBarsCnt+targetBarsCnt, dt_, MT4doDump, \
+//		iBarTimeS, iBarBTimeS, iseriesCnt_, iselFcnt, /*MT4engine->WTtype[0], MT4engine->WTlevel[0]*/0, 4, iBar, iBarB, \
+//		oBarTimeS, oBarBTimeS, oseriesCnt_, oselFcnt, /*MT4engine->WTtype[1], MT4engine->WTlevel[1]*/-1, 0, oBar, oBarB \
+//	);
+
+	sTS2* mtTS;  safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, \
+		sampleBarsCnt+targetBarsCnt, dt_, MT4doDump, \
+		iBarTimeS, iBarBTimeS, iseriesCnt_, iselFcnt, MT4engine->WTtype[0], MT4engine->WTlevel[0], iBar, iBarB, \
+		oBarTimeS, oBarBTimeS, oseriesCnt_, oselFcnt, MT4engine->WTtype[1], MT4engine->WTlevel[1], oBar, oBarB \
 	);
+
 	safecall(MT4engine, infer, MT4accountId, seqId_, mtTS, MT4enginePid);
+	mtTS->dump();
 
-	fi=0;
+	int fi=0;
 	for (int b=0; b<MT4engine->targetLen; b++) {
-		for (int s=0; s<seriesCnt_; s++) {
-			for (int sf=0; sf<selFcnt[s]; sf++) {
-				
-				MT4engine->forecast[fi]=mtTS->prd[sampleBarsCnt+b][0][s][sf][0];
+		for (int s=0; s<oseriesCnt_; s++) {
+			for (int sf=0; sf<oselFcnt[s]; sf++) {
 
-				if (selF[s][sf]==FXOPEN) oForecastO[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
-				if (selF[s][sf]==FXHIGH) oForecastH[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
-				if (selF[s][sf]==FXLOW) oForecastL[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
-				if (selF[s][sf]==FXCLOSE) oForecastC[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
-				if (selF[s][sf]==FXVOLUME) oForecastV[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				MT4engine->forecast[fi]=mtTS->prd[sampleBarsCnt+b][1][s][sf][0];
+				info("MT4engine->forecast[%d]=%f", fi, MT4engine->forecast[fi]);
+
+				if (oselF[s][sf]==FXOPEN) oForecastO[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				if (oselF[s][sf]==FXHIGH) oForecastH[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				if (oselF[s][sf]==FXLOW) oForecastL[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				if (oselF[s][sf]==FXCLOSE) oForecastC[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				if (oselF[s][sf]==FXVOLUME) oForecastV[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
 				fi++;
 			}
 			info("OHLCV Forecast, serie %d , bar %d: %f|%f|%f|%f|%f", s, b, oForecastO[s*MT4engine->targetLen+b], oForecastH[s*MT4engine->targetLen+b], oForecastL[s*MT4engine->targetLen+b], oForecastC[s*MT4engine->targetLen+b], oForecastV[s*MT4engine->targetLen+b]);
@@ -343,7 +392,6 @@ void sRoot::getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, 
 	}
 
 	safecall(MT4engine, commit);
-
 }
 void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit) {
 	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4sessionId, MT4accountId, MT4enginePid, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iLastForecastO, iLastForecastH, iLastForecastL, iLastForecastC, iLastForecastV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
@@ -351,7 +399,7 @@ void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iL
 void sRoot::saveClientInfo(int sequenceId, double iPositionOpenTime) {
 	char accountStr[64]; sprintf_s(accountStr, 32, "MT5_account_%d", MT4accountId);
 	info("MT4enginePid=%d", MT4enginePid);
-	safecall(MT4clientLog, saveClientInfo, MT4clientPid, sequenceId, MT4sessionId, MT4enginePid, accountStr, iPositionOpenTime, 0, "", "","",false,true,"","","","");
+	safecall(MT4clientLog, saveClientInfo, MT4clientPid, sequenceId, MT4sessionId, MT4enginePid, accountStr, iPositionOpenTime, 0, "", "", "", false, true, "", "", "", "");
 }
 void sRoot::setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int savedEnginePid_, int dt_, bool doDump_) {
 	MT4clientPid=clientPid_;
@@ -391,7 +439,7 @@ void sRoot::MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeatur
 	info("Engine spawned from DB. sampleLen=%d ; targetLen=%d ; featuresCnt=%d ; batchSize=%d", (*oSampleLen_), (*oPredictionLen_), (*oFeaturesCnt_), (*oBatchSize));
 	info("Environment initialized and Engine created for Account Number %d inferring from Engine pid %d using config from %s", MT4accountId, MT4enginePid, MT4clientXMLFile);
 }
-void sRoot::MT4commit(){
+void sRoot::MT4commit() {
 	try {
 		//-- commit engine persistor to keep saveRun
 		MT4engine->commit();
@@ -430,13 +478,21 @@ extern "C" __declspec(dllexport) int _getSeriesInfo(char* iEnvS, int* oSeriesCnt
 	return 0;
 }
 //--
-extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seqId_, int seriesCnt_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV) {
+extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seqId_, int dt_, \
+	int iseriesCnt_, int* ifeatureMask_, \
+	long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, \
+	long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, \
+	int oseriesCnt_, int* ofeatureMask_, \
+	long* oBarT, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV, \
+	long* oBaseBarT, double* oBaseBarO, double* oBaseBarH, double* oBaseBarL, double* oBaseBarC, double* oBaseBarV, \
+	double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV \
+) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
 
-	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p . Calling env->getForecast()...", env);	
+	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p . Calling env->getForecast()...", env);
 	try {
-		env->getForecast(seqId_, seriesCnt_, dt_, featureMask_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
+		env->getForecast(seqId_, dt_, iseriesCnt_, ifeatureMask_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oseriesCnt_, ofeatureMask_, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
 	}
 	catch (std::exception exc) {
 		return -1;
@@ -483,7 +539,7 @@ extern "C" __declspec(dllexport) void _commit(char* iEnvS) {
 	sscanf_s(iEnvS, "%p", &env);
 
 	env->MT4commit();
-	
+
 }
 extern "C" __declspec(dllexport) int _destroyEnv(char* iEnvS) {
 	sRoot* env;

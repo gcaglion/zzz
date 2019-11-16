@@ -219,7 +219,7 @@ void sTS2::untransform() {
 							prd[s][i][d][f][l]=prdTR[s][i][d][f][l];
 						}
 						if (dt==DT_DELTA) {
-							if (s>0) {
+							if (s>0) {								
 								if (prdTR[s][i][d][f][l]==EMPTY_VALUE) {
 									prd[s][i][d][f][l]=EMPTY_VALUE;
 								} else {
@@ -600,8 +600,10 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 }
 sTS2::sTS2(sObjParmsDef, \
-	int stepsCnt_, char** timestamp_, char* timestampB_, int dt_, bool doDump_, \
+	int stepsCnt_, int dt_, bool doDump_, \
+	char** INtimestamp_, char* INtimestampB_, \
 	int INdataSourcesCnt_, int* INfeaturesCnt_, int INWTtype_, int INWTlevel_, numtype* INval_, numtype* INvalB_, \
+	char** OUTtimestamp_, char* OUTtimestampB_, \
 	int OUTdataSourcesCnt_, int* OUTfeaturesCnt_, int OUTWTtype_, int OUTWTlevel_, numtype* OUTval_, numtype* OUTvalB_\
 ) : sCfgObj(sObjParmsVal, nullptr, "") {
 	
@@ -626,12 +628,13 @@ sTS2::sTS2(sObjParmsDef, \
 
 	mallocs1();
 
-	//-- timestamps
-	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s], DATE_FORMAT_LEN, timestamp_[s]);
-	//-- timestampB
-	strcpy_s(timestampB, DATE_FORMAT_LEN, timestampB_);
-
 	//=== BUILDING INPUT SIDE ===
+
+	//-- timestamps
+	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s], DATE_FORMAT_LEN, INtimestamp_[s]);
+	//-- timestampB
+	strcpy_s(timestampB, DATE_FORMAT_LEN, INtimestampB_);
+	
 	int i=0;
 	int idx=0;
 	//-- *val comes in flat, ordered by [step][dsXfeature]. We need to put these values in the appropriate val sub-array, with WTlevel=0
@@ -688,8 +691,18 @@ sTS2::sTS2(sObjParmsDef, \
 	idx=0;
 	for (int d=0; d<dataSourcesCnt[i]; d++) {
 		for (int f=0; f<featuresCnt[i][d]; f++) {
-			//valB[i][d][f][0]=OUTvalB_[idx];
+			valB[i][d][f][0]=OUTvalB_[idx];
 			idx++;
+		}
+	}
+	idx=0;
+	//-- *val comes in flat, ordered by [step][dsXfeature]. We need to put these values in the appropriate val sub-array, with WTlevel=0
+	for (int s=0; s<stepsCnt; s++) {
+		for (int d=0; d<dataSourcesCnt[i]; d++) {
+			for (int f=0; f<featuresCnt[i][d]; f++) {
+				val[s][i][d][f][0]=OUTval_[idx];
+				idx++;
+			}
 		}
 	}
 

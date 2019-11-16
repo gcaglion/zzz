@@ -38,7 +38,15 @@ struct sRoot : sCfgObj {
 	sLogger* MT4clientLog;
 
 	EXPORT void getSeriesInfo(int* oSeriesCnt_, char* oSymbolsCSL_, char* oTimeFramesCSL_, char* oFeaturesCSL_, bool* oChartTrade_);
-	EXPORT void getForecast(int seqId_, int seriesCnt_, int dt_, int* featureMask_, long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV);
+	EXPORT void getForecast(int seqId_, int dt_, \
+		int iseriesCnt_, int* ifeatureMask_, \
+		long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, \
+		long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, \
+		int oseriesCnt_, int* ofeatureMask_, \
+		long* oBarT, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV, \
+		long* oBaseBarT, double* oBaseBarO, double* oBaseBarH, double* oBaseBarL, double* oBaseBarC, double* oBaseBarV, \
+		double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV \
+	);
 	EXPORT void getActualFuture(char* iSymbol_, char* iTF_, char* iDate0_, char* oDate1_, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV);
 	EXPORT void setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int savedEnginePid_, int dt_, bool doDump_);
 	EXPORT void saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit);
@@ -74,6 +82,8 @@ private:
 	char endtimeS[TIMER_ELAPSED_FORMAT_LEN];
 	int _sampleLen, _targetLen, _batchSize;
 
+	void MTpreprocess(int seriesCnt_, int* featureMask_, int sampleLen, int sampleBarsCnt, int targetBarsCnt, int** selFcnt, int*** selF, long* BarT, double* BarO, double* BarH, double* BarL, double* BarC, double* BarV, long* BaseBarT, double* BaseBarO, double* BaseBarH, double* BaseBarL, double* BaseBarC, double* BaseBarV, char*** BarTimeS, char** BarBTimeS, numtype** Bar, numtype** BarB);
+	
 };
 
 //-- client closure

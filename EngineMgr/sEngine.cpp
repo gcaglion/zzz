@@ -121,7 +121,6 @@ void sEngine::train(int simulationId_, sTS2* trainTS_, int sampleLen_, int targe
 }
 void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEnginePid_) {
 	if (savedEnginePid_>0) {
-
 		int idx=0;
 		for (int d=0; d<inferTS_->dataSourcesCnt[0]; d++) {
 			for (int f=0; f<inferTS_->featuresCnt[0][d]; f++) {
