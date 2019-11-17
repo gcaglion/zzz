@@ -513,7 +513,7 @@ void sTS2::getPrediction() {
 			for (int d=0; d<dataSourcesCnt[1]; d++) {
 				for (int f=0; f<featuresCnt[1][d]; f++) {
 					for (int l=0; l<(WTlevel[1]+2); l++) {
-						prdTRS[s+sampleLen][1][d][f][l]=prediction[(s)*outputCnt +b*dataSourcesCnt[1]*featuresCnt[1][d]*(WTlevel[1]+2) +d*featuresCnt[1][d]*(WTlevel[1]+2) +f*(WTlevel[1]+2) +l];
+						prdTRS[s+sampleLen][1][d][f][l]=predictionTRS[(s)*outputCnt +b*dataSourcesCnt[1]*featuresCnt[1][d]*(WTlevel[1]+2) +d*featuresCnt[1][d]*(WTlevel[1]+2) +f*(WTlevel[1]+2) +l];
 					}
 				}
 			}
@@ -525,7 +525,7 @@ void sTS2::getPrediction() {
 		for (int d=0; d<dataSourcesCnt[1]; d++) {
 			for (int f=0; f<featuresCnt[1][d]; f++) {
 				for (int l=0; l<(WTlevel[1]+2); l++) {
-					prdTRS[stepsCnt-targetLen+b][1][d][f][l]=prediction[(samplesCnt-1)*outputCnt +b*dataSourcesCnt[1]*featuresCnt[1][d]*(WTlevel[1]+2) +d*featuresCnt[1][d]*(WTlevel[1]+2) +f*(WTlevel[1]+2) +l];
+					prdTRS[stepsCnt-targetLen+b][1][d][f][l]=predictionTRS[(samplesCnt-1)*outputCnt +b*dataSourcesCnt[1]*featuresCnt[1][d]*(WTlevel[1]+2) +d*featuresCnt[1][d]*(WTlevel[1]+2) +f*(WTlevel[1]+2) +l];
 				}
 			}
 		}
