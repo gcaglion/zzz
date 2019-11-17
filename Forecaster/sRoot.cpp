@@ -49,6 +49,11 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		timer->stop(endtimeS);
 		safecall(clientLogger, saveClientInfo, pid, 0, simulationId_, pid, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0][0], "", "", true, false, "", "", "", "");
 
+		//-- persist XML config parameters for Client,DataSet,Engine
+		safecall(clientLogger, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
+		safecall(clientLogger, saveXMLconfig, simulationId_, pid, 0, 1, trainCfg);
+		safecall(clientLogger, saveXMLconfig, simulationId_, pid, 0, 3, engCfg);
+
 		eng->commit();
 		clientLogger->commit();
 
@@ -87,6 +92,10 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 
 	timer->stop(endtimeS);
 	clientLogger->saveClientInfo(pid, 0, simulationId_, savedEnginePid_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[1][0], "", false, true, "", "", "", "");
+
+	//-- persist XML config parameters for Client,DataSet
+	safecall(clientLogger, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
+	safecall(clientLogger, saveXMLconfig, simulationId_, pid, 0, 2, inferCfg);
 
 	eng->commit();
 	clientLogger->commit();

@@ -1,5 +1,5 @@
 	<TimeSerie>
-		HistoryLen			= 60
+		HistoryLen			= 100
 		Date0				= 2018-07-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
