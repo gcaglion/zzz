@@ -148,10 +148,10 @@ void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iB
 
 void sRoot::kaz() {
 
-	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
+	/*sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
 	ts->dump();
-	return;
+	return;*/
 
 	int iseriesCnt=3;
 	int* ifeatureMask=(int*)malloc(iseriesCnt*sizeof(int)); ifeatureMask[0]=11110; ifeatureMask[1]=01100; ifeatureMask[2]=11110;
@@ -159,10 +159,11 @@ void sRoot::kaz() {
 	int isampleBarsCnt=isampleLen;
 	int itargetBarsCnt=3;
 	int* iselFcnt=(int*)malloc(iseriesCnt*sizeof(int)); iselFcnt[0]=4; iselFcnt[1]=2; iselFcnt[2]=4;
+	int iselFcntTot=iselFcnt[0]*iselFcnt[1]*iselFcnt[2];
 
 	long* iBarT, *iBaseBarT;
 	double* iBarO, *iBarH, *iBarL, *iBarC, *iBarV, *iBaseBarO, *iBaseBarH, *iBaseBarL, *iBaseBarC, *iBaseBarV;
-	createBars(isampleLen, &iBarT, &iBarO, &iBarH, &iBarL, &iBarC, &iBarV, &iBaseBarT, &iBaseBarO, &iBaseBarH, &iBaseBarL, &iBaseBarC, &iBaseBarV);
+	createBars(isampleLen*iselFcntTot, &iBarT, &iBarO, &iBarH, &iBarL, &iBarC, &iBarV, &iBaseBarT, &iBaseBarO, &iBaseBarH, &iBaseBarL, &iBaseBarC, &iBaseBarV);
 
 	int oseriesCnt=1;
 	int* ofeatureMask=(int*)malloc(oseriesCnt*sizeof(int)); ofeatureMask[0]=01100;
@@ -170,10 +171,11 @@ void sRoot::kaz() {
 	int osampleBarsCnt=osampleLen;
 	int otargetBarsCnt=3;
 	int* oselFcnt=(int*)malloc(oseriesCnt*sizeof(int)); oselFcnt[0]=2; 
+	int oselFcntTot=oselFcnt[0];
 
 	long* oBarT, *oBaseBarT;
 	double *oBarO, *oBarH, *oBarL, *oBarC, *oBarV, *oBaseBarO, *oBaseBarH, *oBaseBarL, *oBaseBarC, *oBaseBarV;
-	createBars(osampleLen, &oBarT, &oBarO, &oBarH, &oBarL, &oBarC, &oBarV, &oBaseBarT, &oBaseBarO, &oBaseBarH, &oBaseBarL, &oBaseBarC, &oBaseBarV);
+	createBars(osampleLen*oselFcntTot, &oBarT, &oBarO, &oBarH, &oBarL, &oBarC, &oBarV, &oBaseBarT, &oBaseBarO, &oBaseBarH, &oBaseBarL, &oBaseBarC, &oBaseBarV);
 
 	getForecast(0, 1, iseriesCnt, ifeatureMask, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oseriesCnt, ofeatureMask, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, nullptr, nullptr, nullptr, nullptr, nullptr);
 }
@@ -355,6 +357,7 @@ void sRoot::getForecast(int seqId_, int dt_, \
 //	int sampleBarsCnt=50;// MT4engine->sampleLen+MT4engine->batchSize-1;
 //	int targetBarsCnt=3;// MT4engine->targetLen;
 //	int sampleLen=50;
+//	int batchSize=1;
 
 	char** iBarTimeS; char* iBarBTimeS; int* iselFcnt; int** iselF;
 	char** oBarTimeS; char* oBarBTimeS; int* oselFcnt; int** oselF;
@@ -362,19 +365,19 @@ void sRoot::getForecast(int seqId_, int dt_, \
 	numtype* oBar; numtype* oBarB;
 	MTpreprocess(iseriesCnt_, ifeatureMask_, MT4engine->sampleLen, sampleBarsCnt, targetBarsCnt, &iselFcnt, &iselF, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, &iBarTimeS, &iBarBTimeS, &iBar, &iBarB);
 	MTpreprocess(oseriesCnt_, ofeatureMask_, MT4engine->sampleLen, sampleBarsCnt, targetBarsCnt, &oselFcnt, &oselF, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, &oBarTimeS, &oBarBTimeS, &oBar, &oBarB);
-	//	MTpreprocess(iseriesCnt_, ifeatureMask_, /*MT4engine->*/sampleLen, sampleBarsCnt, targetBarsCnt, &iselFcnt, &iselF, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, &iBarTimeS, &iBarBTimeS, &iBar, &iBarB);
-	//	MTpreprocess(iseriesCnt_, ifeatureMask_, /*MT4engine->*/sampleLen, sampleBarsCnt, targetBarsCnt, &oselFcnt, &oselF, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, &oBarTimeS, &oBarBTimeS, &oBar, &oBarB);
+//	MTpreprocess(iseriesCnt_, ifeatureMask_, /*MT4engine->*/sampleLen, sampleBarsCnt, targetBarsCnt, &iselFcnt, &iselF, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, &iBarTimeS, &iBarBTimeS, &iBar, &iBarB);
+//	MTpreprocess(oseriesCnt_, ofeatureMask_, /*MT4engine->*/sampleLen, sampleBarsCnt, targetBarsCnt, &oselFcnt, &oselF, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, &oBarTimeS, &oBarBTimeS, &oBar, &oBarB);
 
 //	sTS2* mtTS;  safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, \
-//		sampleBarsCnt+targetBarsCnt, dt_, MT4doDump, \
-//		iBarTimeS, iBarBTimeS, iseriesCnt_, iselFcnt, /*MT4engine->WTtype[0], MT4engine->WTlevel[0]*/0, 4, iBar, iBarB, \
-//		oBarTimeS, oBarBTimeS, oseriesCnt_, oselFcnt, /*MT4engine->WTtype[1], MT4engine->WTlevel[1]*/-1, 0, oBar, oBarB \
+//		sampleBarsCnt+targetBarsCnt, dt_, sampleLen, targetBarsCnt, batchSize, MT4doDump, \
+//		&iBarTimeS, &iBarBTimeS, iseriesCnt_, iselFcnt, /*MT4engine->WTtype[0], MT4engine->WTlevel[0]*/0, 4, iBar, iBarB, \
+//		&oBarTimeS, &oBarBTimeS, oseriesCnt_, oselFcnt, /*MT4engine->WTtype[1], MT4engine->WTlevel[1]*/-1, 0, oBar, oBarB \
 //	);
 
 	sTS2* mtTS;  safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, \
 		sampleBarsCnt+targetBarsCnt, dt_, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump, \
-		iBarTimeS, iBarBTimeS, iseriesCnt_, iselFcnt, MT4engine->WTtype[0], MT4engine->WTlevel[0], iBar, iBarB, \
-		oBarTimeS, oBarBTimeS, oseriesCnt_, oselFcnt, MT4engine->WTtype[1], MT4engine->WTlevel[1], oBar, oBarB \
+		&iBarTimeS, &iBarBTimeS, iseriesCnt_, iselFcnt, MT4engine->WTtype[0], MT4engine->WTlevel[0], iBar, iBarB, \
+		&oBarTimeS, &oBarBTimeS, oseriesCnt_, oselFcnt, MT4engine->WTtype[1], MT4engine->WTlevel[1], oBar, oBarB \
 	);
 
 	safecall(MT4engine, infer, MT4accountId, seqId_, mtTS, MT4enginePid);

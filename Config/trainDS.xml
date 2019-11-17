@@ -3,11 +3,11 @@
 		HistoryLen			= 500
 		Date0				= 2018-07-30-00:00
 		DataTransformation	= DT_DELTA
-		Dump				= false
+		Dump				= true
 		DumpPath			= c:\temp\DataDump
 
 		<Input>
-			DataSourcesCount		= 3
+			DataSourcesCount		= 1
 			<DataSource0>
 				<! FXDB-EURUSDH1.xml >
 				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
