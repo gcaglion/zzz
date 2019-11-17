@@ -80,13 +80,27 @@ void sOraData::getFutureBar(char* iSymbol_, char* iTF_, char* iDate0_, char* oDa
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, const char* date0_, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar, numtype* oBarWidth) {
+void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0Lag, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar, numtype* oBarWidth) {
 	int i;
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
 	try {
+
+		//-- first, get new date0 using date0Lag
+		if (pDate0Lag>0) {
+			sprintf_s(sqlS, SQL_MAXLEN, "select to_char(max(newdatetime),'%s') from(select newdatetime from(select newdatetime from history.eurusd_h1 where newdatetime>to_date('%s','%s') order by 1) where rownum<%d)", DATE_FORMAT, date0_, DATE_FORMAT, pDate0Lag);
+			stmt = ((Connection*)conn)->createStatement(sqlS);
+			rset = ((Statement*)stmt)->executeQuery();
+			i=0;
+			while (((ResultSet*)rset)->next()&&i>=0) {
+				strcpy_s(date0_, DATE_FORMAT_LEN, ((ResultSet*)rset)->getString(1).c_str());
+				i++;
+			}
+			if (i==0) fail("failed to get future date0 for output timeserie...");
+		}
+
 		//-- 1. History: open statement and result set
 		sprintf_s(sqlS, SQL_MAXLEN, "select to_char(newdatetime,'%s'), open, high, low, close, nvl(volume,0) from %s_%s where NewDateTime<=to_date('%s','%s') order by 1 desc", DATE_FORMAT, pSymbol, pTF, date0_, DATE_FORMAT);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
@@ -177,7 +191,7 @@ void sOraData::saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mse
 	}
 
 }
-void sOraData::saveRun2(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char** posLabel, int i, int d, int f, int l, numtype***** actualTRS, numtype***** predictedTRS, numtype***** actualTR, numtype***** predictedTR, numtype***** actualBASE, numtype***** predictedBASE) {
+void sOraData::saveRun2(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char*** posLabel, int i, int d, int f, int l, numtype***** actualTRS, numtype***** predictedTRS, numtype***** actualTR, numtype***** predictedTR, numtype***** actualBASE, numtype***** predictedBASE) {
 	int runidx=0;
 
 	//-- always check this, first!
@@ -198,7 +212,7 @@ void sOraData::saveRun2(int pid, int tid, int npid, int ntid, int seqId, numtype
 			((Statement*)stmt)->setFloat(6, mseR);
 			#endif
 			((Statement*)stmt)->setInt(7, step);
-			std::string str(posLabel[step]); ((Statement*)stmt)->setMaxParamSize(8, 64); ((Statement*)stmt)->setString(8, str);
+			std::string str(posLabel[step][i]); ((Statement*)stmt)->setMaxParamSize(8, 64); ((Statement*)stmt)->setString(8, str);
 			((Statement*)stmt)->setInt(9, d);
 			((Statement*)stmt)->setInt(10, f);
 			((Statement*)stmt)->setInt(11, l);

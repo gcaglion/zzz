@@ -24,7 +24,7 @@ struct sOraData : sCfgObj {
 	//--
 	EXPORT void getFutureBar(char* iSymbol_, char* iTF_, char* iDate0_, char* oDate1_, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV);
 	EXPORT void getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char*** oDate);
-	EXPORT void getFlatOHLCV2(char* pSymbol, char* pTF, const char* date0_, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar, numtype* oBarWidth);
+	EXPORT void getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0Lag, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar, numtype* oBarWidth);
 	//--
 	EXPORT void open();
 	EXPORT void close();
@@ -36,7 +36,7 @@ struct sOraData : sCfgObj {
 	EXPORT void saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mseT, numtype* mseV);
 //	EXPORT void saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int runStepsCnt, int featuresCnt_, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actualBASE, numtype* predictedBASE);
 	EXPORT void saveRun(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char** posLabel, int featuresCnt_, int WTlevel_, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actualBASE, numtype* predictedBASE);
-	EXPORT void saveRun2(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char** posLabel, int i, int d, int f, int l, numtype***** actualTRS, numtype***** predictedTRS, numtype***** actualTR, numtype***** predictedTR, numtype***** actualBASE, numtype***** predictedBASE);
+	EXPORT void saveRun2(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char*** posLabel, int i, int d, int f, int l, numtype***** actualTRS, numtype***** predictedTRS, numtype***** actualTR, numtype***** predictedTR, numtype***** actualBASE, numtype***** predictedBASE);
 	//--
 	EXPORT void saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, int batchSize_, int WNNdecompLevel_, int WNNwaveletType_, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreLayer, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_, numtype** fftMin_, numtype** fftMax_);
 	EXPORT void loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* batchSize_, int* WNNdecompLevel_, int* WNNwaveletType_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_, numtype** fftMin_, numtype** fftMax_);

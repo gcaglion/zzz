@@ -22,7 +22,7 @@ struct sFXDataSource : sDataSource {
 	
 	EXPORT void getStartDates(char* date0_, int datesCnt_, char*** oStartDates_);
 	EXPORT void open();
-	EXPORT void load(const char* pDate0, int pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar, numtype* oBarWidth);
+	EXPORT void load(char* pDate0, int pDate0Lag, int pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar, numtype* oBarWidth);
 	EXPORT void loadFuture(char* iSymbol_, char* iTF_, char* iDate0_, char* oDate1_, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV);
 };
 

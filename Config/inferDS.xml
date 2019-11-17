@@ -1,9 +1,5 @@
-	SampleLen	= 50
-	TargetLen	= 3
-	BatchSize	= 1
-	
 	<TimeSerie>
-		HistoryLen			= 60
+		HistoryLen			= 100
 		Date0				= 2018-07-30-00:00
 		DataTransformation	= DT_DELTA
 		Dump				= false
@@ -26,6 +22,7 @@
 			WaveletType	= WT_HAAR
 			DecompLevel = 4
 		</Input>
+		
 		<Output>
 			DataSourcesCount		= 1
 			<DataSource0>
@@ -36,6 +33,10 @@
 			DecompLevel = 0
 		</Output>
 	
+		SampleLen	= 50
+		TargetLen	= 3
+		BatchSize	= 1
+		
 	</TimeSerie>
 
 	<! DataSetPersistor-Default.xml >

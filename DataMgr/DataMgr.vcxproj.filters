@@ -27,9 +27,6 @@
     <ClCompile Include="TSF.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="sMT4DataSource.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="sTS2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -57,9 +54,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="TSF.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="sMT4dataSource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sTS2.h">

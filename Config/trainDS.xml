@@ -1,6 +1,3 @@
-	SampleLen	= 50
-	TargetLen	= 3
-	BatchSize	= 1
 	
 	<TimeSerie>
 		HistoryLen			= 500
@@ -36,6 +33,10 @@
 			DecompLevel = 0
 		</Output>
 	
+	SampleLen	= 50
+	TargetLen	= 3
+	BatchSize	= 1
+
 	</TimeSerie>
 
 	<! DataSetPersistor-Default.xml >

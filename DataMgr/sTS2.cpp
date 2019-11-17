@@ -6,7 +6,13 @@
 #endif
 
 void sTS2::mallocs1() {
-	timestamp=(char**)malloc(stepsCnt*sizeof(char*)); for (int i=0; i<stepsCnt; i++) timestamp[i]=(char*)malloc(DATE_FORMAT_LEN);
+	timestamp=(char***)malloc(stepsCnt*sizeof(char**)); 
+	for (int s=0; s<stepsCnt; s++) {
+		timestamp[s]=(char**)malloc(2*sizeof(char*));
+		for (int i=0; i<2; i++) {
+			timestamp[s][i]=(char*)malloc(DATE_FORMAT_LEN);
+		}
+	}
 	val=(numtype*****)malloc(stepsCnt*sizeof(numtype****));
 	valTR=(numtype*****)malloc(stepsCnt*sizeof(numtype****));
 	valTRS=(numtype*****)malloc(stepsCnt*sizeof(numtype****));
@@ -45,7 +51,7 @@ void sTS2::mallocs1() {
 			}
 		}
 	}
-	timestampB=(char*)malloc(DATE_FORMAT_LEN);
+	timestampB=(char**)malloc(2*sizeof(char*)); for(int i=0; i<2; i++) timestampB[i]= (char*)malloc(DATE_FORMAT_LEN);
 	TRmin=(numtype****)malloc(2*sizeof(numtype***));
 	TRmax=(numtype****)malloc(2*sizeof(numtype***));
 	scaleM=(numtype****)malloc(2*sizeof(numtype***));
@@ -78,7 +84,6 @@ void sTS2::setDataSource(sDataSource** dataSrc_) {
 	bool found=false;
 	sFXDataSource* fxData;
 	sGenericDataSource* fileData;
-	sMT4DataSource* mtData;
 
 	//-- first, find and set
 	safecall(cfg, setKey, "File_DataSource", true, &found);	//-- ignore error
@@ -93,12 +98,6 @@ void sTS2::setDataSource(sDataSource** dataSrc_) {
 			safespawn(fxData, newsname("FXDB_DataSource"), defaultdbg, cfg, "FXDB_DataSource");
 			(*dataSrc_)=fxData;
 		} else {
-			safecall(cfg, setKey, "MT4_DataSource", true, &found);	//-- ignore error
-			if (found) {
-				safecall(cfg, setKey, "../"); //-- get back;
-				safespawn(mtData, newsname("MT_DataSource"), defaultdbg, cfg, "MT_DataSource");
-				(*dataSrc_)=mtData;
-			}
 		}
 	}
 	if (!found) fail("No Valid DataSource Parameters Key found.");
@@ -260,7 +259,7 @@ void sTS2::dumpToFile(FILE* file, int i, numtype***** val_) {
 			}
 		}
 	}
-	fprintf(file, "\n%d,%s", -1, timestampB);
+	fprintf(file, "\n%d,%s", -1, timestampB[i]);
 	for (d=0; d<dataSourcesCnt[i]; d++) {
 		for (f=0; f<featuresCnt[i][d]; f++) {
 			for (l=0; l<(WTlevel[i]+2); l++) {
@@ -270,7 +269,7 @@ void sTS2::dumpToFile(FILE* file, int i, numtype***** val_) {
 	}
 
 	for (s=0; s<stepsCnt; s++) {
-		fprintf(file, "\n%d, %s", s, timestamp[s]);
+		fprintf(file, "\n%d, %s", s, timestamp[s][i]);
 		for (d=0; d<dataSourcesCnt[i]; d++) {
 			for (f=0; f<featuresCnt[i][d]; f++) {
 				for (l=0; l<(WTlevel[i]+2); l++) {
@@ -356,12 +355,11 @@ void sTS2::dump(bool predicted) {
 	dumpToFile(dumpFileOUTPRDTRS, 1, prdTRS);
 }
 
-void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, int* oInputCnt, int* oOutputCnt, numtype** oSample, numtype** oTarget, numtype** oPrediction) {
-	(*oSamplesCnt)=stepsCnt-sampleLen_-targetLen_+1;
-
-	
+void sTS2::getDataSet(int* oInputCnt, int* oOutputCnt) {
+	samplesCnt=stepsCnt-sampleLen-targetLen+1;
+		
 	(*oInputCnt)=0;
-	for (int bar=0; bar<sampleLen_; bar++) {
+	for (int bar=0; bar<sampleLen; bar++) {
 		for (int d=0; d<dataSourcesCnt[0]; d++) {
 			for (int f=0; f<featuresCnt[0][d]; f++) {
 				for (int l=0; l<(WTlevel[0]+2); l++) {
@@ -371,15 +369,15 @@ void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, int* oIn
 		}
 	}
 
-	(*oSample)=(numtype*)malloc((*oInputCnt)*(*oSamplesCnt)*sizeof(numtype));
+	sample=(numtype*)malloc((*oInputCnt)*samplesCnt*sizeof(numtype));
 
 	int dsidx=0;
-	for (int s=0; s<(*oSamplesCnt); s++) {
-		for (int bar=0; bar<sampleLen_; bar++) {
+	for (int s=0; s<samplesCnt; s++) {
+		for (int bar=0; bar<sampleLen; bar++) {
 			for (int d=0; d<dataSourcesCnt[0]; d++) {
 				for (int f=0; f<featuresCnt[0][d]; f++) {
 					for (int l=0; l<(WTlevel[0]+2); l++) {
-						(*oSample)[dsidx] = valTRS[s+bar][0][d][f][l];
+						sample[dsidx] = valTRS[s+bar][0][d][f][l];
 						dsidx++;
 					}
 				}
@@ -388,7 +386,7 @@ void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, int* oIn
 	}
 
 	(*oOutputCnt)=0;
-	for (int bar=0; bar<targetLen_; bar++) {
+	for (int bar=0; bar<targetLen; bar++) {
 		for (int d=0; d<dataSourcesCnt[1]; d++) {
 			for (int f=0; f<featuresCnt[1][d]; f++) {
 				for (int l=0; l<(WTlevel[1]+2); l++) {
@@ -398,15 +396,15 @@ void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, int* oIn
 		}
 	}
 
-	(*oTarget)=(numtype*)malloc((*oOutputCnt)*(*oSamplesCnt)*sizeof(numtype));
+	target=(numtype*)malloc((*oOutputCnt)*samplesCnt*sizeof(numtype));
 
 	dsidx=0;
-	for (int s=0; s<(*oSamplesCnt); s++) {
-		for (int bar=0; bar<targetLen_; bar++) {
+	for (int s=0; s<samplesCnt; s++) {
+		for (int bar=0; bar<targetLen; bar++) {
 			for (int d=0; d<dataSourcesCnt[1]; d++) {
 				for (int f=0; f<featuresCnt[1][d]; f++) {
 					for (int l=0; l<(WTlevel[1]+2); l++) {
-						(*oTarget)[dsidx] = valTRS[s+sampleLen_+bar][1][d][f][l];
+						target[dsidx] = valTRS[s+sampleLen+bar][1][d][f][l];
 						dsidx++;
 					}
 				}
@@ -414,41 +412,43 @@ void sTS2::getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, int* oIn
 		}
 	}
 
-	(*oPrediction)=(numtype*)malloc((*oOutputCnt)*(*oSamplesCnt)*sizeof(numtype));
+	prediction=(numtype*)malloc((*oOutputCnt)*samplesCnt*sizeof(numtype));
 
 	//-- Print
-	char fdsname[MAX_PATH]; sprintf_s(fdsname, "%s/dataSet_%p.csv", dumpPath, this);
-	FILE* fds; fopen_s(&fds, fdsname, "w");
-	fprintf(fds, "SampleId");
-	for (int bar=0; bar<sampleLen_; bar++) {
-		for (int d=0; d<dataSourcesCnt[0]; d++) {
-			for (int f=0; f<featuresCnt[0][d]; f++) {
-				for (int l=0; l<(WTlevel[0]+2); l++) {
-					fprintf(fds, ",B%dD%dF%dL%d", bar,d,f,l);
-				}
-			}
-		}
-	}
-	dsidx=0;
-	for (int s=0; s<(*oSamplesCnt); s++) {
-		fprintf(fds, "\n%d", s);
-		for (int bar=0; bar<sampleLen_; bar++) {
+	if (doDump) {
+		char fdsname[MAX_PATH]; sprintf_s(fdsname, "%s/dataSet_%p.csv", dumpPath, this);
+		FILE* fds; fopen_s(&fds, fdsname, "w");
+		fprintf(fds, "SampleId");
+		for (int bar=0; bar<sampleLen; bar++) {
 			for (int d=0; d<dataSourcesCnt[0]; d++) {
 				for (int f=0; f<featuresCnt[0][d]; f++) {
 					for (int l=0; l<(WTlevel[0]+2); l++) {
-						fprintf(fds, ",%f", (*oSample)[dsidx]);
-						dsidx++;
+						fprintf(fds, ",B%dD%dF%dL%d", bar, d, f, l);
 					}
 				}
 			}
 		}
+		dsidx=0;
+		for (int s=0; s<samplesCnt; s++) {
+			fprintf(fds, "\n%d", s);
+			for (int bar=0; bar<sampleLen; bar++) {
+				for (int d=0; d<dataSourcesCnt[0]; d++) {
+					for (int f=0; f<featuresCnt[0][d]; f++) {
+						for (int l=0; l<(WTlevel[0]+2); l++) {
+							fprintf(fds, ",%f", sample[dsidx]);
+							dsidx++;
+						}
+					}
+				}
+			}
+		}
+		fclose(fds);
 	}
-	fclose(fds);
 }
-void sTS2::getPrediction(int samplesCnt_, int sampleLen_, int targetLen_, numtype* prediction_) {
+void sTS2::getPrediction() {
 	int s, b;
 
-	for (b=0; b<sampleLen_; b++) {
+	for (b=0; b<sampleLen; b++) {
 		for (int d=0; d<dataSourcesCnt[1]; d++) {
 			for (int f=0; f<featuresCnt[1][d]; f++) {
 				for (int l=0; l<(WTlevel[1]+2); l++) {
@@ -459,7 +459,7 @@ void sTS2::getPrediction(int samplesCnt_, int sampleLen_, int targetLen_, numtyp
 	}
 
 	int outputCnt=0;
-	for (int bar=0; bar<targetLen_; bar++) {
+	for (int bar=0; bar<targetLen; bar++) {
 		for (int d=0; d<dataSourcesCnt[1]; d++) {
 			for (int f=0; f<featuresCnt[1][d]; f++) {
 				for (int l=0; l<(WTlevel[1]+2); l++) {
@@ -469,12 +469,12 @@ void sTS2::getPrediction(int samplesCnt_, int sampleLen_, int targetLen_, numtyp
 		}
 	}
 
-	for (s=0; s<samplesCnt_; s++) {
+	for (s=0; s<samplesCnt; s++) {
 		for (b=0; b<1; b++) {
 			for (int d=0; d<dataSourcesCnt[1]; d++) {
 				for (int f=0; f<featuresCnt[1][d]; f++) {
 					for (int l=0; l<(WTlevel[1]+2); l++) {
-						prdTRS[s+sampleLen_][1][d][f][l]=prediction_[(s)*outputCnt +b*dataSourcesCnt[1]*featuresCnt[1][d]*(WTlevel[1]+2) +d*featuresCnt[1][d]*(WTlevel[1]+2) +f*(WTlevel[1]+2) +l];
+						prdTRS[s+sampleLen][1][d][f][l]=prediction[(s)*outputCnt +b*dataSourcesCnt[1]*featuresCnt[1][d]*(WTlevel[1]+2) +d*featuresCnt[1][d]*(WTlevel[1]+2) +f*(WTlevel[1]+2) +l];
 					}
 				}
 			}
@@ -482,11 +482,11 @@ void sTS2::getPrediction(int samplesCnt_, int sampleLen_, int targetLen_, numtyp
 	}
 
 
-	for (b=0; b<targetLen_; b++) {
+	for (b=0; b<targetLen; b++) {
 		for (int d=0; d<dataSourcesCnt[1]; d++) {
 			for (int f=0; f<featuresCnt[1][d]; f++) {
 				for (int l=0; l<(WTlevel[1]+2); l++) {
-					prdTRS[stepsCnt-targetLen_+b][1][d][f][l]=prediction_[(samplesCnt_-1)*outputCnt +b*dataSourcesCnt[1]*featuresCnt[1][d]*(WTlevel[1]+2) +d*featuresCnt[1][d]*(WTlevel[1]+2) +f*(WTlevel[1]+2) +l];
+					prdTRS[stepsCnt-targetLen+b][1][d][f][l]=prediction[(samplesCnt-1)*outputCnt +b*dataSourcesCnt[1]*featuresCnt[1][d]*(WTlevel[1]+2) +d*featuresCnt[1][d]*(WTlevel[1]+2) +f*(WTlevel[1]+2) +l];
 				}
 			}
 		}
@@ -500,6 +500,10 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	char* _dumpPath=&dumpPath[0];
 	safecall(cfgKey, getParm, &_dumpPath, "DumpPath", true);
+
+	safecall(cfgKey, getParm, &sampleLen, "SampleLen");
+	safecall(cfgKey, getParm, &targetLen, "TargetLen");
+	safecall(cfgKey, getParm, &batchSize, "BatchSize");
 
 	char _date0[DATE_FORMAT_LEN]; char* _date0p=&_date0[0];
 	safecall(cfgKey, getParm, &_date0p, "Date0");
@@ -535,7 +539,8 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	//-- load all data sources
 	char** tmptime=(char**)malloc(stepsCnt*sizeof(char*));
 	for (int i=0; i<stepsCnt; i++) {
-		tmptime[i]=(char*)malloc(DATE_FORMAT_LEN); tmptime[i][0]='\0';
+		tmptime[i]=(char*)malloc(DATE_FORMAT_LEN); 
+		tmptime[i][0]='\0';
 	}
 	char* tmptimeB=(char*)malloc(DATE_FORMAT_LEN); tmptimeB[0]='\0';
 	numtype* tmpval;
@@ -552,11 +557,11 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 			tmpvalx=(numtype*)malloc(stepsCnt*featuresCnt[i][d]*sizeof(numtype));
 			tmpvalBx=(numtype*)malloc(featuresCnt[i][d]*sizeof(numtype));
 			tmpbw=(numtype*)malloc(stepsCnt*dsrc[i][d]->featuresCnt*sizeof(numtype));
-			safecall(dsrc[i][d], load, _date0, stepsCnt, tmptime, tmpval, tmptimeB, tmpvalB, tmpbw);
+			safecall(dsrc[i][d], load, _date0, (i>0)?sampleLen:0, stepsCnt, tmptime, tmpval, tmptimeB, tmpvalB, tmpbw);
 
 			//-- set timestamps
-			for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s], DATE_FORMAT_LEN, tmptime[s]);
-			strcpy_s(timestampB, DATE_FORMAT_LEN, tmptimeB);
+			for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, tmptime[s]);
+			strcpy_s(timestampB[i], DATE_FORMAT_LEN, tmptimeB);
 
 			//-- extract selected features in tmpvalx
 			for (int f=0; f<featuresCnt[i][d]; f++) {
@@ -585,6 +590,7 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 			free(tmpvalx); free(tmpvalBx);
 		}
 	}
+
 	for (int i=0; i<2; i++) {
 		for (int d=0; d<dataSourcesCnt[i]; d++) {
 			free(selF[i][d]);
@@ -597,10 +603,9 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	free(dsrc);
 	if (doDump) dump();
 
-
 }
 sTS2::sTS2(sObjParmsDef, \
-	int stepsCnt_, int dt_, bool doDump_, \
+	int stepsCnt_, int dt_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, \
 	char** INtimestamp_, char* INtimestampB_, \
 	int INdataSourcesCnt_, int* INfeaturesCnt_, int INWTtype_, int INWTlevel_, numtype* INval_, numtype* INvalB_, \
 	char** OUTtimestamp_, char* OUTtimestampB_, \
@@ -609,6 +614,7 @@ sTS2::sTS2(sObjParmsDef, \
 	
 	stepsCnt=stepsCnt_; dt=dt_; doDump=doDump_;
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
+	sampleLen=sampleLen_; targetLen=targetLen_; batchSize=batchSize_;
 	
 	WTtype=(int*)malloc(2*sizeof(int));
 	WTlevel=(int*)malloc(2*sizeof(int));
@@ -631,9 +637,9 @@ sTS2::sTS2(sObjParmsDef, \
 	//=== BUILDING INPUT SIDE ===
 
 	//-- timestamps
-	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s], DATE_FORMAT_LEN, INtimestamp_[s]);
+	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[0][s], DATE_FORMAT_LEN, INtimestamp_[s]);
 	//-- timestampB
-	strcpy_s(timestampB, DATE_FORMAT_LEN, INtimestampB_);
+	strcpy_s(timestampB[0], DATE_FORMAT_LEN, INtimestampB_);
 	
 	int i=0;
 	int idx=0;
@@ -686,6 +692,12 @@ sTS2::sTS2(sObjParmsDef, \
 	}
 
 	//=== BUILDING OUTPUT SIDE ===
+
+	//-- timestamps
+	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[1][s], DATE_FORMAT_LEN, OUTtimestamp_[s]);
+	//-- timestampB
+	strcpy_s(timestampB[1], DATE_FORMAT_LEN, OUTtimestampB_);
+
 	i=1;
 	//-- *valB comes in flat, ordered by [dsXfeature]
 	idx=0;
@@ -720,7 +732,6 @@ sTS2::~sTS2() {
 		free(TRmin[i]); free(TRmax[i]); free(scaleM[i]); free(scaleP[i]); free(valB[i]); 
 	}
 	free(TRmin); free(TRmax); free(scaleM); free(scaleP); free(valB);
-	free(timestampB);
 
 	for (int s=0; s<stepsCnt; s++) {
 		for (int i=0; i<2; i++) {
@@ -740,8 +751,16 @@ sTS2::~sTS2() {
 	}
 	free(val); free(valTR); free(valTRS);
 	free(prd); free(prdTR); free(prdTRS);
-	for (int i=0; i<stepsCnt; i++) free(timestamp[i]); free(timestamp);
 
+	for (int s=0; s<stepsCnt; s++) {
+		for (int i=0; i<2; i++) {
+			free(timestamp[s][i]);
+		}
+		free(timestamp[s]);
+	}
+	free(timestamp);
+	for (int i=0; i<2; i++) free(timestampB[i]);
+	free(timestampB);
 	for (int i=0; i<2; i++) free(featuresCnt[i]);
 	free(featuresCnt);
 	free(dataSourcesCnt);
