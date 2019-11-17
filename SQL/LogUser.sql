@@ -72,7 +72,7 @@ create table RunLog(
 	ActualBASE number,
 	PredictedBASE number
 ) storage (initial 1024M minextents 8 pctincrease 0);
-alter table RunLog add constraint RunLog_PK primary key( ProcessId, ThreadId, Pos, DataSource, Feature, WTlevel ) using index tablespace LogIdx;
+alter table RunLog add constraint RunLog_PK primary key( ProcessId, ThreadId, SequenceId, Pos, DataSource, Feature, WTlevel ) using index tablespace LogIdx;
 
 drop table ClientInfo purge;
 create table ClientInfo(
