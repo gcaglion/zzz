@@ -4,7 +4,6 @@
 #include "../DataMgr/sTS2.h"
 #include "../DataMgr/sFXDataSource.h"
 #include "../DataMgr/sGenericDataSource.h"
-#include "../DataMgr/sMT4DataSource.h"
 #include "../Logger/sLogger.h"
 #include "../Utils/Utils.h"
 
@@ -80,7 +79,6 @@ private:
 	char inferffname[MAX_PATH];
 	char engineffname[MAX_PATH];
 	char endtimeS[TIMER_ELAPSED_FORMAT_LEN];
-	int _sampleLen, _targetLen, _batchSize;
 
 	void MTpreprocess(int seriesCnt_, int* featureMask_, int sampleLen, int sampleBarsCnt, int targetBarsCnt, int** selFcnt, int*** selF, long* BarT, double* BarO, double* BarH, double* BarL, double* BarC, double* BarV, long* BaseBarT, double* BaseBarO, double* BaseBarH, double* BaseBarL, double* BaseBarC, double* BaseBarV, char*** BarTimeS, char** BarBTimeS, numtype** Bar, numtype** BarB);
 	

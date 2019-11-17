@@ -3,7 +3,6 @@
 #include "../ConfigMgr/sCfgObj.h"
 #include "sFXDataSource.h"
 #include "sGenericDataSource.h"
-#include "sMT4DataSource.h"
 #include "TimeSerie_enums.h"
 #undef fail
 #include "../Wavelib/wavelet2d.h"
@@ -20,7 +19,15 @@ struct sTS2 :sCfgObj {
 
 	int dt;
 
-	char** timestamp;	// [stepsCnt]
+	int sampleLen;
+	int targetLen;
+	int batchSize;
+	int samplesCnt;
+	numtype* sample;
+	numtype* target;
+	numtype* prediction;
+
+	char*** timestamp;	// [stepsCnt][IN/OUT]
 	numtype***** val;	// [stepsCnt][IN/OUT][dataSourcesCnt][featuresCnt][WTlevel+2]
 	numtype***** valTR;	// [stepsCnt][IN/OUT][dataSourcesCnt][featuresCnt][WTlevel+2]
 	numtype***** valTRS;// [stepsCnt][IN/OUT][dataSourcesCnt][featuresCnt][WTlevel+2]
@@ -31,7 +38,7 @@ struct sTS2 :sCfgObj {
 	numtype**** TRmax;	// [IN/OUT][dataSourcesCnt][featuresCnt][WTlevel+2]
 	numtype**** scaleM;	// [IN/OUT][dataSourcesCnt][featuresCnt][WTlevel+2]
 	numtype**** scaleP;	// [IN/OUT][dataSourcesCnt][featuresCnt][WTlevel+2]
-	char* timestampB;
+	char** timestampB;	// [IN/OUT]
 	numtype**** valB;	// [IN/OUT][dataSourcesCnt][featuresCnt][WTlevel+2]
 
 	bool doDump;
@@ -39,7 +46,7 @@ struct sTS2 :sCfgObj {
 
 	EXPORT sTS2(sCfgObjParmsDef);
 	EXPORT sTS2(sObjParmsDef, \
-		int stepsCnt_, int dt_, bool doDump_, \
+		int stepsCnt_, int dt_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, \
 		char** INtimestamp_, char* INtimestampB_, \
 		int INdataSourcesCnt_, int* INfeaturesCnt_, int INWTtype_, int INWTlevel_, numtype* INval_, numtype* INvalB_, \
 		char** OUTtimestamp_, char* OUTtimestampB_, \
@@ -50,8 +57,8 @@ struct sTS2 :sCfgObj {
 	EXPORT void scale(float scaleMin_, float scaleMax_);
 	EXPORT void unscale();
 	EXPORT void untransform();
-	EXPORT void getDataSet(int sampleLen_, int targetLen_, int* oSamplesCnt, int* oInputCnt, int* oOutputCnt, numtype** oSample, numtype** oTarget, numtype** oPrediction);
-	EXPORT void getPrediction(int samplesCnt_, int sampleLen_, int targetLen_, numtype* prediction_);
+	EXPORT void getDataSet(int* oInputCnt, int* oOutputCnt);
+	EXPORT void getPrediction();
 
 private:
 	void dumpToFile(FILE* file, int i, numtype***** val_);

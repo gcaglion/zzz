@@ -43,8 +43,10 @@ sEngine::~sEngine(){
 	//free(forecast);
 }
 
-void sEngine::train(int simulationId_, sTS2* trainTS_, int sampleLen_, int targetLen_, int batchSize_) {
-	sampleLen=sampleLen_; targetLen=targetLen_; batchSize=batchSize_;
+void sEngine::train(int simulationId_, sTS2* trainTS_) {
+	sampleLen=trainTS_->sampleLen; targetLen=trainTS_->targetLen; batchSize=trainTS_->batchSize;
+
+	cls(GetStdHandle(STD_OUTPUT_HANDLE));
 
 	//===== ONLY WORKING WITH 1 NN CORE ===
 	sNNparms* NNcp; safespawn(NNcp, newsname("Core%d_NNparms", 0), defaultdbg, cfg, strBuild("Core%d/Parameters", 0));
@@ -52,7 +54,7 @@ void sEngine::train(int simulationId_, sTS2* trainTS_, int sampleLen_, int targe
 
 	trainTS_->scale(NNcp->scaleMin[0], NNcp->scaleMax[0]);
 
-	safecall(trainTS_, getDataSet, sampleLen, targetLen, &samplesCnt, &inputCnt, &outputCnt, &sample, &target, &prediction);
+	safecall(trainTS_, getDataSet, &inputCnt, &outputCnt);
 	forecast=(numtype*)malloc(outputCnt*sizeof(numtype));
 
 	sNN2* NNc; safespawn(NNc, newsname("Core%d_NN", 0), defaultdbg, cfg, "../", inputCnt, outputCnt, NNcp);
@@ -60,12 +62,12 @@ void sEngine::train(int simulationId_, sTS2* trainTS_, int sampleLen_, int targe
 	core[0]->parms=NNcp;
 
 	core[0]->procArgs->testid=simulationId_;
-	core[0]->procArgs->samplesCnt=samplesCnt;
+	core[0]->procArgs->samplesCnt=trainTS_->samplesCnt;
 	core[0]->procArgs->batchSize=batchSize;
-	core[0]->procArgs->batchCnt=(int)floor(samplesCnt/batchSize);
-	core[0]->procArgs->sample=sample;
-	core[0]->procArgs->target=target;
-	core[0]->procArgs->prediction=prediction;
+	core[0]->procArgs->batchCnt=(int)floor(trainTS_->samplesCnt/batchSize);
+	core[0]->procArgs->sample=trainTS_->sample;
+	core[0]->procArgs->target=trainTS_->target;
+	core[0]->procArgs->prediction=trainTS_->prediction;
 	core[0]->procArgs->pid=pid;
 	core[0]->procArgs->tid=GetCurrentThreadId();
 
@@ -120,6 +122,8 @@ void sEngine::train(int simulationId_, sTS2* trainTS_, int sampleLen_, int targe
 
 }
 void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEnginePid_) {
+	cls(GetStdHandle(STD_OUTPUT_HANDLE));
+
 	if (savedEnginePid_>0) {
 		int idx=0;
 		for (int d=0; d<inferTS_->dataSourcesCnt[0]; d++) {
@@ -145,15 +149,15 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 		inferTS_->scale(core[0]->parms->scaleMin[0], core[0]->parms->scaleMax[0]);
 
 		//-- re-build core[0]->procArgs from inferTS_
-		safecall(inferTS_, getDataSet, sampleLen, targetLen, &samplesCnt, &inputCnt, &outputCnt, &sample, &target, &prediction);
+		safecall(inferTS_, getDataSet, &inputCnt, &outputCnt);
 
 		core[0]->procArgs->testid=simulationId_;
-		core[0]->procArgs->samplesCnt=samplesCnt;
+		core[0]->procArgs->samplesCnt=inferTS_->samplesCnt;
 		core[0]->procArgs->batchSize=batchSize;
-		core[0]->procArgs->batchCnt=(int)floor(samplesCnt/batchSize);
-		core[0]->procArgs->sample=sample;
-		core[0]->procArgs->target=target;
-		core[0]->procArgs->prediction=prediction;
+		core[0]->procArgs->batchCnt=(int)floor(inferTS_->samplesCnt/batchSize);
+		core[0]->procArgs->sample=inferTS_->sample;
+		core[0]->procArgs->target=inferTS_->target;
+		core[0]->procArgs->prediction=inferTS_->prediction;
 		core[0]->procArgs->pid=pid;
 		core[0]->procArgs->tid=GetCurrentThreadId();
 
@@ -163,12 +167,9 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 
 	safecall(core[0], infer);
 
-	//-- get predictions into ts->prdTRS
-	inferTS_->getPrediction(samplesCnt, sampleLen, targetLen, prediction);
-	//-- unscale prdTRS into prdTR
-	inferTS_->unscale();
-	//-- untransform prdTR into prd
-	inferTS_->untransform();
+	safecall(inferTS_, getPrediction);
+	safecall(inferTS_, unscale);
+	safecall(inferTS_, untransform);
 
 	//-- persist (OUTPUT only)
 	if (core[0]->persistor->saveRunFlag) {

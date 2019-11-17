@@ -37,20 +37,17 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		sLogger* clientLogger; safespawn(clientLogger, newsname("clientLogger"), defaultdbg, clientCfg, "/Client/Persistor");
 		safecall(this, getSafePid, clientLogger, &pid);
 
-		safecall(trainCfg->currentKey, getParm, &_sampleLen, "SampleLen");
-		safecall(trainCfg->currentKey, getParm, &_targetLen, "TargetLen");
-		safecall(trainCfg->currentKey, getParm, &_batchSize, "BatchSize");
 		sTS2* trainTS; safespawn(trainTS, newsname("trainTS"), defaultdbg, trainCfg, "/TimeSerie");
 
 		sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, engCfg, "/");
 
-		safecall(eng, train, simulationId_, trainTS, _sampleLen, _targetLen, _batchSize);
+		safecall(eng, train, simulationId_, trainTS);
 
 		//-- check if break with no save was requested
 		if (eng->core[0]->procArgs->quitAfterBreak) return;
 
 		timer->stop(endtimeS);
-		safecall(clientLogger, saveClientInfo, pid, 0, simulationId_, pid, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0], "", "", true, false, "", "", "", "");
+		safecall(clientLogger, saveClientInfo, pid, 0, simulationId_, pid, "Root.Tester", timer->startTime, timer->elapsedTime, trainTS->timestamp[0][0], "", "", true, false, "", "", "", "");
 
 		eng->commit();
 		clientLogger->commit();
@@ -82,9 +79,6 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 	sLogger* clientLogger; safespawn(clientLogger, newsname("clientLogger"), defaultdbg, clientCfg, "/Client/Persistor");
 	safecall(this, getSafePid, clientLogger, &pid);
 
-	safecall(inferCfg->currentKey, getParm, &_sampleLen, "SampleLen");
-	safecall(inferCfg->currentKey, getParm, &_targetLen, "TargetLen");
-	safecall(inferCfg->currentKey, getParm, &_batchSize, "BatchSize");
 	sTS2* inferTS; safespawn(inferTS, newsname("inferTS"), defaultdbg, inferCfg, "/TimeSerie");
 
 	sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, clientLogger, pid, savedEnginePid_);
@@ -92,7 +86,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 	safecall(eng, infer, simulationId_, 0, inferTS, savedEnginePid_);
 
 	timer->stop(endtimeS);
-	clientLogger->saveClientInfo(pid, 0, simulationId_, savedEnginePid_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[0], "", false, true, "", "", "", "");
+	clientLogger->saveClientInfo(pid, 0, simulationId_, savedEnginePid_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[1][0], "", false, true, "", "", "", "");
 
 	eng->commit();
 	clientLogger->commit();
@@ -144,6 +138,11 @@ void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iB
 }
 
 void sRoot::kaz() {
+
+	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
+	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
+	ts->dump();
+	return;
 
 	int iseriesCnt=3;
 	int* ifeatureMask=(int*)malloc(iseriesCnt*sizeof(int)); ifeatureMask[0]=11110; ifeatureMask[1]=01100; ifeatureMask[2]=11110;
@@ -364,13 +363,12 @@ void sRoot::getForecast(int seqId_, int dt_, \
 //	);
 
 	sTS2* mtTS;  safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, \
-		sampleBarsCnt+targetBarsCnt, dt_, MT4doDump, \
+		sampleBarsCnt+targetBarsCnt, dt_, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump, \
 		iBarTimeS, iBarBTimeS, iseriesCnt_, iselFcnt, MT4engine->WTtype[0], MT4engine->WTlevel[0], iBar, iBarB, \
 		oBarTimeS, oBarBTimeS, oseriesCnt_, oselFcnt, MT4engine->WTtype[1], MT4engine->WTlevel[1], oBar, oBarB \
 	);
 
 	safecall(MT4engine, infer, MT4accountId, seqId_, mtTS, MT4enginePid);
-	mtTS->dump();
 
 	int fi=0;
 	for (int b=0; b<MT4engine->targetLen; b++) {
