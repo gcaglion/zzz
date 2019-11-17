@@ -355,6 +355,67 @@ void sTS2::dump(bool predicted) {
 	dumpToFile(dumpFileOUTPRDTRS, 1, prdTRS);
 }
 
+void sTS2::_dumpDS(FILE* file, numtype* prs, numtype* prt) {
+
+	fprintf(file, "SampleId");
+	for (int bar=0; bar<sampleLen; bar++) {
+		for (int d=0; d<dataSourcesCnt[0]; d++) {
+			for (int f=0; f<featuresCnt[0][d]; f++) {
+				for (int l=0; l<(WTlevel[0]+2); l++) {
+					fprintf(file, ",B%dD%dF%dL%d", bar, d, f, l);
+				}
+			}
+		}
+	}
+	fprintf(file, ",");
+	for (int bar=0; bar<targetLen; bar++) {
+		for (int d=0; d<dataSourcesCnt[1]; d++) {
+			for (int f=0; f<featuresCnt[1][d]; f++) {
+				for (int l=0; l<(WTlevel[1]+2); l++) {
+					fprintf(file, ",B%dD%dF%dL%d", bar, d, f, l);
+				}
+			}
+		}
+	}
+	int sidx=0, tidx=0;
+	for (int s=0; s<samplesCnt; s++) {
+		fprintf(file, "\n%d", s);
+		for (int bar=0; bar<sampleLen; bar++) {
+			for (int d=0; d<dataSourcesCnt[0]; d++) {
+				for (int f=0; f<featuresCnt[0][d]; f++) {
+					for (int l=0; l<(WTlevel[0]+2); l++) {
+						fprintf(file, ",%f", prs[sidx]);
+						sidx++;
+					}
+				}
+			}
+		}
+		fprintf(file, ",");
+		for (int bar=0; bar<targetLen; bar++) {
+			for (int d=0; d<dataSourcesCnt[1]; d++) {
+				for (int f=0; f<featuresCnt[1][d]; f++) {
+					for (int l=0; l<(WTlevel[1]+2); l++) {
+						fprintf(file, ",%f", prt[tidx]);
+						tidx++;
+					}
+				}
+			}
+		}
+
+	}
+}
+void sTS2::dumpDS() {
+	char fdsname[MAX_PATH];	FILE* fds;
+	
+	sprintf_s(fdsname, "%s/dataSet_BASE_%p.csv", dumpPath, this);
+	fopen_s(&fds, fdsname, "w");
+	_dumpDS(fds, sample, target);
+	fclose(fds);
+	sprintf_s(fdsname, "%s/dataSet_TRS_%p.csv", dumpPath, this);
+	fopen_s(&fds, fdsname, "w");
+	_dumpDS(fds, sampleTRS, targetTRS);
+	fclose(fds);
+}
 void sTS2::getDataSet(int* oInputCnt, int* oOutputCnt) {
 	samplesCnt=stepsCnt-sampleLen-targetLen+1;
 		
@@ -370,6 +431,7 @@ void sTS2::getDataSet(int* oInputCnt, int* oOutputCnt) {
 	}
 
 	sample=(numtype*)malloc((*oInputCnt)*samplesCnt*sizeof(numtype));
+	sampleTRS=(numtype*)malloc((*oInputCnt)*samplesCnt*sizeof(numtype));
 
 	int dsidx=0;
 	for (int s=0; s<samplesCnt; s++) {
@@ -377,7 +439,8 @@ void sTS2::getDataSet(int* oInputCnt, int* oOutputCnt) {
 			for (int d=0; d<dataSourcesCnt[0]; d++) {
 				for (int f=0; f<featuresCnt[0][d]; f++) {
 					for (int l=0; l<(WTlevel[0]+2); l++) {
-						sample[dsidx] = valTRS[s+bar][0][d][f][l];
+						sample[dsidx] = val[s+bar][0][d][f][l];
+						sampleTRS[dsidx] = valTRS[s+bar][0][d][f][l];
 						dsidx++;
 					}
 				}
@@ -397,6 +460,7 @@ void sTS2::getDataSet(int* oInputCnt, int* oOutputCnt) {
 	}
 
 	target=(numtype*)malloc((*oOutputCnt)*samplesCnt*sizeof(numtype));
+	targetTRS=(numtype*)malloc((*oOutputCnt)*samplesCnt*sizeof(numtype));
 
 	dsidx=0;
 	for (int s=0; s<samplesCnt; s++) {
@@ -404,7 +468,8 @@ void sTS2::getDataSet(int* oInputCnt, int* oOutputCnt) {
 			for (int d=0; d<dataSourcesCnt[1]; d++) {
 				for (int f=0; f<featuresCnt[1][d]; f++) {
 					for (int l=0; l<(WTlevel[1]+2); l++) {
-						target[dsidx] = valTRS[s+sampleLen+bar][1][d][f][l];
+						target[dsidx] = val[s+sampleLen+bar][1][d][f][l];
+						targetTRS[dsidx] = valTRS[s+sampleLen+bar][1][d][f][l];
 						dsidx++;
 					}
 				}
@@ -413,37 +478,11 @@ void sTS2::getDataSet(int* oInputCnt, int* oOutputCnt) {
 	}
 
 	prediction=(numtype*)malloc((*oOutputCnt)*samplesCnt*sizeof(numtype));
+	predictionTRS=(numtype*)malloc((*oOutputCnt)*samplesCnt*sizeof(numtype));
 
 	//-- Print
-	if (doDump) {
-		char fdsname[MAX_PATH]; sprintf_s(fdsname, "%s/dataSet_%p.csv", dumpPath, this);
-		FILE* fds; fopen_s(&fds, fdsname, "w");
-		fprintf(fds, "SampleId");
-		for (int bar=0; bar<sampleLen; bar++) {
-			for (int d=0; d<dataSourcesCnt[0]; d++) {
-				for (int f=0; f<featuresCnt[0][d]; f++) {
-					for (int l=0; l<(WTlevel[0]+2); l++) {
-						fprintf(fds, ",B%dD%dF%dL%d", bar, d, f, l);
-					}
-				}
-			}
-		}
-		dsidx=0;
-		for (int s=0; s<samplesCnt; s++) {
-			fprintf(fds, "\n%d", s);
-			for (int bar=0; bar<sampleLen; bar++) {
-				for (int d=0; d<dataSourcesCnt[0]; d++) {
-					for (int f=0; f<featuresCnt[0][d]; f++) {
-						for (int l=0; l<(WTlevel[0]+2); l++) {
-							fprintf(fds, ",%f", sample[dsidx]);
-							dsidx++;
-						}
-					}
-				}
-			}
-		}
-		fclose(fds);
-	}
+	if (doDump) dumpDS();
+	
 }
 void sTS2::getPrediction() {
 	int s, b;
@@ -557,7 +596,7 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 			tmpvalx=(numtype*)malloc(stepsCnt*featuresCnt[i][d]*sizeof(numtype));
 			tmpvalBx=(numtype*)malloc(featuresCnt[i][d]*sizeof(numtype));
 			tmpbw=(numtype*)malloc(stepsCnt*dsrc[i][d]->featuresCnt*sizeof(numtype));
-			safecall(dsrc[i][d], load, _date0, (i>0)?sampleLen:0, stepsCnt, tmptime, tmpval, tmptimeB, tmpvalB, tmpbw);
+			safecall(dsrc[i][d], load, _date0, /*(i>0)?sampleLen:*/0, stepsCnt, tmptime, tmpval, tmptimeB, tmpvalB, tmpbw);
 
 			//-- set timestamps
 			for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, tmptime[s]);
@@ -764,4 +803,7 @@ sTS2::~sTS2() {
 	for (int i=0; i<2; i++) free(featuresCnt[i]);
 	free(featuresCnt);
 	free(dataSourcesCnt);
+
+	free(sample); free(target); free(prediction);
+	free(sampleTRS); free(targetTRS); free(predictionTRS);
 }

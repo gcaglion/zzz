@@ -8,13 +8,13 @@
 		</Layout>
 		<Parameters>
 			<Topology>
-				LevelRatio			= 1
+				LevelRatio			= 5
 				LevelActivation		= NN_ACTIVATION_TANH, NN_ACTIVATION_TANH, NN_ACTIVATION_TANH
 				UseContext			= false
 				UseBias				= false
 			</Topology>
 			<Training>
-				MaxEpochs			= 150
+				MaxEpochs			= 100
 				TargetMSE			= 0.00001
 				NetSaveFrequency	= 10
 				StopOnDivergence	= false

@@ -65,9 +65,9 @@ void sEngine::train(int simulationId_, sTS2* trainTS_) {
 	core[0]->procArgs->samplesCnt=trainTS_->samplesCnt;
 	core[0]->procArgs->batchSize=batchSize;
 	core[0]->procArgs->batchCnt=(int)floor(trainTS_->samplesCnt/batchSize);
-	core[0]->procArgs->sample=trainTS_->sample;
-	core[0]->procArgs->target=trainTS_->target;
-	core[0]->procArgs->prediction=trainTS_->prediction;
+	core[0]->procArgs->sample=trainTS_->sampleTRS;
+	core[0]->procArgs->target=trainTS_->targetTRS;
+	core[0]->procArgs->prediction=trainTS_->predictionTRS;
 	core[0]->procArgs->pid=pid;
 	core[0]->procArgs->tid=GetCurrentThreadId();
 
@@ -155,9 +155,9 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 		core[0]->procArgs->samplesCnt=inferTS_->samplesCnt;
 		core[0]->procArgs->batchSize=batchSize;
 		core[0]->procArgs->batchCnt=(int)floor(inferTS_->samplesCnt/batchSize);
-		core[0]->procArgs->sample=inferTS_->sample;
-		core[0]->procArgs->target=inferTS_->target;
-		core[0]->procArgs->prediction=inferTS_->prediction;
+		core[0]->procArgs->sample=inferTS_->sampleTRS;
+		core[0]->procArgs->target=inferTS_->targetTRS;
+		core[0]->procArgs->prediction=inferTS_->predictionTRS;
 		core[0]->procArgs->pid=pid;
 		core[0]->procArgs->tid=GetCurrentThreadId();
 

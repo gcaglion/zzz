@@ -26,6 +26,9 @@ struct sTS2 :sCfgObj {
 	numtype* sample;
 	numtype* target;
 	numtype* prediction;
+	numtype* sampleTRS;
+	numtype* targetTRS;
+	numtype* predictionTRS;
 
 	char*** timestamp;	// [stepsCnt][IN/OUT]
 	numtype***** val;	// [stepsCnt][IN/OUT][dataSourcesCnt][featuresCnt][WTlevel+2]
@@ -54,6 +57,7 @@ struct sTS2 :sCfgObj {
 	);
 	EXPORT ~sTS2();
 	EXPORT void dump(bool predicted=false);
+	EXPORT void dumpDS();
 	EXPORT void scale(float scaleMin_, float scaleMax_);
 	EXPORT void unscale();
 	EXPORT void untransform();
@@ -62,6 +66,7 @@ struct sTS2 :sCfgObj {
 
 private:
 	void dumpToFile(FILE* file, int i, numtype***** val_);
+	void _dumpDS(FILE* file, numtype* prs, numtype* prt);
 	void mallocs1();
 	void setDataSource(sDataSource** dataSrc_);
 	void WTcalc(int i, int d, int f, numtype* dsvalSF);

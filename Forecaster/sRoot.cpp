@@ -148,10 +148,15 @@ void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iB
 
 void sRoot::kaz() {
 
-	/*sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
+	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
-	ts->dump();
-	return;*/
+	ts->scale(-1, 1);
+	int inputCnt, outputCnt;
+	ts->getDataSet(&inputCnt, &outputCnt);
+	ts->dumpDS();
+	return;
+
+
 
 	int iseriesCnt=3;
 	int* ifeatureMask=(int*)malloc(iseriesCnt*sizeof(int)); ifeatureMask[0]=11110; ifeatureMask[1]=01100; ifeatureMask[2]=11110;
