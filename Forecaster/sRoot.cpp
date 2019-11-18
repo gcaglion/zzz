@@ -326,7 +326,7 @@ void sRoot::MTpreprocess(int seriesCnt_, int* featureMask_, int sampleLen, int s
 	for (int b=0; b<targetBarsCnt; b++) {
 		sprintf_s((*BarTimeS)[sampleBarsCnt+b], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
 		for (int f=0; f<selFcntTot; f++) {
-			(*Bar)[fi]=(*Bar)[(sampleBarsCnt-targetBarsCnt)*selFcntTot+b*selFcntTot+f];//EMPTY_VALUE;
+			(*Bar)[fi]=EMPTY_VALUE;// (*Bar)[(sampleBarsCnt-targetBarsCnt)*selFcntTot+b*selFcntTot+f];//EMPTY_VALUE;
 			fi++;
 		}
 	}

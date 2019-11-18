@@ -355,13 +355,23 @@ void sTS2::dump(bool predicted) {
 	dumpToFile(dumpFileOUTPRDTRS, 1, prdTRS);
 }
 
-void sTS2::_dumpDS(FILE* file, numtype* prs, numtype* prt) {
+void sTS2::_dumpDS(FILE* file, numtype* prs, numtype* prt, numtype* prp) {
 
 	fprintf(file, "SampleId");
 	for (int bar=0; bar<sampleLen; bar++) {
 		for (int d=0; d<dataSourcesCnt[0]; d++) {
 			for (int f=0; f<featuresCnt[0][d]; f++) {
 				for (int l=0; l<(WTlevel[0]+2); l++) {
+					fprintf(file, ",B%dD%dF%dL%d", bar, d, f, l);
+				}
+			}
+		}
+	}
+	fprintf(file, ",");
+	for (int bar=0; bar<targetLen; bar++) {
+		for (int d=0; d<dataSourcesCnt[1]; d++) {
+			for (int f=0; f<featuresCnt[1][d]; f++) {
+				for (int l=0; l<(WTlevel[1]+2); l++) {
 					fprintf(file, ",B%dD%dF%dL%d", bar, d, f, l);
 				}
 			}
@@ -401,6 +411,17 @@ void sTS2::_dumpDS(FILE* file, numtype* prs, numtype* prt) {
 				}
 			}
 		}
+		fprintf(file, ",");
+		for (int bar=0; bar<targetLen; bar++) {
+			for (int d=0; d<dataSourcesCnt[1]; d++) {
+				for (int f=0; f<featuresCnt[1][d]; f++) {
+					for (int l=0; l<(WTlevel[1]+2); l++) {
+						fprintf(file, ",%f", prp[tidx]);
+						tidx++;
+					}
+				}
+			}
+		}
 
 	}
 }
@@ -409,11 +430,11 @@ void sTS2::dumpDS() {
 	
 	sprintf_s(fdsname, "%s/dataSet_BASE_%p.csv", dumpPath, this);
 	fopen_s(&fds, fdsname, "w");
-	_dumpDS(fds, sample, target);
+	_dumpDS(fds, sample, target, prediction);
 	fclose(fds);
 	sprintf_s(fdsname, "%s/dataSet_TRS_%p.csv", dumpPath, this);
 	fopen_s(&fds, fdsname, "w");
-	_dumpDS(fds, sampleTRS, targetTRS);
+	_dumpDS(fds, sampleTRS, targetTRS, predictionTRS);
 	fclose(fds);
 }
 void sTS2::getDataSet(int* oInputCnt, int* oOutputCnt) {
@@ -692,18 +713,22 @@ sTS2::sTS2(sObjParmsDef, \
 		}
 	}
 	//-- now we need to calc wavelets.
-	numtype* tmpvalx=(numtype*)malloc(stepsCnt*sizeof(numtype));
-	numtype* lfa=(numtype*)malloc(stepsCnt*sizeof(numtype));
-	numtype** hfd=(numtype**)malloc(WTlevel[i]*sizeof(numtype*)); for (int l=0; l<WTlevel[i]; l++) hfd[l]=(numtype*)malloc(stepsCnt*sizeof(numtype));
+	numtype* tmpvalx=(numtype*)malloc((stepsCnt-targetLen)*sizeof(numtype));
+	numtype* lfa=(numtype*)malloc((stepsCnt-targetLen)*sizeof(numtype));
+	numtype** hfd=(numtype**)malloc(WTlevel[i]*sizeof(numtype*)); for (int l=0; l<WTlevel[i]; l++) hfd[l]=(numtype*)malloc((stepsCnt-targetLen)*sizeof(numtype));
 	for (int d=0; d<dataSourcesCnt[i]; d++) {
 		for (int f=0; f<featuresCnt[i][d]; f++) {
-			for (int s=0; s<stepsCnt; s++) {
+			for (int s=0; s<(stepsCnt-targetLen); s++) {
 				tmpvalx[s]=val[s][i][d][f][0];
 			}
-			WaweletDecomp(stepsCnt, tmpvalx, WTlevel[i], WTtype[i], lfa, hfd);
-			for (int s=0; s<stepsCnt; s++) {
+			WaweletDecomp((stepsCnt-targetLen), tmpvalx, WTlevel[i], WTtype[i], lfa, hfd);
+			for (int s=0; s<(stepsCnt-targetLen); s++) {
 				val[s][i][d][f][1]=lfa[s];
 				for (int l=0; l<WTlevel[i]; l++) val[s][i][d][f][l+2]=hfd[l][s];
+			}
+			for (int s=(stepsCnt-targetLen); s<stepsCnt; s++) {
+				val[s][i][d][f][1]=EMPTY_VALUE;
+				for (int l=0; l<WTlevel[i]; l++) val[s][i][d][f][l+2]=EMPTY_VALUE;
 			}
 		}
 	}
@@ -757,6 +782,12 @@ sTS2::sTS2(sObjParmsDef, \
 		}
 	}
 
+	//-- transform for each feature/level.
+	for (int d=0; d<dataSourcesCnt[i]; d++) {
+		for (int f=0; f<featuresCnt[i][d]; f++) {
+			for (int l=0; l<(WTlevel[i]+2); l++) transform(i, d, f, l);
+		}
+	}
 }
 sTS2::~sTS2() {
 	free(WTtype); free(WTlevel);

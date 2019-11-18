@@ -66,7 +66,7 @@ struct sTS2 :sCfgObj {
 
 private:
 	void dumpToFile(FILE* file, int i, numtype***** val_);
-	void _dumpDS(FILE* file, numtype* prs, numtype* prt);
+	void _dumpDS(FILE* file, numtype* prs, numtype* prt, numtype* prp);
 	void mallocs1();
 	void setDataSource(sDataSource** dataSrc_);
 	void WTcalc(int i, int d, int f, numtype* dsvalSF);
