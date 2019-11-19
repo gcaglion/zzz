@@ -6,20 +6,24 @@
 #endif
 
 void sTS2::mallocs1() {
-	timestamp=(char***)malloc(stepsCnt*sizeof(char**)); 
-	for (int s=0; s<stepsCnt; s++) {
+	timestamp=(char***)malloc((stepsCnt+targetLen)*sizeof(char**));
+	for (int s=0; s<(stepsCnt+targetLen); s++) {
 		timestamp[s]=(char**)malloc(2*sizeof(char*));
 		for (int i=0; i<2; i++) {
 			timestamp[s][i]=(char*)malloc(DATE_FORMAT_LEN);
 		}
 	}
-	val=(numtype*****)malloc(stepsCnt*sizeof(numtype****));
-	valTR=(numtype*****)malloc(stepsCnt*sizeof(numtype****));
-	valTRS=(numtype*****)malloc(stepsCnt*sizeof(numtype****));
-	prd=(numtype*****)malloc(stepsCnt*sizeof(numtype****));
-	prdTR=(numtype*****)malloc(stepsCnt*sizeof(numtype****));
-	prdTRS=(numtype*****)malloc(stepsCnt*sizeof(numtype****));
-	for (int s=0; s<stepsCnt; s++) {
+	for (int s=stepsCnt; s<(stepsCnt+targetLen); s++) {
+		for (int i=0; i<2; i++) sprintf_s(timestamp[s][i], DATE_FORMAT_LEN, "9999-99-99-99:%02d", s);
+	}
+	val=(numtype*****)malloc((stepsCnt+targetLen)*sizeof(numtype****));
+	valTR=(numtype*****)malloc((stepsCnt+targetLen)*sizeof(numtype****));
+	valTRS=(numtype*****)malloc((stepsCnt+targetLen)*sizeof(numtype****));
+	prd=(numtype*****)malloc((stepsCnt+targetLen)*sizeof(numtype****));
+	prdTR=(numtype*****)malloc((stepsCnt+targetLen)*sizeof(numtype****));
+	prdTRS=(numtype*****)malloc((stepsCnt+targetLen)*sizeof(numtype****));
+
+	for (int s=0; s<(stepsCnt+targetLen); s++) {
 		val[s]=(numtype****)malloc(2*sizeof(numtype***));
 		valTR[s]=(numtype****)malloc(2*sizeof(numtype***));
 		valTRS[s]=(numtype****)malloc(2*sizeof(numtype***));
@@ -47,6 +51,15 @@ void sTS2::mallocs1() {
 					prd[s][i][d][f]=(numtype*)malloc((WTlevel[i]+2)*sizeof(numtype));
 					prdTR[s][i][d][f]=(numtype*)malloc((WTlevel[i]+2)*sizeof(numtype));
 					prdTRS[s][i][d][f]=(numtype*)malloc((WTlevel[i]+2)*sizeof(numtype));
+
+					if (s>=stepsCnt) {
+						for (int l=0; l<(WTlevel[i]+2); l++) {
+							val[s][i][d][f][l]=EMPTY_VALUE;
+							valTR[s][i][d][f][l]=EMPTY_VALUE;
+							valTRS[s][i][d][f][l]=EMPTY_VALUE;
+						}
+					}
+
 				}
 			}
 		}
@@ -195,7 +208,7 @@ void sTS2::scale(float scaleMin_, float scaleMax_) {
 	if (doDump) dump();
 }
 void sTS2::unscale() {
-	for (int s=0; s<stepsCnt; s++) {
+	for (int s=0; s<(stepsCnt+targetLen); s++) {
 		for (int i=0; i<2; i++) {
 			for (int d=0; d<dataSourcesCnt[i]; d++) {
 				for (int f=0; f<featuresCnt[i][d]; f++) {
@@ -209,7 +222,7 @@ void sTS2::unscale() {
 }
 void sTS2::untransform() {
 
-	for (int s=0; s<stepsCnt; s++) {
+	for (int s=0; s<(stepsCnt+targetLen); s++) {
 		for (int i=0; i<2; i++) {
 			for (int d=0; d<dataSourcesCnt[i]; d++) {
 				for (int f=0; f<featuresCnt[i][d]; f++) {
@@ -222,8 +235,16 @@ void sTS2::untransform() {
 								if (prdTR[s][i][d][f][l]==EMPTY_VALUE) {
 									prd[s][i][d][f][l]=EMPTY_VALUE;
 								} else {
-									prd[s][i][d][f][l]=prdTR[s][i][d][f][l]+val[s-1][i][d][f][l];
-									if (val[s][i][d][f][l]==EMPTY_VALUE) val[s][i][d][f][l]=prd[s][i][d][f][l];
+									if (s<stepsCnt) {
+										prd[s][i][d][f][l]=prdTR[s][i][d][f][l]+val[s-1][i][d][f][l];
+										if (val[s][i][d][f][l]==EMPTY_VALUE) val[s][i][d][f][l]=prd[s][i][d][f][l];
+									} else {
+										if (prd[s-1][i][d][f][l]==EMPTY_VALUE) {
+											prd[s][i][d][f][l]=prdTR[s][i][d][f][l]+val[stepsCnt-1][i][d][f][l];
+										} else {
+											prd[s][i][d][f][l]=prdTR[s][i][d][f][l]+prd[s-1][i][d][f][l];
+										}
+									}
 								}
 							} else {
 								if (prdTR[s][i][d][f][l]==EMPTY_VALUE) {
@@ -249,7 +270,7 @@ void sTS2::untransform() {
 	}
 }
 
-void sTS2::dumpToFile(FILE* file, int i, numtype***** val_) {
+void sTS2::dumpToFile(FILE* file, int i, bool predicted, numtype***** val_) {
 	int s, d, f, l;
 	fprintf(file, "i, datetime");
 	for (d=0; d<dataSourcesCnt[i]; d++) {
@@ -268,7 +289,7 @@ void sTS2::dumpToFile(FILE* file, int i, numtype***** val_) {
 		}
 	}
 
-	for (s=0; s<stepsCnt; s++) {
+	for (s=0; s<(stepsCnt+((predicted)?targetLen:0)); s++) {
 		fprintf(file, "\n%d, %s", s, timestamp[s][i]);
 		for (d=0; d<dataSourcesCnt[i]; d++) {
 			for (f=0; f<featuresCnt[i][d]; f++) {
@@ -301,7 +322,7 @@ void sTS2::dumpToFile(FILE* file, int i, numtype***** val_) {
 
 	fclose(file);
 }
-void sTS2::dump(bool predicted) {
+void sTS2::dump() {
 	char dumpFileName[MAX_PATH];
 	sprintf_s(dumpFileName, "%s/%s_IN_ACT_BASE_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
 	FILE* dumpFileINACTBASE;
@@ -341,18 +362,18 @@ void sTS2::dump(bool predicted) {
 	FILE* dumpFileOUTPRDTRS;
 	if (fopen_s(&dumpFileOUTPRDTRS, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
-	dumpToFile(dumpFileINACTBASE, 0, val);
-	dumpToFile(dumpFileINACTTR, 0, valTR);
-	dumpToFile(dumpFileINACTTRS, 0, valTRS);
-	dumpToFile(dumpFileINPRDTRS, 0, prdTRS);
-	dumpToFile(dumpFileINPRDTR, 0, prdTR);
-	dumpToFile(dumpFileINPRDBASE, 0, prd);
-	dumpToFile(dumpFileOUTACTBASE, 1, val);
-	dumpToFile(dumpFileOUTACTTR, 1, valTR);
-	dumpToFile(dumpFileOUTACTTRS, 1, valTRS);
-	dumpToFile(dumpFileOUTPRDBASE, 1, prd);
-	dumpToFile(dumpFileOUTPRDTR, 1, prdTR);
-	dumpToFile(dumpFileOUTPRDTRS, 1, prdTRS);
+	dumpToFile(dumpFileINACTBASE, 0, false, val);
+	dumpToFile(dumpFileINACTTR, 0, false, valTR);
+	dumpToFile(dumpFileINACTTRS, 0, false, valTRS);
+	dumpToFile(dumpFileINPRDTRS, 0, true, prdTRS);
+	dumpToFile(dumpFileINPRDTR, 0, true, prdTR);
+	dumpToFile(dumpFileINPRDBASE, 0, true, prd);
+	dumpToFile(dumpFileOUTACTBASE, 1, false, val);
+	dumpToFile(dumpFileOUTACTTR, 1, false, valTR);
+	dumpToFile(dumpFileOUTACTTRS, 1, false, valTRS);
+	dumpToFile(dumpFileOUTPRDBASE, 1, true, prd);
+	dumpToFile(dumpFileOUTPRDTR, 1, true, prdTR);
+	dumpToFile(dumpFileOUTPRDTRS, 1, true, prdTRS);
 }
 
 void sTS2::_dumpDS(FILE* file, numtype* prs, numtype* prt, numtype* prp) {
@@ -387,7 +408,7 @@ void sTS2::_dumpDS(FILE* file, numtype* prs, numtype* prt, numtype* prp) {
 			}
 		}
 	}
-	int sidx=0, tidx=0;
+	int sidx=0, tidx=0, pidx=0;
 	for (int s=0; s<samplesCnt; s++) {
 		fprintf(file, "\n%d", s);
 		for (int bar=0; bar<sampleLen; bar++) {
@@ -416,8 +437,8 @@ void sTS2::_dumpDS(FILE* file, numtype* prs, numtype* prt, numtype* prp) {
 			for (int d=0; d<dataSourcesCnt[1]; d++) {
 				for (int f=0; f<featuresCnt[1][d]; f++) {
 					for (int l=0; l<(WTlevel[1]+2); l++) {
-						fprintf(file, ",%f", prp[tidx]);
-						tidx++;
+						fprintf(file, ",%f", prp[pidx]);
+						pidx++;
 					}
 				}
 			}
@@ -438,7 +459,7 @@ void sTS2::dumpDS() {
 	fclose(fds);
 }
 void sTS2::getDataSet(int* oInputCnt, int* oOutputCnt) {
-	samplesCnt=stepsCnt-sampleLen-targetLen+1;
+	samplesCnt=stepsCnt-sampleLen+1;
 		
 	(*oInputCnt)=0;
 	for (int bar=0; bar<sampleLen; bar++) {
@@ -489,8 +510,8 @@ void sTS2::getDataSet(int* oInputCnt, int* oOutputCnt) {
 			for (int d=0; d<dataSourcesCnt[1]; d++) {
 				for (int f=0; f<featuresCnt[1][d]; f++) {
 					for (int l=0; l<(WTlevel[1]+2); l++) {
-						target[dsidx] = val[s+sampleLen+bar][1][d][f][l];
-						targetTRS[dsidx] = valTRS[s+sampleLen+bar][1][d][f][l];
+						target[dsidx] = (s>=(samplesCnt-targetLen)) ? EMPTY_VALUE : val[s+sampleLen+bar][1][d][f][l];
+						targetTRS[dsidx] = (s>=(samplesCnt-targetLen)) ? EMPTY_VALUE : valTRS[s+sampleLen+bar][1][d][f][l];
 						dsidx++;
 					}
 				}
@@ -546,7 +567,7 @@ void sTS2::getPrediction() {
 		for (int d=0; d<dataSourcesCnt[1]; d++) {
 			for (int f=0; f<featuresCnt[1][d]; f++) {
 				for (int l=0; l<(WTlevel[1]+2); l++) {
-					prdTRS[stepsCnt-targetLen+b][1][d][f][l]=predictionTRS[(samplesCnt-1)*outputCnt +b*dataSourcesCnt[1]*featuresCnt[1][d]*(WTlevel[1]+2) +d*featuresCnt[1][d]*(WTlevel[1]+2) +f*(WTlevel[1]+2) +l];
+					prdTRS[stepsCnt+b][1][d][f][l]=predictionTRS[(samplesCnt-1)*outputCnt +b*dataSourcesCnt[1]*featuresCnt[1][d]*(WTlevel[1]+2) +d*featuresCnt[1][d]*(WTlevel[1]+2) +f*(WTlevel[1]+2) +l];
 				}
 			}
 		}
@@ -713,22 +734,18 @@ sTS2::sTS2(sObjParmsDef, \
 		}
 	}
 	//-- now we need to calc wavelets.
-	numtype* tmpvalx=(numtype*)malloc((stepsCnt-targetLen)*sizeof(numtype));
-	numtype* lfa=(numtype*)malloc((stepsCnt-targetLen)*sizeof(numtype));
-	numtype** hfd=(numtype**)malloc(WTlevel[i]*sizeof(numtype*)); for (int l=0; l<WTlevel[i]; l++) hfd[l]=(numtype*)malloc((stepsCnt-targetLen)*sizeof(numtype));
+	numtype* tmpvalx=(numtype*)malloc((stepsCnt)*sizeof(numtype));
+	numtype* lfa=(numtype*)malloc((stepsCnt)*sizeof(numtype));
+	numtype** hfd=(numtype**)malloc(WTlevel[i]*sizeof(numtype*)); for (int l=0; l<WTlevel[i]; l++) hfd[l]=(numtype*)malloc((stepsCnt)*sizeof(numtype));
 	for (int d=0; d<dataSourcesCnt[i]; d++) {
 		for (int f=0; f<featuresCnt[i][d]; f++) {
-			for (int s=0; s<(stepsCnt-targetLen); s++) {
+			for (int s=0; s<(stepsCnt); s++) {
 				tmpvalx[s]=val[s][i][d][f][0];
 			}
-			WaweletDecomp((stepsCnt-targetLen), tmpvalx, WTlevel[i], WTtype[i], lfa, hfd);
-			for (int s=0; s<(stepsCnt-targetLen); s++) {
+			WaweletDecomp((stepsCnt), tmpvalx, WTlevel[i], WTtype[i], lfa, hfd);
+			for (int s=0; s<(stepsCnt); s++) {
 				val[s][i][d][f][1]=lfa[s];
 				for (int l=0; l<WTlevel[i]; l++) val[s][i][d][f][l+2]=hfd[l][s];
-			}
-			for (int s=(stepsCnt-targetLen); s<stepsCnt; s++) {
-				val[s][i][d][f][1]=EMPTY_VALUE;
-				for (int l=0; l<WTlevel[i]; l++) val[s][i][d][f][l+2]=EMPTY_VALUE;
 			}
 		}
 	}

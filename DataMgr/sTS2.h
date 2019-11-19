@@ -56,7 +56,7 @@ struct sTS2 :sCfgObj {
 		int OUTdataSourcesCnt_, int* OUTfeaturesCnt_, int OUTWTtype_, int OUTWTlevel_, numtype* OUTval_, numtype* OUTvalB_\
 	);
 	EXPORT ~sTS2();
-	EXPORT void dump(bool predicted=false);
+	EXPORT void dump();
 	EXPORT void dumpDS();
 	EXPORT void scale(float scaleMin_, float scaleMax_);
 	EXPORT void unscale();
@@ -65,7 +65,7 @@ struct sTS2 :sCfgObj {
 	EXPORT void getPrediction();
 
 private:
-	void dumpToFile(FILE* file, int i, numtype***** val_);
+	void dumpToFile(FILE* file, int i, bool predicted, numtype***** val_);
 	void _dumpDS(FILE* file, numtype* prs, numtype* prt, numtype* prp);
 	void mallocs1();
 	void setDataSource(sDataSource** dataSrc_);

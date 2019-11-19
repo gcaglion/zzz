@@ -62,9 +62,9 @@ void sEngine::train(int simulationId_, sTS2* trainTS_) {
 	core[0]->parms=NNcp;
 
 	core[0]->procArgs->testid=simulationId_;
-	core[0]->procArgs->samplesCnt=trainTS_->samplesCnt;
+	core[0]->procArgs->samplesCnt=trainTS_->samplesCnt-trainTS_->targetLen;
 	core[0]->procArgs->batchSize=batchSize;
-	core[0]->procArgs->batchCnt=(int)floor(trainTS_->samplesCnt/batchSize);
+	core[0]->procArgs->batchCnt=(int)floor(core[0]->procArgs->samplesCnt/batchSize);
 	core[0]->procArgs->sample=trainTS_->sampleTRS;
 	core[0]->procArgs->target=trainTS_->targetTRS;
 	core[0]->procArgs->prediction=trainTS_->predictionTRS;
@@ -154,7 +154,7 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 		core[0]->procArgs->testid=simulationId_;
 		core[0]->procArgs->samplesCnt=inferTS_->samplesCnt;
 		core[0]->procArgs->batchSize=batchSize;
-		core[0]->procArgs->batchCnt=(int)floor(inferTS_->samplesCnt/batchSize);
+		core[0]->procArgs->batchCnt=(int)floor(core[0]->procArgs->samplesCnt/batchSize);
 		core[0]->procArgs->sample=inferTS_->sampleTRS;
 		core[0]->procArgs->target=inferTS_->targetTRS;
 		core[0]->procArgs->prediction=inferTS_->predictionTRS;
@@ -171,13 +171,16 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 	safecall(inferTS_, unscale);
 	safecall(inferTS_, untransform);
 
+	inferTS_->dumpDS();
+	inferTS_->dump();
+
 	//-- persist (OUTPUT only)
 	if (core[0]->persistor->saveRunFlag) {
 		for (int d=0; d<inferTS_->dataSourcesCnt[1]; d++) {
 			for (int f=0; f<inferTS_->featuresCnt[1][d]; f++) {
 				for (int l=0; l<(inferTS_->WTlevel[1]+2); l++) {
 					safecall(core[0]->persistor, saveRun2, core[0]->procArgs->pid, core[0]->procArgs->tid, core[0]->procArgs->npid, core[0]->procArgs->ntid, seqId_, core[0]->procArgs->mseR, \
-						inferTS_->stepsCnt, inferTS_->timestamp, 1, d, f, l, inferTS_->valTRS, inferTS_->prdTRS, inferTS_->valTR, inferTS_->prdTR, inferTS_->val, inferTS_->prd
+						inferTS_->stepsCnt+inferTS_->targetLen, inferTS_->timestamp, 1, d, f, l, inferTS_->valTRS, inferTS_->prdTRS, inferTS_->valTR, inferTS_->prdTR, inferTS_->val, inferTS_->prd
 					);
 				}
 			}

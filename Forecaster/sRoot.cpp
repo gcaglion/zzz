@@ -152,8 +152,14 @@ void sRoot::kaz() {
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
 	ts->scale(-1, 1);
 	int inputCnt, outputCnt;
+
 	ts->getDataSet(&inputCnt, &outputCnt);
-	ts->dumpDS();
+	for(int idx=0; idx<(outputCnt*ts->samplesCnt); idx++) ts->predictionTRS[idx]=ts->targetTRS[idx];
+
+	ts->getPrediction();
+	ts->unscale();
+	ts->untransform();
+	ts->dump();
 	return;
 
 
@@ -303,9 +309,9 @@ void sRoot::MTpreprocess(int seriesCnt_, int* featureMask_, int sampleLen, int s
 		selFcntTot+=(*selFcnt)[serie];
 	}
 
-	(*Bar)=(numtype*)malloc((sampleBarsCnt+targetBarsCnt)*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
+	(*Bar)=(numtype*)malloc((sampleBarsCnt)*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
 	long oBarTime;
-	(*BarTimeS)=(char**)malloc((sampleBarsCnt+targetBarsCnt)*sizeof(char*)); for (int b=0; b<(sampleBarsCnt+targetBarsCnt); b++) (*BarTimeS)[b]=(char*)malloc(DATE_FORMAT_LEN);
+	(*BarTimeS)=(char**)malloc((sampleBarsCnt)*sizeof(char*)); for (int b=0; b<(sampleBarsCnt); b++) (*BarTimeS)[b]=(char*)malloc(DATE_FORMAT_LEN);
 	int fi=0;
 
 	for (int b=0; b<(sampleBarsCnt); b++) {
@@ -323,13 +329,13 @@ void sRoot::MTpreprocess(int seriesCnt_, int* featureMask_, int sampleLen, int s
 	}
 	//--
 
-	for (int b=0; b<targetBarsCnt; b++) {
+	/*for (int b=0; b<targetBarsCnt; b++) {
 		sprintf_s((*BarTimeS)[sampleBarsCnt+b], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
 		for (int f=0; f<selFcntTot; f++) {
 			(*Bar)[fi]=EMPTY_VALUE;// (*Bar)[(sampleBarsCnt-targetBarsCnt)*selFcntTot+b*selFcntTot+f];//EMPTY_VALUE;
 			fi++;
 		}
-	}
+	}*/
 	//--
 	(*BarB)=(numtype*)malloc(selFcntTot*sizeof(numtype));
 	(*BarBTimeS)=(char*)malloc(DATE_FORMAT_LEN);
@@ -380,12 +386,14 @@ void sRoot::getForecast(int seqId_, int dt_, \
 //	);
 
 	sTS2* mtTS;  safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, \
-		sampleBarsCnt+targetBarsCnt, dt_, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump, \
+		sampleBarsCnt, dt_, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump, \
 		&iBarTimeS, &iBarBTimeS, iseriesCnt_, iselFcnt, MT4engine->WTtype[0], MT4engine->WTlevel[0], iBar, iBarB, \
 		&oBarTimeS, &oBarBTimeS, oseriesCnt_, oselFcnt, MT4engine->WTtype[1], MT4engine->WTlevel[1], oBar, oBarB \
 	);
 
 	safecall(MT4engine, infer, MT4accountId, seqId_, mtTS, MT4enginePid);
+
+	for (int s=0; s<(sampleBarsCnt+targetBarsCnt); s++) info("mtTS->prd[%d]=%f", s, mtTS->prd[s][1][0][0][0]);
 
 	int fi=0;
 	for (int b=0; b<MT4engine->targetLen; b++) {
