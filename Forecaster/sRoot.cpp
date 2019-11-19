@@ -91,7 +91,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 	safecall(eng, infer, simulationId_, 0, inferTS, savedEnginePid_);
 
 	timer->stop(endtimeS);
-	clientLogger->saveClientInfo(pid, 0, simulationId_, savedEnginePid_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[1][0], "", false, true, "", "", "", "");
+	safecall(clientLogger, saveClientInfo, pid, 0, simulationId_, savedEnginePid_, "Root.Tester", timer->startTime, timer->elapsedTime, "", inferTS->timestamp[1][0], "", false, true, "", "", "", "");
 
 	//-- persist XML config parameters for Client,DataSet
 	safecall(clientLogger, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);

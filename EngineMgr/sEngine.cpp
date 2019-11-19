@@ -70,6 +70,8 @@ void sEngine::train(int simulationId_, sTS2* trainTS_) {
 	core[0]->procArgs->prediction=trainTS_->predictionTRS;
 	core[0]->procArgs->pid=pid;
 	core[0]->procArgs->tid=GetCurrentThreadId();
+	core[0]->procArgs->npid=pid;
+	core[0]->procArgs->ntid=GetCurrentThreadId();
 
 	safecall(core[0], train);
 
@@ -160,7 +162,8 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 		core[0]->procArgs->prediction=inferTS_->predictionTRS;
 		core[0]->procArgs->pid=pid;
 		core[0]->procArgs->tid=GetCurrentThreadId();
-
+		core[0]->procArgs->npid=savedEnginePid_;
+		core[0]->procArgs->ntid=coreThreadId[0];
 	}
 
 	forecast=(numtype*)malloc(outputCnt*sizeof(numtype));
@@ -170,9 +173,6 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 	safecall(inferTS_, getPrediction);
 	safecall(inferTS_, unscale);
 	safecall(inferTS_, untransform);
-
-	inferTS_->dumpDS();
-	inferTS_->dump();
 
 	//-- persist (OUTPUT only)
 	if (core[0]->persistor->saveRunFlag) {
