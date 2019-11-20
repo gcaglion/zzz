@@ -168,7 +168,9 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 
 	forecast=(numtype*)malloc(outputCnt*sizeof(numtype));
 
+	safecall(inferTS_, invertDS);
 	safecall(core[0], infer);
+	safecall(inferTS_, invertDS);
 
 	safecall(inferTS_, getPrediction);
 	safecall(inferTS_, unscale);

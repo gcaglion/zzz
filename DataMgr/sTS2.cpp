@@ -327,6 +327,58 @@ void sTS2::invert() {
 	}
 	
 }
+void sTS2::invertDS() {
+
+	int inputCnt=0;
+	for (int bar=0; bar<sampleLen; bar++) {
+		for (int d=0; d<dataSourcesCnt[0]; d++) {
+			for (int f=0; f<featuresCnt[0][d]; f++) {
+				for (int l=0; l<(WTlevel[0]+2); l++) {
+					inputCnt++;
+				}
+			}
+		}
+	}
+	int outputCnt=0;
+	for (int bar=0; bar<targetLen; bar++) {
+		for (int d=0; d<dataSourcesCnt[1]; d++) {
+			for (int f=0; f<featuresCnt[1][d]; f++) {
+				for (int l=0; l<(WTlevel[1]+2); l++) {
+					outputCnt++;
+				}
+			}
+		}
+	}
+	numtype* _sample=(numtype*)malloc(samplesCnt*inputCnt*sizeof(numtype));
+	numtype* _target=(numtype*)malloc(samplesCnt*outputCnt*sizeof(numtype));
+	numtype* _prediction=(numtype*)malloc(samplesCnt*outputCnt*sizeof(numtype));
+	numtype* _sampleTRS=(numtype*)malloc(samplesCnt*inputCnt*sizeof(numtype));
+	numtype* _targetTRS=(numtype*)malloc(samplesCnt*outputCnt*sizeof(numtype));
+	numtype* _predictionTRS=(numtype*)malloc(samplesCnt*outputCnt*sizeof(numtype));
+	for (int s=0; s<samplesCnt; s++) {
+		for (int b=0; b<inputCnt; b++) {
+			_sample[s*inputCnt+b]=sample[(samplesCnt-s-1)*inputCnt+b];
+			_sampleTRS[s*inputCnt+b]=sampleTRS[(samplesCnt-s-1)*inputCnt+b];
+		}
+		for (int b=0; b<outputCnt; b++) {
+			_target[s*outputCnt+b]=target[(samplesCnt-s-1)*outputCnt+b];
+			_targetTRS[s*outputCnt+b]=targetTRS[(samplesCnt-s-1)*outputCnt+b];
+		}
+		for (int b=0; b<outputCnt; b++) {
+			_prediction[s*outputCnt+b]=prediction[(samplesCnt-s-1)*outputCnt+b];
+			_predictionTRS[s*outputCnt+b]=predictionTRS[(samplesCnt-s-1)*outputCnt+b];
+		}
+	}
+	memcpy_s(sample, samplesCnt*inputCnt*sizeof(numtype), _sample, samplesCnt*inputCnt*sizeof(numtype));
+	memcpy_s(target, samplesCnt*outputCnt*sizeof(numtype), _target, samplesCnt*outputCnt*sizeof(numtype));
+	memcpy_s(prediction, samplesCnt*outputCnt*sizeof(numtype), _prediction, samplesCnt*outputCnt*sizeof(numtype));
+	memcpy_s(sampleTRS, samplesCnt*inputCnt*sizeof(numtype), _sampleTRS, samplesCnt*inputCnt*sizeof(numtype));
+	memcpy_s(targetTRS, samplesCnt*outputCnt*sizeof(numtype), _targetTRS, samplesCnt*outputCnt*sizeof(numtype));
+	memcpy_s(predictionTRS, samplesCnt*outputCnt*sizeof(numtype), _predictionTRS, samplesCnt*outputCnt*sizeof(numtype));
+
+	free(_sample); free(_target); free(_prediction);
+	free(_sampleTRS); free(_targetTRS); free(_predictionTRS);
+}
 
 void sTS2::dumpToFile(FILE* file, int i, bool predicted, numtype***** val_) {
 	int s, d, f, l;

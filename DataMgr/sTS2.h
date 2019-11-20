@@ -64,6 +64,7 @@ struct sTS2 :sCfgObj {
 	EXPORT void getDataSet(int* oInputCnt, int* oOutputCnt);
 	EXPORT void getPrediction();
 	EXPORT void invert();
+	EXPORT void invertDS();
 
 private:
 	void dumpToFile(FILE* file, int i, bool predicted, numtype***** val_);

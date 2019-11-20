@@ -148,17 +148,18 @@ void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iB
 
 void sRoot::kaz() {
 
-	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS2.xml");
+	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
-	ts->dump();
-	ts->invert();
-	ts->dump();
-	return;
 	ts->scale(-1, 1);
 	int inputCnt, outputCnt;
 
 	ts->getDataSet(&inputCnt, &outputCnt);
 	for(int idx=0; idx<(outputCnt*ts->samplesCnt); idx++) ts->predictionTRS[idx]=ts->targetTRS[idx];
+
+	ts->dumpDS();
+	ts->invertDS();
+	ts->dumpDS();
+	return;
 
 	ts->getPrediction();
 	ts->unscale();
