@@ -21,6 +21,8 @@ struct sTS2 :sCfgObj {
 
 	int sampleLen;
 	int targetLen;
+	int inputCnt;
+	int outputCnt;
 	int batchSize;
 	int samplesCnt=0;
 	numtype* sample;
@@ -61,7 +63,7 @@ struct sTS2 :sCfgObj {
 	EXPORT void scale(float scaleMin_, float scaleMax_);
 	EXPORT void unscale();
 	EXPORT void untransform();
-	EXPORT void getDataSet(int* oInputCnt, int* oOutputCnt);
+	EXPORT void buildDataSet();
 	EXPORT void getPrediction();
 	EXPORT void invert();
 	EXPORT void invertDS();

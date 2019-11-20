@@ -151,10 +151,9 @@ void sRoot::kaz() {
 	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
 	ts->scale(-1, 1);
-	int inputCnt, outputCnt;
 
-	ts->getDataSet(&inputCnt, &outputCnt);
-	for(int idx=0; idx<(outputCnt*ts->samplesCnt); idx++) ts->predictionTRS[idx]=ts->targetTRS[idx];
+	ts->buildDataSet();
+	for(int idx=0; idx<(ts->outputCnt*ts->samplesCnt); idx++) ts->predictionTRS[idx]=ts->targetTRS[idx];
 
 	ts->dumpDS();
 	ts->invertDS();
@@ -402,13 +401,14 @@ void sRoot::getForecast(int seqId_, int dt_, \
 	for (int s=0; s<(sampleBarsCnt+targetBarsCnt); s++) info("mtTS: act[%d]=%7.6f ; actTR[%d]=%7.6f ; prdTR[%d]=%7.6f ; prd[%d]=%7.6f", s, mtTS->val[s][1][0][0][0], s, mtTS->valTR[s][1][0][0][0], s, mtTS->prdTR[s][1][0][0][0], s, mtTS->prd[s][1][0][0][0]);
 
 	int fi;
-	for (int sample=0; sample<2; sample++) {
+	for (int sample=1; sample<2; sample++) {
 		fi=0;
 		for (int b=0; b<MT4engine->targetLen; b++) {
 			for (int s=0; s<oseriesCnt_; s++) {
 				for (int sf=0; sf<oselFcnt[s]; sf++) {
 
-					/*if (sample>0&&b==0)*/ info("prdTR[%d][1][%d][%d][%d]=%7.6f", sampleBarsCnt-1+sample+b, s, sf, 0, mtTS->prdTR[sampleBarsCnt-1+sample+b][1][s][sf][0]);
+					info("prdTRS[%d][1][%d][%d][%d]=%7.6f", sampleBarsCnt-1+sample+b, s, sf, 0, mtTS->prdTRS[sampleBarsCnt-1+sample+b][1][s][sf][0]);
+					info("prdTR[%d][1][%d][%d][%d]=%7.6f", sampleBarsCnt-1+sample+b, s, sf, 0, mtTS->prdTR[sampleBarsCnt-1+sample+b][1][s][sf][0]);
 					MT4engine->forecast[fi]=mtTS->prd[sampleBarsCnt-1+sample+b][1][s][sf][0];
 					//info("MT4engine->forecast[%d]=%f", fi, MT4engine->forecast[fi]);
 
@@ -419,7 +419,7 @@ void sRoot::getForecast(int seqId_, int dt_, \
 					if (oselF[s][sf]==FXVOLUME) oForecastV[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
 					fi++;
 				}
-				/*if (sample>0&&b==0)*/ info("OHLCV Forecast, serie %d , bar %d: %7.6f|%7.6f|%7.6f|%7.6f|%7.6f", s, b, oForecastO[s*MT4engine->targetLen+b], oForecastH[s*MT4engine->targetLen+b], oForecastL[s*MT4engine->targetLen+b], oForecastC[s*MT4engine->targetLen+b], oForecastV[s*MT4engine->targetLen+b]);
+				info("OHLCV Forecast, serie %d , bar %d: %7.6f|%7.6f|%7.6f|%7.6f|%7.6f", s, b, oForecastO[s*MT4engine->targetLen+b], oForecastH[s*MT4engine->targetLen+b], oForecastL[s*MT4engine->targetLen+b], oForecastC[s*MT4engine->targetLen+b], oForecastV[s*MT4engine->targetLen+b]);
 			}
 		}
 	}

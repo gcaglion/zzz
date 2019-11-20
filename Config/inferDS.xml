@@ -1,8 +1,8 @@
 	<TimeSerie>
-		HistoryLen			= 70
-		Date0				= 2018-08-31-00:00
+		HistoryLen			= 51
+		Date0				= 2018-08-30-15:00
 		DataTransformation	= DT_DELTA
-		Dump				= false
+		Dump				= true
 		DumpPath			= c:\temp\DataDump
 
 		<Input>

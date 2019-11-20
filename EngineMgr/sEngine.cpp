@@ -54,7 +54,9 @@ void sEngine::train(int simulationId_, sTS2* trainTS_) {
 
 	trainTS_->scale(NNcp->scaleMin[0], NNcp->scaleMax[0]);
 
-	safecall(trainTS_, getDataSet, &inputCnt, &outputCnt);
+	safecall(trainTS_, buildDataSet);
+	inputCnt=trainTS_->inputCnt; outputCnt=trainTS_->outputCnt;
+
 	forecast=(numtype*)malloc(outputCnt*sizeof(numtype));
 
 	sNN2* NNc; safespawn(NNc, newsname("Core%d_NN", 0), defaultdbg, cfg, "../", inputCnt, outputCnt, NNcp);
@@ -151,7 +153,7 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 		inferTS_->scale(core[0]->parms->scaleMin[0], core[0]->parms->scaleMax[0]);
 
 		//-- re-build core[0]->procArgs from inferTS_
-		safecall(inferTS_, getDataSet, &inputCnt, &outputCnt);
+		safecall(inferTS_, buildDataSet);
 
 		core[0]->procArgs->testid=simulationId_;
 		core[0]->procArgs->samplesCnt=inferTS_->samplesCnt;
@@ -168,13 +170,13 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 
 	forecast=(numtype*)malloc(outputCnt*sizeof(numtype));
 
-	safecall(inferTS_, invertDS);
 	safecall(core[0], infer);
-	safecall(inferTS_, invertDS);
 
 	safecall(inferTS_, getPrediction);
 	safecall(inferTS_, unscale);
 	safecall(inferTS_, untransform);
+
+	inferTS_->dumpDS();
 
 	//-- persist (OUTPUT only)
 	if (core[0]->persistor->saveRunFlag) {
