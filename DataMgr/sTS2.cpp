@@ -359,6 +359,24 @@ void sTS2::invertDS() {
 	free(_sample); free(_target); free(_prediction);
 	free(_sampleTRS); free(_targetTRS); free(_predictionTRS);
 }
+void sTS2::slide(int steps_) {
+	for (int s=0; s<(stepsCnt-1); s++) {
+		for (int i=0; i<2; i++) {
+			for (int d=0; d<dataSourcesCnt[i]; d++) {
+				for (int f=0; f<featuresCnt[i][d]; f++) {
+					for (int l=0; l<(WTlevel[i]+2); l++) {
+						val[s][i][d][f][l]=val[s+1][i][d][f][l];
+						valTR[s][i][d][f][l]=val[s+1][i][d][f][l];
+						valTRS[s][i][d][f][l]=val[s+1][i][d][f][l];
+						prd[s][i][d][f][l]=prd[s+1][i][d][f][l];
+						prdTR[s][i][d][f][l]=prd[s+1][i][d][f][l];
+						prdTRS[s][i][d][f][l]=prd[s+1][i][d][f][l];
+					}
+				}
+			}
+		}
+	}
+}
 
 void sTS2::dumpToFile(FILE* file, int i, bool predicted, numtype***** val_) {
 	int s, d, f, l;

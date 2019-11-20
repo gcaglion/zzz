@@ -152,7 +152,12 @@ void sRoot::kaz() {
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
 	ts->scale(-1, 1);
 
+	ts->dump();
+	ts->slide(1);
+	ts->dump();
+
 	ts->buildDataSet();
+
 	for(int idx=0; idx<(ts->outputCnt*ts->samplesCnt); idx++) ts->predictionTRS[idx]=ts->targetTRS[idx];
 
 	ts->dumpDS();
