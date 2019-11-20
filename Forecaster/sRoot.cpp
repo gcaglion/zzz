@@ -148,8 +148,12 @@ void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iB
 
 void sRoot::kaz() {
 
-	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
+	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS2.xml");
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
+	ts->dump();
+	ts->invert();
+	ts->dump();
+	return;
 	ts->scale(-1, 1);
 	int inputCnt, outputCnt;
 
@@ -160,6 +164,7 @@ void sRoot::kaz() {
 	ts->unscale();
 	ts->untransform();
 	ts->dump();
+	ts->dumpDS();
 	return;
 
 
@@ -363,7 +368,7 @@ void sRoot::getForecast(int seqId_, int dt_, \
 	double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV \
 ) {
 
-	int sampleBarsCnt=MT4engine->sampleLen+1+MT4engine->batchSize-1;
+	int sampleBarsCnt=MT4engine->sampleLen+1;
 	int targetBarsCnt=MT4engine->targetLen;
 //	int sampleBarsCnt=50;// MT4engine->sampleLen+MT4engine->batchSize-1;
 //	int targetBarsCnt=3;// MT4engine->targetLen;
@@ -393,17 +398,18 @@ void sRoot::getForecast(int seqId_, int dt_, \
 
 	safecall(MT4engine, infer, MT4accountId, seqId_, mtTS, MT4enginePid);
 
-	for (int s=0; s<(sampleBarsCnt+targetBarsCnt); s++) info("mtTS->prd[%d]=%f", s, mtTS->prd[s][1][0][0][0]);
+	for (int s=0; s<(sampleBarsCnt+targetBarsCnt); s++) info("mtTS: act[%d]=%7.6f ; actTR[%d]=%7.6f ; prdTR[%d]=%7.6f ; prd[%d]=%7.6f", s, mtTS->val[s][1][0][0][0], s, mtTS->valTR[s][1][0][0][0], s, mtTS->prdTR[s][1][0][0][0], s, mtTS->prd[s][1][0][0][0]);
 
-	int fi, sample;
-	for (sample=0; sample<2; sample++) {
+	int fi;
+	for (int sample=0; sample<2; sample++) {
 		fi=0;
 		for (int b=0; b<MT4engine->targetLen; b++) {
 			for (int s=0; s<oseriesCnt_; s++) {
 				for (int sf=0; sf<oselFcnt[s]; sf++) {
 
+					/*if (sample>0&&b==0)*/ info("prdTR[%d][1][%d][%d][%d]=%7.6f", sampleBarsCnt-1+sample+b, s, sf, 0, mtTS->prdTR[sampleBarsCnt-1+sample+b][1][s][sf][0]);
 					MT4engine->forecast[fi]=mtTS->prd[sampleBarsCnt-1+sample+b][1][s][sf][0];
-					info("MT4engine->forecast[%d]=%f", fi, MT4engine->forecast[fi]);
+					//info("MT4engine->forecast[%d]=%f", fi, MT4engine->forecast[fi]);
 
 					if (oselF[s][sf]==FXOPEN) oForecastO[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
 					if (oselF[s][sf]==FXHIGH) oForecastH[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
@@ -412,7 +418,7 @@ void sRoot::getForecast(int seqId_, int dt_, \
 					if (oselF[s][sf]==FXVOLUME) oForecastV[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
 					fi++;
 				}
-				info("OHLCV Forecast, serie %d , bar %d: %f|%f|%f|%f|%f", s, b, oForecastO[s*MT4engine->targetLen+b], oForecastH[s*MT4engine->targetLen+b], oForecastL[s*MT4engine->targetLen+b], oForecastC[s*MT4engine->targetLen+b], oForecastV[s*MT4engine->targetLen+b]);
+				/*if (sample>0&&b==0)*/ info("OHLCV Forecast, serie %d , bar %d: %7.6f|%7.6f|%7.6f|%7.6f|%7.6f", s, b, oForecastO[s*MT4engine->targetLen+b], oForecastH[s*MT4engine->targetLen+b], oForecastL[s*MT4engine->targetLen+b], oForecastC[s*MT4engine->targetLen+b], oForecastV[s*MT4engine->targetLen+b]);
 			}
 		}
 	}

@@ -242,7 +242,7 @@ void sTS2::untransform() {
 										if (prd[s-1][i][d][f][l]==EMPTY_VALUE) {
 											prd[s][i][d][f][l]=prdTR[s][i][d][f][l]+val[stepsCnt-1][i][d][f][l];
 										} else {
-											prd[s][i][d][f][l]=prdTR[s][i][d][f][l]+prd[s-1][i][d][f][l];
+											prd[s][i][d][f][l]=prdTR[s][i][d][f][l]+val[s-1][i][d][f][l];
 										}
 									}
 								}
@@ -268,6 +268,64 @@ void sTS2::untransform() {
 			}
 		}
 	}
+}
+void sTS2::invert() {
+
+	int totFeaturesCnt[2]={ 0,0 };
+	numtype* _val[2]; numtype* _valTR[2]; numtype* _valTRS[2];
+	numtype* _prd[2]; numtype* _prdTR[2]; numtype* _prdTRS[2];
+	int idx;
+
+	for (int i=0; i<2; i++) {
+		for (int d=0; d<dataSourcesCnt[i]; d++) {
+			for (int f=0; f<featuresCnt[i][d]; f++) {
+				for (int l=0; l<(WTlevel[i]+2); l++) {
+					totFeaturesCnt[i]++;
+				}
+			}
+		}
+		idx=0;
+		_val[i]=(numtype*)malloc(stepsCnt*totFeaturesCnt[i]*sizeof(numtype));
+		_valTR[i]=(numtype*)malloc(stepsCnt*totFeaturesCnt[i]*sizeof(numtype));
+		_valTRS[i]=(numtype*)malloc(stepsCnt*totFeaturesCnt[i]*sizeof(numtype));
+		_prd[i]=(numtype*)malloc(stepsCnt*totFeaturesCnt[i]*sizeof(numtype));
+		_prdTR[i]=(numtype*)malloc(stepsCnt*totFeaturesCnt[i]*sizeof(numtype));
+		_prdTRS[i]=(numtype*)malloc(stepsCnt*totFeaturesCnt[i]*sizeof(numtype));
+		for (int s=0; s<stepsCnt; s++) {
+			for (int d=0; d<dataSourcesCnt[i]; d++) {
+				for (int f=0; f<featuresCnt[i][d]; f++) {
+					for (int l=0; l<(WTlevel[i]+2); l++) {
+						_val[i][idx]=val[stepsCnt-1-s][i][d][f][l];
+						_valTR[i][idx]=valTR[stepsCnt-1-s][i][d][f][l];
+						_valTRS[i][idx]=valTRS[stepsCnt-1-s][i][d][f][l];
+						_prd[i][idx]=prd[stepsCnt-1-s][i][d][f][l];
+						_prdTR[i][idx]=prdTR[stepsCnt-1-s][i][d][f][l];
+						_prdTRS[i][idx]=prdTRS[stepsCnt-1-s][i][d][f][l];
+						idx++;
+					}
+				}
+			}
+		}
+		idx=0;
+		for (int s=0; s<stepsCnt; s++) {
+			for (int d=0; d<dataSourcesCnt[i]; d++) {
+				for (int f=0; f<featuresCnt[i][d]; f++) {
+					for (int l=0; l<(WTlevel[i]+2); l++) {
+						val[s][i][d][f][l]=_val[i][idx];
+						valTR[s][i][d][f][l]=_valTR[i][idx];
+						valTRS[s][i][d][f][l]=_valTRS[i][idx];
+						prd[s][i][d][f][l]=_prd[i][idx];
+						prdTR[s][i][d][f][l]=_prdTR[i][idx];
+						prdTRS[s][i][d][f][l]=_prdTRS[i][idx];
+						idx++;
+					}
+				}
+			}
+		}
+		free(_val[i]); free(_valTR[i]); free(_valTRS[i]);
+		free(_prd[i]); free(_prdTR[i]); free(_prdTRS[i]);
+	}
+	
 }
 
 void sTS2::dumpToFile(FILE* file, int i, bool predicted, numtype***** val_) {
@@ -852,6 +910,8 @@ sTS2::~sTS2() {
 	free(featuresCnt);
 	free(dataSourcesCnt);
 
-	free(sample); free(target); free(prediction);
-	free(sampleTRS); free(targetTRS); free(predictionTRS);
+	if (samplesCnt>0) {
+		free(sample); free(target); free(prediction);
+		free(sampleTRS); free(targetTRS); free(predictionTRS);
+	}
 }

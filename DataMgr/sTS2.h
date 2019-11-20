@@ -22,7 +22,7 @@ struct sTS2 :sCfgObj {
 	int sampleLen;
 	int targetLen;
 	int batchSize;
-	int samplesCnt;
+	int samplesCnt=0;
 	numtype* sample;
 	numtype* target;
 	numtype* prediction;
@@ -63,6 +63,7 @@ struct sTS2 :sCfgObj {
 	EXPORT void untransform();
 	EXPORT void getDataSet(int* oInputCnt, int* oOutputCnt);
 	EXPORT void getPrediction();
+	EXPORT void invert();
 
 private:
 	void dumpToFile(FILE* file, int i, bool predicted, numtype***** val_);
@@ -71,4 +72,5 @@ private:
 	void setDataSource(sDataSource** dataSrc_);
 	void WTcalc(int i, int d, int f, numtype* dsvalSF);
 	void transform(int i, int d, int f, int l);
+	
 };
