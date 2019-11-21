@@ -369,7 +369,7 @@ void sRoot::getForecast(int seqId_, int dt_, int extraSteps_, \
 	double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV \
 ) {
 	
-	int sampleBarsCnt=MT4engine->sampleLen+extraSteps_;
+	int sampleBarsCnt=MT4engine->sampleLen;
 	int targetBarsCnt=MT4engine->targetLen;
 //	int sampleBarsCnt=50;// MT4engine->sampleLen+MT4engine->batchSize-1;
 //	int targetBarsCnt=3;// MT4engine->targetLen;
@@ -402,27 +402,24 @@ void sRoot::getForecast(int seqId_, int dt_, int extraSteps_, \
 	for (int s=0; s<(sampleBarsCnt+targetBarsCnt); s++) info("mtTS: act[%d]=%7.6f ; actTR[%d]=%7.6f ; prdTR[%d]=%7.6f ; prd[%d]=%7.6f", s, mtTS->val[s][1][0][0][0], s, mtTS->valTR[s][1][0][0][0], s, mtTS->prdTR[s][1][0][0][0], s, mtTS->prd[s][1][0][0][0]);
 
 	int fi;
-	for (int sample=extraSteps_-1; sample<(extraSteps_); sample++) {
-		fi=0;
-		for (int b=0; b<MT4engine->targetLen; b++) {
-			for (int s=0; s<oseriesCnt_; s++) {
-				for (int sf=0; sf<oselFcnt[s]; sf++) {
+	fi=0;
+	for (int b=0; b<MT4engine->targetLen; b++) {
+		for (int s=0; s<oseriesCnt_; s++) {
+			for (int sf=0; sf<oselFcnt[s]; sf++) {
 
-					info("prdTRS[%d][1][%d][%d][%d]=%7.6f", sampleBarsCnt-extraSteps_+sample+b, s, sf, 0, mtTS->prdTRS[sampleBarsCnt-extraSteps_+sample+b][1][s][sf][0]);
-					info("prdTR[%d][1][%d][%d][%d]=%7.6f", sampleBarsCnt-extraSteps_+sample+b, s, sf, 0, mtTS->prdTR[sampleBarsCnt-extraSteps_+sample+b][1][s][sf][0]);
-					info("prd[%d][1][%d][%d][%d]=%7.6f", sampleBarsCnt-extraSteps_+sample+b, s, sf, 0, mtTS->prd[sampleBarsCnt-extraSteps_+sample+b][1][s][sf][0]);
-					MT4engine->forecast[fi]=mtTS->prd[sampleBarsCnt-extraSteps_+sample+b][1][s][sf][0];
-					//info("MT4engine->forecast[%d]=%f", fi, MT4engine->forecast[fi]);
+				info("prdTRS[%d][1][%d][%d][%d]=%7.6f", sampleBarsCnt+b, s, sf, 0, mtTS->prdTRS[sampleBarsCnt+b][1][s][sf][0]);
+				info("prdTR[%d][1][%d][%d][%d]=%7.6f", sampleBarsCnt+b, s, sf, 0, mtTS->prdTR[sampleBarsCnt+b][1][s][sf][0]);
+				info("prd[%d][1][%d][%d][%d]=%7.6f", sampleBarsCnt+b, s, sf, 0, mtTS->prd[sampleBarsCnt+b][1][s][sf][0]);
+				MT4engine->forecast[fi]=mtTS->prd[sampleBarsCnt+b][1][s][sf][0];
 
-					if (oselF[s][sf]==FXOPEN) oForecastO[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
-					if (oselF[s][sf]==FXHIGH) oForecastH[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
-					if (oselF[s][sf]==FXLOW) oForecastL[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
-					if (oselF[s][sf]==FXCLOSE) oForecastC[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
-					if (oselF[s][sf]==FXVOLUME) oForecastV[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
-					fi++;
-				}
-				info("OHLCV Forecast, serie %d , bar %d: %7.6f|%7.6f|%7.6f|%7.6f|%7.6f", s, b, oForecastO[s*MT4engine->targetLen+b], oForecastH[s*MT4engine->targetLen+b], oForecastL[s*MT4engine->targetLen+b], oForecastC[s*MT4engine->targetLen+b], oForecastV[s*MT4engine->targetLen+b]);
+				if (oselF[s][sf]==FXOPEN) oForecastO[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				if (oselF[s][sf]==FXHIGH) oForecastH[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				if (oselF[s][sf]==FXLOW) oForecastL[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				if (oselF[s][sf]==FXCLOSE) oForecastC[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				if (oselF[s][sf]==FXVOLUME) oForecastV[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
+				fi++;
 			}
+			info("OHLCV Forecast, serie %d , bar %d: %7.6f|%7.6f|%7.6f|%7.6f|%7.6f", s, b, oForecastO[s*MT4engine->targetLen+b], oForecastH[s*MT4engine->targetLen+b], oForecastL[s*MT4engine->targetLen+b], oForecastC[s*MT4engine->targetLen+b], oForecastV[s*MT4engine->targetLen+b]);
 		}
 	}
 	safecall(MT4engine, commit);

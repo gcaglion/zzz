@@ -90,7 +90,7 @@ bool SLhit=false;
 
 int OnInit() {
 
-	extraSteps=49;
+	extraSteps=0;
 
 	trade.SetExpertMagicNumber(123456);
 	trade.SetDeviationInPoints(10);
