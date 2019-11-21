@@ -37,7 +37,7 @@ struct sRoot : sCfgObj {
 	sLogger* MT4clientLog;
 
 	EXPORT void getSeriesInfo(int* oSeriesCnt_, char* oSymbolsCSL_, char* oTimeFramesCSL_, char* oFeaturesCSL_, bool* oChartTrade_);
-	EXPORT void getForecast(int seqId_, int dt_, \
+	EXPORT void getForecast(int seqId_, int dt_, int extraSteps_, \
 		int iseriesCnt_, int* ifeatureMask_, \
 		long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, \
 		long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, \

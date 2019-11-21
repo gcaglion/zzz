@@ -377,6 +377,22 @@ void sTS2::slide(int steps_) {
 		}
 	}
 }
+void sTS2::slideDS(int steps_) {
+	for (int r=0; r<steps_; r++) {
+		for (int s=0; s<(samplesCnt-1); s++) {
+			for (int i=0; i<inputCnt; i++) {
+				sample[s*inputCnt+i]=sample[(s+1)*inputCnt+i];
+				sampleTRS[s*inputCnt+i]=sampleTRS[(s+1)*inputCnt+i];
+			}
+			for (int o=0; o<outputCnt; o++) {
+				target[s*outputCnt+o]=target[(s+1)*outputCnt+o];
+				prediction[s*outputCnt+o]=prediction[(s+1)*outputCnt+o];
+				targetTRS[s*outputCnt+o]=targetTRS[(s+1)*outputCnt+o];
+				predictionTRS[s*outputCnt+o]=predictionTRS[(s+1)*outputCnt+o];
+			}
+		}
+	}
+}
 
 void sTS2::dumpToFile(FILE* file, int i, bool predicted, numtype***** val_) {
 	int s, d, f, l;
