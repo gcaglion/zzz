@@ -367,11 +367,11 @@ void sTS2::slide(int steps_) {
 					for (int f=0; f<featuresCnt[i][d]; f++) {
 						for (int l=0; l<(WTlevel[i]+2); l++) {
 							val[s][i][d][f][l]=val[s+1][i][d][f][l];
-							valTR[s][i][d][f][l]=val[s+1][i][d][f][l];
-							valTRS[s][i][d][f][l]=val[s+1][i][d][f][l];
+							valTR[s][i][d][f][l]=valTR[s+1][i][d][f][l];
+							valTRS[s][i][d][f][l]=valTRS[s+1][i][d][f][l];
 							prd[s][i][d][f][l]=prd[s+1][i][d][f][l];
-							prdTR[s][i][d][f][l]=prd[s+1][i][d][f][l];
-							prdTRS[s][i][d][f][l]=prd[s+1][i][d][f][l];
+							prdTR[s][i][d][f][l]=prdTR[s+1][i][d][f][l];
+							prdTRS[s][i][d][f][l]=prdTRS[s+1][i][d][f][l];
 						}
 					}
 				}
