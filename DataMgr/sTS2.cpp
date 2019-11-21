@@ -831,12 +831,11 @@ sTS2::sTS2(sObjParmsDef, \
 	mallocs1();
 
 	//=== BUILDING INPUT SIDE ===
-
 	//-- timestamps
 	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][0], DATE_FORMAT_LEN, (*INtimestamp_)[s]);
 	//-- timestampB
 	strcpy_s(timestampB[0], DATE_FORMAT_LEN, (*INtimestampB_));
-	
+
 	int i=0;
 	int idx=0;
 	//-- *val comes in flat, ordered by [step][dsXfeature]. We need to put these values in the appropriate val sub-array, with WTlevel=0
@@ -849,24 +848,25 @@ sTS2::sTS2(sObjParmsDef, \
 		}
 	}
 	//-- now we need to calc wavelets.
-	numtype* tmpvalx=(numtype*)malloc((stepsCnt)*sizeof(numtype));
-	numtype* lfa=(numtype*)malloc((stepsCnt)*sizeof(numtype));
-	numtype** hfd=(numtype**)malloc(WTlevel[i]*sizeof(numtype*)); for (int l=0; l<WTlevel[i]; l++) hfd[l]=(numtype*)malloc((stepsCnt)*sizeof(numtype));
-	for (int d=0; d<dataSourcesCnt[i]; d++) {
-		for (int f=0; f<featuresCnt[i][d]; f++) {
-			for (int s=0; s<(stepsCnt); s++) {
-				tmpvalx[s]=val[s][i][d][f][0];
-			}
-			WaweletDecomp((stepsCnt), tmpvalx, WTlevel[i], WTtype[i], lfa, hfd);
-			for (int s=0; s<(stepsCnt); s++) {
-				val[s][i][d][f][1]=lfa[s];
-				for (int l=0; l<WTlevel[i]; l++) val[s][i][d][f][l+2]=hfd[l][s];
+	if (WTtype[i]!=WT_NONE) {
+		numtype* tmpvalx=(numtype*)malloc((stepsCnt)*sizeof(numtype));
+		numtype* lfa=(numtype*)malloc((stepsCnt)*sizeof(numtype));
+		numtype** hfd=(numtype**)malloc(WTlevel[i]*sizeof(numtype*)); for (int l=0; l<WTlevel[i]; l++) hfd[l]=(numtype*)malloc((stepsCnt)*sizeof(numtype));
+		for (int d=0; d<dataSourcesCnt[i]; d++) {
+			for (int f=0; f<featuresCnt[i][d]; f++) {
+				for (int s=0; s<(stepsCnt); s++) {
+					tmpvalx[s]=val[s][i][d][f][0];
+				}
+				WaweletDecomp((stepsCnt), tmpvalx, WTlevel[i], WTtype[i], lfa, hfd);
+				for (int s=0; s<(stepsCnt); s++) {
+					val[s][i][d][f][1]=lfa[s];
+					for (int l=0; l<WTlevel[i]; l++) val[s][i][d][f][l+2]=hfd[l][s];
+				}
 			}
 		}
+		for (int l=0; l<WTlevel[i]; l++) free(hfd[l]);
+		free(lfa); free(hfd);
 	}
-	for (int l=0; l<WTlevel[i]; l++) free(hfd[l]);
-	free(lfa); free(hfd);
-
 	//-- *valB comes in flat, ordered by [dsXfeature]
 	idx=0;
 	for (int d=0; d<dataSourcesCnt[i]; d++) {
