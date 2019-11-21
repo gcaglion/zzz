@@ -39,7 +39,7 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 
 		sTS2* trainTS; safespawn(trainTS, newsname("trainTS"), defaultdbg, trainCfg, "/TimeSerie");
 
-		sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, engCfg, "/");
+		sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, engCfg, "/", pid);
 
 		safecall(eng, train, simulationId_, trainTS);
 
@@ -86,7 +86,7 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 
 	sTS2* inferTS; safespawn(inferTS, newsname("inferTS"), defaultdbg, inferCfg, "/TimeSerie");
 
-	sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, clientLogger, pid, savedEnginePid_);
+	sEngine* eng; safespawn(eng, newsname("Engine"), defaultdbg, pid, clientLogger, savedEnginePid_);
 
 	safecall(eng, infer, simulationId_, 0, inferTS, savedEnginePid_);
 
@@ -464,7 +464,7 @@ void sRoot::MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeatur
 	safecall(this, getSafePid, MT4clientLog, &MT4clientPid);
 
 	//-- spawn engine from savedEnginePid_ with pid
-	safespawn(MT4engine, newsname("Engine"), defaultdbg, MT4clientLog, MT4clientPid, MT4enginePid);
+	safespawn(MT4engine, newsname("Engine"), defaultdbg, MT4clientPid, MT4clientLog, MT4enginePid);
 
 	(*oSampleLen_)=MT4engine->sampleLen;
 	(*oPredictionLen_)=MT4engine->targetLen;

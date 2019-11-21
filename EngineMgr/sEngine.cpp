@@ -7,14 +7,14 @@ void sEngine::mallocs() {
 	coreLayer = (int*)malloc(MAX_ENGINE_CORES*sizeof(int));
 	core = (sCore**)malloc(MAX_ENGINE_CORES*sizeof(sCore*));
 }
-sEngine::sEngine(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
+sEngine::sEngine(sCfgObjParmsDef, int clientPid_) : sCfgObj(sCfgObjParmsVal) {
 	mallocs();
-	pid=GetCurrentProcessId();
+	pid=clientPid_;
 	safecall(cfgKey, getParm, &coresCnt, "CoresCount");
 	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
 
 }
-sEngine::sEngine(sObjParmsDef, sLogger* persistor_, int clientPid_, int savedEnginePid_) : sCfgObj(sObjParmsVal, nullptr, "") {
+sEngine::sEngine(sObjParmsDef, int clientPid_, sLogger* persistor_, int savedEnginePid_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	mallocs();
 	pid=clientPid_;
 	safecall(persistor_, loadEngineCoresInfo, savedEnginePid_, &coresCnt, &coreType, &coreThreadId, &coreLayer);
@@ -175,8 +175,6 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 	safecall(inferTS_, getPrediction);
 	safecall(inferTS_, unscale);
 	safecall(inferTS_, untransform);
-
-	inferTS_->dumpDS();
 
 	//-- persist (OUTPUT only)
 	if (core[0]->persistor->saveRunFlag) {

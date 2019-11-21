@@ -41,8 +41,8 @@ struct sEngine : sCfgObj {
 
 	numtype* forecast;
 
-	EXPORT sEngine(sCfgObjParmsDef);
-	EXPORT sEngine(sObjParmsDef, sLogger* persistor_, int clientPid_, int savedEnginePid_);
+	EXPORT sEngine(sCfgObjParmsDef, int clientPid_);
+	EXPORT sEngine(sObjParmsDef, int clientPid_, sLogger* persistor_, int savedEnginePid_);
 	EXPORT ~sEngine();
 
 	EXPORT void train(int simulationId_, sTS2* trainTS_);

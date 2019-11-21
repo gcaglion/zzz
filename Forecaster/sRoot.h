@@ -86,10 +86,11 @@ private:
 
 //-- client closure
 #define terminate(success_, ...) { \
+	int pid=root->pid; \
 	delete root; \
 	int ret; \
 	if(success_){ \
-		printf("Client success. ProcessId=%d\n", GetCurrentProcessId()); \
+		printf("Client success. ProcessId=%d\n", pid); \
 		ret = 0; \
 	} else { \
 		printf("Client failed: %s\n", __VA_ARGS__); \
