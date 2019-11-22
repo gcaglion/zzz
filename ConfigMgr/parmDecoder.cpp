@@ -49,7 +49,15 @@ void sCfgParm::decode(int elementId, int* oVal) {
 	optionLookup(FXHIGH, elementId);
 	optionLookup(FXLOW, elementId);
 	optionLookup(FXCLOSE, elementId);
-	optionLookup(FXVOLUME, elementId);
+	optionLookup(FXMACD, elementId);
+	optionLookup(FXCCI, elementId);
+	optionLookup(FXATR, elementId);
+	optionLookup(FXBOLLH, elementId);
+	optionLookup(FXBOLLM, elementId);
+	optionLookup(FXBOLLL, elementId);
+	optionLookup(FXDEMA, elementId);
+	optionLookup(FXMA, elementId);
+	optionLookup(FXMOM, elementId);
 	//-- TimeSerie enums
 	optionLookup(DT_NONE, elementId);
 	optionLookup(DT_DELTA, elementId);

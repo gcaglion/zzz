@@ -1,0 +1,42 @@
+	
+	<TimeSerie>
+		HistoryLen			= 15000
+		Date0				= 2018-07-30-00:00
+		DataTransformation	= DT_DELTA
+		Dump				= false
+		DumpPath			= c:\temp\DataDump
+
+		<Input>
+			DataSourcesCount		= 1
+			<DataSource0>
+				<! FXDB-EURUSDH1.xml >
+				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE, FXMACD, FXCCI, FXATR, FXBOLLH, FXBOLLM, FXBOLLL, FXDEMA, FXMA, FXMOM
+			</DataSource0>
+			<DataSource1>
+				<! FXDB-SPXUSDH1.xml >
+				SelectedFeatures = FXHIGH, FXLOW
+			</DataSource1>
+			<DataSource2>
+				<! FXDB-ETXEURH1.xml >
+				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
+			</DataSource2>
+			WaveletType	= WT_NONE
+			DecompLevel = 4
+		</Input>
+		<Output>
+			DataSourcesCount		= 1
+			<DataSource0>
+				<! FXDB-EURUSDH1.xml >
+				SelectedFeatures = FXHIGH, FXLOW
+			</DataSource0>
+			WaveletType	= WT_NONE
+			DecompLevel = 0
+		</Output>
+	
+	SampleLen	= 50
+	TargetLen	= 3
+	BatchSize	= 1
+
+	</TimeSerie>
+
+	<! DataSetPersistor-Default.xml >
