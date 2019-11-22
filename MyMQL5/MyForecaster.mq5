@@ -104,7 +104,7 @@ bool SLhit=false;
 
 int OnInit() {
 
-	extraSteps=0;
+	extraSteps=50;
 
 	trade.SetExpertMagicNumber(123456);
 	trade.SetDeviationInPoints(10);
@@ -479,7 +479,7 @@ bool loadStats() {
 	//-- INPUT Stats
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
-		
+		//--
 		handle = iMACD(serieSymbol[s], tf, EMA_fastPeriod, EMA_slowPeriod, EMA_signalPeriod, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false);
 		if(CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
@@ -488,6 +488,7 @@ bool loadStats() {
 		}
 		vmacdB[s]=value1[1];
 		for (bar=0; bar<barsCnt; bar++) vmacd[s*barsCnt+bar]=value1[bar+2];
+		//--
 		handle = iCCI(serieSymbol[s], tf, CCI_MAperiod, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
@@ -496,6 +497,7 @@ bool loadStats() {
 		}
 		vcciB[s]=value1[1];
 		for (bar=0; bar<barsCnt; bar++) vcci[s*barsCnt+bar]=value1[bar+2];
+		//--
 		handle = iATR(serieSymbol[s], tf, ATR_MAperiod);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
@@ -504,6 +506,7 @@ bool loadStats() {
 		}
 		vatrB[s]=value1[1];
 		for (bar=0; bar<barsCnt; bar++) vatr[s*barsCnt+bar]=value1[bar+2];
+		//--
 		handle = iBands(serieSymbol[s], tf, BOLL_period, BOLL_shift, BOLL_deviation, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false); ArraySetAsSeries(value2, false); ArraySetAsSeries(value3, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0||CopyBuffer(handle, 1, 0, barsCnt+2, value2)<=0||CopyBuffer(handle, 2, 0, barsCnt+2, value3)<=0) {
@@ -516,6 +519,7 @@ bool loadStats() {
 			vbollm[s*barsCnt+bar]=value2[bar+2];
 			vbolll[s*barsCnt+bar]=value3[bar+2];
 		}
+		//--
 		handle = iDEMA(serieSymbol[s], tf, DEMA_period, DEMA_shift, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
@@ -524,6 +528,7 @@ bool loadStats() {
 		}
 		vdemaB[s]=value1[1];
 		for (bar=0; bar<barsCnt; bar++) vdema[s*barsCnt+bar]=value1[bar+2];
+		//--
 		handle = iMA(serieSymbol[s], tf, MA_period, MA_shift, MODE_SMA, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
@@ -532,6 +537,7 @@ bool loadStats() {
 		}
 		vmaB[s]=value1[1];
 		for (bar=0; bar<barsCnt; bar++) vma[s*barsCnt+bar]=value1[bar+2];
+		//--
 		handle = iMomentum(serieSymbol[s], tf, MOM_period, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {

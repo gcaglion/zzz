@@ -811,7 +811,7 @@ sTS2::sTS2(sObjParmsDef, \
 	int OUTdataSourcesCnt_, int* OUTfeaturesCnt_, int OUTWTtype_, int OUTWTlevel_, numtype* OUTval_, numtype* OUTvalB_\
 ) : sCfgObj(sObjParmsVal, nullptr, "") {
 	
-	stepsCnt=stepsCnt_; doDump=doDump_;
+	stepsCnt=stepsCnt_; dt=dt_; doDump=doDump_;
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	sampleLen=sampleLen_; targetLen=targetLen_; batchSize=batchSize_;
 	
@@ -832,15 +832,7 @@ sTS2::sTS2(sObjParmsDef, \
 	WTtype[1]=OUTWTtype_; WTlevel[1]=OUTWTlevel_;
 
 	mallocs1();
-
-	for (int i=0; i<2; i++) {
-		for (int d=0; d<dataSourcesCnt[i]; d++) {
-			for (int f=0; f<featuresCnt[i][d]; f++) {
-				dt[i][d][f]=dt_[i][d][f];
-			}
-		}
-	}
-
+	
 	//=== BUILDING INPUT SIDE ===
 	//-- timestamps
 	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][0], DATE_FORMAT_LEN, (*INtimestamp_)[s]);
@@ -933,6 +925,7 @@ sTS2::sTS2(sObjParmsDef, \
 	}
 }
 sTS2::~sTS2() {
+
 	free(WTtype); free(WTlevel);
 
 	for (int i=0; i<2; i++) {
@@ -940,11 +933,11 @@ sTS2::~sTS2() {
 			for (int f=0; f<featuresCnt[i][d]; f++) {
 				free(TRmin[i][d][f]); free(TRmax[i][d][f]); free(scaleM[i][d][f]); free(scaleP[i][d][f]); free(valB[i][d][f]);
 			}
-			free(TRmin[i][d]); free(TRmax[i][d]); free(scaleM[i][d]); free(scaleP[i][d]); free(valB[i][d]);	free(dt[i][d]);
+			free(TRmin[i][d]); free(TRmax[i][d]); free(scaleM[i][d]); free(scaleP[i][d]); free(valB[i][d]);	//free(dt[i][d]);
 		}
-		free(TRmin[i]); free(TRmax[i]); free(scaleM[i]); free(scaleP[i]); free(valB[i]); free(dt[i]);
+		free(TRmin[i]); free(TRmax[i]); free(scaleM[i]); free(scaleP[i]); free(valB[i]); //free(dt[i]);
 	}
-	free(TRmin); free(TRmax); free(scaleM); free(scaleP); free(valB); free(dt);
+	free(TRmin); free(TRmax); free(scaleM); free(scaleP); free(valB); //free(dt);
 
 	for (int s=0; s<stepsCnt; s++) {
 		for (int i=0; i<2; i++) {

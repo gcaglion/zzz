@@ -421,7 +421,7 @@ void sRoot::getForecast(int seqId_, int extraSteps_, \
 	//safecall(mtTS, slide, extraSteps_);
 	safecall(MT4engine, infer, MT4accountId, seqId_, mtTS, MT4enginePid);
 
-	for (int s=0; s<(sampleBarsCnt+targetBarsCnt); s++) info("mtTS: act[%d]=%7.6f ; actTR[%d]=%7.6f ; prdTR[%d]=%7.6f ; prd[%d]=%7.6f", s, mtTS->val[s][1][0][0][0], s, mtTS->valTR[s][1][0][0][0], s, mtTS->prdTR[s][1][0][0][0], s, mtTS->prd[s][1][0][0][0]);
+	for (int s=0; s<(sampleBarsCnt+targetBarsCnt); s++) info("mtTS: %s: act[%d]=%7.6f ; actTR[%d]=%7.6f ; prdTR[%d]=%7.6f ; prd[%d]=%7.6f", mtTS->timestamp[s][1], s, mtTS->val[s][1][0][0][0], s, mtTS->valTR[s][1][0][0][0], s, mtTS->prdTR[s][1][0][0][0], s, mtTS->prd[s][1][0][0][0]);
 
 	int fi;
 	fi=0;
