@@ -14,10 +14,9 @@ struct sTS2 :sCfgObj {
 	int stepsCnt;
 	int* dataSourcesCnt;	// IN/OUT
 	int** featuresCnt;
+	int*** dt;	// [IN/OUT][dataSourcesCnt][featuresCnt]
 	int* WTlevel;	// IN/OUT
 	int* WTtype;	// IN/OUT
-
-	int dt;
 
 	int sampleLen;
 	int targetLen;
@@ -51,7 +50,7 @@ struct sTS2 :sCfgObj {
 
 	EXPORT sTS2(sCfgObjParmsDef);
 	EXPORT sTS2(sObjParmsDef, \
-		int stepsCnt_, int dt_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, \
+		int stepsCnt_, int*** dt_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, \
 		char*** INtimestamp_, char** INtimestampB_, \
 		int INdataSourcesCnt_, int* INfeaturesCnt_, int INWTtype_, int INWTlevel_, numtype* INval_, numtype* INvalB_, \
 		char*** OUTtimestamp_, char** OUTtimestampB_, \

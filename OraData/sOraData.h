@@ -34,7 +34,6 @@ struct sOraData : sCfgObj {
 	EXPORT void saveClientInfo(int pid, int sequenceId, int simulationId, int npid, const char* clientName, double startTime, double elapsedSecs, char* simulStartTrain, char* simulStartInfer, char* simulStartValid, bool doTrain, bool doInfer, const char* clientXMLfile_, const char* shapeXMLfile_, const char* actionXMLfile_, const char* engineXMLfile_);
 	//--
 	EXPORT void saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mseT, numtype* mseV);
-//	EXPORT void saveRun(int pid, int tid, int npid, int ntid, numtype mseR, int runStepsCnt, int featuresCnt_, char** posLabel, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actualBASE, numtype* predictedBASE);
 	EXPORT void saveRun(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char** posLabel, int featuresCnt_, int WTlevel_, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actualBASE, numtype* predictedBASE);
 	EXPORT void saveRun2(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char*** posLabel, int i, int d, int f, int l, numtype***** actualTRS, numtype***** predictedTRS, numtype***** actualTR, numtype***** predictedTR, numtype***** actualBASE, numtype***** predictedBASE);
 	//--
@@ -45,8 +44,8 @@ struct sOraData : sCfgObj {
 	EXPORT void saveEngineCoreInfo(int pid, int coreId_, int layer_, int tid, int coreType_);
 	EXPORT void loadEngineCoresInfo(int pid, int* coresCnt_, int** coreType_, int** coreThreadId_, int** coreLayer_);
 	//--
-	EXPORT void saveEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int* WTlevel_, int* WTtype_);
-	EXPORT void loadEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int* WTlevel_, int* WTtype_);
+	EXPORT void saveEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_);
+	EXPORT void loadEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_);
 	//--
 	EXPORT int getSavedEnginePids(int maxPids_, int* oPid);
 	//--

@@ -9,6 +9,7 @@ create table EngineData(
 	EngineSide number,
 	DataSource number,
 	Feature number,
+	DT number, 
 	WTlevel number,
 	WTtype number,
 	constraint EngineData_PK primary key(ProcessId, EngineSide, DataSource, Feature, WTlevel)

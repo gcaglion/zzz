@@ -9,9 +9,9 @@
 
 #import "Forecaster.dll"
 //--
-int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, int dt_, bool doDump_, uchar& oEnv[], int& oSampleLen_, int &oPredictionLen_, int &oFeaturesCnt_, int &oBatchSize_);
+int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool doDump_, uchar& oEnv[], int& oSampleLen_, int &oPredictionLen_, int &oFeaturesCnt_, int &oBatchSize_);
 int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[], bool& oChartTrade[]);
-int _getForecast(uchar& iEnv[], int seqId_, int dt_, int extraSteps_, int iseriesCnt_, int& ifeatMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], int oseriesCnt_, int& ofeatMask_[], int &oBarT[], double &oBarO[], double &oBarH[], double &oBarL[], double &oBarC[], double &oBarV[], int &oBaseBarT[], double &oBaseBarO[], double &oBaseBarH[], double &oBaseBarL[], double &oBaseBarC[], double &oBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
+int _getForecast(uchar& iEnv[], int seqId_, int extraSteps_, int iseriesCnt_, long& ifeatMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], double &iBarMACD[], double &iBarCCI[], double &iBarATR[], double &iBarBOLLH[], double &iBarBOLLM[], double &iBarBOLLL[], double &iBarDEMA[], double &iBarMA[], double &iBarMOM[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &iBaseBarMACD[], double &iBaseBarCCI[], double &iBaseBarATR[], double &iBaseBarBOLLH[], double &iBaseBarBOLLM[], double &iBaseBarBOLLL[], double &iBaseBarDEMA[], double &iBaseBarMA[], double &iBaseBarMOM[], int oseriesCnt_, long& ofeatMask_[], int &oBarT[], double &oBarO[], double &oBarH[], double &oBarL[], double &oBarC[], double &oBarV[], int &oBaseBarT[], double &oBaseBarO[], double &oBaseBarH[], double &oBaseBarL[], double &oBaseBarC[], double &oBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 int _getActualFuture(uchar& iEnv[], uchar& iSymbol_[], uchar& iTF_[], uchar& iDate0_[], uchar& oDate1_[], double &oBarO[], double &oBarH[], double &oBarL[], double &oBarC[], double &oBarV[]);
 //--
 int _saveTradeInfo(uchar& iEnv[], int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit);
@@ -27,9 +27,8 @@ enum SLhandling {
 };
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 14152;
+input int EnginePid				= 8728;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
-input int DataTransformation	= 1;
 input bool DumpData				= true;
 input bool SaveLogs				= true;
 input bool GetActualFutureData	= false;
@@ -41,7 +40,6 @@ input bool tradeClose			= false;
 input SLhandling stopsHandling	= 3;
 
 //--- local variables
-int vDataTransformation=DataTransformation;
 int vEnginePid=EnginePid;
 int vDumpData=DumpData;
 //--
@@ -64,13 +62,29 @@ int featuresCntFromCfg;
 string serieSymbol[MT_MAX_SERIES_CNT];
 string serieTimeFrame[MT_MAX_SERIES_CNT];
 string serieFeatList[MT_MAX_SERIES_CNT];
-int serieFeatMask[MT_MAX_SERIES_CNT];
-int OUTserieFeatMask[MT_MAX_SERIES_CNT];
+long serieFeatMask[MT_MAX_SERIES_CNT];
+long OUTserieFeatMask[MT_MAX_SERIES_CNT];
 bool chartTrade[MT_MAX_SERIES_CNT];
 //--
+int ATR_MAperiod=15;
+int EMA_fastPeriod=5;
+int EMA_slowPeriod=10;
+int EMA_signalPeriod=5;
+int CCI_MAperiod=15;
+int BOLL_period=20;
+int BOLL_shift=0;
+double BOLL_deviation=2.0;
+int DEMA_period=20;
+int DEMA_shift=0;
+int MA_period=10;
+int MA_shift=0;
+int MOM_period=4320;
+//--
 double vopen[], vhigh[], vlow[], vclose[], vvolume[];
+double vmacd[], vcci[], vatr[], vbollh[], vbollm[], vbolll[], vdema[], vma[], vmom[];
 int vtime[]; string vtimeS[];
 double vopenB[], vhighB[], vlowB[], vcloseB[], vvolumeB[];
+double vmacdB[], vcciB[], vatrB[], vbollhB[], vbollmB[], vbolllB[], vdemaB[], vmaB[], vmomB[];
 int vtimeB[]; string vtimeSB[];
 double OUTvopen[], OUTvhigh[], OUTvlow[], OUTvclose[], OUTvvolume[];
 int OUTvtime[]; string OUTvtimeS[];
@@ -90,7 +104,7 @@ bool SLhit=false;
 
 int OnInit() {
 
-	extraSteps=1;
+	extraSteps=0;
 
 	trade.SetExpertMagicNumber(123456);
 	trade.SetDeviationInPoints(10);
@@ -108,7 +122,7 @@ int OnInit() {
 
 	//--
 	printf("Creating Environment from saved engine (pid=%d) ...", vEnginePid);
-	if (_createEnv((int)AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vDataTransformation, vDumpData, vEnvS, historyLen, predictionLen, featuresCnt, batchSize)!=0) {
+	if (_createEnv((int)AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vDumpData, vEnvS, historyLen, predictionLen, featuresCnt, batchSize)!=0) {
 		printf("FAILURE: _createEnv() failed. see Forecaster logs.");
 		return -1;
 	}
@@ -142,7 +156,7 @@ int OnInit() {
 	}
 
 	featuresCntFromCfg=0;
-	string serieFeatTmp[5];
+	string serieFeatTmp[14];
 	for (int s=0; s<seriesCnt; s++) {
 		//printf("Symbol/TF [%d] : %s/%s", s, serieSymbol[s], serieTimeFrame[s]);
 		serieFeatMask[s]=CSL2Mask(serieFeatList[s]);
@@ -156,7 +170,7 @@ int OnInit() {
 	}
 
 	OUTseriesCnt=1;
-	OUTserieFeatMask[0]=01100;	//-- [HIGH,LOW]
+	OUTserieFeatMask[0]=1000000000000+100000000000;	//-- [HIGH,LOW]
 
 	ArrayResize(vtimeB, seriesCnt);
 	ArrayResize(vtimeSB, seriesCnt);
@@ -165,6 +179,15 @@ int OnInit() {
 	ArrayResize(vlowB, seriesCnt);
 	ArrayResize(vcloseB, seriesCnt);
 	ArrayResize(vvolumeB, seriesCnt);
+	ArrayResize(vmacdB, seriesCnt);
+	ArrayResize(vcciB, seriesCnt);
+	ArrayResize(vatrB, seriesCnt);
+	ArrayResize(vbollhB, seriesCnt);
+	ArrayResize(vbollmB, seriesCnt);
+	ArrayResize(vbolllB, seriesCnt);
+	ArrayResize(vdemaB, seriesCnt);
+	ArrayResize(vmaB, seriesCnt);
+	ArrayResize(vmomB, seriesCnt);
 	//--
 	ArrayResize(vtime, barsCnt*seriesCnt);
 	ArrayResize(vtimeS, barsCnt*seriesCnt);
@@ -173,6 +196,15 @@ int OnInit() {
 	ArrayResize(vlow, barsCnt*seriesCnt);
 	ArrayResize(vclose, barsCnt*seriesCnt);
 	ArrayResize(vvolume, barsCnt*seriesCnt);
+	ArrayResize(vmacd, barsCnt*seriesCnt);
+	ArrayResize(vcci, barsCnt*seriesCnt);
+	ArrayResize(vatr, barsCnt*seriesCnt);
+	ArrayResize(vbollh, barsCnt*seriesCnt);
+	ArrayResize(vbollm, barsCnt*seriesCnt);
+	ArrayResize(vbolll, barsCnt*seriesCnt);
+	ArrayResize(vdema, barsCnt*seriesCnt);
+	ArrayResize(vma, barsCnt*seriesCnt);
+	ArrayResize(vmom, barsCnt*seriesCnt);
 	//--
 	ArrayResize(OUTvtimeB, 1);
 	ArrayResize(OUTvtimeSB, 1);
@@ -270,9 +302,13 @@ void OnTick() {
 			printf("loadBars() FAILURE! Exiting...");
 			return;
 		}
-		
+		if (!loadStats()) {
+			printf("loadStats() FAILURE! Exiting...");
+			return;
+		}
+
 		//------ GET FORECAST ---------
-		if (_getForecast(vEnvS, sequenceId, vDataTransformation, extraSteps, seriesCnt, serieFeatMask, vtime, vopen, vhigh, vlow, vclose, vvolume, vtimeB, vopenB, vhighB, vlowB, vcloseB, vvolumeB, OUTseriesCnt, OUTserieFeatMask, OUTvtime, OUTvopen, OUTvhigh, OUTvlow, OUTvclose, OUTvvolume, OUTvtimeB, OUTvopenB, OUTvhighB, OUTvlowB, OUTvcloseB, OUTvvolumeB, vopenF, vhighF, vlowF, vcloseF, vvolumeF)!=0) {
+		if (_getForecast(vEnvS, sequenceId, extraSteps, seriesCnt, serieFeatMask, vtime, vopen, vhigh, vlow, vclose, vvolume, vmacd, vcci, vatr, vbollh, vbollm, vbolll, vdema, vma, vmom, vtimeB, vopenB, vhighB, vlowB, vcloseB, vvolumeB, vmacdB, vcciB, vatrB, vbollhB, vbollmB, vbolllB, vdemaB, vmaB, vmomB, OUTseriesCnt, OUTserieFeatMask, OUTvtime, OUTvopen, OUTvhigh, OUTvlow, OUTvclose, OUTvvolume, OUTvtimeB, OUTvopenB, OUTvhighB, OUTvlowB, OUTvcloseB, OUTvvolumeB, vopenF, vhighF, vlowF, vcloseF, vvolumeF)!=0) {
 			printf("_getForecast() FAILURE! Exiting...");
 			return;
 		};
@@ -396,6 +432,131 @@ bool loadBars() {
 
 		//-- [historyLen] bars
 		for (int bar=0; bar<barsCnt; bar++) {
+			vtime[s*barsCnt+bar]=serierates[bar+2].time;// +TimeGMTOffset();
+			StringConcatenate(vtimeS[s*barsCnt+bar], TimeToString(vtime[s*barsCnt+bar], TIME_DATE), ".", TimeToString(vtime[s*barsCnt+bar], TIME_MINUTES));
+			vopen[s*barsCnt+bar]=serierates[bar+2].open;
+			vhigh[s*barsCnt+bar]=serierates[bar+2].high;
+			vlow[s*barsCnt+bar]=serierates[bar+2].low;
+			vclose[s*barsCnt+bar]=serierates[bar+2].close;
+			vvolume[s*barsCnt+bar]=serierates[bar+2].real_volume; if (MathAbs(vvolume[s*barsCnt+bar])>10000) vvolume[s*barsCnt+bar]=0;
+		}
+		//for (int bar=0; bar<barsCnt; bar++) printf("time[%d]=%s ; OHLCV[%d]=%f|%f|%f|%f|%f", bar, vtimeS[bar], bar, vopen[bar], vhigh[bar], vlow[bar], vclose[bar], vvolume[bar]);
+	}
+
+	//-- OUTPUT Features from current chart
+	tf=Period();
+	copied=CopyRates(Symbol(), tf, 1, barsCnt+2, serierates);	//printf("copied[%d]=%d", s, copied);
+	if (copied!=(barsCnt+2)) return false;
+	//-- base bar
+	OUTvtimeB[0]=serierates[1].time;// +TimeGMTOffset();
+	StringConcatenate(OUTvtimeSB[0], TimeToString(vtimeB[0], TIME_DATE), ".", TimeToString(OUTvtimeB[0], TIME_MINUTES));
+	OUTvopenB[0]=serierates[1].open;
+	OUTvhighB[0]=serierates[1].high;
+	OUTvlowB[0]=serierates[1].low;
+	OUTvcloseB[0]=serierates[1].close;
+	OUTvvolumeB[0]=serierates[1].real_volume;
+	//printf("OUT(current) serie, base values: time=%s ; OHLCV=%f|%f|%f|%f|%f", OUTvtimeSB[0], OUTvopenB[0], OUTvhighB[0], OUTvlowB[0], OUTvcloseB[0], OUTvvolumeB[0]);
+
+	for (int bar=0; bar<barsCnt; bar++) {
+		OUTvtime[bar]=serierates[bar+2].time;// +TimeGMTOffset();
+		StringConcatenate(OUTvtimeS[bar], TimeToString(OUTvtime[bar], TIME_DATE), ".", TimeToString(OUTvtime[bar], TIME_MINUTES));
+		OUTvopen[bar]=serierates[bar+2].open;
+		OUTvhigh[bar]=serierates[bar+2].high;
+		OUTvlow[bar]=serierates[bar+2].low;
+		OUTvclose[bar]=serierates[bar+2].close;
+		OUTvvolume[bar]=serierates[bar+2].real_volume; if (MathAbs(OUTvvolume[bar])>10000) vvolume[bar]=0;
+	}
+	//for (int bar=0; bar<barsCnt; bar++) printf("OUT(current) serie : time[%d]=%s ; OHLCV[%d]=%f|%f|%f|%f|%f", bar, OUTvtimeS[bar], bar, OUTvopen[bar], OUTvhigh[bar], OUTvlow[bar], OUTvclose[bar], OUTvvolume[bar]);
+
+	return true;
+}
+bool loadStats() {
+	ENUM_TIMEFRAMES tf;
+	int copied;
+	int bar;
+	int handle; double value1[]; double value2[]; double value3[];
+	
+	//-- INPUT Stats
+	for (int s=0; s<seriesCnt; s++) {
+		tf = getTimeFrameEnum(serieTimeFrame[s]);
+		
+		handle = iMACD(serieSymbol[s], tf, EMA_fastPeriod, EMA_slowPeriod, EMA_signalPeriod, PRICE_CLOSE);
+		ArraySetAsSeries(value1, false);
+		if(CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
+			printf("MACD copyBuffer failed.");
+			return false;
+		}
+		vmacdB[s]=value1[1];
+		for (bar=0; bar<barsCnt; bar++) vmacd[s*barsCnt+bar]=value1[bar+2];
+		handle = iCCI(serieSymbol[s], tf, CCI_MAperiod, PRICE_CLOSE);
+		ArraySetAsSeries(value1, false);
+		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
+			printf("CCI copyBuffer failed.");
+			return false;
+		}
+		vcciB[s]=value1[1];
+		for (bar=0; bar<barsCnt; bar++) vcci[s*barsCnt+bar]=value1[bar+2];
+		handle = iATR(serieSymbol[s], tf, ATR_MAperiod);
+		ArraySetAsSeries(value1, false);
+		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
+			printf("ATR copyBuffer failed.");
+			return false;
+		}
+		vatrB[s]=value1[1];
+		for (bar=0; bar<barsCnt; bar++) vatr[s*barsCnt+bar]=value1[bar+2];
+		handle = iBands(serieSymbol[s], tf, BOLL_period, BOLL_shift, BOLL_deviation, PRICE_CLOSE);
+		ArraySetAsSeries(value1, false); ArraySetAsSeries(value2, false); ArraySetAsSeries(value3, false);
+		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0||CopyBuffer(handle, 1, 0, barsCnt+2, value2)<=0||CopyBuffer(handle, 2, 0, barsCnt+2, value3)<=0) {
+			printf("BOLL copyBuffer failed.");
+			return false;
+		}
+		vbollh[s]=value1[1]; vbollm[s]=value2[1]; vbolll[s]=value3[1];
+		for (bar=0; bar<barsCnt; bar++) {
+			vbollh[s*barsCnt+bar]=value1[bar+2];
+			vbollm[s*barsCnt+bar]=value2[bar+2];
+			vbolll[s*barsCnt+bar]=value3[bar+2];
+		}
+		handle = iDEMA(serieSymbol[s], tf, DEMA_period, DEMA_shift, PRICE_CLOSE);
+		ArraySetAsSeries(value1, false);
+		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
+			printf("DEMA copyBuffer failed.");
+			return false;
+		}
+		vdemaB[s]=value1[1];
+		for (bar=0; bar<barsCnt; bar++) vdema[s*barsCnt+bar]=value1[bar+2];
+		handle = iMA(serieSymbol[s], tf, MA_period, MA_shift, MODE_SMA, PRICE_CLOSE);
+		ArraySetAsSeries(value1, false);
+		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
+			printf("MA copyBuffer failed.");
+			return false;
+		}
+		vmaB[s]=value1[1];
+		for (bar=0; bar<barsCnt; bar++) vma[s*barsCnt+bar]=value1[bar+2];
+		handle = iMomentum(serieSymbol[s], tf, MOM_period, PRICE_CLOSE);
+		ArraySetAsSeries(value1, false);
+		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
+			printf("MOM copyBuffer failed.");
+			return false;
+		}
+		vmomB[s]=value1[1];
+		for (bar=0; bar<barsCnt; bar++) vmom[s*barsCnt+bar]=value1[bar+2];
+
+
+
+		copied=CopyRates(serieSymbol[s], tf, 1, barsCnt+2, serierates);	//printf("copied[%d]=%d", s, copied);
+		if (copied!=(barsCnt+2)) return false;
+		//-- base bar
+		vtimeB[s]=serierates[1].time;// +TimeGMTOffset();
+		StringConcatenate(vtimeSB[s], TimeToString(vtimeB[s], TIME_DATE), ".", TimeToString(vtimeB[s], TIME_MINUTES));
+		vopenB[s]=serierates[1].open;
+		vhighB[s]=serierates[1].high;
+		vlowB[s]=serierates[1].low;
+		vcloseB[s]=serierates[1].close;
+		vvolumeB[s]=serierates[1].real_volume;
+		//printf("serie=%d ; time=%s ; OHLCV=%f|%f|%f|%f|%f", s, vtimeSB[s], vopenB[s], vhighB[s], vlowB[s], vcloseB[s], vvolumeB[s]);
+
+		//-- [historyLen] bars
+		for (bar=0; bar<barsCnt; bar++) {
 			vtime[s*barsCnt+bar]=serierates[bar+2].time;// +TimeGMTOffset();
 			StringConcatenate(vtimeS[s*barsCnt+bar], TimeToString(vtime[s*barsCnt+bar], TIME_DATE), ".", TimeToString(vtime[s*barsCnt+bar], TIME_MINUTES));
 			vopen[s*barsCnt+bar]=serierates[bar+2].open;
@@ -608,18 +769,27 @@ ENUM_TIMEFRAMES getTimeFrameEnum(string tfS) {
 	if (tfS=="D1") return PERIOD_D1;
 	return 0;
 }
-int CSL2Mask(string mask) {
-	string selF[5];
-	int ret=0;
+long CSL2Mask(string mask) {
+	string selF[14];
+	long ret=0;
 
 	int fcnt=StringSplit(mask, ',', selF);
 	for (int f=0; f<fcnt; f++) {
-		//printf("selF[%d]=%s", f, selF[f]);
-		if (StringCompare(selF[f], "0")==0) ret+=10000; //-- OPEN is selected
-		if (StringCompare(selF[f], "1")==0) ret+=1000; //-- HIGH is selected
-		if (StringCompare(selF[f], "2")==0) ret+=100; //-- LOW is selected
-		if (StringCompare(selF[f], "3")==0) ret+=10; //-- CLOSE is selected
-		if (StringCompare(selF[f], "4")==0) ret+=1; //-- VOLUME is selected
+		if (StringCompare(selF[f], "0")==0) ret+=10000000000000; //-- OPEN is selected
+		if (StringCompare(selF[f], "1")==0) ret+=1000000000000; //-- HIGH is selected
+		if (StringCompare(selF[f], "2")==0) ret+=100000000000; //-- LOW is selected
+		if (StringCompare(selF[f], "3")==0) ret+=10000000000; //-- CLOSE is selected
+		if (StringCompare(selF[f], "4")==0) ret+=1000000000; //-- VOLUME is selected
+		if (StringCompare(selF[f], "5")==0) ret+=100000000; //-- MACD is selected
+		if (StringCompare(selF[f], "6")==0) ret+=10000000; //-- CCI is selected
+		if (StringCompare(selF[f], "7")==0) ret+=1000000; //-- ATR  is selected
+		if (StringCompare(selF[f], "8")==0) ret+=100000; //-- BOLLH  is selected
+		if (StringCompare(selF[f], "9")==0) ret+=10000; //-- BOLLM  is selected
+		if (StringCompare(selF[f], "10")==0) ret+=1000; //-- BOLLL is selected
+		if (StringCompare(selF[f], "11")==0) ret+=100; //-- DEMA is selected
+		if (StringCompare(selF[f], "12")==0) ret+=10; //-- MA is selected
+		if (StringCompare(selF[f], "13")==0) ret+=1; //-- MOM is selected
+
 	}
 	return ret;
 }

@@ -148,7 +148,7 @@ void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iB
 
 void sRoot::kaz() {
 
-	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
+	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDSwithStats.xml");
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
 	ts->scale(-1, 1);
 	ts->dump();
@@ -173,7 +173,7 @@ void sRoot::kaz() {
 
 	int extraSteps=50;
 	int iseriesCnt=3;
-	int* ifeatureMask=(int*)malloc(iseriesCnt*sizeof(int)); ifeatureMask[0]=11110; ifeatureMask[1]=01100; ifeatureMask[2]=11110;
+	long* ifeatureMask=(long*)malloc(iseriesCnt*sizeof(long)); ifeatureMask[0]=11110; ifeatureMask[1]=01100; ifeatureMask[2]=11110;
 	int isampleLen=50;
 	int isampleBarsCnt=isampleLen;
 	int itargetBarsCnt=3;
@@ -185,7 +185,7 @@ void sRoot::kaz() {
 	createBars(isampleLen*iselFcntTot, &iBarT, &iBarO, &iBarH, &iBarL, &iBarC, &iBarV, &iBaseBarT, &iBaseBarO, &iBaseBarH, &iBaseBarL, &iBaseBarC, &iBaseBarV);
 
 	int oseriesCnt=1;
-	int* ofeatureMask=(int*)malloc(oseriesCnt*sizeof(int)); ofeatureMask[0]=01100;
+	long* ofeatureMask=(long*)malloc(oseriesCnt*sizeof(long)); ofeatureMask[0]=01100;
 	int osampleLen=50;
 	int osampleBarsCnt=osampleLen;
 	int otargetBarsCnt=3;
@@ -196,7 +196,7 @@ void sRoot::kaz() {
 	double *oBarO, *oBarH, *oBarL, *oBarC, *oBarV, *oBaseBarO, *oBaseBarH, *oBaseBarL, *oBaseBarC, *oBaseBarV;
 	createBars(osampleLen*oselFcntTot, &oBarT, &oBarO, &oBarH, &oBarL, &oBarC, &oBarV, &oBaseBarT, &oBaseBarO, &oBaseBarH, &oBaseBarL, &oBaseBarC, &oBaseBarV);
 
-	getForecast(0, 1, extraSteps, iseriesCnt, ifeatureMask, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oseriesCnt, ofeatureMask, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, nullptr, nullptr, nullptr, nullptr, nullptr);
+//	getForecast(0, extraSteps, iseriesCnt, ifeatureMask, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oseriesCnt, ofeatureMask, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, nullptr, nullptr, nullptr, nullptr, nullptr);
 }
 /*void sRoot::kazEnc() {
 	sAlgebra* Alg = new sAlgebra(nullptr, newsname("Alg"), defaultdbg, nullptr);
@@ -264,7 +264,7 @@ extern "C" __declspec(dllexport) int _inferClient(int simulationId_, const char*
 
 //-- MT4 stuff
 
-#define MT_MAX_SERIES_CNT 12
+#define MT_MAX_SERIES_CNT 12O
 void sRoot::getSeriesInfo(int* oSeriesCnt_, char* oSymbolsCSL_, char* oTimeFramesCSL_, char* oFeaturesCSL_, bool* oChartTrade_) {
 
 	char tmpSymbol[XMLKEY_PARM_VAL_MAXLEN]; char tmpSymbolList[XMLKEY_PARM_VAL_MAXLEN]="";
@@ -296,32 +296,40 @@ void sRoot::getSeriesInfo(int* oSeriesCnt_, char* oSymbolsCSL_, char* oTimeFrame
 
 }
 
-void sRoot::MTpreprocess(int seriesCnt_, int* featureMask_, int sampleLen, int sampleBarsCnt, int targetBarsCnt, int** selFcnt, int*** selF, long* BarT, double* BarO, double* BarH, double* BarL, double* BarC, double* BarV, long* BaseBarT, double* BaseBarO, double* BaseBarH, double* BaseBarL, double* BaseBarC, double* BaseBarV, char*** BarTimeS, char** BarBTimeS, numtype** Bar, numtype** BarB) {
+void sRoot::MTpreprocess(int seriesCnt_, long long* featureMask_, int sampleLen, int sampleBarsCnt, int targetBarsCnt, int** selFcnt, int*** selF, long* BarT, double* BarO, double* BarH, double* BarL, double* BarC, double* BarV, double* BarMACD, double* BarCCI, double* BarATR, double* BarBOLLH, double* BarBOLLM, double* BarBOLLL, double* BarDEMA, double* BarMA, double* BarMOM, long* BaseBarT, double* BaseBarO, double* BaseBarH, double* BaseBarL, double* BaseBarC, double* BaseBarV, double* BaseBarMACD, double* BaseBarCCI, double* BaseBarATR, double* BaseBarBOLLH, double* BaseBarBOLLM, double* BaseBarBOLLL, double* BaseBarDEMA, double* BaseBarMA, double* BaseBarMOM, char*** BarTimeS, char** BarBTimeS, numtype** Bar, numtype** BarB) {
 	//-- need to make a local copy of featureMask_, as it gets changed just to get selFcnt
-	int* _featureMask=(int*)malloc(seriesCnt_*sizeof(int));
-	memcpy_s(_featureMask, seriesCnt_*sizeof(int), featureMask_, seriesCnt_*sizeof(int));
+	long long* _featureMask=(long long*)malloc(seriesCnt_*sizeof(long long));
+	memcpy_s(_featureMask, seriesCnt_*sizeof(long long), featureMask_, seriesCnt_*sizeof(long long));
 	//-- _featureMask to selectedFeature[]
 	int selFcntTot=0;
 	(*selFcnt)=(int*)malloc(seriesCnt_*sizeof(int));
 	(*selF)=(int**)malloc(seriesCnt_*sizeof(int*));
 	for (int serie=0; serie<seriesCnt_; serie++) {
 		(*selFcnt)[serie]=0;
-		(*selF)[serie]=(int*)malloc(5*sizeof(int));
-		if (_featureMask[serie]>=10000) { (*selF)[serie][(*selFcnt)[serie]]=FXOPEN; (*selFcnt)[serie]++; _featureMask[serie]-=10000; }	//-- OPEN is selected
-		if (_featureMask[serie]>=1000) { (*selF)[serie][(*selFcnt)[serie]]=FXHIGH; (*selFcnt)[serie]++; _featureMask[serie]-=1000; }		//-- HIGH is selected
-		if (_featureMask[serie]>=100) { (*selF)[serie][(*selFcnt)[serie]]=FXLOW; (*selFcnt)[serie]++; _featureMask[serie]-=100; }		//-- LOW is selected
-		if (_featureMask[serie]>=10) { (*selF)[serie][(*selFcnt)[serie]]=FXCLOSE; (*selFcnt)[serie]++; _featureMask[serie]-=10; }		//-- CLOSE is selected
-		if (_featureMask[serie]>=1) { (*selF)[serie][(*selFcnt)[serie]]=FXVOLUME; (*selFcnt)[serie]++; _featureMask[serie]-=1; }			//-- VOLUME is selected
-																																//info("serie[%d] featuresCnt=%d", serie, selFcnt[serie]);
-																																//for (int sf=0; sf<selFcnt[serie]; sf++) info("serie[%d] feature [%d]=%d", serie, sf, selF[serie][sf]);
+		(*selF)[serie]=(int*)malloc(14*sizeof(int));
+		if (_featureMask[serie]>=10000000000000) { (*selF)[serie][(*selFcnt)[serie]]=FXOPEN; (*selFcnt)[serie]++; _featureMask[serie]-=10000000000000; }	//-- OPEN is selected
+		if (_featureMask[serie]>=1000000000000) { (*selF)[serie][(*selFcnt)[serie]]=FXHIGH; (*selFcnt)[serie]++; _featureMask[serie]-=1000000000000; }		//-- HIGH is selected
+		if (_featureMask[serie]>=100000000000) { (*selF)[serie][(*selFcnt)[serie]]=FXLOW; (*selFcnt)[serie]++; _featureMask[serie]-=100000000000; }		//-- LOW is selected
+		if (_featureMask[serie]>=10000000000) { (*selF)[serie][(*selFcnt)[serie]]=FXCLOSE; (*selFcnt)[serie]++; _featureMask[serie]-=10000000000; }		//-- CLOSE is selected
+		if (_featureMask[serie]>=1000000000) { (*selF)[serie][(*selFcnt)[serie]]=FXVOLUME; (*selFcnt)[serie]++; _featureMask[serie]-=1000000000; }			//-- VOLUME is selected
+		if (_featureMask[serie]>=100000000) { (*selF)[serie][(*selFcnt)[serie]]=FXMACD; (*selFcnt)[serie]++; _featureMask[serie]-=100000000; }			//-- MACD is selected
+		if (_featureMask[serie]>=10000000) { (*selF)[serie][(*selFcnt)[serie]]=FXCCI; (*selFcnt)[serie]++; _featureMask[serie]-=10000000; }			//-- CCI is selected
+		if (_featureMask[serie]>=1000000) { (*selF)[serie][(*selFcnt)[serie]]=FXATR; (*selFcnt)[serie]++; _featureMask[serie]-=1000000; }			//-- ATR is selected
+		if (_featureMask[serie]>=100000) { (*selF)[serie][(*selFcnt)[serie]]=FXBOLLH; (*selFcnt)[serie]++; _featureMask[serie]-=100000; }			//-- BOLLH is selected
+		if (_featureMask[serie]>=10000) { (*selF)[serie][(*selFcnt)[serie]]=FXBOLLM; (*selFcnt)[serie]++; _featureMask[serie]-=10000; }			//-- BOLLM is selected
+		if (_featureMask[serie]>=1000) { (*selF)[serie][(*selFcnt)[serie]]=FXBOLLL; (*selFcnt)[serie]++; _featureMask[serie]-=1000; }			//-- BOLLL is selected
+		if (_featureMask[serie]>=100) { (*selF)[serie][(*selFcnt)[serie]]=FXDEMA; (*selFcnt)[serie]++; _featureMask[serie]-=100; }			//-- DEMA is selected
+		if (_featureMask[serie]>=10) { (*selF)[serie][(*selFcnt)[serie]]=FXMA; (*selFcnt)[serie]++; _featureMask[serie]-=10; }			//-- MA is selected
+		if (_featureMask[serie]>=1) { (*selF)[serie][(*selFcnt)[serie]]=FXMOM; (*selFcnt)[serie]++; _featureMask[serie]-=1; }			//-- MOM is selected
 		selFcntTot+=(*selFcnt)[serie];
+		//info("serie[%d] featuresCnt=%d", serie, (*selFcnt)[serie]);
+		//for (int sf=0; sf<(*selFcnt)[serie]; sf++) info("serie[%d] feature [%d]=%d", serie, sf, (*selF)[serie][sf]);
 	}
 
 	(*Bar)=(numtype*)malloc((sampleBarsCnt)*selFcntTot*sizeof(numtype));	// flat, ordered by Bar,Feature
 	long oBarTime;
 	(*BarTimeS)=(char**)malloc((sampleBarsCnt)*sizeof(char*)); for (int b=0; b<(sampleBarsCnt); b++) (*BarTimeS)[b]=(char*)malloc(DATE_FORMAT_LEN);
 	int fi=0;
-
 	for (int b=0; b<(sampleBarsCnt); b++) {
 		for (int s=0; s<seriesCnt_; s++) {
 			oBarTime=BarT[s*sampleLen+b];
@@ -332,18 +340,18 @@ void sRoot::MTpreprocess(int seriesCnt_, int* featureMask_, int sampleLen, int s
 				if ((*selF)[s][f]==FXLOW)    (*Bar)[fi]=(numtype)BarL[s*sampleLen+b];
 				if ((*selF)[s][f]==FXCLOSE)  (*Bar)[fi]=(numtype)BarC[s*sampleLen+b];
 				if ((*selF)[s][f]==FXVOLUME) (*Bar)[fi]=(numtype)BarV[s*sampleLen+b];
+				if ((*selF)[s][f]==FXMACD)    (*Bar)[fi]=(numtype)BarMACD[s*sampleLen+b];
+				if ((*selF)[s][f]==FXCCI)    (*Bar)[fi]=(numtype)BarCCI[s*sampleLen+b];
+				if ((*selF)[s][f]==FXATR)    (*Bar)[fi]=(numtype)BarATR[s*sampleLen+b];
+				if ((*selF)[s][f]==FXBOLLH)    (*Bar)[fi]=(numtype)BarBOLLH[s*sampleLen+b];
+				if ((*selF)[s][f]==FXBOLLM)    (*Bar)[fi]=(numtype)BarBOLLM[s*sampleLen+b];
+				if ((*selF)[s][f]==FXBOLLL)    (*Bar)[fi]=(numtype)BarBOLLL[s*sampleLen+b];
+				if ((*selF)[s][f]==FXDEMA)    (*Bar)[fi]=(numtype)BarDEMA[s*sampleLen+b];
+				if ((*selF)[s][f]==FXMA)    (*Bar)[fi]=(numtype)BarMA[s*sampleLen+b];
+				if ((*selF)[s][f]==FXMOM)    (*Bar)[fi]=(numtype)BarMOM[s*sampleLen+b];
 				fi++;			}
 		}
 	}
-	//--
-
-	/*for (int b=0; b<targetBarsCnt; b++) {
-		sprintf_s((*BarTimeS)[sampleBarsCnt+b], DATE_FORMAT_LEN, "9999-99-99-99:%02d", b);
-		for (int f=0; f<selFcntTot; f++) {
-			(*Bar)[fi]=EMPTY_VALUE;// (*Bar)[(sampleBarsCnt-targetBarsCnt)*selFcntTot+b*selFcntTot+f];//EMPTY_VALUE;
-			fi++;
-		}
-	}*/
 	//--
 	(*BarB)=(numtype*)malloc(selFcntTot*sizeof(numtype));
 	(*BarBTimeS)=(char*)malloc(DATE_FORMAT_LEN);
@@ -357,15 +365,26 @@ void sRoot::MTpreprocess(int seriesCnt_, int* featureMask_, int sampleLen, int s
 			if ((*selF)[s][f]==FXLOW)    (*BarB)[fi]=(numtype)BaseBarL[s];
 			if ((*selF)[s][f]==FXCLOSE)  (*BarB)[fi]=(numtype)BaseBarC[s];
 			if ((*selF)[s][f]==FXVOLUME) (*BarB)[fi]=(numtype)BaseBarV[s];
+			if ((*selF)[s][f]==FXMACD)    (*BarB)[fi]=(numtype)BaseBarMACD[s];
+			if ((*selF)[s][f]==FXCCI)    (*BarB)[fi]=(numtype)BaseBarCCI[s];
+			if ((*selF)[s][f]==FXATR)    (*BarB)[fi]=(numtype)BaseBarATR[s];
+			if ((*selF)[s][f]==FXBOLLH)    (*BarB)[fi]=(numtype)BaseBarBOLLH[s];
+			if ((*selF)[s][f]==FXBOLLM)    (*BarB)[fi]=(numtype)BaseBarBOLLM[s];
+			if ((*selF)[s][f]==FXBOLLL)    (*BarB)[fi]=(numtype)BaseBarBOLLL[s];
+			if ((*selF)[s][f]==FXDEMA)    (*BarB)[fi]=(numtype)BaseBarDEMA[s];
+			if ((*selF)[s][f]==FXMA)    (*BarB)[fi]=(numtype)BaseBarMA[s];
+			if ((*selF)[s][f]==FXMOM)    (*BarB)[fi]=(numtype)BaseBarMOM[s];
 			fi++;
 		}
 	}
 }
-void sRoot::getForecast(int seqId_, int dt_, int extraSteps_, \
-	int iseriesCnt_, int* ifeatureMask_, \
+void sRoot::getForecast(int seqId_, int extraSteps_, \
+	int iseriesCnt_, long long* ifeatureMask_, \
 	long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, \
+	double* iBarMACD, double* iBarCCI, double* iBarATR, double* iBarBOLLH, double* iBarBOLLM, double* iBarBOLLL, double* iBarDEMA, double* iBarMA, double* iBarMOM, \
 	long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, \
-	int oseriesCnt_, int* ofeatureMask_, \
+	double* iBaseBarMACD, double* iBaseBarCCI, double* iBaseBarATR, double* iBaseBarBOLLH, double* iBaseBarBOLLM, double* iBaseBarBOLLL, double* iBaseBarDEMA, double* iBaseBarMA, double* iBaseBarMOM, \
+	int oseriesCnt_, long long* ofeatureMask_, \
 	long* oBarT, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV, \
 	long* oBaseBarT, double* oBaseBarO, double* oBaseBarH, double* oBaseBarL, double* oBaseBarC, double* oBaseBarV, \
 	double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV \
@@ -382,8 +401,8 @@ void sRoot::getForecast(int seqId_, int dt_, int extraSteps_, \
 	char** oBarTimeS; char* oBarBTimeS; int* oselFcnt; int** oselF;
 	numtype* iBar; numtype* iBarB;
 	numtype* oBar; numtype* oBarB;
-	MTpreprocess(iseriesCnt_, ifeatureMask_, MT4engine->sampleLen, sampleBarsCnt, targetBarsCnt, &iselFcnt, &iselF, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, &iBarTimeS, &iBarBTimeS, &iBar, &iBarB);
-	MTpreprocess(oseriesCnt_, ofeatureMask_, MT4engine->sampleLen, sampleBarsCnt, targetBarsCnt, &oselFcnt, &oselF, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, &oBarTimeS, &oBarBTimeS, &oBar, &oBarB);
+	MTpreprocess(iseriesCnt_, ifeatureMask_, MT4engine->sampleLen, sampleBarsCnt, targetBarsCnt, &iselFcnt, &iselF, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBarMACD, iBarCCI, iBarATR, iBarBOLLH, iBarBOLLM, iBarBOLLL, iBarDEMA, iBarMA, iBarMOM, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, iBaseBarMACD, iBaseBarCCI, iBaseBarATR, iBaseBarBOLLH, iBaseBarBOLLM, iBaseBarBOLLL, iBaseBarDEMA, iBaseBarMA, iBaseBarMOM, &iBarTimeS, &iBarBTimeS, &iBar, &iBarB);
+	MTpreprocess(oseriesCnt_, ofeatureMask_, MT4engine->sampleLen, sampleBarsCnt, targetBarsCnt, &oselFcnt, &oselF, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, &oBarTimeS, &oBarBTimeS, &oBar, &oBarB);
 	//	MTpreprocess(iseriesCnt_, ifeatureMask_, /*MT4engine->*/sampleLen, sampleBarsCnt, targetBarsCnt, &iselFcnt, &iselF, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, &iBarTimeS, &iBarBTimeS, &iBar, &iBarB);
 //	MTpreprocess(oseriesCnt_, ofeatureMask_, /*MT4engine->*/sampleLen, sampleBarsCnt, targetBarsCnt, &oselFcnt, &oselF, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, &oBarTimeS, &oBarBTimeS, &oBar, &oBarB);
 
@@ -394,12 +413,12 @@ void sRoot::getForecast(int seqId_, int dt_, int extraSteps_, \
 //	);
 
 	sTS2* mtTS;  safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, \
-		sampleBarsCnt, dt_, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump, \
+		sampleBarsCnt, MT4engine->dt, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump, \
 		&iBarTimeS, &iBarBTimeS, iseriesCnt_, iselFcnt, MT4engine->WTtype[0], MT4engine->WTlevel[0], iBar, iBarB, \
 		&oBarTimeS, &oBarBTimeS, oseriesCnt_, oselFcnt, MT4engine->WTtype[1], MT4engine->WTlevel[1], oBar, oBarB \
 	);
 
-	safecall(mtTS, slide, extraSteps_);
+	//safecall(mtTS, slide, extraSteps_);
 	safecall(MT4engine, infer, MT4accountId, seqId_, mtTS, MT4enginePid);
 
 	for (int s=0; s<(sampleBarsCnt+targetBarsCnt); s++) info("mtTS: act[%d]=%7.6f ; actTR[%d]=%7.6f ; prdTR[%d]=%7.6f ; prd[%d]=%7.6f", s, mtTS->val[s][1][0][0][0], s, mtTS->valTR[s][1][0][0][0], s, mtTS->prdTR[s][1][0][0][0], s, mtTS->prd[s][1][0][0][0]);
@@ -440,11 +459,10 @@ void sRoot::saveClientInfo(int sequenceId, double iPositionOpenTime) {
 	info("MT4enginePid=%d", MT4enginePid);
 	safecall(MT4clientLog, saveClientInfo, MT4clientPid, sequenceId, MT4sessionId, MT4enginePid, accountStr, iPositionOpenTime, 0, "", "", "", false, true, "", "", "", "");
 }
-void sRoot::setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int savedEnginePid_, int dt_, bool doDump_) {
+void sRoot::setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int savedEnginePid_, bool doDump_) {
 	MT4clientPid=clientPid_;
 	MT4accountId=accountId_;
 	MT4enginePid=savedEnginePid_;
-	MT4dt=dt_;
 	MT4doDump=doDump_;
 
 	//-- client Configurator ----------------------------------------------------------------
@@ -489,12 +507,12 @@ void sRoot::MT4commit() {
 	}
 }
 //--
-extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLFile_, int savedEnginePid_, int dt_, bool doDump_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_, int* oFeaturesCnt_, int* oBatchSize_) {
+extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLFile_, int savedEnginePid_, bool doDump_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_, int* oFeaturesCnt_, int* oBatchSize_) {
 	static sRoot* root;
 	try {
 		root=new sRoot(nullptr);
 		sprintf_s(oEnvS, 64, "%p", root);
-		root->setMT4env(GetCurrentProcessId(), accountId_, clientXMLFile_, savedEnginePid_, dt_, doDump_);
+		root->setMT4env(GetCurrentProcessId(), accountId_, clientXMLFile_, savedEnginePid_, doDump_);
 		root->MT4createEngine(oSampleLen_, oPredictionLen_, oFeaturesCnt_, oBatchSize_);
 	}
 	catch (std::exception exc) {
@@ -517,11 +535,13 @@ extern "C" __declspec(dllexport) int _getSeriesInfo(char* iEnvS, int* oSeriesCnt
 	return 0;
 }
 //--
-extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seqId_, int dt_, int extraSteps_, \
-	int iseriesCnt_, int* ifeatureMask_, \
+extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seqId_, int extraSteps_, \
+	int iseriesCnt_, long long* ifeatureMask_, \
 	long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, \
+	double* iBarMACD, double* iBarCCI, double* iBarATR, double* iBarBOLLH, double* iBarBOLLM, double* iBarBOLLL, double* iBarDEMA, double* iBarMA, double* iBarMOM, \
 	long* iBaseBarT, double* iBaseBarO, double* iBaseBarH, double* iBaseBarL, double* iBaseBarC, double* iBaseBarV, \
-	int oseriesCnt_, int* ofeatureMask_, \
+	double* iBaseBarMACD, double* iBaseBarCCI, double* iBaseBarATR, double* iBaseBarBOLLH, double* iBaseBarBOLLM, double* iBaseBarBOLLL, double* iBaseBarDEMA, double* iBaseBarMA, double* iBaseBarMOM, \
+	int oseriesCnt_, long long* ofeatureMask_, \
 	long* oBarT, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV, \
 	long* oBaseBarT, double* oBaseBarO, double* oBaseBarH, double* oBaseBarL, double* oBaseBarC, double* oBaseBarV, \
 	double* oForecastO, double* oForecastH, double* oForecastL, double* oForecastC, double* oForecastV \
@@ -531,7 +551,7 @@ extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seqId_, int d
 
 	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p . Calling env->getForecast()...", env);
 	try {
-		env->getForecast(seqId_, dt_, extraSteps_, iseriesCnt_, ifeatureMask_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, oseriesCnt_, ofeatureMask_, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
+		env->getForecast(seqId_, extraSteps_, iseriesCnt_, ifeatureMask_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBarMACD, iBarCCI, iBarATR, iBarBOLLH, iBarBOLLM, iBarBOLLL, iBarDEMA, iBarMA, iBarMOM, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, iBaseBarMACD, iBaseBarCCI, iBaseBarATR, iBaseBarBOLLH, iBaseBarBOLLM, iBaseBarBOLLL, iBaseBarDEMA, iBaseBarMA, iBaseBarMOM, oseriesCnt_, ofeatureMask_, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
 	}
 	catch (std::exception exc) {
 		return -1;

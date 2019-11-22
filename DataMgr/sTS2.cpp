@@ -149,7 +149,7 @@ void sTS2::transform(int i, int d, int f, int l) {
 	TRmin[i][d][f][l]=1e9; TRmax[i][d][f][l]=-1e9;
 
 	for (int s=0; s<(stepsCnt); s++) {
-		switch (dt) {
+		switch (dt[i][d][f]) {
 		case DT_NONE:
 			valTR[s][i][d][f][l]=val[s][i][d][f][l];
 			break;
@@ -227,10 +227,10 @@ void sTS2::untransform() {
 			for (int d=0; d<dataSourcesCnt[i]; d++) {
 				for (int f=0; f<featuresCnt[i][d]; f++) {
 					for (int l=0; l<(WTlevel[i]+2); l++) {
-						if (dt==DT_NONE) {
+						if (dt[i][d][f]==DT_NONE) {
 							prd[s][i][d][f][l]=prdTR[s][i][d][f][l];
 						}
-						if (dt==DT_DELTA) {
+						if (dt[i][d][f]==DT_DELTA) {
 							if (s>0) {								
 								if (prdTR[s][i][d][f][l]==EMPTY_VALUE) {
 									prd[s][i][d][f][l]=EMPTY_VALUE;
@@ -255,7 +255,7 @@ void sTS2::untransform() {
 							}
 						}
 						
-						if (dt==DT_LOG) {
+						if (dt[i][d][f]==DT_LOG) {
 							if (prdTR[s][i][d][f][l]==EMPTY_VALUE) {
 								prd[s][i][d][f][l]=EMPTY_VALUE;
 							} else {
@@ -691,7 +691,6 @@ void sTS2::getPrediction() {
 
 sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &stepsCnt, "HistoryLen");
-	safecall(cfgKey, getParm, &dt, "DataTransformation");
 	safecall(cfgKey, getParm, &doDump, "Dump");
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	char* _dumpPath=&dumpPath[0];
@@ -704,6 +703,7 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	char _date0[DATE_FORMAT_LEN]; char* _date0p=&_date0[0];
 	safecall(cfgKey, getParm, &_date0p, "Date0");
 
+	dt=(int***)malloc(2*sizeof(int**));	
 	WTtype=(int*)malloc(2*sizeof(int));
 	WTlevel=(int*)malloc(2*sizeof(int));
 	dataSourcesCnt=(int*)malloc(2*sizeof(int));
@@ -717,11 +717,14 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 		dsrc[i]=(sDataSource**)malloc(dataSourcesCnt[i]*sizeof(sDataSource*));
 		featuresCnt[i]=(int*)malloc(dataSourcesCnt[i]*sizeof(int));
 		selF[i]=(int**)malloc(dataSourcesCnt[i]*sizeof(int*));
+		dt[i]=(int**)malloc(dataSourcesCnt[i]*sizeof(int*));
 		for (int d=0; d<dataSourcesCnt[i]; d++) {
 			selF[i][d]=(int*)malloc(MAX_TS_FEATURES*sizeof(int));
 			safecall(cfg, setKey, strBuild("DataSource%d", d).c_str());
 			setDataSource(&dsrc[i][d]);
 			safecall(cfg->currentKey, getParm, &selF[i][d], "SelectedFeatures", false, &featuresCnt[i][d]);
+			dt[i][d]=(int*)malloc(featuresCnt[i][d]*sizeof(int));
+			safecall(cfg->currentKey, getParm, &dt[i][d], "DataTransformation");
 			safecall(cfg, setKey, "../");
 		}
 		safecall(cfg->currentKey, getParm, &WTtype[i], "WaveletType");
@@ -801,14 +804,14 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 }
 sTS2::sTS2(sObjParmsDef, \
-	int stepsCnt_, int dt_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, \
+	int stepsCnt_, int*** dt_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, \
 	char*** INtimestamp_, char** INtimestampB_, \
 	int INdataSourcesCnt_, int* INfeaturesCnt_, int INWTtype_, int INWTlevel_, numtype* INval_, numtype* INvalB_, \
 	char*** OUTtimestamp_, char** OUTtimestampB_, \
 	int OUTdataSourcesCnt_, int* OUTfeaturesCnt_, int OUTWTtype_, int OUTWTlevel_, numtype* OUTval_, numtype* OUTvalB_\
 ) : sCfgObj(sObjParmsVal, nullptr, "") {
 	
-	stepsCnt=stepsCnt_; dt=dt_; doDump=doDump_;
+	stepsCnt=stepsCnt_; doDump=doDump_;
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	sampleLen=sampleLen_; targetLen=targetLen_; batchSize=batchSize_;
 	
@@ -829,6 +832,14 @@ sTS2::sTS2(sObjParmsDef, \
 	WTtype[1]=OUTWTtype_; WTlevel[1]=OUTWTlevel_;
 
 	mallocs1();
+
+	for (int i=0; i<2; i++) {
+		for (int d=0; d<dataSourcesCnt[i]; d++) {
+			for (int f=0; f<featuresCnt[i][d]; f++) {
+				dt[i][d][f]=dt_[i][d][f];
+			}
+		}
+	}
 
 	//=== BUILDING INPUT SIDE ===
 	//-- timestamps
@@ -929,11 +940,11 @@ sTS2::~sTS2() {
 			for (int f=0; f<featuresCnt[i][d]; f++) {
 				free(TRmin[i][d][f]); free(TRmax[i][d][f]); free(scaleM[i][d][f]); free(scaleP[i][d][f]); free(valB[i][d][f]);
 			}
-			free(TRmin[i][d]); free(TRmax[i][d]); free(scaleM[i][d]); free(scaleP[i][d]); free(valB[i][d]);
+			free(TRmin[i][d]); free(TRmax[i][d]); free(scaleM[i][d]); free(scaleP[i][d]); free(valB[i][d]);	free(dt[i][d]);
 		}
-		free(TRmin[i]); free(TRmax[i]); free(scaleM[i]); free(scaleP[i]); free(valB[i]); 
+		free(TRmin[i]); free(TRmax[i]); free(scaleM[i]); free(scaleP[i]); free(valB[i]); free(dt[i]);
 	}
-	free(TRmin); free(TRmax); free(scaleM); free(scaleP); free(valB);
+	free(TRmin); free(TRmax); free(scaleM); free(scaleP); free(valB); free(dt);
 
 	for (int s=0; s<stepsCnt; s++) {
 		for (int i=0; i<2; i++) {

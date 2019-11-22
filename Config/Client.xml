@@ -23,7 +23,7 @@
 		<Chart0>
 			Symbol				= EURUSD
 			TimeFrame			= H1
-			SelectedFeatures	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE, FXMACD, FXCCI, FXATR, FXBOLLH, FXBOLLM, FXBOLLL, FXDEMA, FXMA, FXMOM
 		</Chart0>
 		<Chart1>
 			Symbol				= US500-DEC19
