@@ -27,10 +27,10 @@ enum SLhandling {
 };
 
 //--- input parameters - Forecaster dll stuff
-input int EnginePid				= 8728;
+input int EnginePid				= 1919;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 input bool DumpData				= true;
-input bool SaveLogs				= true;
+input bool SaveLogs				= false;
 input bool GetActualFutureData	= false;
 //-- input parameters - Trade stuff
 input double TradeVol			= 0.1;
@@ -513,10 +513,10 @@ bool loadStats() {
 			printf("BOLL copyBuffer failed.");
 			return false;
 		}
-		vbollh[s]=value1[1]; vbollm[s]=value2[1]; vbolll[s]=value3[1];
+		vbollhB[s]=value2[1]; vbollmB[s]=value2[1]; vbolllB[s]=value3[1];
 		for (bar=0; bar<barsCnt; bar++) {
-			vbollh[s*barsCnt+bar]=value1[bar+2];
-			vbollm[s*barsCnt+bar]=value2[bar+2];
+			vbollh[s*barsCnt+bar]=value2[bar+2];
+			vbollm[s*barsCnt+bar]=value1[bar+2];
 			vbolll[s*barsCnt+bar]=value3[bar+2];
 		}
 		//--
