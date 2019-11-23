@@ -480,7 +480,7 @@ bool loadStats() {
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
 		//--
-		handle = iMACD(serieSymbol[s], tf, EMA_fastPeriod, EMA_slowPeriod, EMA_signalPeriod, PRICE_CLOSE);
+		handle = iMACD(serieSymbol[s], tf, EMA_fastPeriod, EMA_slowPeriod, EMA_signalPeriod, PRICE_OPEN);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
 			printf("MACD copyBuffer failed.");
@@ -489,7 +489,7 @@ bool loadStats() {
 		vmacdB[s]=value1[1];
 		for (bar=0; bar<barsCnt; bar++) vmacd[s*barsCnt+bar]=value1[bar+2];
 		//--
-		handle = iCCI(serieSymbol[s], tf, CCI_MAperiod, PRICE_CLOSE);
+		handle = iCCI(serieSymbol[s], tf, CCI_MAperiod, PRICE_OPEN);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
 			printf("CCI copyBuffer failed.");
@@ -507,7 +507,7 @@ bool loadStats() {
 		vatrB[s]=value1[1];
 		for (bar=0; bar<barsCnt; bar++) vatr[s*barsCnt+bar]=value1[bar+2];
 		//--
-		handle = iBands(serieSymbol[s], tf, BOLL_period, BOLL_shift, BOLL_deviation, PRICE_CLOSE);
+		handle = iBands(serieSymbol[s], tf, BOLL_period, BOLL_shift, BOLL_deviation, PRICE_OPEN);
 		ArraySetAsSeries(value1, false); ArraySetAsSeries(value2, false); ArraySetAsSeries(value3, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0||CopyBuffer(handle, 1, 0, barsCnt+2, value2)<=0||CopyBuffer(handle, 2, 0, barsCnt+2, value3)<=0) {
 			printf("BOLL copyBuffer failed.");
@@ -520,7 +520,7 @@ bool loadStats() {
 			vbolll[s*barsCnt+bar]=value3[bar+2];
 		}
 		//--
-		handle = iDEMA(serieSymbol[s], tf, DEMA_period, DEMA_shift, PRICE_CLOSE);
+		handle = iDEMA(serieSymbol[s], tf, DEMA_period, DEMA_shift, PRICE_OPEN);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
 			printf("DEMA copyBuffer failed.");
@@ -529,7 +529,7 @@ bool loadStats() {
 		vdemaB[s]=value1[1];
 		for (bar=0; bar<barsCnt; bar++) vdema[s*barsCnt+bar]=value1[bar+2];
 		//--
-		handle = iMA(serieSymbol[s], tf, MA_period, MA_shift, MODE_SMA, PRICE_CLOSE);
+		handle = iMA(serieSymbol[s], tf, MA_period, MA_shift, MODE_SMA, PRICE_OPEN);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
 			printf("MA copyBuffer failed.");
@@ -538,7 +538,7 @@ bool loadStats() {
 		vmaB[s]=value1[1];
 		for (bar=0; bar<barsCnt; bar++) vma[s*barsCnt+bar]=value1[bar+2];
 		//--
-		handle = iMomentum(serieSymbol[s], tf, MOM_period, PRICE_CLOSE);
+		handle = iMomentum(serieSymbol[s], tf, MOM_period, PRICE_OPEN);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
 			printf("MOM copyBuffer failed.");
