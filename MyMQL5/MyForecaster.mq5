@@ -31,6 +31,7 @@ input int EnginePid				= 1919;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 input bool DumpData				= true;
 input bool SaveLogs				= false;
+input int PredictionStep		= 1;
 input bool GetActualFutureData	= false;
 //-- input parameters - Trade stuff
 input double TradeVol			= 0.1;
@@ -110,6 +111,7 @@ int OnInit() {
 	trade.SetDeviationInPoints(10);
 	trade.SetTypeFilling(ORDER_FILLING_RETURN);
 	trade.SetAsyncMode(false);
+	trade.LogLevel(LOG_LEVEL_ERRORS);
 
 	EnvS = "00000000000000000000000000000000000000000000000000000000000000000"; StringToCharArray(EnvS, vEnvS);
 	string sSymbolsCSL="0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
@@ -131,8 +133,8 @@ int OnInit() {
 	//barsCnt=batchSize+historyLen-1;// +predictionLen;
 	barsCnt=historyLen+extraSteps;
 
-								   //--
-								   //printf("Getting TimeSeries Info from Client Config...");
+	//--
+	//printf("Getting TimeSeries Info from Client Config...");
 	if (_getSeriesInfo(vEnvS, seriesCnt, uSymbolsCSL, uTimeFramesCSL, uFeaturesCSL, chartTrade)!=0) {
 		printf("FAILURE: _getSeriesInfo() failed. see Forecaster logs.");
 		return -1;
@@ -255,7 +257,7 @@ void OnTick() {
 	if (maxSteps<0||sequenceId<maxSteps) {
 
 		//-- manually check for TP/SL
-		if (stopsHandling>1 && PositionSelect(Symbol())) {
+		if (stopsHandling>1&&PositionSelect(Symbol())) {
 			SymbolInfoTick(Symbol(), tick); //printf("ask=%f ; bid=%f ; tradeTP=%f ; tradeSL=%f", tick.ask, tick.bid, tradeTP, tradeSL);
 			if (PositionGetInteger(POSITION_TYPE)==POSITION_TYPE_BUY) {
 				if (tick.bid>=tradeTP) {
@@ -326,9 +328,9 @@ void OnTick() {
 		}
 
 		//-- take first bar from vhighF, vlowF
-		vForecastH=vhighF[tradeSerie*predictionLen+1];
-		vForecastL=vlowF[tradeSerie*predictionLen+1];
-		vForecastC=vcloseF[tradeSerie*predictionLen+1];
+		vForecastH=vhighF[tradeSerie*predictionLen+PredictionStep];
+		vForecastL=vlowF[tradeSerie*predictionLen+PredictionStep];
+		vForecastC=vcloseF[tradeSerie*predictionLen+PredictionStep];
 
 		//=============== Get Actual Future Data, override forecast ======================
 		if (GetActualFutureData) {
@@ -411,7 +413,6 @@ void OnDeinit(const int reason) {
 	}
 	delIndicators();
 }
-
 bool loadBars() {
 	ENUM_TIMEFRAMES tf;
 	int copied;
@@ -419,8 +420,8 @@ bool loadBars() {
 	//-- INPUT Series/Features
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
-		copied=CopyRates(serieSymbol[s], tf, 1, barsCnt+2, serierates);	//printf("copied[%d]=%d", s, copied);
-		if (copied!=(barsCnt+2)) return false;
+		copied=CopyRates(serieSymbol[s], tf, 1, barsCnt+PredictionStep+1, serierates);	//printf("copied[%d]=%d", s, copied);
+		if (copied!=(barsCnt+PredictionStep+1)) return false;
 		//-- base bar
 		vtimeB[s]=serierates[0].time;// +TimeGMTOffset();
 		StringConcatenate(vtimeSB[s], TimeToString(vtimeB[s], TIME_DATE), ".", TimeToString(vtimeB[s], TIME_MINUTES));
@@ -446,8 +447,8 @@ bool loadBars() {
 
 	//-- OUTPUT Features from current chart
 	tf=Period();
-	copied=CopyRates(Symbol(), tf, 1, barsCnt+2, serierates);	//printf("copied[%d]=%d", s, copied);
-	if (copied!=(barsCnt+2)) return false;
+	copied=CopyRates(Symbol(), tf, 1, barsCnt+PredictionStep+1, serierates);	//printf("copied[%d]=%d", s, copied);
+	if (copied!=(barsCnt+PredictionStep+1)) return false;
 	//-- base bar
 	OUTvtimeB[0]=serierates[0].time;// +TimeGMTOffset();
 	StringConcatenate(OUTvtimeSB[0], TimeToString(vtimeB[0], TIME_DATE), ".", TimeToString(OUTvtimeB[0], TIME_MINUTES));
@@ -476,7 +477,7 @@ bool loadStats() {
 	int copied;
 	int bar;
 	int handle; double value1[]; double value2[]; double value3[];
-	
+
 	//-- INPUT Stats
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
@@ -484,7 +485,7 @@ bool loadStats() {
 		handle = iMACD(serieSymbol[s], tf, EMA_fastPeriod, EMA_slowPeriod, EMA_signalPeriod, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
-			printf("MACD copyBuffer failed.");
+			printf("MACD copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vmacdB[s]=value1[0];
@@ -493,7 +494,7 @@ bool loadStats() {
 		handle = iCCI(serieSymbol[s], tf, CCI_MAperiod, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
-			printf("CCI copyBuffer failed.");
+			printf("CCI copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vcciB[s]=value1[0];
@@ -502,7 +503,7 @@ bool loadStats() {
 		handle = iATR(serieSymbol[s], tf, ATR_MAperiod);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
-			printf("ATR copyBuffer failed.");
+			printf("ATR copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vatrB[s]=value1[0];
@@ -511,7 +512,7 @@ bool loadStats() {
 		handle = iBands(serieSymbol[s], tf, BOLL_period, BOLL_shift, BOLL_deviation, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false); ArraySetAsSeries(value2, false); ArraySetAsSeries(value3, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0||CopyBuffer(handle, 1, 0, barsCnt+2, value2)<=0||CopyBuffer(handle, 2, 0, barsCnt+2, value3)<=0) {
-			printf("BOLL copyBuffer failed.");
+			printf("BOLL copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vbollhB[s]=value2[0]; vbollmB[s]=value2[0]; vbolllB[s]=value3[0];
@@ -524,7 +525,7 @@ bool loadStats() {
 		handle = iDEMA(serieSymbol[s], tf, DEMA_period, DEMA_shift, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
-			printf("DEMA copyBuffer failed.");
+			printf("DEMA copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vdemaB[s]=value1[0];
@@ -533,7 +534,7 @@ bool loadStats() {
 		handle = iMA(serieSymbol[s], tf, MA_period, MA_shift, MODE_SMA, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
-			printf("MA copyBuffer failed.");
+			printf("MA copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vmaB[s]=value1[0];
@@ -542,7 +543,7 @@ bool loadStats() {
 		handle = iMomentum(serieSymbol[s], tf, MOM_period, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false);
 		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
-			printf("MOM copyBuffer failed.");
+			printf("MOM copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vmomB[s]=value1[0];
@@ -721,13 +722,13 @@ void drawForecast(double H, double L) {
 void delIndicators() {
 	string cname;
 	for (int i=0; i<3; i++) {
-		cname=ChartIndicatorName(0, 0, 0); printf("cname=%s", cname);
+		cname=ChartIndicatorName(0, 0, 0); //printf("cname=%s", cname);
 		if (!ChartIndicatorDelete(0, 0, cname)) {
 			printf("Error (%i) trying to delete indicator %s", GetLastError(), cname);
 		}
 	}
 	for (int i=0; i<4; i++) {
-		cname=ChartIndicatorName(0, 1, 0); printf("cname=%s", cname);
+		cname=ChartIndicatorName(0, 1, 0); //printf("cname=%s", cname);
 		if (!ChartIndicatorDelete(0, 1, cname)) {
 			printf("Error (%i) trying to delete indicator %s", GetLastError(), cname);
 		}

@@ -242,7 +242,7 @@ void sTS2::untransform() {
 										if (prd[s-1][i][d][f][l]==EMPTY_VALUE) {
 											prd[s][i][d][f][l]=prdTR[s][i][d][f][l]+val[stepsCnt-1][i][d][f][l];
 										} else {
-											prd[s][i][d][f][l]=prdTR[s][i][d][f][l]+val[s-1][i][d][f][l];
+											prd[s][i][d][f][l]=prdTR[s][i][d][f][l]+prd[s-1][i][d][f][l];
 										}
 									}
 								}

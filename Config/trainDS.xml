@@ -20,7 +20,7 @@
 				<! FXDB-ETXEURH1.xml >
 				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
 			</DataSource2>
-			WaveletType	= WT_NONE
+			WaveletType	= WT_HAAR
 			DecompLevel = 4
 		</Input>
 		<Output>
@@ -35,7 +35,7 @@
 		</Output>
 	
 	SampleLen	= 50
-	TargetLen	= 3
+	TargetLen	= 16
 	BatchSize	= 1
 
 	</TimeSerie>
