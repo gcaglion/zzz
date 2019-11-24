@@ -235,7 +235,7 @@ void sTS2::untransform() {
 								if (prdTR[s][i][d][f][l]==EMPTY_VALUE) {
 									prd[s][i][d][f][l]=EMPTY_VALUE;
 								} else {
-									if (s<stepsCnt) {
+									if (s<=stepsCnt) {
 										prd[s][i][d][f][l]=prdTR[s][i][d][f][l]+val[s-1][i][d][f][l];
 										if (val[s][i][d][f][l]==EMPTY_VALUE) val[s][i][d][f][l]=prd[s][i][d][f][l];
 									} else {

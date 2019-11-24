@@ -326,9 +326,9 @@ void OnTick() {
 		}
 
 		//-- take first bar from vhighF, vlowF
-		vForecastH=vhighF[tradeSerie*predictionLen+0];
-		vForecastL=vlowF[tradeSerie*predictionLen+0];
-		vForecastC=vcloseF[tradeSerie*predictionLen+0];
+		vForecastH=vhighF[tradeSerie*predictionLen+1];
+		vForecastL=vlowF[tradeSerie*predictionLen+1];
+		vForecastC=vcloseF[tradeSerie*predictionLen+1];
 
 		//=============== Get Actual Future Data, override forecast ======================
 		if (GetActualFutureData) {
@@ -409,6 +409,7 @@ void OnDeinit(const int reason) {
 		printf("calling _destroyEnv for vEnvS=%s", EnvS);
 		_destroyEnv(vEnvS);
 	}
+	delIndicators();
 }
 
 bool loadBars() {
@@ -421,24 +422,24 @@ bool loadBars() {
 		copied=CopyRates(serieSymbol[s], tf, 1, barsCnt+2, serierates);	//printf("copied[%d]=%d", s, copied);
 		if (copied!=(barsCnt+2)) return false;
 		//-- base bar
-		vtimeB[s]=serierates[1].time;// +TimeGMTOffset();
+		vtimeB[s]=serierates[0].time;// +TimeGMTOffset();
 		StringConcatenate(vtimeSB[s], TimeToString(vtimeB[s], TIME_DATE), ".", TimeToString(vtimeB[s], TIME_MINUTES));
-		vopenB[s]=serierates[1].open;
-		vhighB[s]=serierates[1].high;
-		vlowB[s]=serierates[1].low;
-		vcloseB[s]=serierates[1].close;
-		vvolumeB[s]=serierates[1].real_volume;
+		vopenB[s]=serierates[0].open;
+		vhighB[s]=serierates[0].high;
+		vlowB[s]=serierates[0].low;
+		vcloseB[s]=serierates[0].close;
+		vvolumeB[s]=serierates[0].real_volume;
 		//printf("serie=%d ; time=%s ; OHLCV=%f|%f|%f|%f|%f", s, vtimeSB[s], vopenB[s], vhighB[s], vlowB[s], vcloseB[s], vvolumeB[s]);
 
 		//-- [historyLen] bars
 		for (int bar=0; bar<barsCnt; bar++) {
-			vtime[s*barsCnt+bar]=serierates[bar+2].time;// +TimeGMTOffset();
+			vtime[s*barsCnt+bar]=serierates[bar+1].time;// +TimeGMTOffset();
 			StringConcatenate(vtimeS[s*barsCnt+bar], TimeToString(vtime[s*barsCnt+bar], TIME_DATE), ".", TimeToString(vtime[s*barsCnt+bar], TIME_MINUTES));
-			vopen[s*barsCnt+bar]=serierates[bar+2].open;
-			vhigh[s*barsCnt+bar]=serierates[bar+2].high;
-			vlow[s*barsCnt+bar]=serierates[bar+2].low;
-			vclose[s*barsCnt+bar]=serierates[bar+2].close;
-			vvolume[s*barsCnt+bar]=serierates[bar+2].real_volume; if (MathAbs(vvolume[s*barsCnt+bar])>10000) vvolume[s*barsCnt+bar]=0;
+			vopen[s*barsCnt+bar]=serierates[bar+1].open;
+			vhigh[s*barsCnt+bar]=serierates[bar+1].high;
+			vlow[s*barsCnt+bar]=serierates[bar+1].low;
+			vclose[s*barsCnt+bar]=serierates[bar+1].close;
+			vvolume[s*barsCnt+bar]=serierates[bar+1].real_volume; if (MathAbs(vvolume[s*barsCnt+bar])>10000) vvolume[s*barsCnt+bar]=0;
 		}
 		//for (int bar=0; bar<barsCnt; bar++) printf("time[%d]=%s ; OHLCV[%d]=%f|%f|%f|%f|%f", bar, vtimeS[bar], bar, vopen[bar], vhigh[bar], vlow[bar], vclose[bar], vvolume[bar]);
 	}
@@ -448,23 +449,23 @@ bool loadBars() {
 	copied=CopyRates(Symbol(), tf, 1, barsCnt+2, serierates);	//printf("copied[%d]=%d", s, copied);
 	if (copied!=(barsCnt+2)) return false;
 	//-- base bar
-	OUTvtimeB[0]=serierates[1].time;// +TimeGMTOffset();
+	OUTvtimeB[0]=serierates[0].time;// +TimeGMTOffset();
 	StringConcatenate(OUTvtimeSB[0], TimeToString(vtimeB[0], TIME_DATE), ".", TimeToString(OUTvtimeB[0], TIME_MINUTES));
-	OUTvopenB[0]=serierates[1].open;
-	OUTvhighB[0]=serierates[1].high;
-	OUTvlowB[0]=serierates[1].low;
-	OUTvcloseB[0]=serierates[1].close;
-	OUTvvolumeB[0]=serierates[1].real_volume;
+	OUTvopenB[0]=serierates[0].open;
+	OUTvhighB[0]=serierates[0].high;
+	OUTvlowB[0]=serierates[0].low;
+	OUTvcloseB[0]=serierates[0].close;
+	OUTvvolumeB[0]=serierates[0].real_volume;
 	//printf("OUT(current) serie, base values: time=%s ; OHLCV=%f|%f|%f|%f|%f", OUTvtimeSB[0], OUTvopenB[0], OUTvhighB[0], OUTvlowB[0], OUTvcloseB[0], OUTvvolumeB[0]);
 
 	for (int bar=0; bar<barsCnt; bar++) {
-		OUTvtime[bar]=serierates[bar+2].time;// +TimeGMTOffset();
+		OUTvtime[bar]=serierates[bar+1].time;// +TimeGMTOffset();
 		StringConcatenate(OUTvtimeS[bar], TimeToString(OUTvtime[bar], TIME_DATE), ".", TimeToString(OUTvtime[bar], TIME_MINUTES));
-		OUTvopen[bar]=serierates[bar+2].open;
-		OUTvhigh[bar]=serierates[bar+2].high;
-		OUTvlow[bar]=serierates[bar+2].low;
-		OUTvclose[bar]=serierates[bar+2].close;
-		OUTvvolume[bar]=serierates[bar+2].real_volume; if (MathAbs(OUTvvolume[bar])>10000) vvolume[bar]=0;
+		OUTvopen[bar]=serierates[bar+1].open;
+		OUTvhigh[bar]=serierates[bar+1].high;
+		OUTvlow[bar]=serierates[bar+1].low;
+		OUTvclose[bar]=serierates[bar+1].close;
+		OUTvvolume[bar]=serierates[bar+1].real_volume; if (MathAbs(OUTvvolume[bar])>10000) vvolume[bar]=0;
 	}
 	//for (int bar=0; bar<barsCnt; bar++) printf("OUT(current) serie : time[%d]=%s ; OHLCV[%d]=%f|%f|%f|%f|%f", bar, OUTvtimeS[bar], bar, OUTvopen[bar], OUTvhigh[bar], OUTvlow[bar], OUTvclose[bar], OUTvvolume[bar]);
 
@@ -486,8 +487,8 @@ bool loadStats() {
 			printf("MACD copyBuffer failed.");
 			return false;
 		}
-		vmacdB[s]=value1[1];
-		for (bar=0; bar<barsCnt; bar++) vmacd[s*barsCnt+bar]=value1[bar+2];
+		vmacdB[s]=value1[0];
+		for (bar=0; bar<barsCnt; bar++) vmacd[s*barsCnt+bar]=value1[bar+1];
 		//--
 		handle = iCCI(serieSymbol[s], tf, CCI_MAperiod, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false);
@@ -495,8 +496,8 @@ bool loadStats() {
 			printf("CCI copyBuffer failed.");
 			return false;
 		}
-		vcciB[s]=value1[1];
-		for (bar=0; bar<barsCnt; bar++) vcci[s*barsCnt+bar]=value1[bar+2];
+		vcciB[s]=value1[0];
+		for (bar=0; bar<barsCnt; bar++) vcci[s*barsCnt+bar]=value1[bar+1];
 		//--
 		handle = iATR(serieSymbol[s], tf, ATR_MAperiod);
 		ArraySetAsSeries(value1, false);
@@ -504,8 +505,8 @@ bool loadStats() {
 			printf("ATR copyBuffer failed.");
 			return false;
 		}
-		vatrB[s]=value1[1];
-		for (bar=0; bar<barsCnt; bar++) vatr[s*barsCnt+bar]=value1[bar+2];
+		vatrB[s]=value1[0];
+		for (bar=0; bar<barsCnt; bar++) vatr[s*barsCnt+bar]=value1[bar+1];
 		//--
 		handle = iBands(serieSymbol[s], tf, BOLL_period, BOLL_shift, BOLL_deviation, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false); ArraySetAsSeries(value2, false); ArraySetAsSeries(value3, false);
@@ -513,11 +514,11 @@ bool loadStats() {
 			printf("BOLL copyBuffer failed.");
 			return false;
 		}
-		vbollhB[s]=value2[1]; vbollmB[s]=value2[1]; vbolllB[s]=value3[1];
+		vbollhB[s]=value2[0]; vbollmB[s]=value2[0]; vbolllB[s]=value3[0];
 		for (bar=0; bar<barsCnt; bar++) {
-			vbollh[s*barsCnt+bar]=value2[bar+2];
-			vbollm[s*barsCnt+bar]=value1[bar+2];
-			vbolll[s*barsCnt+bar]=value3[bar+2];
+			vbollh[s*barsCnt+bar]=value2[bar+1];
+			vbollm[s*barsCnt+bar]=value1[bar+1];
+			vbolll[s*barsCnt+bar]=value3[bar+1];
 		}
 		//--
 		handle = iDEMA(serieSymbol[s], tf, DEMA_period, DEMA_shift, PRICE_CLOSE);
@@ -526,8 +527,8 @@ bool loadStats() {
 			printf("DEMA copyBuffer failed.");
 			return false;
 		}
-		vdemaB[s]=value1[1];
-		for (bar=0; bar<barsCnt; bar++) vdema[s*barsCnt+bar]=value1[bar+2];
+		vdemaB[s]=value1[0];
+		for (bar=0; bar<barsCnt; bar++) vdema[s*barsCnt+bar]=value1[bar+1];
 		//--
 		handle = iMA(serieSymbol[s], tf, MA_period, MA_shift, MODE_SMA, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false);
@@ -535,8 +536,8 @@ bool loadStats() {
 			printf("MA copyBuffer failed.");
 			return false;
 		}
-		vmaB[s]=value1[1];
-		for (bar=0; bar<barsCnt; bar++) vma[s*barsCnt+bar]=value1[bar+2];
+		vmaB[s]=value1[0];
+		for (bar=0; bar<barsCnt; bar++) vma[s*barsCnt+bar]=value1[bar+1];
 		//--
 		handle = iMomentum(serieSymbol[s], tf, MOM_period, PRICE_CLOSE);
 		ArraySetAsSeries(value1, false);
@@ -544,8 +545,8 @@ bool loadStats() {
 			printf("MOM copyBuffer failed.");
 			return false;
 		}
-		vmomB[s]=value1[1];
-		for (bar=0; bar<barsCnt; bar++) vmom[s*barsCnt+bar]=value1[bar+2];
+		vmomB[s]=value1[0];
+		for (bar=0; bar<barsCnt; bar++) vmom[s*barsCnt+bar]=value1[bar+1];
 	}
 	return true;
 }
@@ -717,7 +718,21 @@ void drawForecast(double H, double L) {
 	ObjectSetInteger(0, nameE, OBJPROP_HIDDEN, false);
 
 }
-
+void delIndicators() {
+	string cname;
+	for (int i=0; i<3; i++) {
+		cname=ChartIndicatorName(0, 0, 0); printf("cname=%s", cname);
+		if (!ChartIndicatorDelete(0, 0, cname)) {
+			printf("Error (%i) trying to delete indicator %s", GetLastError(), cname);
+		}
+	}
+	for (int i=0; i<4; i++) {
+		cname=ChartIndicatorName(0, 1, 0); printf("cname=%s", cname);
+		if (!ChartIndicatorDelete(0, 1, cname)) {
+			printf("Error (%i) trying to delete indicator %s", GetLastError(), cname);
+		}
+	}
+}
 ENUM_TIMEFRAMES getTimeFrameEnum(string tfS) {
 	if (tfS=="H1") return PERIOD_H1;
 	if (tfS=="D1") return PERIOD_D1;
