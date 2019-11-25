@@ -67,6 +67,7 @@ long serieFeatMask[MT_MAX_SERIES_CNT];
 long OUTserieFeatMask[MT_MAX_SERIES_CNT];
 bool chartTrade[MT_MAX_SERIES_CNT];
 //--
+#define INDICATORS_CNT 7
 int ATR_MAperiod=15;
 int EMA_fastPeriod=5;
 int EMA_slowPeriod=10;
@@ -80,6 +81,7 @@ int DEMA_shift=0;
 int MA_period=10;
 int MA_shift=0;
 int MOM_period=4320;
+int indHandle[];
 //--
 double vopen[], vhigh[], vlow[], vclose[], vvolume[];
 double vmacd[], vcci[], vatr[], vbollh[], vbollm[], vbolll[], vdema[], vma[], vmom[];
@@ -106,7 +108,6 @@ bool SLhit=false;
 int OnInit() {
 
 	extraSteps=0;
-
 	trade.SetExpertMagicNumber(123456);
 	trade.SetDeviationInPoints(10);
 	trade.SetTypeFilling(ORDER_FILLING_RETURN);
@@ -142,7 +143,7 @@ int OnInit() {
 	sSymbolsCSL=CharArrayToString(uSymbolsCSL);
 	sTimeFramesCSL=CharArrayToString(uTimeFramesCSL);
 	sFeaturesCSL=CharArrayToString(uFeaturesCSL);
-	//printf("seriesCnt=%d ; symbolsCSL=%s ; timeFramesCSL=%s, featuresCSL=%s", seriesCnt, sSymbolsCSL, sTimeFramesCSL, sFeaturesCSL);
+	printf("seriesCnt=%d ; symbolsCSL=%s ; timeFramesCSL=%s, featuresCSL=%s", seriesCnt, sSymbolsCSL, sTimeFramesCSL, sFeaturesCSL);
 
 	if (StringSplit(sSymbolsCSL, '|', serieSymbol)!=seriesCnt) {
 		printf("Invalid Symbol CSL");
@@ -170,6 +171,9 @@ int OnInit() {
 		printf("FAILURE: Total Features Count from Client Config (%d) differs from Engine Features Count (%d)", featuresCntFromCfg, featuresCnt);
 		return -1;
 	}
+
+	ArrayResize(indHandle, seriesCnt*INDICATORS_CNT);
+	initStats();
 
 	OUTseriesCnt=1;
 	OUTserieFeatMask[0]=1000000000000+100000000000;	//-- [HIGH,LOW]
@@ -472,46 +476,51 @@ bool loadBars() {
 
 	return true;
 }
+bool initStats() {
+	for (int s=0; s<seriesCnt; s++) {
+		indHandle[s*INDICATORS_CNT+0] = iMACD(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), EMA_fastPeriod, EMA_slowPeriod, EMA_signalPeriod, PRICE_CLOSE);
+		indHandle[s*INDICATORS_CNT+1] = iCCI(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), CCI_MAperiod, PRICE_CLOSE);
+		indHandle[s*INDICATORS_CNT+2] = iATR(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), ATR_MAperiod);
+		indHandle[s*INDICATORS_CNT+3] = iBands(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), BOLL_period, BOLL_shift, BOLL_deviation, PRICE_CLOSE);
+		indHandle[s*INDICATORS_CNT+4] = iDEMA(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), DEMA_period, DEMA_shift, PRICE_CLOSE);
+		indHandle[s*INDICATORS_CNT+5] = iMA(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), MA_period, MA_shift, MODE_SMA, PRICE_CLOSE);
+		indHandle[s*INDICATORS_CNT+6] = iMomentum(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), MOM_period, PRICE_CLOSE);
+	}
+	return true;
+}
 bool loadStats() {
-	ENUM_TIMEFRAMES tf;
-	int copied;
 	int bar;
-	int handle; double value1[]; double value2[]; double value3[];
+	double value1[]; double value2[]; double value3[];
+	ArraySetAsSeries(value1, false);
+	ArraySetAsSeries(value2, false);
+	ArraySetAsSeries(value3, false);
 
 	//-- INPUT Stats
 	for (int s=0; s<seriesCnt; s++) {
-		tf = getTimeFrameEnum(serieTimeFrame[s]);
 		//--
-		handle = iMACD(serieSymbol[s], tf, EMA_fastPeriod, EMA_slowPeriod, EMA_signalPeriod, PRICE_CLOSE);
-		ArraySetAsSeries(value1, false);
-		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+0], 0, 0, barsCnt+2, value1)<=0) {
 			printf("MACD copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vmacdB[s]=value1[0];
 		for (bar=0; bar<barsCnt; bar++) vmacd[s*barsCnt+bar]=value1[bar+1];
 		//--
-		handle = iCCI(serieSymbol[s], tf, CCI_MAperiod, PRICE_CLOSE);
-		ArraySetAsSeries(value1, false);
-		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+1], 0, 0, barsCnt+2, value1)<=0) {
 			printf("CCI copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vcciB[s]=value1[0];
 		for (bar=0; bar<barsCnt; bar++) vcci[s*barsCnt+bar]=value1[bar+1];
 		//--
-		handle = iATR(serieSymbol[s], tf, ATR_MAperiod);
-		ArraySetAsSeries(value1, false);
-		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+2], 0, 0, barsCnt+2, value1)<=0) {
 			printf("ATR copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vatrB[s]=value1[0];
 		for (bar=0; bar<barsCnt; bar++) vatr[s*barsCnt+bar]=value1[bar+1];
 		//--
-		handle = iBands(serieSymbol[s], tf, BOLL_period, BOLL_shift, BOLL_deviation, PRICE_CLOSE);
-		ArraySetAsSeries(value1, false); ArraySetAsSeries(value2, false); ArraySetAsSeries(value3, false);
-		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0||CopyBuffer(handle, 1, 0, barsCnt+2, value2)<=0||CopyBuffer(handle, 2, 0, barsCnt+2, value3)<=0) {
+		
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+3], 0, 0, barsCnt+2, value1)<=0||CopyBuffer(indHandle[s*INDICATORS_CNT+3], 1, 0, barsCnt+2, value2)<=0||CopyBuffer(indHandle[s*INDICATORS_CNT+3], 2, 0, barsCnt+2, value3)<=0) {
 			printf("BOLL copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
@@ -522,27 +531,21 @@ bool loadStats() {
 			vbolll[s*barsCnt+bar]=value3[bar+1];
 		}
 		//--
-		handle = iDEMA(serieSymbol[s], tf, DEMA_period, DEMA_shift, PRICE_CLOSE);
-		ArraySetAsSeries(value1, false);
-		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+4], 0, 0, barsCnt+2, value1)<=0) {
 			printf("DEMA copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vdemaB[s]=value1[0];
 		for (bar=0; bar<barsCnt; bar++) vdema[s*barsCnt+bar]=value1[bar+1];
 		//--
-		handle = iMA(serieSymbol[s], tf, MA_period, MA_shift, MODE_SMA, PRICE_CLOSE);
-		ArraySetAsSeries(value1, false);
-		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+5], 0, 0, barsCnt+2, value1)<=0) {
 			printf("MA copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vmaB[s]=value1[0];
 		for (bar=0; bar<barsCnt; bar++) vma[s*barsCnt+bar]=value1[bar+1];
 		//--
-		handle = iMomentum(serieSymbol[s], tf, MOM_period, PRICE_CLOSE);
-		ArraySetAsSeries(value1, false);
-		if (CopyBuffer(handle, 0, 0, barsCnt+2, value1)<=0) {
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+6], 0, 0, barsCnt+2, value1)<=0) {
 			printf("MOM copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
