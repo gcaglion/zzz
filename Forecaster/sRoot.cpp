@@ -451,8 +451,8 @@ void sRoot::getForecast(int seqId_, int extraSteps_, \
 	}
 	safecall(MT4engine, commit);
 }
-void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit) {
-	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4sessionId, MT4accountId, MT4enginePid, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iLastForecastO, iLastForecastH, iLastForecastL, iLastForecastC, iLastForecastV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
+void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, char* iCurrBarT, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit) {
+	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4sessionId, MT4accountId, MT4enginePid, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iLastForecastO, iLastForecastH, iLastForecastL, iLastForecastC, iLastForecastV, iCurrBarT, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
 }
 void sRoot::saveClientInfo(int sequenceId, double iPositionOpenTime) {
 	char accountStr[64]; sprintf_s(accountStr, 32, "MT5_account_%d", MT4accountId);
@@ -559,18 +559,26 @@ extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seqId_, int e
 
 	return 0;
 }
-extern "C" __declspec(dllexport) int _saveTradeInfo(char* iEnvS, int iPositionTicket, long iPositionOpenTime, long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit) {
+extern "C" __declspec(dllexport) int _saveTradeInfo( \
+		char* iEnvS, int iPositionTicket, long iPositionOpenTime, \
+		long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, \
+		double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, \
+		long iCurrBarT, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, \
+		int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit \
+	) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
-
 	char iPositionOpenTimes[DATE_FORMAT_LEN];
 	char iLastBarTs[DATE_FORMAT_LEN];
+	char iCurrBarTs[DATE_FORMAT_LEN];
+	
 	try {
 		//-- first, convert the 2 dates to string
 		MT4time2str(iPositionOpenTime, DATE_FORMAT_LEN, iPositionOpenTimes);
 		MT4time2str(iLastBarT, DATE_FORMAT_LEN, iLastBarTs);
+		MT4time2str(iCurrBarT, DATE_FORMAT_LEN, iCurrBarTs);
 		//-- then, make the call
-		env->saveTradeInfo(iPositionTicket, iPositionOpenTimes, iLastBarTs, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iLastForecastO, iLastForecastH, iLastForecastL, iLastForecastC, iLastForecastV, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
+		env->saveTradeInfo(iPositionTicket, iPositionOpenTimes, iLastBarTs, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iLastForecastO, iLastForecastH, iLastForecastL, iLastForecastC, iLastForecastV, iCurrBarTs, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
 	}
 	catch (std::exception exc) {
 		return -1;

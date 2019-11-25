@@ -285,6 +285,7 @@ create table TradeInfo(
 	LastForecastL number,
 	LastForecastC number,
 	LastForecastV number,
+	BarT date,
 	ForecastO number,
 	ForecastH number,
 	ForecastL number,
