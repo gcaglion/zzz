@@ -334,11 +334,11 @@ void OnTick() {
 		}
 
 		//-- take first bar from vhighF, vlowF
-		vForecastO=vopenF[tradeSerie*predictionLen+0];
-		vForecastH=vhighF[tradeSerie*predictionLen+0];
-		vForecastL=vlowF[tradeSerie*predictionLen+0];
-		vForecastC=vcloseF[tradeSerie*predictionLen+0];
-		vForecastV=vvolumeF[tradeSerie*predictionLen+0];
+		vForecastO=vopenF[tradeSerie*predictionLen+PredictionStep];
+		vForecastH=vhighF[tradeSerie*predictionLen+PredictionStep];
+		vForecastL=vlowF[tradeSerie*predictionLen+PredictionStep];
+		vForecastC=vcloseF[tradeSerie*predictionLen+PredictionStep];
+		vForecastV=vvolumeF[tradeSerie*predictionLen+PredictionStep];
 
 		//=============== Get Actual Future Data, override forecast ======================
 		if (GetActualFutureData) {
@@ -533,7 +533,7 @@ bool loadStats() {
 		vatrB[s]=value1[0];
 		for (bar=0; bar<barsCnt; bar++) vatr[s*barsCnt+bar]=value1[bar+1];
 		//--
-		
+
 		if (CopyBuffer(indHandle[s*INDICATORS_CNT+3], 0, 0, barsCnt+2, value1)<=0||CopyBuffer(indHandle[s*INDICATORS_CNT+3], 1, 0, barsCnt+2, value2)<=0||CopyBuffer(indHandle[s*INDICATORS_CNT+3], 2, 0, barsCnt+2, value3)<=0) {
 			printf("BOLL copyBuffer failed. Error %d", GetLastError());
 			return false;
