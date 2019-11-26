@@ -95,17 +95,7 @@ double OUTvopenB[], OUTvhighB[], OUTvlowB[], OUTvcloseB[], OUTvvolumeB[];
 int OUTvtimeB[]; string OUTvtimeSB[];
 
 double vopenF[], vhighF[], vlowF[], vcloseF[], vvolumeF[];
-double vForecastO, vForecastH, vForecastL, vForecastC, vForecastV;
-double lastForecastO=0;
-double lastForecastH=0;
-double lastForecastL=0;
-double lastForecastC=0;
-double lastForecastV=0;
-double lastlastForecastO=0;
-double lastlastForecastH=0;
-double lastlastForecastL=0;
-double lastlastForecastC=0;
-double lastlastForecastV=0;
+double vForecastO[], vForecastH[], vForecastL[], vForecastC[], vForecastV[];
 
 //--
 MqlRates serierates[];
@@ -185,6 +175,12 @@ int OnInit() {
 
 	ArrayResize(indHandle, seriesCnt*INDICATORS_CNT);
 	initStats();
+
+	ArrayResize(vForecastO, PredictionStep+2);
+	ArrayResize(vForecastH, PredictionStep+2);
+	ArrayResize(vForecastL, PredictionStep+2);
+	ArrayResize(vForecastC, PredictionStep+2);
+	ArrayResize(vForecastV, PredictionStep+2);
 
 	OUTseriesCnt=1;
 	OUTserieFeatMask[0]=1000000000000+100000000000;	//-- [HIGH,LOW]
@@ -333,12 +329,12 @@ void OnTick() {
 			return;
 		}
 
-		//-- take first bar from vhighF, vlowF
-		vForecastO=vopenF[tradeSerie*predictionLen+PredictionStep];
-		vForecastH=vhighF[tradeSerie*predictionLen+PredictionStep];
-		vForecastL=vlowF[tradeSerie*predictionLen+PredictionStep];
-		vForecastC=vcloseF[tradeSerie*predictionLen+PredictionStep];
-		vForecastV=vvolumeF[tradeSerie*predictionLen+PredictionStep];
+		//-- take first bar from vhighF, vlowF into first vForecast[]
+		vForecastO[0]=vopenF[tradeSerie*predictionLen+PredictionStep];
+		vForecastH[0]=vhighF[tradeSerie*predictionLen+PredictionStep];
+		vForecastL[0]=vlowF[tradeSerie*predictionLen+PredictionStep];
+		vForecastC[0]=vcloseF[tradeSerie*predictionLen+PredictionStep];
+		vForecastV[0]=vvolumeF[tradeSerie*predictionLen+PredictionStep];
 
 		//=============== Get Actual Future Data, override forecast ======================
 		if (GetActualFutureData) {
@@ -351,23 +347,23 @@ void OnTick() {
 				printf("_getActualFuture() FAILURE! Exiting...");
 				return;
 			}
-			vForecastO=vopenF[0];
-			vForecastH=vhighF[0];
-			vForecastL=vlowF[0];
-			vForecastC=vcloseF[0];
-			vForecastV=vvolumeF[0];
+			vForecastO[0]=vopenF[0];
+			vForecastH[0]=vhighF[0];
+			vForecastL[0]=vlowF[0];
+			vForecastC[0]=vcloseF[0];
+			vForecastV[0]=vvolumeF[0];
 		}
 		//===============================================================================
 
-		printf("==== Sequence: %d ; Last Bar(%s): H=%6.5f ; L=%6.5f ; C=%6.5f ; Forecast: H=%6.5f ; L=%6.5f ; C=%6.5f", sequenceId, vtimeS[barsCnt-1], vhigh[barsCnt-1], vlow[barsCnt-1], vclose[barsCnt-1], vForecastH, vForecastL, vForecastC);
+		printf("==== Sequence: %d ; Last Bar(%s): H=%6.5f ; L=%6.5f ; C=%6.5f ; Forecast: H=%6.5f ; L=%6.5f ; C=%6.5f", sequenceId, vtimeS[barsCnt-1], vhigh[barsCnt-1], vlow[barsCnt-1], vclose[barsCnt-1], vForecastH[0], vForecastL[0], vForecastC[0]);
 		//-- check for forecast consistency in first bar (H>L)
-		if (vForecastL>vForecastH) {
-			printf("Invalid Forecast: H=%6.5f ; L=%6.5f . Exiting...", vForecastH, vForecastL);
+		if (vForecastL[0]>vForecastH[0]) {
+			printf("Invalid Forecast: H=%6.5f ; L=%6.5f . Exiting...", vForecastH[0], vForecastL[0]);
 		} else {
 			//printf("current=%f ; last=%f ; lastlast=%f", vForecastH, lastForecastH, lastlastForecastH);
 
 			//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
-			drawForecast(vForecastH, vForecastL, PredictionStep);
+			drawForecast(vForecastH[0], vForecastL[0], PredictionStep);
 
 			//-- define trade scenario based on current price level and forecast
 			tradeScenario=getTradeScenario(tradeTP, tradeSL);
@@ -391,7 +387,7 @@ void OnTick() {
 			//-- save tradeInfo, even if we do not trade
 			CopyRates(Symbol(), Period(), 0,1, serierates);
 			int idx=tradeSerie*barsCnt+barsCnt-1;
-			if (_saveTradeInfo(vEnvS, (int)vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], (PredictionStep>0)?lastlastForecastO:lastForecastO, (PredictionStep>0) ? lastlastForecastH:lastForecastH, (PredictionStep>0) ? lastlastForecastL:lastForecastL, (PredictionStep>0) ? lastlastForecastC:lastForecastC, (PredictionStep>0) ? lastlastForecastV:lastForecastV, serierates[0].time, (PredictionStep>0) ? lastForecastO:vForecastO, (PredictionStep>0) ? lastForecastH:vForecastH, (PredictionStep>0) ? lastForecastL:vForecastL, (PredictionStep>0) ? lastForecastC:vForecastC, (PredictionStep>0) ? lastForecastV:vForecastV, tradeScenario, tradeResult, TPhit, SLhit)<0) {
+			if (_saveTradeInfo(vEnvS, (int)vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], vForecastO[PredictionStep], vForecastH[PredictionStep], vForecastL[PredictionStep], vForecastC[PredictionStep], vForecastV[PredictionStep], serierates[0].time, vForecastO[PredictionStep], vForecastH[PredictionStep], vForecastL[PredictionStep], vForecastC[PredictionStep], vForecastV[PredictionStep], tradeScenario, tradeResult, TPhit, SLhit)<0) {
 				printf("_saveTradeInfo() failed. see Forecaster logs.");
 				return;
 			}
@@ -405,18 +401,14 @@ void OnTick() {
 			_commit(vEnvS);
 		}
 
-		lastlastForecastO=lastForecastO;
-		lastlastForecastH=lastForecastH;
-		lastlastForecastL=lastForecastL;
-		lastlastForecastC=lastForecastC;
-		lastlastForecastV=lastForecastV;
-		lastForecastO=vForecastO;
-		lastForecastH=vForecastH;
-		lastForecastL=vForecastL;
-		lastForecastC=vForecastC;
-		lastForecastV=vForecastV;
-
-		
+		//-- shift vForecast back
+		for (int i=(PredictionStep+(PredictionStep>0 ? 0 : 1)); i>0; i--) {
+			vForecastO[i]=vForecastO[i-1];
+			vForecastH[i]=vForecastH[i-1];
+			vForecastL[i]=vForecastL[i-1];
+			vForecastC[i]=vForecastC[i-1];
+			vForecastV[i]=vForecastV[i-1];
+		}	
 
 	}
 	sequenceId++;
@@ -578,9 +570,9 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 	MqlTick tick;
 	if (SymbolInfoTick(Symbol(), tick)) {
 
-		double fH=vForecastH;
-		double fL=vForecastL;
-		double fC=vForecastC;
+		double fH=vForecastH[PredictionStep];
+		double fL=vForecastL[PredictionStep];
+		double fC=vForecastC[PredictionStep];
 		double cH=tick.ask;
 		double cL=tick.bid;
 		double dH=fH-cH;
