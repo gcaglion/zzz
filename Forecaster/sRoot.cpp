@@ -423,8 +423,10 @@ void sRoot::getForecast(int seqId_, int extraSteps_, \
 
 	for (int s=0; s<(sampleBarsCnt+targetBarsCnt); s++) info("mtTS: %s: act[%d]=%7.6f ; actTR[%d]=%7.6f ; prdTR[%d]=%7.6f ; prd[%d]=%7.6f", mtTS->timestamp[s][1], s, mtTS->val[s][1][0][0][0], s, mtTS->valTR[s][1][0][0][0], s, mtTS->prdTR[s][1][0][0][0], s, mtTS->prd[s][1][0][0][0]);
 
-	int fi;
-	fi=0;
+	for (int i=0; i<MT4engine->outputCnt; i++) {
+		oForecastO[i]=0; oForecastH[i]=0; oForecastL[i]=0; oForecastC[i]=0; oForecastV[i]=0;
+	}
+	int fi=0;
 	for (int x=0; x<(extraSteps_+1); x++) {
 		for (int b=0; b<MT4engine->targetLen; b++) {
 			for (int s=0; s<oseriesCnt_; s++) {
@@ -612,7 +614,7 @@ extern "C" __declspec(dllexport) int _destroyEnv(char* iEnvS) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
 
-	delete env;
+	//delete env;
 
 	return 0;
 }
