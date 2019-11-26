@@ -95,7 +95,18 @@ double OUTvopenB[], OUTvhighB[], OUTvlowB[], OUTvcloseB[], OUTvvolumeB[];
 int OUTvtimeB[]; string OUTvtimeSB[];
 
 double vopenF[], vhighF[], vlowF[], vcloseF[], vvolumeF[];
-double vForecastH, vForecastL, vForecastC;
+double vForecastO, vForecastH, vForecastL, vForecastC, vForecastV;
+double lastForecastO=0;
+double lastForecastH=0;
+double lastForecastL=0;
+double lastForecastC=0;
+double lastForecastV=0;
+double lastlastForecastO=0;
+double lastlastForecastH=0;
+double lastlastForecastL=0;
+double lastlastForecastC=0;
+double lastlastForecastV=0;
+
 //--
 MqlRates serierates[];
 //--
@@ -234,8 +245,6 @@ int OnInit() {
 	ArrayResize(vcloseF, predictionLen*seriesCnt);
 	ArrayResize(vvolumeF, predictionLen*seriesCnt);
 
-	OnTick();
-
 	return 0;
 
 }
@@ -250,12 +259,6 @@ void OnTick() {
 	static double tradeTP=0;
 	static double tradeSL=0;
 	MqlTick tick;
-
-	static double lastForecastO=0;
-	static double lastForecastH=0;
-	static double lastForecastL=0;
-	static double lastForecastC=0;
-	static double lastForecastV=0;
 
 	if (maxSteps<0||sequenceId<maxSteps) {
 
@@ -331,9 +334,11 @@ void OnTick() {
 		}
 
 		//-- take first bar from vhighF, vlowF
+		vForecastO=vopenF[tradeSerie*predictionLen+PredictionStep];
 		vForecastH=vhighF[tradeSerie*predictionLen+PredictionStep];
 		vForecastL=vlowF[tradeSerie*predictionLen+PredictionStep];
 		vForecastC=vcloseF[tradeSerie*predictionLen+PredictionStep];
+		vForecastV=vvolumeF[tradeSerie*predictionLen+PredictionStep];
 
 		//=============== Get Actual Future Data, override forecast ======================
 		if (GetActualFutureData) {
@@ -346,9 +351,11 @@ void OnTick() {
 				printf("_getActualFuture() FAILURE! Exiting...");
 				return;
 			}
+			vForecastO=vopenF[0];
 			vForecastH=vhighF[0];
 			vForecastL=vlowF[0];
 			vForecastC=vcloseF[0];
+			vForecastV=vvolumeF[0];
 		}
 		//===============================================================================
 
@@ -357,8 +364,10 @@ void OnTick() {
 		if (vForecastL>vForecastH) {
 			printf("Invalid Forecast: H=%6.5f ; L=%6.5f . Exiting...", vForecastH, vForecastL);
 		} else {
+			//printf("current=%f ; last=%f ; lastlast=%f", vForecastH, lastForecastH, lastlastForecastH);
+
 			//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
-			drawForecast(vForecastH, vForecastL);
+			drawForecast(vForecastH, vForecastL, PredictionStep);
 
 			//-- define trade scenario based on current price level and forecast
 			tradeScenario=getTradeScenario(tradeTP, tradeSL);
@@ -382,7 +391,7 @@ void OnTick() {
 			//-- save tradeInfo, even if we do not trade
 			CopyRates(Symbol(), Period(), 0,1, serierates);
 			int idx=tradeSerie*barsCnt+barsCnt-1;
-			if (_saveTradeInfo(vEnvS, (int)vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], lastForecastO, lastForecastH, lastForecastL, lastForecastC, lastForecastV, serierates[0].time, vopenF[tradeSerie*predictionLen+PredictionStep], vhighF[tradeSerie*predictionLen+PredictionStep], vlowF[tradeSerie*predictionLen+PredictionStep], vcloseF[tradeSerie*predictionLen+PredictionStep], vvolumeF[tradeSerie*predictionLen+PredictionStep], tradeScenario, tradeResult, TPhit, SLhit)<0) {
+			if (_saveTradeInfo(vEnvS, (int)vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], (PredictionStep>0)?lastlastForecastO:lastForecastO, (PredictionStep>0) ? lastlastForecastH:lastForecastH, (PredictionStep>0) ? lastlastForecastL:lastForecastL, (PredictionStep>0) ? lastlastForecastC:lastForecastC, (PredictionStep>0) ? lastlastForecastV:lastForecastV, serierates[0].time, (PredictionStep>0) ? lastForecastO:vForecastO, (PredictionStep>0) ? lastForecastH:vForecastH, (PredictionStep>0) ? lastForecastL:vForecastL, (PredictionStep>0) ? lastForecastC:vForecastC, (PredictionStep>0) ? lastForecastV:vForecastV, tradeScenario, tradeResult, TPhit, SLhit)<0) {
 				printf("_saveTradeInfo() failed. see Forecaster logs.");
 				return;
 			}
@@ -396,11 +405,18 @@ void OnTick() {
 			_commit(vEnvS);
 		}
 
-		lastForecastO=vopenF[tradeSerie*predictionLen+PredictionStep];
-		lastForecastH=vhighF[tradeSerie*predictionLen+PredictionStep];
-		lastForecastL=vlowF[tradeSerie*predictionLen+PredictionStep];
-		lastForecastC=vcloseF[tradeSerie*predictionLen+PredictionStep];
-		lastForecastV=vvolumeF[tradeSerie*predictionLen+PredictionStep];
+		lastlastForecastO=lastForecastO;
+		lastlastForecastH=lastForecastH;
+		lastlastForecastL=lastForecastL;
+		lastlastForecastC=lastForecastC;
+		lastlastForecastV=lastForecastV;
+		lastForecastO=vForecastO;
+		lastForecastH=vForecastH;
+		lastForecastL=vForecastL;
+		lastForecastC=vForecastC;
+		lastForecastV=vForecastV;
+
+		
 
 	}
 	sequenceId++;
@@ -421,7 +437,7 @@ bool loadBars() {
 	//-- INPUT Series/Features
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
-		copied=CopyRates(serieSymbol[s], tf, 1, barsCnt+PredictionStep+1, serierates);	//printf("copied[%d]=%d", s, copied);
+		copied=CopyRates(serieSymbol[s], tf, 0, barsCnt+PredictionStep+1, serierates);	//printf("copied[%d]=%d", s, copied);
 		if (copied!=(barsCnt+PredictionStep+1)) return false;
 		//-- base bar
 		vtimeB[s]=serierates[0].time;// +TimeGMTOffset();
@@ -496,37 +512,37 @@ bool loadStats() {
 	for (int s=0; s<seriesCnt; s++) {
 		//--
 
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+0], 0, 0, barsCnt+2, value1)<=0) {
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+0], 0, 0, barsCnt+1+PredictionStep, value1)<=0) {
 			printf("MACD copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vmacdB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vmacd[s*barsCnt+bar]=value1[bar+1];
+		for (bar=0; bar<barsCnt; bar++) vmacd[s*barsCnt+bar]=value1[bar+PredictionStep];
 		//--
 		if (CopyBuffer(indHandle[s*INDICATORS_CNT+1], 0, 0, barsCnt+2, value1)<=0) {
 			printf("CCI copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vcciB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vcci[s*barsCnt+bar]=value1[bar+1];
+		for (bar=0; bar<barsCnt; bar++) vcci[s*barsCnt+bar]=value1[bar+PredictionStep];
 		//--
 		if (CopyBuffer(indHandle[s*INDICATORS_CNT+2], 0, 0, barsCnt+2, value1)<=0) {
 			printf("ATR copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vatrB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vatr[s*barsCnt+bar]=value1[bar+1];
+		for (bar=0; bar<barsCnt; bar++) vatr[s*barsCnt+bar]=value1[bar+PredictionStep];
 		//--
-		
+
 		if (CopyBuffer(indHandle[s*INDICATORS_CNT+3], 0, 0, barsCnt+2, value1)<=0||CopyBuffer(indHandle[s*INDICATORS_CNT+3], 1, 0, barsCnt+2, value2)<=0||CopyBuffer(indHandle[s*INDICATORS_CNT+3], 2, 0, barsCnt+2, value3)<=0) {
 			printf("BOLL copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vbollhB[s]=value2[0]; vbollmB[s]=value2[0]; vbolllB[s]=value3[0];
 		for (bar=0; bar<barsCnt; bar++) {
-			vbollh[s*barsCnt+bar]=value2[bar+1];
-			vbollm[s*barsCnt+bar]=value1[bar+1];
-			vbolll[s*barsCnt+bar]=value3[bar+1];
+			vbollh[s*barsCnt+bar]=value2[bar+PredictionStep];
+			vbollm[s*barsCnt+bar]=value1[bar+PredictionStep];
+			vbolll[s*barsCnt+bar]=value3[bar+PredictionStep];
 		}
 		//--
 		if (CopyBuffer(indHandle[s*INDICATORS_CNT+4], 0, 0, barsCnt+2, value1)<=0) {
@@ -534,21 +550,21 @@ bool loadStats() {
 			return false;
 		}
 		vdemaB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vdema[s*barsCnt+bar]=value1[bar+1];
+		for (bar=0; bar<barsCnt; bar++) vdema[s*barsCnt+bar]=value1[bar+PredictionStep];
 		//--
 		if (CopyBuffer(indHandle[s*INDICATORS_CNT+5], 0, 0, barsCnt+2, value1)<=0) {
 			printf("MA copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vmaB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vma[s*barsCnt+bar]=value1[bar+1];
+		for (bar=0; bar<barsCnt; bar++) vma[s*barsCnt+bar]=value1[bar+PredictionStep];
 		//--
 		if (CopyBuffer(indHandle[s*INDICATORS_CNT+6], 0, 0, barsCnt+2, value1)<=0) {
 			printf("MOM copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vmomB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vmom[s*barsCnt+bar]=value1[bar+1];
+		for (bar=0; bar<barsCnt; bar++) vmom[s*barsCnt+bar]=value1[bar+PredictionStep];
 	}
 	return true;
 }
@@ -706,13 +722,14 @@ int NewTrade(int cmd, double volume, double TP, double SL) {
 		return 0;
 	}
 }
-void drawForecast(double H, double L) {
+void drawForecast(double H, double L, int shift) {
 	//-- https://www.youtube.com/watch?v=Y3e1zVROJlY
 
 	//-- get last bar and new bar
 	MqlRates rates[];
 	int copied=CopyRates(NULL, 0, 0, 2, rates);
 	if (copied<=0) Print("Error copying price data ", GetLastError());
+	rates[0].time+=shift*3600; rates[1].time+=shift*3600;
 
 	string nameE;
 	StringConcatenate(nameE, "Forecast", TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES), " H=", DoubleToString(H, 5), " ; L=", DoubleToString(L, 5));
