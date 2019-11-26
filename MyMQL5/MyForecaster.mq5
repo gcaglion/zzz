@@ -245,8 +245,6 @@ int OnInit() {
 	ArrayResize(vcloseF, predictionLen*seriesCnt);
 	ArrayResize(vvolumeF, predictionLen*seriesCnt);
 
-	OnTick();
-
 	return 0;
 
 }
