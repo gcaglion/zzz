@@ -95,7 +95,18 @@ double OUTvopenB[], OUTvhighB[], OUTvlowB[], OUTvcloseB[], OUTvvolumeB[];
 int OUTvtimeB[]; string OUTvtimeSB[];
 
 double vopenF[], vhighF[], vlowF[], vcloseF[], vvolumeF[];
-double vForecastH, vForecastL, vForecastC;
+double vForecastO, vForecastH, vForecastL, vForecastC, vForecastV;
+double lastForecastO=0;
+double lastForecastH=0;
+double lastForecastL=0;
+double lastForecastC=0;
+double lastForecastV=0;
+double lastlastForecastO=0;
+double lastlastForecastH=0;
+double lastlastForecastL=0;
+double lastlastForecastC=0;
+double lastlastForecastV=0;
+
 //--
 MqlRates serierates[];
 //--
@@ -251,12 +262,6 @@ void OnTick() {
 	static double tradeSL=0;
 	MqlTick tick;
 
-	static double lastForecastO=0;
-	static double lastForecastH=0;
-	static double lastForecastL=0;
-	static double lastForecastC=0;
-	static double lastForecastV=0;
-
 	if (maxSteps<0||sequenceId<maxSteps) {
 
 		//-- manually check for TP/SL
@@ -331,9 +336,11 @@ void OnTick() {
 		}
 
 		//-- take first bar from vhighF, vlowF
-		vForecastH=vhighF[tradeSerie*predictionLen+PredictionStep];
-		vForecastL=vlowF[tradeSerie*predictionLen+PredictionStep];
-		vForecastC=vcloseF[tradeSerie*predictionLen+PredictionStep];
+		vForecastO=vopenF[tradeSerie*predictionLen+0];
+		vForecastH=vhighF[tradeSerie*predictionLen+0];
+		vForecastL=vlowF[tradeSerie*predictionLen+0];
+		vForecastC=vcloseF[tradeSerie*predictionLen+0];
+		vForecastV=vvolumeF[tradeSerie*predictionLen+0];
 
 		//=============== Get Actual Future Data, override forecast ======================
 		if (GetActualFutureData) {
@@ -346,9 +353,11 @@ void OnTick() {
 				printf("_getActualFuture() FAILURE! Exiting...");
 				return;
 			}
+			vForecastO=vopenF[0];
 			vForecastH=vhighF[0];
 			vForecastL=vlowF[0];
 			vForecastC=vcloseF[0];
+			vForecastV=vvolumeF[0];
 		}
 		//===============================================================================
 
@@ -357,6 +366,8 @@ void OnTick() {
 		if (vForecastL>vForecastH) {
 			printf("Invalid Forecast: H=%6.5f ; L=%6.5f . Exiting...", vForecastH, vForecastL);
 		} else {
+			//printf("current=%f ; last=%f ; lastlast=%f", vForecastH, lastForecastH, lastlastForecastH);
+
 			//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
 			drawForecast(vForecastH, vForecastL);
 
@@ -382,7 +393,7 @@ void OnTick() {
 			//-- save tradeInfo, even if we do not trade
 			CopyRates(Symbol(), Period(), 0,1, serierates);
 			int idx=tradeSerie*barsCnt+barsCnt-1;
-			if (_saveTradeInfo(vEnvS, (int)vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], lastForecastO, lastForecastH, lastForecastL, lastForecastC, lastForecastV, serierates[0].time, vopenF[tradeSerie*predictionLen+PredictionStep], vhighF[tradeSerie*predictionLen+PredictionStep], vlowF[tradeSerie*predictionLen+PredictionStep], vcloseF[tradeSerie*predictionLen+PredictionStep], vvolumeF[tradeSerie*predictionLen+PredictionStep], tradeScenario, tradeResult, TPhit, SLhit)<0) {
+			if (_saveTradeInfo(vEnvS, (int)vTicket, positionTime, vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], (PredictionStep>0)?lastlastForecastO:lastForecastO, (PredictionStep>0) ? lastlastForecastH:lastForecastH, (PredictionStep>0) ? lastlastForecastL:lastForecastL, (PredictionStep>0) ? lastlastForecastC:lastForecastC, (PredictionStep>0) ? lastlastForecastV:lastForecastV, serierates[0].time, (PredictionStep>0) ? lastForecastO:vForecastO, (PredictionStep>0) ? lastForecastH:vForecastH, (PredictionStep>0) ? lastForecastL:vForecastL, (PredictionStep>0) ? lastForecastC:vForecastC, (PredictionStep>0) ? lastForecastV:vForecastV, tradeScenario, tradeResult, TPhit, SLhit)<0) {
 				printf("_saveTradeInfo() failed. see Forecaster logs.");
 				return;
 			}
@@ -396,11 +407,18 @@ void OnTick() {
 			_commit(vEnvS);
 		}
 
-		lastForecastO=vopenF[tradeSerie*predictionLen+PredictionStep];
-		lastForecastH=vhighF[tradeSerie*predictionLen+PredictionStep];
-		lastForecastL=vlowF[tradeSerie*predictionLen+PredictionStep];
-		lastForecastC=vcloseF[tradeSerie*predictionLen+PredictionStep];
-		lastForecastV=vvolumeF[tradeSerie*predictionLen+PredictionStep];
+		lastlastForecastO=lastForecastO;
+		lastlastForecastH=lastForecastH;
+		lastlastForecastL=lastForecastL;
+		lastlastForecastC=lastForecastC;
+		lastlastForecastV=lastForecastV;
+		lastForecastO=vForecastO;
+		lastForecastH=vForecastH;
+		lastForecastL=vForecastL;
+		lastForecastC=vForecastC;
+		lastForecastV=vForecastV;
+
+		
 
 	}
 	sequenceId++;
