@@ -9,7 +9,7 @@
 
 #import "Forecaster.dll"
 //--
-int _createEnv(int accountId_, uchar& clientXMLFile_[], int savedEnginePid_, bool doDump_, uchar& oEnv[], int& oSampleLen_, int &oPredictionLen_, int &oFeaturesCnt_, int &oBatchSize_);
+int _createEnv(int accountId_, int simulationId_, uchar& clientXMLFile_[], int savedEnginePid_, bool doDump_, uchar& oEnv[], int& oSampleLen_, int &oPredictionLen_, int &oFeaturesCnt_, int &oBatchSize_);
 int _getSeriesInfo(uchar& iEnv[], int& oSeriesCnt_, uchar& oSymbolsCSL_[], uchar& oTimeFramesCSL_[], uchar& oFeaturesCSL_[], bool& oChartTrade[]);
 int _getForecast(uchar& iEnv[], int seqId_, int extraSteps_, int iseriesCnt_, long& ifeatMask_[], int& iBarT[], double &iBarO[], double &iBarH[], double &iBarL[], double &iBarC[], double &iBarV[], double &iBarMACD[], double &iBarCCI[], double &iBarATR[], double &iBarBOLLH[], double &iBarBOLLM[], double &iBarBOLLL[], double &iBarDEMA[], double &iBarMA[], double &iBarMOM[], int &iBaseBarT[], double &iBaseBarO[], double &iBaseBarH[], double &iBaseBarL[], double &iBaseBarC[], double &iBaseBarV[], double &iBaseBarMACD[], double &iBaseBarCCI[], double &iBaseBarATR[], double &iBaseBarBOLLH[], double &iBaseBarBOLLM[], double &iBaseBarBOLLL[], double &iBaseBarDEMA[], double &iBaseBarMA[], double &iBaseBarMOM[], int oseriesCnt_, long& ofeatMask_[], int &oBarT[], double &oBarO[], double &oBarH[], double &oBarL[], double &oBarC[], double &oBarV[], int &oBaseBarT[], double &oBaseBarO[], double &oBaseBarH[], double &oBaseBarL[], double &oBaseBarC[], double &oBaseBarV[], double &oForecastO[], double &oForecastH[], double &oForecastL[], double &oForecastC[], double &oForecastV[]);
 int _getActualFuture(uchar& iEnv[], uchar& iSymbol_[], uchar& iTF_[], uchar& iDate0_[], uchar& oDate1_[], double &oBarO[], double &oBarH[], double &oBarL[], double &oBarC[], double &oBarV[]);
@@ -31,6 +31,7 @@ input int EnginePid				= 1919;
 input string ClientXMLFile		= "C:/Users/gcaglion/dev/zzz/Config/Client.xml";
 input bool DumpData				= true;
 input bool SaveLogs				= false;
+input int SimulationId			= 321;
 input int PredictionStep		= 1;
 input bool GetActualFutureData	= false;
 //-- input parameters - Trade stuff
@@ -124,7 +125,7 @@ int OnInit() {
 
 	//--
 	printf("Creating Environment from saved engine (pid=%d) ...", vEnginePid);
-	if (_createEnv((int)AccountInfoInteger(ACCOUNT_LOGIN), vClientXMLFileS, vEnginePid, vDumpData, vEnvS, historyLen, predictionLen, featuresCnt, batchSize)!=0) {
+	if (_createEnv((int)AccountInfoInteger(ACCOUNT_LOGIN), SimulationId, vClientXMLFileS, vEnginePid, vDumpData, vEnvS, historyLen, predictionLen, featuresCnt, batchSize)!=0) {
 		printf("FAILURE: _createEnv() failed. see Forecaster logs.");
 		return -1;
 	}

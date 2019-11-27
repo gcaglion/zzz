@@ -461,11 +461,12 @@ void sRoot::saveClientInfo(int sequenceId, double iPositionOpenTime) {
 	info("MT4enginePid=%d", MT4enginePid);
 	safecall(MT4clientLog, saveClientInfo, MT4clientPid, sequenceId, MT4sessionId, MT4enginePid, accountStr, iPositionOpenTime, 0, "", "", "", false, true, "", "", "", "");
 }
-void sRoot::setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int savedEnginePid_, bool doDump_) {
+void sRoot::setMT4env(int clientPid_, int accountId_, int simulationId_, char* clientXMLFile_, int savedEnginePid_, bool doDump_) {
 	MT4clientPid=clientPid_;
 	MT4accountId=accountId_;
 	MT4enginePid=savedEnginePid_;
 	MT4doDump=doDump_;
+	MT4sessionId=simulationId_;
 
 	//-- client Configurator ----------------------------------------------------------------
 	strcpy_s(MT4clientXMLFile, MAX_PATH, clientXMLFile_);
@@ -479,9 +480,6 @@ void sRoot::setMT4env(int clientPid_, int accountId_, char* clientXMLFile_, int 
 	safespawn(MT4clientLog, newsname("ClientLogger"), defaultdbg, MT4clientCfg, "Persistor");
 	//-----------------------------------------------------------------------------------------
 
-	//-- random sessionId generation
-	srand((unsigned int)time(NULL));
-	MT4sessionId=MyRndInt(1, 1000000); info("MT4sessionId=%d", MT4sessionId);
 }
 void sRoot::MT4createEngine(int* oSampleLen_, int* oPredictionLen_, int* oFeaturesCnt_, int* oBatchSize) {
 
@@ -509,12 +507,12 @@ void sRoot::MT4commit() {
 	}
 }
 //--
-extern "C" __declspec(dllexport) int _createEnv(int accountId_, char* clientXMLFile_, int savedEnginePid_, bool doDump_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_, int* oFeaturesCnt_, int* oBatchSize_) {
+extern "C" __declspec(dllexport) int _createEnv(int accountId_, int simulationId_, char* clientXMLFile_, int savedEnginePid_, bool doDump_, char* oEnvS, int* oSampleLen_, int* oPredictionLen_, int* oFeaturesCnt_, int* oBatchSize_) {
 	static sRoot* root;
 	try {
 		root=new sRoot(nullptr);
 		sprintf_s(oEnvS, 64, "%p", root);
-		root->setMT4env(GetCurrentProcessId(), accountId_, clientXMLFile_, savedEnginePid_, doDump_);
+		root->setMT4env(GetCurrentProcessId(), accountId_, simulationId_, clientXMLFile_, savedEnginePid_, doDump_);
 		root->MT4createEngine(oSampleLen_, oPredictionLen_, oFeaturesCnt_, oBatchSize_);
 	}
 	catch (std::exception exc) {
