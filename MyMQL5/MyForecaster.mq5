@@ -399,7 +399,6 @@ void OnTick() {
 				tradeTime[PredictionStep]=PositionGetInteger(POSITION_TIME);
 			}
 
-			shiftForecast();
 		}
 
 		if (SaveLogs) {
@@ -407,7 +406,7 @@ void OnTick() {
 			CopyRates(Symbol(), Period(), 0,1, serierates);
 			int idx=tradeSerie*barsCnt+barsCnt-1;
 			printf("TPhit=%d ;SLhit=%d", TPhit,SLhit);
-			if (_saveTradeInfo(vEnvS, (int)tradeTicket[PredictionStep], tradeTime[PredictionStep], vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], vForecastO[PredictionStep], vForecastH[PredictionStep], vForecastL[PredictionStep], vForecastC[PredictionStep], vForecastV[PredictionStep], serierates[0].time, vForecastO[PredictionStep], vForecastH[PredictionStep], vForecastL[PredictionStep], vForecastC[PredictionStep], vForecastV[PredictionStep], tradeScenario[PredictionStep], tradeResult[PredictionStep], TPhit, SLhit)<0) {
+			if (_saveTradeInfo(vEnvS, (int)tradeTicket[PredictionStep], tradeTime[PredictionStep], vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], vForecastO[PredictionStep+1], vForecastH[PredictionStep+1], vForecastL[PredictionStep+1], vForecastC[PredictionStep+1], vForecastV[PredictionStep+1], serierates[0].time, vForecastO[PredictionStep], vForecastH[PredictionStep], vForecastL[PredictionStep], vForecastC[PredictionStep], vForecastV[PredictionStep], tradeScenario[PredictionStep], tradeResult[PredictionStep], TPhit, SLhit)<0) {
 				printf("_saveTradeInfo() failed. see Forecaster logs.");
 				return;
 			}
@@ -420,8 +419,7 @@ void OnTick() {
 			//-- commit
 			_commit(vEnvS);
 		}
-
-
+		shiftForecast();
 	}
 }
 void shiftForecast() {
@@ -456,7 +454,7 @@ bool loadBars() {
 	//-- INPUT Series/Features
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
-		copied=CopyRates(serieSymbol[s], tf, 0, barsCnt+1, serierates);	//printf("copied[%d]=%d", s, copied);
+		copied=CopyRates(serieSymbol[s], tf, 1, barsCnt+1, serierates);	//printf("copied[%d]=%d", s, copied);
 		if (copied!=(barsCnt+1)) return false;
 		//-- base bar
 		vtimeB[s]=serierates[0].time;// +TimeGMTOffset();
@@ -531,59 +529,58 @@ bool loadStats() {
 	for (int s=0; s<seriesCnt; s++) {
 		//--
 
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+0], 0, 0, barsCnt+1+PredictionStep, value1)<=0) {
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+0], 0, 1, barsCnt+1, value1)<=0) {
 			printf("MACD copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vmacdB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vmacd[s*barsCnt+bar]=value1[bar+PredictionStep];
+		for (bar=0; bar<barsCnt; bar++) vmacd[s*barsCnt+bar]=value1[bar+1];
 		//--
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+1], 0, 0, barsCnt+1+PredictionStep, value1)<=0) {
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+1], 0, 1, barsCnt+1, value1)<=0) {
 			printf("CCI copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vcciB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vcci[s*barsCnt+bar]=value1[bar+PredictionStep];
+		for (bar=0; bar<barsCnt; bar++) vcci[s*barsCnt+bar]=value1[bar+1];
 		//--
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+2], 0, 0, barsCnt+1+PredictionStep, value1)<=0) {
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+2], 0, 1, barsCnt+1, value1)<=0) {
 			printf("ATR copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vatrB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vatr[s*barsCnt+bar]=value1[bar+PredictionStep];
+		for (bar=0; bar<barsCnt; bar++) vatr[s*barsCnt+bar]=value1[bar+1];
 		//--
-
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+3], 0, 0, barsCnt+1+PredictionStep, value1)<=0||CopyBuffer(indHandle[s*INDICATORS_CNT+3], 1, 0, barsCnt+1+PredictionStep, value2)<=0||CopyBuffer(indHandle[s*INDICATORS_CNT+3], 2, 0, barsCnt+1+PredictionStep, value3)<=0) {
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+3], 0, 1, barsCnt+1, value1)<=0||CopyBuffer(indHandle[s*INDICATORS_CNT+3], 1, 1, barsCnt+1, value2)<=0||CopyBuffer(indHandle[s*INDICATORS_CNT+3], 2, 1, barsCnt+1, value3)<=0) {
 			printf("BOLL copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vbollhB[s]=value2[0]; vbollmB[s]=value2[0]; vbolllB[s]=value3[0];
 		for (bar=0; bar<barsCnt; bar++) {
-			vbollh[s*barsCnt+bar]=value2[bar+PredictionStep];
-			vbollm[s*barsCnt+bar]=value1[bar+PredictionStep];
-			vbolll[s*barsCnt+bar]=value3[bar+PredictionStep];
+			vbollh[s*barsCnt+bar]=value2[bar+1];
+			vbollm[s*barsCnt+bar]=value1[bar+1];
+			vbolll[s*barsCnt+bar]=value3[bar+1];
 		}
 		//--
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+4], 0, 0, barsCnt+1+PredictionStep, value1)<=0) {
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+4], 0, 1, barsCnt+1, value1)<=0) {
 			printf("DEMA copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vdemaB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vdema[s*barsCnt+bar]=value1[bar+PredictionStep];
+		for (bar=0; bar<barsCnt; bar++) vdema[s*barsCnt+bar]=value1[bar+1];
 		//--
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+5], 0, 0, barsCnt+1+PredictionStep, value1)<=0) {
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+5], 0, 1, barsCnt+1, value1)<=0) {
 			printf("MA copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vmaB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vma[s*barsCnt+bar]=value1[bar+PredictionStep];
+		for (bar=0; bar<barsCnt; bar++) vma[s*barsCnt+bar]=value1[bar+1];
 		//--
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+6], 0, 0, barsCnt+1+PredictionStep, value1)<=0) {
+		if (CopyBuffer(indHandle[s*INDICATORS_CNT+6], 0, 1, barsCnt+1, value1)<=0) {
 			printf("MOM copyBuffer failed. Error %d", GetLastError());
 			return false;
 		}
 		vmomB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vmom[s*barsCnt+bar]=value1[bar+PredictionStep];
+		for (bar=0; bar<barsCnt; bar++) vmom[s*barsCnt+bar]=value1[bar+1];
 	}
 	return true;
 }
