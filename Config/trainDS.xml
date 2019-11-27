@@ -10,7 +10,7 @@
 			<DataSource0>
 				<! FXDB-EURUSDH1.xml >
 				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
-				DataTransformation	= DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA
+				DataTransformation	= DT_NONE,DT_NONE,DT_NONE,DT_NONE
 			</DataSource0>
 			<DataSource1>
 				<! FXDB-SPXUSDH1.xml >
@@ -28,7 +28,7 @@
 			<DataSource0>
 				<! FXDB-EURUSDH1.xml >
 				SelectedFeatures = FXHIGH, FXLOW
-				DataTransformation	= DT_DELTA,DT_DELTA
+				DataTransformation	= DT_NONE,DT_NONE
 			</DataSource0>
 			WaveletType	= WT_NONE
 			DecompLevel = 0

@@ -96,13 +96,13 @@ int OUTvtimeB[]; string OUTvtimeSB[];
 //--
 double vopenF[], vhighF[], vlowF[], vcloseF[], vvolumeF[];
 double vForecastO[], vForecastH[], vForecastL[], vForecastC[], vForecastV[];
-int tradeScenario[]; int tradeResult[]; ulong tradeTicket[]; int tradeTime[];
+int tradeScenario[]; int tradeResult[]; ulong tradeTicket[]; int tradeTime[]; double tradeTP[]; double tradeSL[];
 //--
 MqlRates serierates[];
 //--
 CTrade trade;
 //--
-int TPhit, SLhit;
+int TPhit=99, SLhit=99;
 //--------------------------------------------------------------------------
 
 int OnInit() {
@@ -184,6 +184,8 @@ int OnInit() {
 	ArrayResize(tradeResult, PredictionStep+2);
 	ArrayResize(tradeTicket, PredictionStep+2);
 	ArrayResize(tradeTime, PredictionStep+2);
+	ArrayResize(tradeTP, PredictionStep+2);
+	ArrayResize(tradeSL, PredictionStep+2);
 	for (int i=0; i<(PredictionStep+2); i++ ) {
 		vForecastO[i]=0;
 		vForecastH[i]=0;
@@ -194,6 +196,8 @@ int OnInit() {
 		tradeResult[i]=-1;
 		tradeTicket[i]=-1;
 		tradeTime[i]=0;
+		tradeTP[i]=0;
+		tradeSL[i]=0;
 	}
 
 
@@ -263,29 +267,26 @@ void OnTick() {
 
 	static int sequenceId=-1;
 	int maxSteps=-1;
-	static double tradeTP=0;
-	static double tradeSL=0;
 	MqlTick tick;
 
 	if (maxSteps<0||sequenceId<maxSteps) {
 
-		TPhit=99; SLhit=99;
 		//-- manually check for TP/SL
 		if (stopsHandling>1&&PositionSelect(Symbol())) {
 			SymbolInfoTick(Symbol(), tick); //printf("ask=%f ; bid=%f ; tradeTP=%f ; tradeSL=%f", tick.ask, tick.bid, tradeTP, tradeSL);
 			if (PositionGetInteger(POSITION_TYPE)==POSITION_TYPE_BUY) {
-				if (tick.bid>=tradeTP) {
-					printf("TP on BUY reached."); trade.PositionClose(Symbol(), 10); TPhit=1;
+				if (tick.bid>=tradeTP[0]) {
+					printf("TP on BUY reached. tick.bid=%6.5f ; tradeTP[%d]=%6.5f", tick.bid, 0, tradeTP[0]); trade.PositionClose(Symbol(), 10); TPhit=1;
 				}
-				if (tick.ask<=tradeSL) {
-					printf("SL on BUY reached."); trade.PositionClose(Symbol(), 10); SLhit=1;
+				if (tick.ask<=tradeSL[0]) {
+					printf("SL on BUY reached. tick.ask=%6.5f ; tradeSL[%d]=%6.5f", tick.ask, 0, tradeSL[0]); trade.PositionClose(Symbol(), 10); SLhit=1;
 				}
 			} else {
-				if (tick.ask<=tradeTP) {
-					printf("TP on SELL reached."); trade.PositionClose(Symbol(), 10); TPhit=1;
+				if (tick.ask<=tradeTP[0]) {
+					printf("TP on SELL reached. tick.ask=%6.5f ; tradeTP[%d]=%6.5f", tick.ask, 0, tradeTP[0]); trade.PositionClose(Symbol(), 10); TPhit=1;
 				}
-				if (tick.bid>=tradeSL) {
-					printf("SL on SELL reached."); trade.PositionClose(Symbol(), 10); SLhit=1;
+				if (tick.bid>=tradeSL[0]) {
+					printf("SL on SELL reached. tick.bid=%6.5f ; tradeSL[%d]=%6.5f", tick.bid, 0, tradeSL[0]); trade.PositionClose(Symbol(), 10); SLhit=1;
 				}
 			}
 		}
@@ -371,33 +372,39 @@ void OnTick() {
 		//===============================================================================
 		//for (int i=0; i<(barsCnt); i++) printf("vTimeS[%d]=%s ; vOpen(%d)=%f", i, vtimeS[i], i, vopen[i]);
 		printf("==== Sequence: %d ; Last Bar(%s): H=%6.5f ; L=%6.5f ; C=%6.5f ; Forecast: H=%6.5f ; L=%6.5f ; C=%6.5f", sequenceId, vtimeS[barsCnt-1], vhigh[barsCnt-1], vlow[barsCnt-1], vclose[barsCnt-1], vForecastH[0], vForecastL[0], vForecastC[0]);
-		//-- check for forecast consistency in first bar (H>L)
-		if (vForecastL[0]>vForecastH[0]) {
-			printf("Invalid Forecast: H=%6.5f ; L=%6.5f . Exiting...", vForecastH[0], vForecastL[0]);
-			shiftForecast(); return;
-		} 
-		//-- draw rectangle around the current bar extending from vPredictedDataH[0] to vPredictedDataL[0]
-		drawForecast(vForecastH[0], vForecastL[0], PredictionStep);
 
-		//-- define trade scenario based on current price level and forecast
-		tradeScenario[0] = getTradeScenario(tradeTP, tradeSL);
-		for (int i=0; i<(PredictionStep+2); i++) printf("tradeScenario[%d]=%d", i, tradeScenario[i]);
+		//for (int i=0; i<PredictionStep+1; i++) printf("TP[%d]=%6.5f ; SL[%d]=%6.5f", i, tradeTP[i], i, tradeSL[i]);
+
 		if (sequenceId<PredictionStep) {
 			printf("sequenceId=%d ; PredictionStep=%d. Exiting.", sequenceId, PredictionStep);
 			shiftForecast(); return;
 		}
-		if (tradeScenario[PredictionStep]>0) {
+		//for (int i=0; i<(PredictionStep+2); i++) printf("vForecastH[%d]=%f ; tradeScenario[%d]=%d", i, vForecastH[i], i, tradeScenario[i]);
+		
+		//-- check for forecast consistency in bar (H>L)
+		if (vForecastL[PredictionStep]>vForecastH[PredictionStep]) {
+			printf("Invalid Forecast: H=%6.5f ; L=%6.5f . Exiting...", vForecastH[PredictionStep], vForecastL[PredictionStep]);
+			shiftForecast(); return;
+		}
+
+		printf("vForecastH[PredictionStep]=%f ; vForecastL[PredictionStep]=%f", vForecastH[PredictionStep], vForecastL[PredictionStep]);
+		//-- draw ellipse around the forecasted bar
+		drawForecast(vForecastH[PredictionStep], vForecastL[PredictionStep]);
+
+		//-- Define trade scenario based on current price level and forecast
+		tradeScenario[0] = getTradeScenario(vForecastH[PredictionStep], vForecastL[PredictionStep], vForecastC[PredictionStep], tradeTP[0], tradeSL[0]);
+		if (tradeScenario[0]>0) {
 
 			//-- do the actual trade
-			printf("======================================== CALL TO NewTrade() ========================================================================================================================");
-			tradeResult[PredictionStep]=NewTrade(tradeScenario[PredictionStep], TradeVol, tradeTP, tradeSL);
+			printf("======================================== CALL TO NewTrade(tradeTP[%d]=%6.5f ; tradeSL[%d]=%6.5f) =========================================================================================", 0, tradeTP[0], 0, tradeSL[0]);
+			tradeResult[PredictionStep]=NewTrade(tradeScenario[0], TradeVol, tradeTP[0], tradeSL[0]);
 			printf("====================================================================================================================================================================================");
 
 			//-- if trade successful, store position ticket in shared variable
-			if (tradeResult[PredictionStep]==0) {
-				tradeTicket[PredictionStep] = PositionGetTicket(0);
+			if (tradeResult[0]==0) {
+				tradeTicket[0] = PositionGetTicket(0);
 				int positionId=PositionSelect(Symbol());
-				tradeTime[PredictionStep]=PositionGetInteger(POSITION_TIME);
+				tradeTime[0]=PositionGetInteger(POSITION_TIME);
 			}
 
 		}
@@ -420,6 +427,7 @@ void OnTick() {
 			//-- commit
 			_commit(vEnvS);
 		}
+		TPhit=0; SLhit=0;
 		shiftForecast();
 	}
 }
@@ -436,6 +444,8 @@ void shiftForecast() {
 		tradeResult[i]=tradeResult[i-1];
 		tradeTicket[i]=tradeTicket[i-1];
 		tradeTime[i]=tradeTime[i-1];
+		tradeTP[i]=tradeTP[i-1];
+		tradeSL[i]=tradeSL[i-1];
 	}
 }
 void OnDeinit(const int reason) {
@@ -585,7 +595,7 @@ bool loadStats() {
 	}
 	return true;
 }
-int getTradeScenario(double& oTradeTP, double& oTradeSL) {
+int getTradeScenario(double fH, double fL, double fC, double& oTradeTP, double& oTradeSL) {
 
 	int scenario=-1;
 	double point=SymbolInfoDouble(Symbol(), SYMBOL_POINT);
@@ -595,13 +605,10 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 
 	if (SymbolInfoTick(Symbol(), tick)) {
 
-		double fH=vForecastH[PredictionStep];
-		double fL=vForecastL[PredictionStep];
-		double fC=vForecastC[PredictionStep];
 		double cH=tick.ask;
 		double cL=tick.bid;
-		double dH=fH-cH;
-		double dL=cL-fL;
+		double dH=MathAbs(fH-cH);
+		double dL=MathAbs(fL-cL);
 		double expProfit, expLoss;
 
 		long minDist=SymbolInfoInteger(Symbol(), SYMBOL_TRADE_STOPS_LEVEL);
@@ -640,35 +647,35 @@ int getTradeScenario(double& oTradeTP, double& oTradeSL) {
 			}
 		} else {
 			//-- Current price (tick.ask) is below   ForecastL => BUY (1)
-			if (cL<fL) {
-				scenario = 1;
-				oTradeTP=fH-fTolerance;
-				expProfit=oTradeTP-cH;
-				if (stopsHandling==MinDist) expProfit=MathMax((minDist+spread)*point, expProfit);
-				oTradeTP=cH+expProfit;
-				expLoss=expProfit*riskRatio;
-				if (stopsHandling==MinDist) expLoss=MathMax((minDist+spread)*point, expLoss);
-				oTradeSL=cL-expLoss;
-				if (stopsHandling==Forecast) oTradeSL=fL;
-				printf("Scenario 1 (BUY) ; oTradeTP=%6.5f ; oTradeSL=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f", oTradeTP, oTradeSL, expProfit, expLoss);
-			}
-
-			//-- Current price is above   ForecastH  => SELL (2)
-			else if (cH>fH) {
-				scenario = 2;
-				oTradeTP=fL+fTolerance;
-				expProfit=cL-oTradeTP;
-				if (stopsHandling==MinDist) expProfit=MathMax((minDist+spread)*point, expProfit);
-				oTradeTP=cL-expProfit;
-				expLoss=expProfit*riskRatio;
-				if (stopsHandling==MinDist) expLoss=MathMax((minDist+spread)*point, expLoss);
-				oTradeSL=cL+expLoss;
-				if (stopsHandling==Forecast) oTradeSL=fH;
-				printf("Scenario 2 (SELL) ; oTradeTP=%6.5f ; oTradeSL=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f", oTradeTP, oTradeSL, expProfit, expLoss);
-			}
+//			if (cL<fL) {
+//				scenario = 1;
+//				oTradeTP=fH-fTolerance;
+//				expProfit=oTradeTP-cH;
+//				if (stopsHandling==MinDist) expProfit=MathMax((minDist+spread)*point, expProfit);
+//				oTradeTP=cH+expProfit;
+//				expLoss=expProfit*riskRatio;
+//				if (stopsHandling==MinDist) expLoss=MathMax((minDist+spread)*point, expLoss);
+//				oTradeSL=cL-expLoss;
+//				if (stopsHandling==Forecast) oTradeSL=fL;
+//				printf("Scenario 1 (BUY) ; oTradeTP=%6.5f ; oTradeSL=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f", oTradeTP, oTradeSL, expProfit, expLoss);
+//			}
+//
+//			//-- Current price is above   ForecastH  => SELL (2)
+//			else if (cH>fH) {
+//				scenario = 2;
+//				oTradeTP=fL+fTolerance;
+//				expProfit=cL-oTradeTP;
+//				if (stopsHandling==MinDist) expProfit=MathMax((minDist+spread)*point, expProfit);
+//				oTradeTP=cL-expProfit;
+//				expLoss=expProfit*riskRatio;
+//				if (stopsHandling==MinDist) expLoss=MathMax((minDist+spread)*point, expLoss);
+//				oTradeSL=cL+expLoss;
+//				if (stopsHandling==Forecast) oTradeSL=fH;
+//				printf("Scenario 2 (SELL) ; oTradeTP=%6.5f ; oTradeSL=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f", oTradeTP, oTradeSL, expProfit, expLoss);
+//			}
 
 			//-- Current price is between ForecastL and ForecastH, closer to ForecastL  => BUY (3)
-			else if (cH<=fH && cL>=fL && dL<dH) {
+			if (cH<=fH && cL>=fL && dL<dH) {
 				scenario = 3;
 				oTradeTP=fH-fTolerance;
 				expProfit=oTradeTP-cH;
@@ -739,14 +746,13 @@ int NewTrade(int cmd, double volume, double TP, double SL) {
 		return 0;
 	}
 }
-void drawForecast(double H, double L, int shift) {
+void drawForecast(double H, double L) {
 	//-- https://www.youtube.com/watch?v=Y3e1zVROJlY
 
 	//-- get last bar and new bar
 	MqlRates rates[];
 	int copied=CopyRates(NULL, 0, 0, 2, rates);
 	if (copied<=0) Print("Error copying price data ", GetLastError());
-	rates[0].time+=shift*3600; rates[1].time+=shift*3600;
 
 	string nameE;
 	StringConcatenate(nameE, "Forecast", TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES), " H=", DoubleToString(H, 5), " ; L=", DoubleToString(L, 5));
