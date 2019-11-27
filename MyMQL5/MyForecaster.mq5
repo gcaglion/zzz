@@ -102,7 +102,7 @@ MqlRates serierates[];
 //--
 CTrade trade;
 //--
-int TPhit=99, SLhit=99;
+int TPhit=0, SLhit=0;
 //--------------------------------------------------------------------------
 
 int OnInit() {
