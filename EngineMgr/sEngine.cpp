@@ -65,8 +65,8 @@ void sEngine::train(int simulationId_, sTS2* trainTS_) {
 
 	core[0]->procArgs->testid=simulationId_;
 	core[0]->procArgs->samplesCnt=trainTS_->samplesCnt-trainTS_->targetLen;
-	core[0]->procArgs->batchSize=batchSize;
-	core[0]->procArgs->batchCnt=(int)floor(core[0]->procArgs->samplesCnt/batchSize);
+	core[0]->procArgs->batchSize=(batchSize>0) ? batchSize : core[0]->procArgs->samplesCnt;
+	core[0]->procArgs->batchCnt=(int)floor(core[0]->procArgs->samplesCnt/core[0]->procArgs->batchSize);
 	core[0]->procArgs->sample=trainTS_->sampleTRS;
 	core[0]->procArgs->target=trainTS_->targetTRS;
 	core[0]->procArgs->prediction=trainTS_->predictionTRS;
@@ -157,8 +157,8 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 
 		core[0]->procArgs->testid=simulationId_;
 		core[0]->procArgs->samplesCnt=inferTS_->samplesCnt;
-		core[0]->procArgs->batchSize=batchSize;
-		core[0]->procArgs->batchCnt=(int)floor(core[0]->procArgs->samplesCnt/batchSize);
+		core[0]->procArgs->batchSize=(batchSize>0) ? batchSize : core[0]->procArgs->samplesCnt;
+		core[0]->procArgs->batchCnt=(int)floor(core[0]->procArgs->samplesCnt/core[0]->procArgs->batchSize);
 		core[0]->procArgs->sample=inferTS_->sampleTRS;
 		core[0]->procArgs->target=inferTS_->targetTRS;
 		core[0]->procArgs->prediction=inferTS_->predictionTRS;
