@@ -658,7 +658,7 @@ int getTradeScenario(double fH, double fL, double fC, int& oTradeType, double& o
 			oTradeType=(expProfit>0) ? OP_BUY : OP_NOTHING;
 		}
 		//-- scenario 4 (see drawing)
-		if (fH<cH && fL<=cL) {
+		if (fH<cH && fH>cL && fL<cL) {
 			scenario=4;
 			oTradeTP=fL+fTolerance;
 			oTradeSL=cH+fTolerance;
