@@ -18,10 +18,10 @@
 				TargetMSE			= 0.00001
 				NetSaveFrequency	= 10
 				StopOnDivergence	= false
-				StopOnInversion		= false
+				StopOnInversion		= true
 				BP_Algo				= BP_STD
 				<BP_Std>
-					LearningRate		= 0.0001
+					LearningRate		= 0.001
 					LearningMomentum	= 0.8
 				</BP_Std>
 			</Training>

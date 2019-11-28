@@ -396,7 +396,7 @@ void sNN2::infer(){
 			//-- 3. calc e,tse
 			Ecalc();
 			//-- 4. Save results for current batch in batchPrediction
-			Alg->d2h(&procArgs->prediction[b*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
+			Alg->d2h(&procArgs->prediction[(b*procArgs->batchSize+s)*nodesCnt[outputLevel]], &F[levelFirstNode[outputLevel]], nodesCnt[outputLevel]*sizeof(numtype));
 		}
 	}
 	Alg->d2h(&tse_h, tse, 1*sizeof(numtype), false);

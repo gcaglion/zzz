@@ -182,7 +182,7 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 			for (int f=0; f<inferTS_->featuresCnt[1][d]; f++) {
 				for (int l=0; l<(inferTS_->WTlevel[1]+2); l++) {
 					safecall(core[0]->persistor, saveRun2, core[0]->procArgs->pid, core[0]->procArgs->tid, core[0]->procArgs->npid, core[0]->procArgs->ntid, seqId_, core[0]->procArgs->mseR, \
-						inferTS_->stepsCnt+inferTS_->targetLen, inferTS_->timestamp, 1, d, f, l, inferTS_->valTRS, inferTS_->prdTRS, inferTS_->valTR, inferTS_->prdTR, inferTS_->val, inferTS_->prd
+						inferTS_->stepsCnt+((savedEnginePid_>0)?inferTS_->targetLen:-inferTS_->targetLen*2-1), inferTS_->timestamp, 1, d, f, l, inferTS_->valTRS, inferTS_->prdTRS, inferTS_->valTR, inferTS_->prdTR, inferTS_->val, inferTS_->prd
 					);
 				}
 			}
