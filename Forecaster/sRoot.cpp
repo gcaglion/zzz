@@ -148,7 +148,7 @@ void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iB
 
 void sRoot::kaz() {
 
-	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDSwithStats.xml");
+	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
 	ts->scale(-1, 1);
 	ts->dump();
@@ -378,7 +378,7 @@ void sRoot::MTpreprocess(int seriesCnt_, long long* featureMask_, int sampleLen,
 		}
 	}
 }
-void sRoot::getForecast(int seqId_, int extraSteps_, \
+void sRoot::getForecast(int seqId_, int extraSteps_, int ioShift_, \
 	int iseriesCnt_, long long* ifeatureMask_, \
 	long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, \
 	double* iBarMACD, double* iBarCCI, double* iBarATR, double* iBarBOLLH, double* iBarBOLLM, double* iBarBOLLL, double* iBarDEMA, double* iBarMA, double* iBarMOM, \
@@ -413,7 +413,7 @@ void sRoot::getForecast(int seqId_, int extraSteps_, \
 //	);
 
 	sTS2* mtTS;  safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, \
-		sampleBarsCnt, MT4engine->dt, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump, \
+		ioShift_, sampleBarsCnt, MT4engine->dt, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump, \
 		&iBarTimeS, &iBarBTimeS, iseriesCnt_, iselFcnt, MT4engine->WTtype[0], MT4engine->WTlevel[0], iBar, iBarB, \
 		&oBarTimeS, &oBarBTimeS, oseriesCnt_, oselFcnt, MT4engine->WTtype[1], MT4engine->WTlevel[1], oBar, oBarB \
 	);
@@ -535,7 +535,7 @@ extern "C" __declspec(dllexport) int _getSeriesInfo(char* iEnvS, int* oSeriesCnt
 	return 0;
 }
 //--
-extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seqId_, int extraSteps_, \
+extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seqId_, int extraSteps_, int ioShift_, \
 	int iseriesCnt_, long long* ifeatureMask_, \
 	long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, \
 	double* iBarMACD, double* iBarCCI, double* iBarATR, double* iBarBOLLH, double* iBarBOLLM, double* iBarBOLLL, double* iBarDEMA, double* iBarMA, double* iBarMOM, \
@@ -551,7 +551,7 @@ extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seqId_, int e
 
 	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p . Calling env->getForecast()...", env);
 	try {
-		env->getForecast(seqId_, extraSteps_, iseriesCnt_, ifeatureMask_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBarMACD, iBarCCI, iBarATR, iBarBOLLH, iBarBOLLM, iBarBOLLL, iBarDEMA, iBarMA, iBarMOM, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, iBaseBarMACD, iBaseBarCCI, iBaseBarATR, iBaseBarBOLLH, iBaseBarBOLLM, iBaseBarBOLLL, iBaseBarDEMA, iBaseBarMA, iBaseBarMOM, oseriesCnt_, ofeatureMask_, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
+		env->getForecast(seqId_, extraSteps_, ioShift_, iseriesCnt_, ifeatureMask_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBarMACD, iBarCCI, iBarATR, iBarBOLLH, iBarBOLLM, iBarBOLLL, iBarDEMA, iBarMA, iBarMOM, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, iBaseBarMACD, iBaseBarCCI, iBaseBarATR, iBaseBarBOLLH, iBaseBarBOLLM, iBaseBarBOLLL, iBaseBarDEMA, iBaseBarMA, iBaseBarMOM, oseriesCnt_, ofeatureMask_, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
 	}
 	catch (std::exception exc) {
 		return -1;

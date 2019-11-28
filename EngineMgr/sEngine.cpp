@@ -19,7 +19,7 @@ sEngine::sEngine(sObjParmsDef, int clientPid_, sLogger* persistor_, int savedEng
 	pid=clientPid_;
 	safecall(persistor_, loadEngineCoresInfo, savedEnginePid_, &coresCnt, &coreType, &coreThreadId, &coreLayer);
 	safecall(persistor_, loadEngineInfo, savedEnginePid_, &type, &sampleLen, &targetLen, &batchSize);
-	safecall(persistor_, loadEngineData, savedEnginePid_, dataSourcesCnt, featuresCnt, dt, WTlevel, WTtype);
+	safecall(persistor_, loadEngineData, savedEnginePid_, &IOshift, dataSourcesCnt, featuresCnt, dt, WTlevel, WTtype);
 
 	sNNparms* NNcp=nullptr; sNN2* NNc=nullptr; sCoreLogger* NNcl;
 	for (int c=0; c<coresCnt; c++) {
@@ -112,7 +112,7 @@ void sEngine::train(int simulationId_, sTS2* trainTS_) {
 	}
 
 	safecall(persistor, saveEngineInfo, pid, type, sampleLen, targetLen, batchSize, trainTS_->WTlevel[0], trainTS_->WTtype[0]);
-	safecall(persistor, saveEngineData, pid, trainTS_->dataSourcesCnt, trainTS_->featuresCnt, trainTS_->dt, trainTS_->WTlevel, trainTS_->WTtype);
+	safecall(persistor, saveEngineData, pid, trainTS_->IOshift, trainTS_->dataSourcesCnt, trainTS_->featuresCnt, trainTS_->dt, trainTS_->WTlevel, trainTS_->WTtype);
 	for (int c=0; c<coresCnt; c++) {
 		safecall(persistor, saveEngineCoreInfo, pid, c, 0, core[c]->procArgs->tid, coreType[c]);
 		safecall(persistor, saveCoreInfo, pid, core[c]->procArgs->tid, CORE_NN, sampleLen, inputCnt, targetLen, outputCnt, batchSize, trMinIN, trMaxIN, trMinOUT, trMaxOUT);

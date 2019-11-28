@@ -703,7 +703,9 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	char _date0[DATE_FORMAT_LEN]; char* _date0p=&_date0[0];
 	safecall(cfgKey, getParm, &_date0p, "Date0");
 
-	dt=(int***)malloc(2*sizeof(int**));	
+	safecall(cfgKey, getParm, &IOshift, "IOshift");
+
+	dt=(int***)malloc(2*sizeof(int**));
 	WTtype=(int*)malloc(2*sizeof(int));
 	WTlevel=(int*)malloc(2*sizeof(int));
 	dataSourcesCnt=(int*)malloc(2*sizeof(int));
@@ -756,7 +758,7 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 			tmpvalx=(numtype*)malloc(stepsCnt*featuresCnt[i][d]*sizeof(numtype));
 			tmpvalBx=(numtype*)malloc(featuresCnt[i][d]*sizeof(numtype));
 			tmpbw=(numtype*)malloc(stepsCnt*dsrc[i][d]->featuresCnt*sizeof(numtype));
-			safecall(dsrc[i][d], load, _date0, /*(i>0)?sampleLen:*/0, stepsCnt, tmptime, tmpval, tmptimeB, tmpvalB, tmpbw);
+			safecall(dsrc[i][d], load, _date0, (i>0)?IOshift:0, stepsCnt, tmptime, tmpval, tmptimeB, tmpvalB, tmpbw);
 
 			//-- set timestamps
 			for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, tmptime[s]);
@@ -804,14 +806,14 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 }
 sTS2::sTS2(sObjParmsDef, \
-	int stepsCnt_, int*** dt_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, \
+	int ioShift_, int stepsCnt_, int*** dt_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, \
 	char*** INtimestamp_, char** INtimestampB_, \
 	int INdataSourcesCnt_, int* INfeaturesCnt_, int INWTtype_, int INWTlevel_, numtype* INval_, numtype* INvalB_, \
 	char*** OUTtimestamp_, char** OUTtimestampB_, \
 	int OUTdataSourcesCnt_, int* OUTfeaturesCnt_, int OUTWTtype_, int OUTWTlevel_, numtype* OUTval_, numtype* OUTvalB_\
 ) : sCfgObj(sObjParmsVal, nullptr, "") {
 	
-	stepsCnt=stepsCnt_; dt=dt_; doDump=doDump_;
+	IOshift=ioShift_; stepsCnt=stepsCnt_; dt=dt_; doDump=doDump_;
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
 	sampleLen=sampleLen_; targetLen=targetLen_; batchSize=batchSize_;
 	

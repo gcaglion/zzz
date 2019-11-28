@@ -9,27 +9,29 @@
 			DataSourcesCount		= 1
 			<DataSource0>
 				<! FXDB-EURUSDH1.xml >
-				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
-				DataTransformation	= DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA
+				SelectedFeatures 	= FXOPEN, FXHIGH, FXLOW, FXCLOSE
+				DataTransformation	= DT_DELTA,	DT_DELTA,DT_DELTA,DT_DELTA
 			</DataSource0>
 			<DataSource1>
 				<! FXDB-SPXUSDH1.xml >
 				SelectedFeatures = FXHIGH, FXLOW
+				DataTransformation	= DT_DELTA,	DT_DELTA
 			</DataSource1>
 			<DataSource2>
 				<! FXDB-ETXEURH1.xml >
 				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
+				DataTransformation	= DT_DELTA,	DT_DELTA, DT_DELTA,	DT_DELTA
 			</DataSource2>
-			WaveletType	= WT_NONE
+			WaveletType	= WT_HAAR
 			DecompLevel = 4
 		</Input>
-		IOshift=16
+		IOShift=16
 		<Output>
 			DataSourcesCount		= 1
 			<DataSource0>
 				<! FXDB-EURUSDH1.xml >
-				SelectedFeatures = FXHIGH, FXLOW
-				DataTransformation	= DT_DELTA,DT_DELTA
+				SelectedFeatures	= FXHIGH, FXLOW
+				DataTransformation	= DT_DELTA,	DT_DELTA
 			</DataSource0>
 			WaveletType	= WT_NONE
 			DecompLevel = 0

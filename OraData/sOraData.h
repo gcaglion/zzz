@@ -44,8 +44,8 @@ struct sOraData : sCfgObj {
 	EXPORT void saveEngineCoreInfo(int pid, int coreId_, int layer_, int tid, int coreType_);
 	EXPORT void loadEngineCoresInfo(int pid, int* coresCnt_, int** coreType_, int** coreThreadId_, int** coreLayer_);
 	//--
-	EXPORT void saveEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_);
-	EXPORT void loadEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_);
+	EXPORT void saveEngineData(int pid, int IOshift_, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_);
+	EXPORT void loadEngineData(int pid, int* IOshift_, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_);
 	//--
 	EXPORT int getSavedEnginePids(int maxPids_, int* oPid);
 	//--

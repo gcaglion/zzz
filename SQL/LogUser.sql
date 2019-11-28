@@ -6,6 +6,7 @@
 drop table EngineData purge;
 create table EngineData(
 	ProcessId number,
+	IOshift number,
 	EngineSide number,
 	DataSource number,
 	Feature number,

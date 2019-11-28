@@ -92,11 +92,11 @@ void sLogger::loadEngineCoresInfo(int pid, int* coresCnt_, int** coreType_, int*
 	if (source==OraData) safecall(oradb, loadEngineCoresInfo, pid, coresCnt_ , coreType_, coreThreadId_ , coreLayer_);
 }
 //--
-void sLogger::saveEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_) {
-	if (source==OraData) safecall(oradb, saveEngineData, pid, dataSourcesCnt_, featuresCnt_, dt_, WTlevel_, WTtype_);
+void sLogger::saveEngineData(int pid, int IOshift_, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_) {
+	if (source==OraData) safecall(oradb, saveEngineData, pid, IOshift_, dataSourcesCnt_, featuresCnt_, dt_, WTlevel_, WTtype_);
 }
-void sLogger::loadEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_) {
-	if (source==OraData) safecall(oradb, loadEngineData, pid, dataSourcesCnt_, featuresCnt_, dt_, WTlevel_, WTtype_);
+void sLogger::loadEngineData(int pid, int* IOshift_, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_) {
+	if (source==OraData) safecall(oradb, loadEngineData, pid, IOshift_, dataSourcesCnt_, featuresCnt_, dt_, WTlevel_, WTtype_);
 }
 //--
 void sLogger::saveCoreInfo(int pid, int tid, int coreType_, int sampleLen_, int inputCnt_, int targetLen_, int outputCnt_, int batchSize_, numtype* trMinIN_, numtype* trMaxIN_, numtype* trMinOUT_, numtype* trMaxOUT_) {

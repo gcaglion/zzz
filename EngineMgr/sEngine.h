@@ -29,6 +29,7 @@ struct sEngine : sCfgObj {
 	int inputCnt;
 	int outputCnt;
 
+	int IOshift;
 	int dataSourcesCnt[2];
 	int* featuresCnt[2];
 	int** dt[2];

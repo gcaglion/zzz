@@ -1148,7 +1148,7 @@ void sOraData::loadEngineCoresInfo(int pid, int* coresCnt_, int** coreType_, int
 		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-void sOraData::saveEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_) {
+void sOraData::saveEngineData(int pid, int IOshift_, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_) {
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
@@ -1165,19 +1165,20 @@ void sOraData::saveEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_,
 	int runidx=0;
 
 	try {
-		stmt = ((Connection*)conn)->createStatement("insert into EngineData(ProcessId, EngineSide, DataSource, Feature, DT, WTlevel, WTtype) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07)");
+		stmt = ((Connection*)conn)->createStatement("insert into EngineData(ProcessId, IOshift, EngineSide, DataSource, Feature, DT, WTlevel, WTtype) values(:P01, :P02, :P03, :P04, :P05, :P06, :P07, :P08)");
 		((Statement*)stmt)->setMaxIterations(recCnt);
 		for (int i=0; i<2; i++) {
 			for (int d=0; d<dataSourcesCnt_[i]; d++) {
 				for (int f=0; f<featuresCnt_[i][d]; f++) {
 					for (int l=0; l<(WTlevel_[i]+2); l++) {
 						((Statement*)stmt)->setInt(1, pid);
-						((Statement*)stmt)->setInt(2, i);
-						((Statement*)stmt)->setInt(3, d);
-						((Statement*)stmt)->setInt(4, f);
-						((Statement*)stmt)->setInt(5, dt_[i][d][f]);
-						((Statement*)stmt)->setInt(6, l);
-						((Statement*)stmt)->setInt(7, WTtype_[i]);
+						((Statement*)stmt)->setInt(2, IOshift_);
+						((Statement*)stmt)->setInt(3, i);
+						((Statement*)stmt)->setInt(4, d);
+						((Statement*)stmt)->setInt(5, f);
+						((Statement*)stmt)->setInt(6, dt_[i][d][f]);
+						((Statement*)stmt)->setInt(7, l);
+						((Statement*)stmt)->setInt(8, WTtype_[i]);
 
 						if (runidx<(recCnt-1)) ((Statement*)stmt)->addIteration();
 						runidx++;
@@ -1193,16 +1194,28 @@ void sOraData::saveEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_,
 	}
 
 }
-void sOraData::loadEngineData(int pid, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_) {
+void sOraData::loadEngineData(int pid, int* IOshift_, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
 	try {
-		sprintf_s(sqlS, SQL_MAXLEN, "select EngineSide, count( distinct DataSource) from EngineData where ProcessId = %d group by EngineSide order by EngineSide", pid);
+		sprintf_s(sqlS, SQL_MAXLEN, "select IOshift from EngineData where ProcessId = %d ", pid);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 		int i=0;
+		while (((ResultSet*)rset)->next()) {
+			(*IOshift_)=((ResultSet*)rset)->getInt(1);
+			i++;
+		}
+		if (i==0) fail("Engine pid %d not found.", pid);
+		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+		((Connection*)conn)->terminateStatement((Statement*)stmt);
+
+		sprintf_s(sqlS, SQL_MAXLEN, "select EngineSide, count( distinct DataSource) from EngineData where ProcessId = %d group by EngineSide order by EngineSide", pid);
+		stmt = ((Connection*)conn)->createStatement(sqlS);
+		rset = ((Statement*)stmt)->executeQuery();
+		i=0;
 		while (((ResultSet*)rset)->next()) {
 			dataSourcesCnt_[i]=((ResultSet*)rset)->getInt(2);
 			i++;

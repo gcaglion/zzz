@@ -1,5 +1,5 @@
 	<TimeSerie>
-		HistoryLen			= 100
+		HistoryLen			= 200
 		Date0				= 2018-08-30-22:00
 		Dump				= false
 		DumpPath			= c:\temp\DataDump
@@ -19,10 +19,10 @@
 				<! FXDB-ETXEURH1.xml >
 				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
 			</DataSource2>
-			WaveletType	= WT_NONE
+			WaveletType	= WT_HAAR
 			DecompLevel = 4
 		</Input>
-		
+		IOshift=16
 		<Output>
 			DataSourcesCount		= 1
 			<DataSource0>
