@@ -600,6 +600,7 @@ void sTS2::buildDataSet() {
 
 	sample=(numtype*)malloc(inputCnt*samplesCnt*sizeof(numtype));
 	sampleTRS=(numtype*)malloc(inputCnt*samplesCnt*sizeof(numtype));
+	sampleBSF=(numtype*)malloc(inputCnt*samplesCnt*sizeof(numtype));
 
 	int dsidx=0;
 	for (int s=0; s<samplesCnt; s++) {
@@ -609,6 +610,19 @@ void sTS2::buildDataSet() {
 					for (int l=0; l<(WTlevel[0]+2); l++) {
 						sample[dsidx] = val[s+bar][0][d][f][l];
 						sampleTRS[dsidx] = valTRS[s+bar][0][d][f][l];
+						dsidx++;
+					}
+				}
+			}
+		}
+	}
+	dsidx=0;
+	for (int bar=0; bar<sampleLen; bar++) {
+		for (int s=0; s<samplesCnt; s++) {
+			for (int d=0; d<dataSourcesCnt[0]; d++) {
+				for (int f=0; f<featuresCnt[0][d]; f++) {
+					for (int l=0; l<(WTlevel[0]+2); l++) {
+						sampleBSF[dsidx] = valTRS[s+bar][0][d][f][l];
 						dsidx++;
 					}
 				}
@@ -629,6 +643,7 @@ void sTS2::buildDataSet() {
 
 	target=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
 	targetTRS=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
+	targetBSF=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
 
 	dsidx=0;
 	for (int s=0; s<samplesCnt; s++) {
@@ -644,33 +659,48 @@ void sTS2::buildDataSet() {
 			}
 		}
 	}
+	dsidx=0;
+	for (int bar=0; bar<targetLen; bar++) {
+		for (int s=0; s<samplesCnt; s++) {
+			for (int d=0; d<dataSourcesCnt[1]; d++) {
+				for (int f=0; f<featuresCnt[1][d]; f++) {
+					for (int l=0; l<(WTlevel[1]+2); l++) {
+						targetBSF[dsidx] = (s>=(samplesCnt-targetLen)) ? EMPTY_VALUE : valTRS[s+sampleLen+bar][1][d][f][l];
+						dsidx++;
+					}
+				}
+			}
+		}
+	}
 
 	prediction=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
 	predictionTRS=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
+	predictionBSF=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
 
 	//-- Print
 	if (doDump) dumpDS();
 	
 }
 void sTS2::getPrediction() {
-	int s, b;
+	int s, b, d, f, l;
 
 	for (b=0; b<sampleLen; b++) {
-		for (int d=0; d<dataSourcesCnt[1]; d++) {
-			for (int f=0; f<featuresCnt[1][d]; f++) {
-				for (int l=0; l<(WTlevel[1]+2); l++) {
+		for (d=0; d<dataSourcesCnt[1]; d++) {
+			for (f=0; f<featuresCnt[1][d]; f++) {
+				for (l=0; l<(WTlevel[1]+2); l++) {
 					prdTRS[b][1][d][f][l]=EMPTY_VALUE;
 				}
 			}
 		}
 	}
-
-	for (s=0; s<samplesCnt; s++) {
-		for (b=0; b<1; b++) {
-			for (int d=0; d<dataSourcesCnt[1]; d++) {
-				for (int f=0; f<featuresCnt[1][d]; f++) {
-					for (int l=0; l<(WTlevel[1]+2); l++) {
-						prdTRS[s+sampleLen][1][d][f][l]=predictionTRS[(s)*outputCnt +b*dataSourcesCnt[1]*featuresCnt[1][d]*(WTlevel[1]+2) +d*featuresCnt[1][d]*(WTlevel[1]+2) +f*(WTlevel[1]+2) +l];
+	int idx=0;
+	for (b=0; b<1; b++) {
+		for (s=0; s<samplesCnt; s++) {
+			for (d=0; d<dataSourcesCnt[1]; d++) {
+				for (f=0; f<featuresCnt[1][d]; f++) {
+					for (l=0; l<(WTlevel[1]+2); l++) {
+						prdTRS[s+sampleLen][1][d][f][l]=predictionTRS[idx];
+						idx++;
 					}
 				}
 			}
@@ -679,10 +709,11 @@ void sTS2::getPrediction() {
 
 
 	for (b=0; b<targetLen; b++) {
-		for (int d=0; d<dataSourcesCnt[1]; d++) {
-			for (int f=0; f<featuresCnt[1][d]; f++) {
-				for (int l=0; l<(WTlevel[1]+2); l++) {
-					prdTRS[stepsCnt+b][1][d][f][l]=predictionTRS[(samplesCnt-1)*outputCnt +b*dataSourcesCnt[1]*featuresCnt[1][d]*(WTlevel[1]+2) +d*featuresCnt[1][d]*(WTlevel[1]+2) +f*(WTlevel[1]+2) +l];
+		for (d=0; d<dataSourcesCnt[1]; d++) {
+			for (f=0; f<featuresCnt[1][d]; f++) {
+				for (l=0; l<(WTlevel[1]+2); l++) {
+					prdTRS[stepsCnt+b][1][d][f][l]=predictionTRS[idx];
+					idx++;
 				}
 			}
 		}

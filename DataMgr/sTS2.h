@@ -31,6 +31,9 @@ struct sTS2 :sCfgObj {
 	numtype* sampleTRS;
 	numtype* targetTRS;
 	numtype* predictionTRS;
+	numtype* sampleBSF;
+	numtype* targetBSF;
+	numtype* predictionBSF;
 
 	char*** timestamp;	// [stepsCnt][IN/OUT]
 	numtype***** val;	// [stepsCnt][IN/OUT][dataSourcesCnt][featuresCnt][WTlevel+2]
