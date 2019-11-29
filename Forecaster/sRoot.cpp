@@ -378,7 +378,7 @@ void sRoot::MTpreprocess(int seriesCnt_, long long* featureMask_, int sampleLen,
 		}
 	}
 }
-void sRoot::getForecast(int seqId_, int extraSteps_, int ioShift_, \
+void sRoot::getForecast(int seqId_, int predictionStep_, int extraSteps_, int ioShift_, \
 	int iseriesCnt_, long long* ifeatureMask_, \
 	long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, \
 	double* iBarMACD, double* iBarCCI, double* iBarATR, double* iBarBOLLH, double* iBarBOLLM, double* iBarBOLLL, double* iBarDEMA, double* iBarMA, double* iBarMOM, \
@@ -436,7 +436,7 @@ void sRoot::getForecast(int seqId_, int extraSteps_, int ioShift_, \
 					info("x=%d ; b=%d ; sf=%d ; prdTR[%d][1][%d][%d][%d]=%7.6f", x, b, sf, MT4engine->sampleLen+x+b, s, sf, 0, mtTS->prdTR[MT4engine->sampleLen+x+b][1][s][sf][0]);
 					info("x=%d ; b=%d ; sf=%d ; prd[%d][1][%d][%d][%d]=%7.6f", x, b, sf, MT4engine->sampleLen+x+b, s, sf, 0, mtTS->prd[MT4engine->sampleLen+x+b][1][s][sf][0]);
 					
-					if (x==0) {
+					if (x==0 && b==predictionStep_) {
 						MT4engine->forecast[fi]=mtTS->prd[MT4engine->sampleLen+x+b][1][s][sf][0];
 
 						if (oselF[s][sf]==FXOPEN) oForecastO[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
@@ -453,8 +453,8 @@ void sRoot::getForecast(int seqId_, int extraSteps_, int ioShift_, \
 	}
 	safecall(MT4engine, commit);
 }
-void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, char* iCurrBarT, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit) {
-	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4sessionId, MT4accountId, MT4enginePid, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iLastForecastO, iLastForecastH, iLastForecastL, iLastForecastC, iLastForecastV, iCurrBarT, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
+void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, char* iCurrBarT, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, double iTradeProfit, int iTPhit, int iSLhit) {
+	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4sessionId, MT4accountId, MT4enginePid, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iLastForecastO, iLastForecastH, iLastForecastL, iLastForecastC, iLastForecastV, iCurrBarT, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTradeProfit, iTPhit, iSLhit);
 }
 void sRoot::saveClientInfo(int sequenceId, double iPositionOpenTime) {
 	char accountStr[64]; sprintf_s(accountStr, 32, "MT5_account_%d", MT4accountId);
@@ -535,7 +535,7 @@ extern "C" __declspec(dllexport) int _getSeriesInfo(char* iEnvS, int* oSeriesCnt
 	return 0;
 }
 //--
-extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seqId_, int extraSteps_, int ioShift_, \
+extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seqId_, int  predictionStep_, int extraSteps_, int ioShift_, \
 	int iseriesCnt_, long long* ifeatureMask_, \
 	long* iBarT, double* iBarO, double* iBarH, double* iBarL, double* iBarC, double* iBarV, \
 	double* iBarMACD, double* iBarCCI, double* iBarATR, double* iBarBOLLH, double* iBarBOLLM, double* iBarBOLLL, double* iBarDEMA, double* iBarMA, double* iBarMOM, \
@@ -551,7 +551,7 @@ extern "C" __declspec(dllexport) int _getForecast(char* iEnvS, int seqId_, int e
 
 	env->dbg->out(DBG_MSG_INFO, __func__, 0, nullptr, "env=%p . Calling env->getForecast()...", env);
 	try {
-		env->getForecast(seqId_, extraSteps_, ioShift_, iseriesCnt_, ifeatureMask_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBarMACD, iBarCCI, iBarATR, iBarBOLLH, iBarBOLLM, iBarBOLLL, iBarDEMA, iBarMA, iBarMOM, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, iBaseBarMACD, iBaseBarCCI, iBaseBarATR, iBaseBarBOLLH, iBaseBarBOLLM, iBaseBarBOLLL, iBaseBarDEMA, iBaseBarMA, iBaseBarMOM, oseriesCnt_, ofeatureMask_, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
+		env->getForecast(seqId_, predictionStep_, extraSteps_, ioShift_, iseriesCnt_, ifeatureMask_, iBarT, iBarO, iBarH, iBarL, iBarC, iBarV, iBarMACD, iBarCCI, iBarATR, iBarBOLLH, iBarBOLLM, iBarBOLLL, iBarDEMA, iBarMA, iBarMOM, iBaseBarT, iBaseBarO, iBaseBarH, iBaseBarL, iBaseBarC, iBaseBarV, iBaseBarMACD, iBaseBarCCI, iBaseBarATR, iBaseBarBOLLH, iBaseBarBOLLM, iBaseBarBOLLL, iBaseBarDEMA, iBaseBarMA, iBaseBarMOM, oseriesCnt_, ofeatureMask_, oBarT, oBarO, oBarH, oBarL, oBarC, oBarV, oBaseBarT, oBaseBarO, oBaseBarH, oBaseBarL, oBaseBarC, oBaseBarV, oForecastO, oForecastH, oForecastL, oForecastC, oForecastV);
 	}
 	catch (std::exception exc) {
 		return -1;
@@ -564,7 +564,7 @@ extern "C" __declspec(dllexport) int _saveTradeInfo( \
 		long iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, \
 		double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, \
 		long iCurrBarT, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, \
-		int iTradeScenario, int iTradeResult, int iTPhit, int iSLhit \
+		int iTradeScenario, int iTradeResult, double iTradeProfit, int iTPhit, int iSLhit \
 	) {
 	sRoot* env;
 	sscanf_s(iEnvS, "%p", &env);
@@ -578,7 +578,7 @@ extern "C" __declspec(dllexport) int _saveTradeInfo( \
 		MT4time2str(iLastBarT, DATE_FORMAT_LEN, iLastBarTs);
 		MT4time2str(iCurrBarT, DATE_FORMAT_LEN, iCurrBarTs);
 		//-- then, make the call
-		env->saveTradeInfo(iPositionTicket, iPositionOpenTimes, iLastBarTs, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iLastForecastO, iLastForecastH, iLastForecastL, iLastForecastC, iLastForecastV, iCurrBarTs, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTPhit, iSLhit);
+		env->saveTradeInfo(iPositionTicket, iPositionOpenTimes, iLastBarTs, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iLastForecastO, iLastForecastH, iLastForecastL, iLastForecastC, iLastForecastV, iCurrBarTs, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTradeProfit, iTPhit, iSLhit);
 	}
 	catch (std::exception exc) {
 		return -1;

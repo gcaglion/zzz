@@ -294,6 +294,7 @@ create table TradeInfo(
 	ForecastV number,
 	TradeScenario number,
 	TradeResult number,
+	TradeProfit number,
 	TPhit number,
 	SLhit number
 );
