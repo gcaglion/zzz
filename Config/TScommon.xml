@@ -1,0 +1,35 @@
+		<Input>
+			DataSourcesCount		= 1
+			<DataSource0>
+				<! FXDB-EURUSDH1.xml >
+				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE, FXMACD, FXCCI, FXATR, FXBOLLH, FXBOLLM, FXBOLLL, FXDEMA, FXMA, FXMOM
+				DataTransformation	= DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA
+			</DataSource0>
+			<DataSource1>
+				<! FXDB-SPXUSDH1.xml >
+				SelectedFeatures = FXHIGH, FXLOW
+			</DataSource1>
+			<DataSource2>
+				<! FXDB-ETXEURH1.xml >
+				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
+			</DataSource2>
+			WaveletType	= WT_NONE
+			DecompLevel = 4
+		</Input>
+
+		IOshift=0
+
+		<Output>
+			DataSourcesCount		= 1
+			<DataSource0>
+				<! FXDB-EURUSDH1.xml >
+				SelectedFeatures = FXCLOSE
+				DataTransformation	= DT_DELTA
+			</DataSource0>
+			WaveletType	= WT_NONE
+			DecompLevel = 0
+		</Output>
+	
+	SampleLen	= 50
+	TargetLen	= 3
+	BatchSize	= 1

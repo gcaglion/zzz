@@ -208,8 +208,11 @@ int OnInit() {
 
 
 	OUTseriesCnt=1;
-	OUTserieFeatMask[0]=1000000000000+100000000000;	//-- [HIGH,LOW]
-
+	if(tradeClose) {
+		OUTserieFeatMask[0]=10000000000;	//-- [CLOSE]
+	} else {
+		OUTserieFeatMask[0]=1000000000000+100000000000;	//-- [HIGH,LOW]
+	}
 	ArrayResize(vtimeB, seriesCnt);
 	ArrayResize(vtimeSB, seriesCnt);
 	ArrayResize(vopenB, seriesCnt);
@@ -345,6 +348,7 @@ void OnTick() {
 		//-- check for forecast consistency in bar (H>L)
 		if (vForecastL[PredictionStep]>vForecastH[PredictionStep]) {
 			printf("Invalid Forecast: H=%6.5f ; L=%6.5f . Exiting...", vForecastH[PredictionStep], vForecastL[PredictionStep]);
+			tradeResult[PredictionStep]=-2;
 		} else {
 
 			printf("vForecastH[PredictionStep]=%f ; vForecastL[PredictionStep]=%f", vForecastH[PredictionStep], vForecastL[PredictionStep]);
@@ -352,7 +356,7 @@ void OnTick() {
 			//-- Define trade scenario based on current price level and forecast
 			tradeScenario[0] = getTradeScenario(vForecastH[PredictionStep], vForecastL[PredictionStep], vForecastC[PredictionStep], tradeType[0], tradeTP[0], tradeSL[0]);
 			//-- draw ellipse around the forecasted bar
-			drawForecast(vForecastH[PredictionStep], vForecastL[PredictionStep], (tradeType[0]==OP_NOTHING) ? clrDimGray : clrBlue);
+			drawForecast(vForecastH[PredictionStep], vForecastL[PredictionStep], vForecastC[PredictionStep], (tradeType[0]==OP_NOTHING) ? clrDimGray : clrBlue);
 
 			if (tradeType[0]>=0) {
 
@@ -622,8 +626,8 @@ int getTradeScenario(double fH, double fL, double fC, int& oTradeType, double& o
 			oTradeTP=fC-fTolerance;
 			expProfit=oTradeTP-cH;
 			expLoss=expProfit*riskRatio;
-			if (stopsHandling==Forecast) oTradeSL=fL;
-			printf("Scenario 1 (BUY) ; oTradeTP=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f ; oTradeSL=%6.5f", oTradeTP, expProfit, expLoss, oTradeSL);
+			oTradeSL=cL-expLoss;
+			oTradeType=((expProfit>0) ? OP_BUY : OP_NOTHING);
 		}
 		//-- forecast Close is below current price low (bid)	=> SELL (2)
 		else if (fC<cL) {
@@ -631,10 +635,11 @@ int getTradeScenario(double fH, double fL, double fC, int& oTradeType, double& o
 			oTradeTP=fC+fTolerance;
 			expProfit=cL-oTradeTP;
 			expLoss=expProfit*riskRatio;
-			if (stopsHandling==Forecast) oTradeSL=fH;
-			printf("Scenario 2 (SELL) ; oTradeTP=%6.5f ; oTradeSL=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f", oTradeTP, oTradeSL, expProfit, expLoss);
+			oTradeSL=cL+expLoss;
+			oTradeType=((expProfit>0) ? OP_SELL : OP_NOTHING);
 		} else {
-			printf("Scenario -1 (DO NOTHING)");
+			scenario=0;
+			oTradeType=OP_NOTHING;
 		}
 	} else {
 
@@ -661,7 +666,7 @@ int getTradeScenario(double fH, double fL, double fC, int& oTradeType, double& o
 			oTradeSL=cL-fTolerance;
 			expProfit=oTradeTP-cH;
 			expLoss=cH-oTradeSL;
-			oTradeType=(expProfit>0) ? OP_BUY : OP_NOTHING;
+			oTradeType=((expProfit>0) ? OP_BUY : OP_NOTHING);
 		}
 		//-- scenario 4 (see drawing)
 		if (fH<cH && fH>cL && fL<cL) {
@@ -670,7 +675,7 @@ int getTradeScenario(double fH, double fL, double fC, int& oTradeType, double& o
 			oTradeSL=cH+fTolerance;
 			expProfit=fL+fTolerance;
 			expLoss=oTradeSL-cL;
-			oTradeType=(expProfit>0) ? OP_SELL : OP_NOTHING;
+			oTradeType=((expProfit>0) ? OP_SELL : OP_NOTHING);
 		}
 		//-- scenario 5 (see drawing)
 		if (fH>cH && fL<cL) {
@@ -680,18 +685,17 @@ int getTradeScenario(double fH, double fL, double fC, int& oTradeType, double& o
 				oTradeSL=fH+fTolerance;
 				expProfit=cL-oTradeTP;
 				expLoss=oTradeSL-cH;
-				oTradeType=(expProfit>0) ? OP_SELL : OP_NOTHING;
+				oTradeType=((expProfit>0) ? OP_SELL : OP_NOTHING);
 			} else {
 				oTradeTP=fH-fTolerance;
 				oTradeSL=fL-fTolerance;
 				expProfit=oTradeTP-cH;
 				expLoss=cL-oTradeSL;
-				oTradeType=(expProfit>0) ? OP_BUY : OP_NOTHING;
+				oTradeType=((expProfit>0) ? OP_BUY : OP_NOTHING);
 			}
 		}
-		printf("Scenario %d (%s) ; oTradeTP=%6.5f ; oTradeSL=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f", scenario, ((oTradeType==OP_BUY)?"BUY":((oTradeType==OP_SELL)?"SELL":"NOTHING")), oTradeTP, oTradeSL, expProfit, expLoss);
-
 	}
+	printf("Scenario %d (%s) ; oTradeTP=%6.5f ; oTradeSL=%6.5f ; expProfit=%6.5f ; expLoss=%6.5f", scenario, ((oTradeType==OP_BUY) ? "BUY" : ((oTradeType==OP_SELL) ? "SELL" : "NOTHING")), oTradeTP, oTradeSL, expProfit, expLoss);
 	return scenario;
 }
 int NewTrade(int cmd, double volume, double TP, double SL) {
@@ -744,7 +748,7 @@ void saveLog() {
 		//-- save tradeInfo, even if we do not trade
 		CopyRates(Symbol(), Period(), 0, 1, serierates);
 		int idx=tradeSerie*barsCnt+barsCnt-1;
-		if (_saveTradeInfo(vEnvS, (int)tradeTicket[PredictionStep], tradeTime[PredictionStep], vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], vForecastO[PredictionStep+1], vForecastH[PredictionStep+1], vForecastL[PredictionStep+1], vForecastC[PredictionStep+1], vForecastV[PredictionStep+1], serierates[0].time, vForecastO[PredictionStep], vForecastH[PredictionStep], vForecastL[PredictionStep], vForecastC[PredictionStep], vForecastV[PredictionStep], tradeScenario[PredictionStep], tradeResult[PredictionStep], tradeProfit, TPhit, SLhit)<0) {
+		if (_saveTradeInfo(vEnvS, (int)tradeTicket[PredictionStep], tradeTime[PredictionStep], vtime[idx], vopen[idx], vhigh[idx], vlow[idx], vclose[idx], vvolume[idx], vForecastO[PredictionStep+1], vForecastH[PredictionStep+1], vForecastL[PredictionStep+1], vForecastC[PredictionStep+1], vForecastV[PredictionStep+1], serierates[0].time+PredictionStep*barSeconds(), vForecastO[PredictionStep], vForecastH[PredictionStep], vForecastL[PredictionStep], vForecastC[PredictionStep], vForecastV[PredictionStep], tradeScenario[PredictionStep], tradeResult[PredictionStep], tradeProfit, TPhit, SLhit)<0) {
 			printf("_saveTradeInfo() failed. see Forecaster logs.");
 			return;
 		}
@@ -758,7 +762,7 @@ void saveLog() {
 		_commit(vEnvS);
 	}
 }
-void drawForecast(double H, double L, int clr) {
+void drawForecast(double H, double L, double C, int clr) {
 	//-- https://www.youtube.com/watch?v=Y3e1zVROJlY
 
 	//-- get last bar and new bar
@@ -767,12 +771,19 @@ void drawForecast(double H, double L, int clr) {
 	if (copied<=0) Print("Error copying price data ", GetLastError());
 
 	string nameE;
-	StringConcatenate(nameE, "Forecast", TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES), " H=", DoubleToString(H, 5), " ; L=", DoubleToString(L, 5));
-
-	//-- draw the rectangle between last bar and new bar
-	ObjectCreate(0, nameE, OBJ_ELLIPSE, 0, rates[1].time, H, rates[1].time, L, (rates[0].time+rates[1].time)/2, (H+L)/2);
-	ObjectSetInteger(0, nameE, OBJPROP_COLOR, clr);
-	ObjectSetInteger(0, nameE, OBJPROP_WIDTH, 2);
+	if (tradeClose) {
+		StringConcatenate(nameE, "Forecast", TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES), " C=", DoubleToString(C, 5));
+		//-- draw the rectangle between last bar and new bar
+		ObjectCreate(0, nameE, OBJ_RECTANGLE, 0, rates[0].time, C, rates[1].time, C);
+		ObjectSetInteger(0, nameE, OBJPROP_COLOR, clr);
+		ObjectSetInteger(0, nameE, OBJPROP_WIDTH, 2);
+	} else {
+		StringConcatenate(nameE, "Forecast", TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES), " H=", DoubleToString(H, 5), " ; L=", DoubleToString(L, 5));
+		//-- draw the rectangle between last bar and new bar
+		ObjectCreate(0, nameE, OBJ_ELLIPSE, 0, rates[1].time, H, rates[1].time, L, (rates[0].time+rates[1].time)/2, (H+L)/2);
+		ObjectSetInteger(0, nameE, OBJPROP_COLOR, clr);
+		ObjectSetInteger(0, nameE, OBJPROP_WIDTH, 2);
+	}
 	ObjectSetInteger(0, nameE, OBJPROP_HIDDEN, false);
 
 }
@@ -817,6 +828,24 @@ long CSL2Mask(string mask) {
 		if (StringCompare(selF[f], "12")==0) ret+=10; //-- MA is selected
 		if (StringCompare(selF[f], "13")==0) ret+=1; //-- MOM is selected
 
+	}
+	return ret;
+}
+int barSeconds() {
+	int ret;
+	switch (Period()) {
+	case PERIOD_M1:
+		ret=60; break;
+	case PERIOD_M30:
+		ret=30*60; break;
+	case PERIOD_H1:
+		ret=60*60; break;
+	case PERIOD_H4:
+		ret=4*60*60; break;
+	case PERIOD_D1:
+		ret=24*60*60; break;
+	default:
+		ret=0;
 	}
 	return ret;
 }
