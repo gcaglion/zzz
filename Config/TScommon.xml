@@ -23,8 +23,8 @@
 			DataSourcesCount		= 1
 			<DataSource0>
 				<! FXDB-EURUSDH1.xml >
-				SelectedFeatures = FXCLOSE
-				DataTransformation	= DT_DELTA
+				SelectedFeatures = FXHIGH, FXLOW
+				DataTransformation	= DT_DELTA, DT_DELTA
 			</DataSource0>
 			WaveletType	= WT_NONE
 			DecompLevel = 0

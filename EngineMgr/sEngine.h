@@ -32,6 +32,7 @@ struct sEngine : sCfgObj {
 	int IOshift;
 	int dataSourcesCnt[2];
 	int* featuresCnt[2];
+	int** feature[2];
 	int** dt[2];
 	int WTlevel[2];
 	int WTtype[2];

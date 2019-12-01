@@ -35,7 +35,7 @@ struct sOraData : sCfgObj {
 	//--
 	EXPORT void saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mseT, numtype* mseV);
 	EXPORT void saveRun(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char** posLabel, int featuresCnt_, int WTlevel_, numtype* actualTRS, numtype* predictedTRS, numtype* actualTR, numtype* predictedTR, numtype* actualBASE, numtype* predictedBASE);
-	EXPORT void saveRun2(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char*** posLabel, int i, int d, int f, int l, numtype***** actualTRS, numtype***** predictedTRS, numtype***** actualTR, numtype***** predictedTR, numtype***** actualBASE, numtype***** predictedBASE);
+	EXPORT void saveRun2(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char*** posLabel, int i, int d, int fi, int f, int l, numtype***** actualTRS, numtype***** predictedTRS, numtype***** actualTR, numtype***** predictedTR, numtype***** actualBASE, numtype***** predictedBASE);
 	//--
 	EXPORT void saveEngineInfo(int pid, int engineType, int coresCnt, int sampleLen_, int predictionLen_, int featuresCnt_, int batchSize_, int WNNdecompLevel_, int WNNwaveletType_, bool saveToDB_, bool saveToFile_, sOraData* dbconn_, int* coreId, int* coreLayer, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_, numtype** fftMin_, numtype** fftMax_);
 	EXPORT void loadEngineInfo(int pid, int* engineType_, int* coresCnt, int* sampleLen_, int* predictionLen_, int* featuresCnt_, int* batchSize_, int* WNNdecompLevel_, int* WNNwaveletType_, bool* saveToDB_, bool* saveToFile_, sOraData* dbconn_, int* coreId, int* coreType, int* tid, int* parentCoresCnt, int** parentCore, int** parentConnType, numtype* trMin_, numtype* trMax_, numtype** fftMin_, numtype** fftMax_);
@@ -44,8 +44,8 @@ struct sOraData : sCfgObj {
 	EXPORT void saveEngineCoreInfo(int pid, int coreId_, int layer_, int tid, int coreType_);
 	EXPORT void loadEngineCoresInfo(int pid, int* coresCnt_, int** coreType_, int** coreThreadId_, int** coreLayer_);
 	//--
-	EXPORT void saveEngineData(int pid, int IOshift_, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_);
-	EXPORT void loadEngineData(int pid, int* IOshift_, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_);
+	EXPORT void saveEngineData(int pid, int IOshift_, int* dataSourcesCnt_, int** featuresCnt_, int*** feature_, int*** dt_, int* WTlevel_, int* WTtype_);
+	EXPORT void loadEngineData(int pid, int* IOshift_, int* dataSourcesCnt_, int** featuresCnt_, int*** feature_, int*** dt_, int* WTlevel_, int* WTtype_);
 	//--
 	EXPORT int getSavedEnginePids(int maxPids_, int* oPid);
 	//--

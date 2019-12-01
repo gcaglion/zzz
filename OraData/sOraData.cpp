@@ -200,7 +200,7 @@ void sOraData::saveMSE(int pid, int tid, int mseCnt, int* duration, numtype* mse
 	}
 
 }
-void sOraData::saveRun2(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char*** posLabel, int i, int d, int f, int l, numtype***** actualTRS, numtype***** predictedTRS, numtype***** actualTR, numtype***** predictedTR, numtype***** actualBASE, numtype***** predictedBASE) {
+void sOraData::saveRun2(int pid, int tid, int npid, int ntid, int seqId, numtype mseR, int runStepsCnt, char*** posLabel, int i, int d, int fi, int f, int l, numtype***** actualTRS, numtype***** predictedTRS, numtype***** actualTR, numtype***** predictedTR, numtype***** actualBASE, numtype***** predictedBASE) {
 	int runidx=0;
 
 	//-- always check this, first!
@@ -225,58 +225,58 @@ void sOraData::saveRun2(int pid, int tid, int npid, int ntid, int seqId, numtype
 			((Statement*)stmt)->setInt(9, d);
 			((Statement*)stmt)->setInt(10, f);
 			((Statement*)stmt)->setInt(11, l);
-			if (actualTRS[step][i][d][f][l]==EMPTY_VALUE) {
+			if (actualTRS[step][i][d][fi][l]==EMPTY_VALUE) {
 				((Statement*)stmt)->setNull(12, OCCIFLOAT);
 			} else {
 				#ifdef DOUBLE_NUMTYPE
-				((Statement*)stmt)->setDouble(12, actualTRS[step][i][d][f][l]);
+				((Statement*)stmt)->setDouble(12, actualTRS[step][i][d][fi][l]);
 				#else
-				((Statement*)stmt)->setFloat(12, actualTRS[step][i][d][f][l]);
+				((Statement*)stmt)->setFloat(12, actualTRS[step][i][d][fi][l]);
 				#endif
 			}
-			if (predictedTRS[step][i][d][f][l]==EMPTY_VALUE) {
+			if (predictedTRS[step][i][d][fi][l]==EMPTY_VALUE) {
 				((Statement*)stmt)->setNull(13, OCCIFLOAT);
 			} else {
 				#ifdef DOUBLE_NUMTYPE
-				((Statement*)stmt)->setDouble(13, predictedTRS[step][i][d][f][l]);
+				((Statement*)stmt)->setDouble(13, predictedTRS[step][i][d][fi][l]);
 				#else
-				((Statement*)stmt)->setFloat(13, predictedTRS[step][i][d][f][l]);
+				((Statement*)stmt)->setFloat(13, predictedTRS[step][i][d][fi][l]);
 				#endif
 			}
-			if (actualTR[step][i][d][f][l]==EMPTY_VALUE) {
+			if (actualTR[step][i][d][fi][l]==EMPTY_VALUE) {
 				((Statement*)stmt)->setNull(14, OCCIFLOAT);
 			} else {
 				#ifdef DOUBLE_NUMTYPE
-				((Statement*)stmt)->setDouble(14, actualTR[step][i][d][f][l]);
+				((Statement*)stmt)->setDouble(14, actualTR[step][i][d][fi][l]);
 				#else
-				((Statement*)stmt)->setFloat(14, actualTR[step][i][d][f][l]);
+				((Statement*)stmt)->setFloat(14, actualTR[step][i][d][fi][l]);
 				#endif
 			}
-			if (predictedTR[step][i][d][f][l]==EMPTY_VALUE) {
+			if (predictedTR[step][i][d][fi][l]==EMPTY_VALUE) {
 				((Statement*)stmt)->setNull(15, OCCIFLOAT);
 			} else {
 				#ifdef DOUBLE_NUMTYPE
-				((Statement*)stmt)->setDouble(15, predictedTR[step][i][d][f][l]);
+				((Statement*)stmt)->setDouble(15, predictedTR[step][i][d][fi][l]);
 				#else
-				((Statement*)stmt)->setFloat(15, predictedTR[step][i][d][f][l]);
+				((Statement*)stmt)->setFloat(15, predictedTR[step][i][d][fi][l]);
 				#endif
 			}
-			if (actualBASE[step][i][d][f][l]==EMPTY_VALUE) {
+			if (actualBASE[step][i][d][fi][l]==EMPTY_VALUE) {
 				((Statement*)stmt)->setNull(16, OCCIFLOAT);
 			} else {
 				#ifdef DOUBLE_NUMTYPE
-				((Statement*)stmt)->setDouble(16, actualBASE[step][i][d][f][l]);
+				((Statement*)stmt)->setDouble(16, actualBASE[step][i][d][fi][l]);
 				#else
-				((Statement*)stmt)->setFloat(16, actualBASE[step][i][d][f][l]);
+				((Statement*)stmt)->setFloat(16, actualBASE[step][i][d][fi][l]);
 				#endif
 			}
-			if (predictedBASE[step][i][d][f][l]==EMPTY_VALUE) {
+			if (predictedBASE[step][i][d][fi][l]==EMPTY_VALUE) {
 				((Statement*)stmt)->setNull(17, OCCIFLOAT);
 			} else {
 				#ifdef DOUBLE_NUMTYPE
-				((Statement*)stmt)->setDouble(17, predictedBASE[step][i][d][f][l]);
+				((Statement*)stmt)->setDouble(17, predictedBASE[step][i][d][fi][l]);
 				#else
-				((Statement*)stmt)->setFloat(17, predictedBASE[step][i][d][f][l]);
+				((Statement*)stmt)->setFloat(17, predictedBASE[step][i][d][fi][l]);
 				#endif
 			}
 
@@ -1148,7 +1148,7 @@ void sOraData::loadEngineCoresInfo(int pid, int* coresCnt_, int** coreType_, int
 		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-void sOraData::saveEngineData(int pid, int IOshift_, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_) {
+void sOraData::saveEngineData(int pid, int IOshift_, int* dataSourcesCnt_, int** featuresCnt_, int*** feature_, int*** dt_, int* WTlevel_, int* WTtype_) {
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
 
@@ -1175,7 +1175,7 @@ void sOraData::saveEngineData(int pid, int IOshift_, int* dataSourcesCnt_, int**
 						((Statement*)stmt)->setInt(2, IOshift_);
 						((Statement*)stmt)->setInt(3, i);
 						((Statement*)stmt)->setInt(4, d);
-						((Statement*)stmt)->setInt(5, f);
+						((Statement*)stmt)->setInt(5, feature_[i][d][f]);
 						((Statement*)stmt)->setInt(6, dt_[i][d][f]);
 						((Statement*)stmt)->setInt(7, l);
 						((Statement*)stmt)->setInt(8, WTtype_[i]);
@@ -1194,7 +1194,7 @@ void sOraData::saveEngineData(int pid, int IOshift_, int* dataSourcesCnt_, int**
 	}
 
 }
-void sOraData::loadEngineData(int pid, int* IOshift_, int* dataSourcesCnt_, int** featuresCnt_, int*** dt_, int* WTlevel_, int* WTtype_) {
+void sOraData::loadEngineData(int pid, int* IOshift_, int* dataSourcesCnt_, int** featuresCnt_, int*** feature_, int*** dt_, int* WTlevel_, int* WTtype_) {
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -1239,6 +1239,7 @@ void sOraData::loadEngineData(int pid, int* IOshift_, int* dataSourcesCnt_, int*
 
 		for (int side=0; side<2; side++) {
 			featuresCnt_[side]=(int*)malloc(dataSourcesCnt_[side]*sizeof(int));
+			feature_[side]=(int**)malloc(dataSourcesCnt_[side]*sizeof(int*));
 			dt_[side]=(int**)malloc(dataSourcesCnt_[side]*sizeof(int*));
 			for (int d=0; d<dataSourcesCnt_[side]; d++) {
 				sprintf_s(sqlS, SQL_MAXLEN, "select count(Feature)/%d from EngineData where ProcessId = %d and EngineSide=%d and DataSource = %d", WTlevel_[side]+2, pid, side, d);
@@ -1254,19 +1255,19 @@ void sOraData::loadEngineData(int pid, int* IOshift_, int* dataSourcesCnt_, int*
 				((Connection*)conn)->terminateStatement((Statement*)stmt);
 
 				dt_[side][d]=(int*)malloc(featuresCnt_[side][d]*sizeof(int));
-				for (int f=0; f<featuresCnt_[side][d]; f++) {
-					sprintf_s(sqlS, SQL_MAXLEN, "select DT from EngineData where ProcessId = %d and EngineSide=%d and DataSource = %d and Feature=%d", pid, side, d, f);
-					stmt = ((Connection*)conn)->createStatement(sqlS);
-					rset = ((Statement*)stmt)->executeQuery();
-					i=0;
-					while (((ResultSet*)rset)->next()) {
-						dt_[side][d][f]=((ResultSet*)rset)->getInt(1);
-						i++;
-					}
-					if (i==0) fail("Engine pid %d not found.", pid);
-					((Statement*)stmt)->closeResultSet((ResultSet*)rset);
-					((Connection*)conn)->terminateStatement((Statement*)stmt);
+				feature_[side][d]=(int*)malloc(featuresCnt_[side][d]*sizeof(int));
+				sprintf_s(sqlS, SQL_MAXLEN, "select DT, Feature from EngineData where ProcessId = %d and EngineSide=%d and DataSource = %d and WTlevel=0", pid, side, d);
+				stmt = ((Connection*)conn)->createStatement(sqlS);
+				rset = ((Statement*)stmt)->executeQuery();
+				i=0;
+				while (((ResultSet*)rset)->next()) {
+					dt_[side][d][i]=((ResultSet*)rset)->getInt(1);
+					feature_[side][d][i]=((ResultSet*)rset)->getInt(2);
+					i++;
 				}
+				if (i==0) fail("Engine pid %d not found.", pid);
+				((Statement*)stmt)->closeResultSet((ResultSet*)rset);
+				((Connection*)conn)->terminateStatement((Statement*)stmt);
 			}
 		}
 

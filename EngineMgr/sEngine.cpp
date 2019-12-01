@@ -19,7 +19,7 @@ sEngine::sEngine(sObjParmsDef, int clientPid_, sLogger* persistor_, int savedEng
 	pid=clientPid_;
 	safecall(persistor_, loadEngineCoresInfo, savedEnginePid_, &coresCnt, &coreType, &coreThreadId, &coreLayer);
 	safecall(persistor_, loadEngineInfo, savedEnginePid_, &type, &sampleLen, &targetLen, &batchSize);
-	safecall(persistor_, loadEngineData, savedEnginePid_, &IOshift, dataSourcesCnt, featuresCnt, dt, WTlevel, WTtype);
+	safecall(persistor_, loadEngineData, savedEnginePid_, &IOshift, dataSourcesCnt, featuresCnt, feature, dt, WTlevel, WTtype);
 
 	sNNparms* NNcp=nullptr; sNN2* NNc=nullptr; sCoreLogger* NNcl;
 	for (int c=0; c<coresCnt; c++) {
@@ -112,7 +112,7 @@ void sEngine::train(int simulationId_, sTS2* trainTS_) {
 	}
 
 	safecall(persistor, saveEngineInfo, pid, type, sampleLen, targetLen, batchSize, trainTS_->WTlevel[0], trainTS_->WTtype[0]);
-	safecall(persistor, saveEngineData, pid, trainTS_->IOshift, trainTS_->dataSourcesCnt, trainTS_->featuresCnt, trainTS_->dt, trainTS_->WTlevel, trainTS_->WTtype);
+	safecall(persistor, saveEngineData, pid, trainTS_->IOshift, trainTS_->dataSourcesCnt, trainTS_->featuresCnt, trainTS_->feature, trainTS_->dt, trainTS_->WTlevel, trainTS_->WTtype);
 	for (int c=0; c<coresCnt; c++) {
 		safecall(persistor, saveEngineCoreInfo, pid, c, 0, core[c]->procArgs->tid, coreType[c]);
 		safecall(persistor, saveCoreInfo, pid, core[c]->procArgs->tid, CORE_NN, sampleLen, inputCnt, targetLen, outputCnt, batchSize, trMinIN, trMaxIN, trMinOUT, trMaxOUT);
@@ -182,7 +182,7 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 			for (int f=0; f<inferTS_->featuresCnt[1][d]; f++) {
 				for (int l=0; l<(inferTS_->WTlevel[1]+2); l++) {
 					safecall(core[0]->persistor, saveRun2, core[0]->procArgs->pid, core[0]->procArgs->tid, core[0]->procArgs->npid, core[0]->procArgs->ntid, seqId_, core[0]->procArgs->mseR, \
-						inferTS_->stepsCnt+((savedEnginePid_>0)?inferTS_->targetLen:-inferTS_->targetLen*2-1), inferTS_->timestamp, 1, d, f, l, inferTS_->valTRS, inferTS_->prdTRS, inferTS_->valTR, inferTS_->prdTR, inferTS_->val, inferTS_->prd
+						inferTS_->stepsCnt+((savedEnginePid_>0)?inferTS_->targetLen:-inferTS_->targetLen*2-1), inferTS_->timestamp, 1, d, f, inferTS_->feature[1][d][f], l, inferTS_->valTRS, inferTS_->prdTRS, inferTS_->valTR, inferTS_->prdTR, inferTS_->val, inferTS_->prd
 					);
 				}
 			}
