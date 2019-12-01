@@ -711,20 +711,20 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	dataSourcesCnt=(int*)malloc(2*sizeof(int));
 	sDataSource*** dsrc=(sDataSource***)malloc(2*sizeof(sDataSource**));
 	featuresCnt=(int**)malloc(2*sizeof(int*));
-	int*** selF=(int***)malloc(2*sizeof(int**));
+	feature=(int***)malloc(2*sizeof(int**));
 
 	for (int i=0; i<2; i++) {	
 		safecall(cfg, setKey, strBuild("%sput", (i>0) ? "Out" : "In").c_str());
 		safecall(cfg->currentKey, getParm, &dataSourcesCnt[i], "DataSourcesCount");
 		dsrc[i]=(sDataSource**)malloc(dataSourcesCnt[i]*sizeof(sDataSource*));
 		featuresCnt[i]=(int*)malloc(dataSourcesCnt[i]*sizeof(int));
-		selF[i]=(int**)malloc(dataSourcesCnt[i]*sizeof(int*));
+		feature[i]=(int**)malloc(dataSourcesCnt[i]*sizeof(int*));
 		dt[i]=(int**)malloc(dataSourcesCnt[i]*sizeof(int*));
 		for (int d=0; d<dataSourcesCnt[i]; d++) {
-			selF[i][d]=(int*)malloc(MAX_TS_FEATURES*sizeof(int));
+			feature[i][d]=(int*)malloc(MAX_TS_FEATURES*sizeof(int));
 			safecall(cfg, setKey, strBuild("DataSource%d", d).c_str());
 			setDataSource(&dsrc[i][d]);
-			safecall(cfg->currentKey, getParm, &selF[i][d], "SelectedFeatures", false, &featuresCnt[i][d]);
+			safecall(cfg->currentKey, getParm, &feature[i][d], "SelectedFeatures", false, &featuresCnt[i][d]);
 			dt[i][d]=(int*)malloc(featuresCnt[i][d]*sizeof(int));
 			safecall(cfg->currentKey, getParm, &dt[i][d], "DataTransformation");
 			safecall(cfg, setKey, "../");
@@ -768,8 +768,8 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 			for (int f=0; f<featuresCnt[i][d]; f++) {
 				for (int s=0; s<stepsCnt; s++) {
 					for (int df=0; df<dsrc[i][d]->featuresCnt; df++) {
-						if (selF[i][d][f]==df) {
-							tmpvalx[s*featuresCnt[i][d]+f]=tmpval[s*dsrc[i][d]->featuresCnt+selF[i][d][f]];
+						if (feature[i][d][f]==df) {
+							tmpvalx[s*featuresCnt[i][d]+f]=tmpval[s*dsrc[i][d]->featuresCnt+feature[i][d][f]];
 						}
 					}
 				}
@@ -779,7 +779,7 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 				//-- FFTcalc for each feature. Also sets original value at position 0
 				WTcalc(i, d, f, tmpvalx);
 				//-- base values for each feature. only for original values
-				valB[i][d][f][0]=tmpvalB[selF[i][d][f]];
+				valB[i][d][f][0]=tmpvalB[feature[i][d][f]];
 				//-- base values for each level. we don't have it, so we set it equal to the first value of the level serie
 				for (int l=1; l<(WTlevel[i]+2); l++) {
 					valB[i][d][f][l]=val[0][i][d][f][l];
@@ -792,13 +792,6 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 		}
 	}
 
-	for (int i=0; i<2; i++) {
-		for (int d=0; d<dataSourcesCnt[i]; d++) {
-			free(selF[i][d]);
-		}
-		free(selF[i]);
-	}
-	free(selF);
 	for (int i=0; i<stepsCnt; i++) free(tmptime[i]);
 	free(tmptime); free(tmptimeB);
 	free(dsrc);
@@ -825,12 +818,20 @@ sTS2::sTS2(sObjParmsDef, \
 
 	dataSourcesCnt[0]=INdataSourcesCnt_;
 	featuresCnt[0]=(int*)malloc(dataSourcesCnt[0]*sizeof(int));
-	for (int d=0; d<dataSourcesCnt[0]; d++) featuresCnt[0][d]=INfeaturesCnt_[d];
+	feature[0]=(int**)malloc(dataSourcesCnt[0]*sizeof(int*));
+	for (int d=0; d<dataSourcesCnt[0]; d++) {
+		featuresCnt[0][d]=INfeaturesCnt_[d];
+		feature[0][d]=(int*)malloc(featuresCnt[0][d]*sizeof(int));
+	}
 	WTtype[0]=INWTtype_; WTlevel[0]=INWTlevel_;
 	//--
 	dataSourcesCnt[1]=OUTdataSourcesCnt_;
 	featuresCnt[1]=(int*)malloc(dataSourcesCnt[1]*sizeof(int));
-	for (int d=0; d<dataSourcesCnt[1]; d++) featuresCnt[1][d]=OUTfeaturesCnt_[d];
+	feature[1]=(int**)malloc(dataSourcesCnt[0]*sizeof(int*));
+	for (int d=0; d<dataSourcesCnt[0]; d++) {
+		featuresCnt[1][d]=INfeaturesCnt_[d];
+		feature[1][d]=(int*)malloc(featuresCnt[1][d]*sizeof(int));
+	}
 	WTtype[1]=OUTWTtype_; WTlevel[1]=OUTWTlevel_;
 
 	mallocs1();
@@ -959,6 +960,14 @@ sTS2::~sTS2() {
 	}
 	free(val); free(valTR); free(valTRS);
 	free(prd); free(prdTR); free(prdTRS);
+
+	for (int i=0; i<2; i++) {
+		for (int d=0; d<dataSourcesCnt[i]; d++) {
+			free(feature[i][d]);
+		}
+		free(feature[i]);
+	}
+	free(feature);
 
 	for (int s=0; s<stepsCnt; s++) {
 		for (int i=0; i<2; i++) {

@@ -117,6 +117,7 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 #include "../EngineMgr/sCoreLayout.h"
 #include "../EngineMgr/sNNparms.h"
 #include "../EngineMgr/sNN2.h"
+#include "../TAlib/ta_libc.h"
 
 void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iBarL, double** iBarC, double** iBarV, long** iBaseBarT, double** iBaseBarO, double** iBaseBarH, double** iBaseBarL, double** iBaseBarC, double** iBaseBarV) {
 	srand(timeGetTime());
@@ -150,6 +151,20 @@ void sRoot::kaz() {
 
 	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
+
+	double* high=(double*)malloc(ts->stepsCnt*sizeof(double));
+	double* low=(double*)malloc(ts->stepsCnt*sizeof(double));
+	double* close=(double*)malloc(ts->stepsCnt*sizeof(double));
+	double* atr=(double*)malloc(ts->stepsCnt*sizeof(double));
+	int* begIdx=(int*)malloc(ts->stepsCnt*sizeof(int));
+	int* begElem=(int*)malloc(ts->stepsCnt*sizeof(int));
+	VinitRnd(ts->stepsCnt, 2,3, high);
+	VinitRnd(ts->stepsCnt, 0, 1, low);
+	VinitRnd(ts->stepsCnt, 1.2, 1.8, close);
+
+	TA_RetCode ret=TA_Initialize();
+	ret=TA_ATR(0, ts->stepsCnt, high, low, close, 14, begIdx, begElem, atr);
+
 	ts->scale(-1, 1);
 	ts->dump();
 	return;
