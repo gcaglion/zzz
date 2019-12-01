@@ -33,9 +33,9 @@ sFXDataSource::~sFXDataSource() {
 	free(TimeFrame);
 }
 
-void sFXDataSource::load(char* pDate0, int pDate0Lag, int* pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar) {
+void sFXDataSource::load(char* pDate0, int pDate0Lag, int stepsCnt, int* cutStepsCnt, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar) {
 	//-- we could also retrieve FXData from file...
-	safecall(oradb, getFlatOHLCV2, Symbol, TimeFrame, pDate0, pDate0Lag, pRecCount, oBarTime, oBarData, oBaseTime, oBaseBar);
+	safecall(oradb, getFlatOHLCV2, Symbol, TimeFrame, pDate0, pDate0Lag, stepsCnt, cutStepsCnt, oBarTime, oBarData, oBaseTime, oBaseBar);
 }
 void sFXDataSource::open() {
 	safecall(oradb, open);

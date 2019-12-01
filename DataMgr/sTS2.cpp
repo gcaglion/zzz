@@ -750,13 +750,14 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	numtype* tmpvalBx;
 
 	//-- load datasources
+	int cutStepsCnt;
 	for (int i=0; i<2; i++) {
 		for (int d=0; d<dataSourcesCnt[i]; d++) {
 			tmpval=(numtype*)malloc(stepsCnt*dsrc[i][d]->featuresCnt*sizeof(numtype));
 			tmpvalB=(numtype*)malloc(dsrc[i][d]->featuresCnt*sizeof(numtype));
 			tmpvalx=(numtype*)malloc(stepsCnt*featuresCnt[i][d]*sizeof(numtype));
 			tmpvalBx=(numtype*)malloc(featuresCnt[i][d]*sizeof(numtype));
-			safecall(dsrc[i][d], load, _date0, (i>0)?IOshift:0, &stepsCnt, tmptime, tmpval, tmptimeB, tmpvalB);
+			safecall(dsrc[i][d], load, _date0, (i>0)?IOshift:0, stepsCnt, &cutStepsCnt, tmptime, tmpval, tmptimeB, tmpvalB);
 
 			//-- set timestamps
 			for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, tmptime[s]);
@@ -782,8 +783,6 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 				for (int l=1; l<(WTlevel[i]+2); l++) {
 					valB[i][d][f][l]=val[0][i][d][f][l];
 				}
-				//-- transform for each feature/level.
-				for (int l=0; l<(WTlevel[i]+2); l++) transform(i, d, f, l);
 			}
 			free(tmpval); free(tmpvalB); 
 			free(tmpvalx); free(tmpvalBx);
@@ -793,6 +792,27 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	for (int i=0; i<stepsCnt; i++) free(tmptime[i]);
 	free(tmptime); free(tmptimeB);
 	free(dsrc);
+
+		for (int i=0; i<2; i++) {
+			for (int d=0; d<dataSourcesCnt[i]; d++) {
+				for (int f=0; f<featuresCnt[i][d]; f++) {
+					for (int l=0; l<(WTlevel[i]+2); l++) {
+						if (cutStepsCnt>0) {
+							valB[i][d][f][l]=val[cutStepsCnt-1][i][d][f][l];
+							strcpy_s(timestampB[i], DATE_FORMAT_LEN, timestamp[cutStepsCnt-1][i]);
+							for (int s=0; s<(stepsCnt-cutStepsCnt); s++) {
+								strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, timestamp[s+cutStepsCnt][i]);
+								val[s][i][d][f][l]=val[s+cutStepsCnt][i][d][f][l];
+							}
+							//-- transform for each feature/level.
+							for (int l=0; l<(WTlevel[i]+2); l++) transform(i, d, f, l);
+						}
+					}
+				}
+			}
+		}
+		stepsCnt-=cutStepsCnt;
+
 	if (doDump) dump();
 
 }

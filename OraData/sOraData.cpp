@@ -81,27 +81,27 @@ void sOraData::getFutureBar(char* iSymbol_, char* iTF_, char* iDate0_, char* oDa
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0Lag, int* stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar) {
+void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0Lag, int stepsCnt, int* cutStepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar) {
 	int i;
 
-	double* open=(double*)malloc((*stepsCnt)*sizeof(double));
-	double* high=(double*)malloc((*stepsCnt)*sizeof(double));
-	double* low=(double*)malloc((*stepsCnt)*sizeof(double));
-	double* close=(double*)malloc((*stepsCnt)*sizeof(double));
-	double* volume=(double*)malloc((*stepsCnt)*sizeof(double));
-	double* macd=(double*)malloc((*stepsCnt)*sizeof(double)); int macd_start[1]; int macd_end[1];
-	double* cci=(double*)malloc((*stepsCnt)*sizeof(double)); int cci_start[1]; int cci_end[1];
-	double* atr=(double*)malloc((*stepsCnt)*sizeof(double)); int atr_start[1]; int atr_end[1];
-	double* bollh=(double*)malloc((*stepsCnt)*sizeof(double)); int boll_start[1]; int boll_end[1];
-	double* bollm=(double*)malloc((*stepsCnt)*sizeof(double));
-	double* bolll=(double*)malloc((*stepsCnt)*sizeof(double));
-	double* dema=(double*)malloc((*stepsCnt)*sizeof(double)); int dema_start[1]; int dema_end[1];
-	double* ma=(double*)malloc((*stepsCnt)*sizeof(double)); int ma_start[1]; int ma_end[1];
-	double* mom=(double*)malloc((*stepsCnt)*sizeof(double)); int mom_start[1]; int mom_end[1];
-	int* ind1=(int*)malloc((*stepsCnt)*sizeof(int));
-	int* ind2=(int*)malloc((*stepsCnt)*sizeof(int));
-	double* ind3=(double*)malloc((*stepsCnt)*sizeof(double));
-	double* ind4=(double*)malloc((*stepsCnt)*sizeof(double));
+	double* open=(double*)malloc(stepsCnt*sizeof(double));
+	double* high=(double*)malloc(stepsCnt*sizeof(double));
+	double* low=(double*)malloc(stepsCnt*sizeof(double));
+	double* close=(double*)malloc(stepsCnt*sizeof(double));
+	double* volume=(double*)malloc(stepsCnt*sizeof(double));
+	double* macd=(double*)malloc(stepsCnt*sizeof(double)); int macd_start[1]; int macd_end[1];
+	double* cci=(double*)malloc(stepsCnt*sizeof(double)); int cci_start[1]; int cci_end[1];
+	double* atr=(double*)malloc(stepsCnt*sizeof(double)); int atr_start[1]; int atr_end[1];
+	double* bollh=(double*)malloc(stepsCnt*sizeof(double)); int boll_start[1]; int boll_end[1];
+	double* bollm=(double*)malloc(stepsCnt*sizeof(double));
+	double* bolll=(double*)malloc(stepsCnt*sizeof(double));
+	double* dema=(double*)malloc(stepsCnt*sizeof(double)); int dema_start[1]; int dema_end[1];
+	double* ma=(double*)malloc(stepsCnt*sizeof(double)); int ma_start[1]; int ma_end[1];
+	double* mom=(double*)malloc(stepsCnt*sizeof(double)); int mom_start[1]; int mom_end[1];
+	int* ind1=(int*)malloc(stepsCnt*sizeof(int));
+	int* ind2=(int*)malloc(stepsCnt*sizeof(int));
+	double* ind3=(double*)malloc(stepsCnt*sizeof(double));
+	double* ind4=(double*)malloc(stepsCnt*sizeof(double));
 
 	//-- always check this, first!
 	if (!isOpen) safecall(this, open);
@@ -126,7 +126,7 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0L
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 		//-- 2. History: get all records
-		i=(*stepsCnt)-1;
+		i=stepsCnt-1;
 		while (((ResultSet*)rset)->next()&&i>=0) {
 			strcpy_s(oBarTime[i], DATE_FORMAT_LEN, ((ResultSet*)rset)->getString(1).c_str());
 			oBarData[(FXDATA_FEATURESCNT_BASE+FXDATA_FEATURESCNT_IND)*i+FXOPEN] = ((ResultSet*)rset)->getFloat(2); open[i]=(numtype)oBarData[(FXDATA_FEATURESCNT_BASE+FXDATA_FEATURESCNT_IND)*i+FXOPEN];
@@ -149,15 +149,15 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0L
 
 		//-- calc Indicators
 		TA_RetCode ret=TA_Initialize();
-		if (TA_MACD(0, (*stepsCnt), close,EMA_fastPeriod, EMA_slowPeriod, EMA_signalPeriod, macd_start, macd_end, macd, ind3, ind4)!=TA_SUCCESS) fail("Error getting MACD");
-		if (TA_CCI(0, (*stepsCnt), high, low, close, CCI_MAperiod, cci_start, cci_end, cci)!=TA_SUCCESS) fail("Error getting CCI");
-		if (TA_ATR(0, (*stepsCnt), high, low, close, ATR_MAperiod, atr_start, atr_end, atr)!=TA_SUCCESS) fail("Error getting ATR");
-		if (TA_BBANDS(0, (*stepsCnt), close, BOLL_period, BOLL_deviation, BOLL_deviation, TA_MAType_SMA, boll_start, boll_end, bollh, bollm, bolll)!=TA_SUCCESS) fail("Error getting BOLL");
-		if (TA_DEMA(0, (*stepsCnt), close, DEMA_period, dema_start, dema_end, dema)!=TA_SUCCESS) fail("Error getting DEMA");
-		if (TA_MA(0, (*stepsCnt), close, MA_period, TA_MAType_SMA, ma_start, ma_end, ma)!=TA_SUCCESS) fail("Error getting MA");
-		if (TA_MOM(0, (*stepsCnt), close, MOM_period, mom_start, mom_end, mom)!=TA_SUCCESS) fail("Error getting MOM");
+		if (TA_MACD(0, stepsCnt, close,EMA_fastPeriod, EMA_slowPeriod, EMA_signalPeriod, macd_start, macd_end, macd, ind3, ind4)!=TA_SUCCESS) fail("Error getting MACD");
+		if (TA_CCI(0, stepsCnt, high, low, close, CCI_MAperiod, cci_start, cci_end, cci)!=TA_SUCCESS) fail("Error getting CCI");
+		if (TA_ATR(0, stepsCnt, high, low, close, ATR_MAperiod, atr_start, atr_end, atr)!=TA_SUCCESS) fail("Error getting ATR");
+		if (TA_BBANDS(0, stepsCnt, close, BOLL_period, BOLL_deviation, BOLL_deviation, TA_MAType_SMA, boll_start, boll_end, bollh, bollm, bolll)!=TA_SUCCESS) fail("Error getting BOLL");
+		if (TA_DEMA(0, stepsCnt, close, DEMA_period, dema_start, dema_end, dema)!=TA_SUCCESS) fail("Error getting DEMA");
+		if (TA_MA(0, stepsCnt, close, MA_period, TA_MAType_SMA, ma_start, ma_end, ma)!=TA_SUCCESS) fail("Error getting MA");
+		if (TA_MOM(0, stepsCnt, close, MOM_period, mom_start, mom_end, mom)!=TA_SUCCESS) fail("Error getting MOM");
 		TA_Shutdown();
-		for (i=0; i<(*stepsCnt); i++) {
+		for (i=0; i<stepsCnt; i++) {
 			if (i>=macd_start[0]) oBarData[(FXDATA_FEATURESCNT_BASE+FXDATA_FEATURESCNT_IND)*i+FXMACD]=(numtype)macd[i-macd_start[0]];
 			if (i>=cci_start[0]) oBarData[(FXDATA_FEATURESCNT_BASE+FXDATA_FEATURESCNT_IND)*i+FXCCI]=(numtype)cci[i-cci_start[0]];
 			if (i>=atr_start[0]) oBarData[(FXDATA_FEATURESCNT_BASE+FXDATA_FEATURESCNT_IND)*i+FXATR]=(numtype)atr[i-atr_start[0]];
@@ -170,9 +170,7 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0L
 		}
 		free(open); free(high); free(low); free(close); free(volume);
 		free(macd); free(cci); free(atr); free(bollh); free(bollm); free(bolll); free(dema); free(ma); free(mom); free(ind1); free(ind2); free(ind3); free(ind4);
-		int ignoreCnt=max(macd_start[0], max(cci_start[0], max(atr_start[0], max(boll_start[0], max(dema_start[0], max(ma_start[0], mom_start[0]))))));
-		(*stepsCnt)=(*stepsCnt)-ignoreCnt;
-		oBarData=&oBarData[ignoreCnt];
+		(*cutStepsCnt)=max(macd_start[0], max(cci_start[0], max(atr_start[0], max(boll_start[0], max(dema_start[0]+1, max(ma_start[0], mom_start[0]))))));
 	}
 	catch (SQLException ex) {
 		fail("SQL error: %d (%s); statement: %s", ex.getErrorCode(), ex.getMessage().c_str(), ((Statement*)stmt)->getSQL().c_str());
