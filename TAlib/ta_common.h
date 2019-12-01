@@ -140,7 +140,7 @@ void TA_SetRetCodeInfo( TA_RetCode theRetCode, TA_RetCodeInfo *retCodeInfo );
  * TA_Shutdown() should be called prior to exiting the application code.
  */
 __declspec(dllexport) TA_RetCode TA_Initialize( void );
-TA_RetCode TA_Shutdown( void );
+__declspec(dllexport) TA_RetCode TA_Shutdown( void );
 
 #ifdef __cplusplus
 }

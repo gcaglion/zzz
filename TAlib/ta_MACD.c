@@ -205,7 +205,7 @@
 /* Generated */                      double        outMACDSignal[],
 /* Generated */                      double        outMACDHist[] )
 /* Generated */ #else
-/* Generated */ TA_RetCode TA_MACD( int    startIdx,
+/* Generated */ __declspec(dllexport) TA_RetCode TA_MACD( int    startIdx,
 /* Generated */                     int    endIdx,
 /* Generated */                     const double inReal[],
 /* Generated */                     int           optInFastPeriod, /* From 2 to 100000 */

@@ -14,8 +14,8 @@ struct sTS2 :sCfgObj {
 	int stepsCnt;
 	int* dataSourcesCnt;	// IN/OUT
 	int** featuresCnt;
-	int*** feature;
-	int*** dt;	// [IN/OUT][dataSourcesCnt][featuresCnt]
+	int*** feature;	// [IN/OUT][dataSourcesCnt][featuresCnt]
+	int*** dt;		// [IN/OUT][dataSourcesCnt][featuresCnt]
 	int* WTlevel;	// IN/OUT
 	int* WTtype;	// IN/OUT
 

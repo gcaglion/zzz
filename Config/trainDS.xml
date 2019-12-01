@@ -1,8 +1,8 @@
 	
 	<TimeSerie>
-		HistoryLen			= 800
+		HistoryLen			= 750
 		Date0				= 2019-09-30-00:00
-		Dump				= false
+		Dump				= true
 		DumpPath			= c:\temp\DataDump
 
 		<! TScommon.xml >

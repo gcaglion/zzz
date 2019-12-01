@@ -1,7 +1,8 @@
 #pragma once
 
 //-- FxData.Features
-#define FXDATA_FEATURESCNT 14	//-- OHLCV, plus stats
+#define FXDATA_FEATURESCNT_BASE 5	//-- OHLCV
+#define FXDATA_FEATURESCNT_IND  9	//-- Indicators stats
 #define FXOPEN 0
 #define FXHIGH 1
 #define FXLOW 2
@@ -16,3 +17,17 @@
 #define FXDEMA 11
 #define FXMA 12
 #define FXMOM 13
+
+#define ATR_MAperiod 15
+#define EMA_fastPeriod 5
+#define EMA_slowPeriod 10
+#define EMA_signalPeriod 5
+#define CCI_MAperiod 15
+#define BOLL_period 20
+#define BOLL_shift 0
+#define BOLL_deviation 2.0
+#define DEMA_period 20
+#define DEMA_shift 0
+#define MA_period 10
+#define MA_shift 0
+#define MOM_period 16

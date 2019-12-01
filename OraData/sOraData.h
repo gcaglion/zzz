@@ -3,6 +3,7 @@
 #include "../common.h"
 #include "../BaseObj/sObj.h"
 #include "../ConfigMgr/sCfgObj.h"
+#include "../DataMgr/FXData_enums.h"
 
 //-- limits
 #define DBUSERNAME_MAXLEN XMLKEY_PARM_VAL_MAXLEN
@@ -24,7 +25,7 @@ struct sOraData : sCfgObj {
 	//--
 	EXPORT void getFutureBar(char* iSymbol_, char* iTF_, char* iDate0_, char* oDate1_, double* oBarO, double* oBarH, double* oBarL, double* oBarC, double* oBarV);
 	EXPORT void getStartDates(char* symbol_, char* timeframe_, bool isFilled_, char* StartDate, int DatesCount, char*** oDate);
-	EXPORT void getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0Lag, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar, numtype* oBarWidth);
+	EXPORT void getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0Lag, int* stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar);
 	//--
 	EXPORT void open();
 	EXPORT void close();

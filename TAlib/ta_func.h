@@ -499,7 +499,7 @@ int TA_AVGPRICE_Lookback( void );
  * 
  * 
  */
-TA_RetCode TA_BBANDS( int    startIdx,
+__declspec(dllexport) TA_RetCode TA_BBANDS( int    startIdx,
                       int    endIdx,
                       const double inReal[],
                       int           optInTimePeriod, /* From 2 to 100000 */
@@ -607,7 +607,7 @@ int TA_BOP_Lookback( void );
  * 
  * 
  */
-TA_RetCode TA_CCI( int    startIdx,
+__declspec(dllexport) TA_RetCode TA_CCI( int    startIdx,
                    int    endIdx,
                    const double inHigh[],
                    const double inLow[],
@@ -2667,7 +2667,7 @@ int TA_COSH_Lookback( void );
  * 
  * 
  */
-TA_RetCode TA_DEMA( int    startIdx,
+__declspec(dllexport) TA_RetCode TA_DEMA( int    startIdx,
                     int    endIdx,
                     const double inReal[],
                     int           optInTimePeriod, /* From 2 to 100000 */
@@ -3200,7 +3200,7 @@ int TA_LOG10_Lookback( void );
  * 
  * 
  */
-TA_RetCode TA_MA( int    startIdx,
+__declspec(dllexport) TA_RetCode TA_MA( int    startIdx,
                   int    endIdx,
                   const double inReal[],
                   int           optInTimePeriod, /* From 1 to 100000 */
@@ -3240,7 +3240,7 @@ int TA_MA_Lookback( int           optInTimePeriod, /* From 1 to 100000 */
  * 
  * 
  */
-TA_RetCode TA_MACD( int    startIdx,
+__declspec(dllexport) TA_RetCode TA_MACD( int    startIdx,
                     int    endIdx,
                     const double inReal[],
                     int           optInFastPeriod, /* From 2 to 100000 */
@@ -3864,7 +3864,7 @@ int TA_MINUS_DM_Lookback( int           optInTimePeriod );  /* From 1 to 100000 
  * 
  * 
  */
-TA_RetCode TA_MOM( int    startIdx,
+__declspec(dllexport) TA_RetCode TA_MOM( int    startIdx,
                    int    endIdx,
                    const double inReal[],
                    int           optInTimePeriod, /* From 1 to 100000 */

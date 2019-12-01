@@ -748,7 +748,6 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	numtype* tmpvalB;
 	numtype* tmpvalx;
 	numtype* tmpvalBx;
-	numtype* tmpbw;
 
 	//-- load datasources
 	for (int i=0; i<2; i++) {
@@ -757,8 +756,7 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 			tmpvalB=(numtype*)malloc(dsrc[i][d]->featuresCnt*sizeof(numtype));
 			tmpvalx=(numtype*)malloc(stepsCnt*featuresCnt[i][d]*sizeof(numtype));
 			tmpvalBx=(numtype*)malloc(featuresCnt[i][d]*sizeof(numtype));
-			tmpbw=(numtype*)malloc(stepsCnt*dsrc[i][d]->featuresCnt*sizeof(numtype));
-			safecall(dsrc[i][d], load, _date0, (i>0)?IOshift:0, stepsCnt, tmptime, tmpval, tmptimeB, tmpvalB, tmpbw);
+			safecall(dsrc[i][d], load, _date0, (i>0)?IOshift:0, &stepsCnt, tmptime, tmpval, tmptimeB, tmpvalB);
 
 			//-- set timestamps
 			for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, tmptime[s]);
@@ -787,7 +785,7 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 				//-- transform for each feature/level.
 				for (int l=0; l<(WTlevel[i]+2); l++) transform(i, d, f, l);
 			}
-			free(tmpval); free(tmpvalB); free(tmpbw);
+			free(tmpval); free(tmpvalB); 
 			free(tmpvalx); free(tmpvalBx);
 		}
 	}

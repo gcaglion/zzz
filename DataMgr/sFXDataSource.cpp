@@ -1,7 +1,7 @@
 #include "sFXDataSource.h"
 
 //=== sFXDataSource
-sFXDataSource::sFXDataSource(sObjParmsDef, sOraData* db_, const char* symbol_, const char* tf_, bool isFilled_) : sDataSource(sObjParmsVal, FXDATA_FEATURESCNT, true, FXHIGH, FXLOW) {
+sFXDataSource::sFXDataSource(sObjParmsDef, sOraData* db_, const char* symbol_, const char* tf_, bool isFilled_) : sDataSource(sObjParmsVal, (FXDATA_FEATURESCNT_BASE+FXDATA_FEATURESCNT_IND), true, FXHIGH, FXLOW) {
 	type=DB_SOURCE; oradb=db_;
 
 	strcpy_s(Symbol, FX_SYMBOL_MAXLEN, symbol_);
@@ -23,7 +23,7 @@ sFXDataSource::sFXDataSource(sCfgObjParmsDef) : sDataSource(sCfgObjParmsVal) {
 	safecall(cfg->currentKey, getParm, &IsFilled, "IsFilled");
 	//-- 2. do stuff and spawn sub-Keys
 	safespawn(oradb, newsname("DBConnection"), defaultdbg, cfg, "DBConnection");
-	type=DB_SOURCE; featuresCnt=FXDATA_FEATURESCNT;
+	type=DB_SOURCE; featuresCnt=(FXDATA_FEATURESCNT_BASE+FXDATA_FEATURESCNT_IND);
 	//-- 3. Restore currentKey
 	cfg->currentKey=bkpKey;
 
@@ -33,9 +33,9 @@ sFXDataSource::~sFXDataSource() {
 	free(TimeFrame);
 }
 
-void sFXDataSource::load(char* pDate0, int pDate0Lag, int pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar, numtype* oBarWidth) {
+void sFXDataSource::load(char* pDate0, int pDate0Lag, int* pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar) {
 	//-- we could also retrieve FXData from file...
-	safecall(oradb, getFlatOHLCV2, Symbol, TimeFrame, pDate0, pDate0Lag, pRecCount, oBarTime, oBarData, oBaseTime, oBaseBar, oBarWidth);
+	safecall(oradb, getFlatOHLCV2, Symbol, TimeFrame, pDate0, pDate0Lag, pRecCount, oBarTime, oBarData, oBaseTime, oBaseBar);
 }
 void sFXDataSource::open() {
 	safecall(oradb, open);
