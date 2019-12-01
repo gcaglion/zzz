@@ -83,7 +83,7 @@ int DEMA_shift=0;
 int MA_period=10;
 int MA_shift=0;
 int MOM_period=4320;
-int indHandle[];
+int indHandle[]; bool indLoad[];
 //--
 double vopen[], vhigh[], vlow[], vclose[], vvolume[];
 double vmacd[], vcci[], vatr[], vbollh[], vbollm[], vbolll[], vdema[], vma[], vmom[];
@@ -162,21 +162,25 @@ int OnInit() {
 		return -1;
 	}
 
+	ArrayResize(indHandle, seriesCnt*INDICATORS_CNT);
+	ArrayResize(indLoad, seriesCnt*INDICATORS_CNT); for (int i=0; i<(seriesCnt*INDICATORS_CNT); i++) indLoad[i]=false;
+	
 	featuresCntFromCfg=0;
 	string serieFeatTmp[14];
 	for (int s=0; s<seriesCnt; s++) {
 		//printf("Symbol/TF [%d] : %s/%s", s, serieSymbol[s], serieTimeFrame[s]);
-		serieFeatMask[s]=CSL2Mask(serieFeatList[s]);
+		serieFeatMask[s]=CSL2Mask(s, serieFeatList[s]);
 		//printf("FeatureList [%d] : %s (%d)", s, serieFeatList[s], serieFeatMask[s]);
 		//printf("Trade [%d] : %s", s, (chartTrade[s]) ? "TRUE" : "FALSE");
 		featuresCntFromCfg+=StringSplit(serieFeatList[s], ',', serieFeatTmp);
+		//--
+
 	}
 	if (featuresCntFromCfg!=featuresCnt) {
 		printf("FAILURE: Total Features Count from Client Config (%d) differs from Engine Features Count (%d)", featuresCntFromCfg, featuresCnt);
 		return -1;
 	}
 
-	ArrayResize(indHandle, seriesCnt*INDICATORS_CNT);
 	initStats();
 
 	ArrayResize(vForecastO, PredictionStep+2);
@@ -482,13 +486,13 @@ bool loadBars() {
 }
 bool initStats() {
 	for (int s=0; s<seriesCnt; s++) {
-		indHandle[s*INDICATORS_CNT+0] = iMACD(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), EMA_fastPeriod, EMA_slowPeriod, EMA_signalPeriod, PRICE_CLOSE);
-		indHandle[s*INDICATORS_CNT+1] = iCCI(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), CCI_MAperiod, PRICE_CLOSE);
-		indHandle[s*INDICATORS_CNT+2] = iATR(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), ATR_MAperiod);
-		indHandle[s*INDICATORS_CNT+3] = iBands(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), BOLL_period, BOLL_shift, BOLL_deviation, PRICE_CLOSE);
-		indHandle[s*INDICATORS_CNT+4] = iDEMA(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), DEMA_period, DEMA_shift, PRICE_CLOSE);
-		indHandle[s*INDICATORS_CNT+5] = iMA(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), MA_period, MA_shift, MODE_SMA, PRICE_CLOSE);
-		indHandle[s*INDICATORS_CNT+6] = iMomentum(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), MOM_period, PRICE_CLOSE);
+		if(indLoad[s*INDICATORS_CNT+0]) indHandle[s*INDICATORS_CNT+0] = iMACD(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), EMA_fastPeriod, EMA_slowPeriod, EMA_signalPeriod, PRICE_CLOSE);
+		if (indLoad[s*INDICATORS_CNT+1]) indHandle[s*INDICATORS_CNT+1] = iCCI(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), CCI_MAperiod, PRICE_CLOSE);
+		if (indLoad[s*INDICATORS_CNT+2]) indHandle[s*INDICATORS_CNT+2] = iATR(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), ATR_MAperiod);
+		if (indLoad[s*INDICATORS_CNT+3]) indHandle[s*INDICATORS_CNT+3] = iBands(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), BOLL_period, BOLL_shift, BOLL_deviation, PRICE_CLOSE);
+		if (indLoad[s*INDICATORS_CNT+4]) indHandle[s*INDICATORS_CNT+4] = iDEMA(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), DEMA_period, DEMA_shift, PRICE_CLOSE);
+		if (indLoad[s*INDICATORS_CNT+5]) indHandle[s*INDICATORS_CNT+5] = iMA(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), MA_period, MA_shift, MODE_SMA, PRICE_CLOSE);
+		if (indLoad[s*INDICATORS_CNT+6]) indHandle[s*INDICATORS_CNT+6] = iMomentum(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), MOM_period, PRICE_CLOSE);
 	}
 	return true;
 }
@@ -502,59 +506,72 @@ bool loadStats() {
 	//-- INPUT Stats
 	for (int s=0; s<seriesCnt; s++) {
 		//--
-
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+0], 0, 1, barsCnt+1, value1)<=0) {
-			printf("MACD copyBuffer failed. Error %d", GetLastError());
-			return false;
-		}
-		vmacdB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vmacd[s*barsCnt+bar]=value1[bar+1];
-		//--
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+1], 0, 1, barsCnt+1, value1)<=0) {
-			printf("CCI copyBuffer failed. Error %d", GetLastError());
-			return false;
-		}
-		vcciB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vcci[s*barsCnt+bar]=value1[bar+1];
-		//--
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+2], 0, 1, barsCnt+1, value1)<=0) {
-			printf("ATR copyBuffer failed. Error %d", GetLastError());
-			return false;
-		}
-		vatrB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vatr[s*barsCnt+bar]=value1[bar+1];
-		//--
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+3], 0, 1, barsCnt+1, value1)<=0||CopyBuffer(indHandle[s*INDICATORS_CNT+3], 1, 1, barsCnt+1, value2)<=0||CopyBuffer(indHandle[s*INDICATORS_CNT+3], 2, 1, barsCnt+1, value3)<=0) {
-			printf("BOLL copyBuffer failed. Error %d", GetLastError());
-			return false;
-		}
-		vbollhB[s]=value2[0]; vbollmB[s]=value2[0]; vbolllB[s]=value3[0];
-		for (bar=0; bar<barsCnt; bar++) {
-			vbollh[s*barsCnt+bar]=value2[bar+1];
-			vbollm[s*barsCnt+bar]=value1[bar+1];
-			vbolll[s*barsCnt+bar]=value3[bar+1];
+		if (indLoad[s*INDICATORS_CNT+0]) {
+			if (CopyBuffer(indHandle[s*INDICATORS_CNT+0], 0, 1, barsCnt+1, value1)<=0) {
+				printf("MACD copyBuffer failed. Error %d", GetLastError());
+				return false;
+			}
+			vmacdB[s]=value1[0];
+			for (bar=0; bar<barsCnt; bar++) vmacd[s*barsCnt+bar]=value1[bar+1];
 		}
 		//--
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+4], 0, 1, barsCnt+1, value1)<=0) {
-			printf("DEMA copyBuffer failed. Error %d", GetLastError());
-			return false;
+		if (indLoad[s*INDICATORS_CNT+1]) {
+			if (CopyBuffer(indHandle[s*INDICATORS_CNT+1], 0, 1, barsCnt+1, value1)<=0) {
+				printf("CCI copyBuffer failed. Error %d", GetLastError());
+				return false;
+			}
+			vcciB[s]=value1[0];
+			for (bar=0; bar<barsCnt; bar++) vcci[s*barsCnt+bar]=value1[bar+1];
 		}
-		vdemaB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vdema[s*barsCnt+bar]=value1[bar+1];
 		//--
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+5], 0, 1, barsCnt+1, value1)<=0) {
-			printf("MA copyBuffer failed. Error %d", GetLastError());
-			return false;
+		if (indLoad[s*INDICATORS_CNT+2]) {
+			if (CopyBuffer(indHandle[s*INDICATORS_CNT+2], 0, 1, barsCnt+1, value1)<=0) {
+				printf("ATR copyBuffer failed. Error %d", GetLastError());
+				return false;
+			}
+			vatrB[s]=value1[0];
+			for (bar=0; bar<barsCnt; bar++) vatr[s*barsCnt+bar]=value1[bar+1];
 		}
-		vmaB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vma[s*barsCnt+bar]=value1[bar+1];
 		//--
-		if (CopyBuffer(indHandle[s*INDICATORS_CNT+6], 0, 1, barsCnt+1, value1)<=0) {
-			printf("MOM copyBuffer failed. Error %d", GetLastError());
-			return false;
+		if (indLoad[s*INDICATORS_CNT+3]) {
+			if (CopyBuffer(indHandle[s*INDICATORS_CNT+3], 0, 1, barsCnt+1, value1)<=0||CopyBuffer(indHandle[s*INDICATORS_CNT+3], 1, 1, barsCnt+1, value2)<=0||CopyBuffer(indHandle[s*INDICATORS_CNT+3], 2, 1, barsCnt+1, value3)<=0) {
+				printf("BOLL copyBuffer failed. Error %d", GetLastError());
+				return false;
+			}
+			vbollhB[s]=value2[0]; vbollmB[s]=value2[0]; vbolllB[s]=value3[0];
+			for (bar=0; bar<barsCnt; bar++) {
+				vbollh[s*barsCnt+bar]=value2[bar+1];
+				vbollm[s*barsCnt+bar]=value1[bar+1];
+				vbolll[s*barsCnt+bar]=value3[bar+1];
+			}
 		}
-		vmomB[s]=value1[0];
-		for (bar=0; bar<barsCnt; bar++) vmom[s*barsCnt+bar]=value1[bar+1];
+		//--
+		if (indLoad[s*INDICATORS_CNT+4]) {
+			if (CopyBuffer(indHandle[s*INDICATORS_CNT+4], 0, 1, barsCnt+1, value1)<=0) {
+				printf("DEMA copyBuffer failed. Error %d", GetLastError());
+				return false;
+			}
+			vdemaB[s]=value1[0];
+			for (bar=0; bar<barsCnt; bar++) vdema[s*barsCnt+bar]=value1[bar+1];
+		}
+		//--
+		if (indLoad[s*INDICATORS_CNT+5]) {
+			if (CopyBuffer(indHandle[s*INDICATORS_CNT+5], 0, 1, barsCnt+1, value1)<=0) {
+				printf("MA copyBuffer failed. Error %d", GetLastError());
+				return false;
+			}
+			vmaB[s]=value1[0];
+			for (bar=0; bar<barsCnt; bar++) vma[s*barsCnt+bar]=value1[bar+1];
+		}
+		//--
+		if (indLoad[s*INDICATORS_CNT+6]) {
+			if (CopyBuffer(indHandle[s*INDICATORS_CNT+6], 0, 1, barsCnt+1, value1)<=0) {
+				printf("MOM copyBuffer failed. Error %d", GetLastError());
+				return false;
+			}
+			vmomB[s]=value1[0];
+			for (bar=0; bar<barsCnt; bar++) vmom[s*barsCnt+bar]=value1[bar+1];
+		}
 	}
 	return true;
 }
@@ -807,7 +824,7 @@ ENUM_TIMEFRAMES getTimeFrameEnum(string tfS) {
 	if (tfS=="D1") return PERIOD_D1;
 	return 0;
 }
-long CSL2Mask(string mask) {
+long CSL2Mask(int serie, string mask) {
 	string selF[14];
 	long ret=0;
 
@@ -818,16 +835,15 @@ long CSL2Mask(string mask) {
 		if (StringCompare(selF[f], "2")==0) ret+=100000000000; //-- LOW is selected
 		if (StringCompare(selF[f], "3")==0) ret+=10000000000; //-- CLOSE is selected
 		if (StringCompare(selF[f], "4")==0) ret+=1000000000; //-- VOLUME is selected
-		if (StringCompare(selF[f], "5")==0) ret+=100000000; //-- MACD is selected
-		if (StringCompare(selF[f], "6")==0) ret+=10000000; //-- CCI is selected
-		if (StringCompare(selF[f], "7")==0) ret+=1000000; //-- ATR  is selected
-		if (StringCompare(selF[f], "8")==0) ret+=100000; //-- BOLLH  is selected
-		if (StringCompare(selF[f], "9")==0) ret+=10000; //-- BOLLM  is selected
-		if (StringCompare(selF[f], "10")==0) ret+=1000; //-- BOLLL is selected
-		if (StringCompare(selF[f], "11")==0) ret+=100; //-- DEMA is selected
-		if (StringCompare(selF[f], "12")==0) ret+=10; //-- MA is selected
-		if (StringCompare(selF[f], "13")==0) ret+=1; //-- MOM is selected
-
+		if (StringCompare(selF[f], "5")==0) { indLoad[serie*seriesCnt+0]=true; ret+=100000000; } //-- MACD is selected
+		if (StringCompare(selF[f], "6")==0) { indLoad[serie*seriesCnt+1]=true; ret+=10000000; } //-- CCI is selected
+		if (StringCompare(selF[f], "7")==0) { indLoad[serie*seriesCnt+2]=true; ret+=1000000; } //-- ATR is selected
+		if (StringCompare(selF[f], "8")==0) { indLoad[serie*seriesCnt+3]=true; ret+=100000; } //-- BOLLH is selected
+		if (StringCompare(selF[f], "9")==0) { indLoad[serie*seriesCnt+4]=true; ret+=10000; } //-- BOLLM is selected
+		if (StringCompare(selF[f], "10")==0) { indLoad[serie*seriesCnt+5]=true; ret+=1000; } //-- BOLLL is selected
+		if (StringCompare(selF[f], "11")==0) { indLoad[serie*seriesCnt+6]=true; ret+=100; } //-- DEMA is selected
+		if (StringCompare(selF[f], "12")==0) { indLoad[serie*seriesCnt+7]=true; ret+=10; } //-- MA is selected
+		if (StringCompare(selF[f], "13")==0) { indLoad[serie*seriesCnt+8]=true; ret+=1; } //-- MOM is selected
 	}
 	return ret;
 }
