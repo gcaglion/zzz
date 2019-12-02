@@ -16,7 +16,7 @@ struct sGenericDataSource : sDataSource {
 	EXPORT ~sGenericDataSource();
 
 	EXPORT void open();
-	EXPORT void load(char* pDate0, int pDate0Lag, int pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar, numtype* oBarWidth);
+	EXPORT void load(char* pDate0, int pDate0Lag, int pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar);
 
 private:
 	void getFeaturesCnt(int* oFeaturesCnt_);

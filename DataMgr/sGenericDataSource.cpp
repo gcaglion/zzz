@@ -26,6 +26,6 @@ void sGenericDataSource::getFeaturesCnt(int* oFeaturesCnt_) {
 void sGenericDataSource::open() {
 	fail("Not implemented!");
 }
-void sGenericDataSource::load(char* pDate0, int pDate0Lag, int pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar, numtype* oBarWidth) {
+void sGenericDataSource::load(char* pDate0, int pDate0Lag, int pRecCount, char** oBarTime, numtype* oBarData, char* oBaseTime, numtype* oBaseBar) {
 	fail("Not implemented!");
 }

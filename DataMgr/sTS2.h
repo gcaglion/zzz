@@ -4,6 +4,7 @@
 #include "sFXDataSource.h"
 #include "sGenericDataSource.h"
 #include "TimeSerie_enums.h"
+#include "../TAlib/ta_func.h"
 #undef fail
 #include "../Wavelib/wavelet2d.h"
 #include "../BaseObj/sDbgMacros.h"
@@ -78,5 +79,5 @@ private:
 	void setDataSource(sDataSource** dataSrc_);
 	void WTcalc(int i, int d, int f, numtype* dsvalSF);
 	void transform(int i, int d, int f, int l);
-	
+	void calcIndicators(sDataSource* dsrc_, numtype* flatval, int selFcnt_, int* selF_, numtype* valB_, int* cutStepsCnt_);
 };

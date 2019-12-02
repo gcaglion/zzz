@@ -2,8 +2,8 @@
 			DataSourcesCount		= 1
 			<DataSource0>
 				<! FXDB-EurUsdH1.xml >
-				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
-				DataTransformation	= DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA
+				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE, FXMACD,FXCCI,FXATR,FXBOLLH,FXBOLLM,FXBOLLL,FXDEMA,FXMA,FXMOM
+				DataTransformation	= DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA
 			</DataSource0>
 			<DataSource1>
 				<! FXDB-SPXUSDH1.xml >

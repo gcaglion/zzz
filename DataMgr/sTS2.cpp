@@ -361,8 +361,19 @@ void sTS2::invertDS() {
 }
 void sTS2::slide(int steps_) {
 	for (int x=0; x<steps_; x++) {
+		for (int i=0; i<2; i++) {
+			strcpy_s(timestampB[i], DATE_FORMAT_LEN, timestamp[0][i]);
+			for (int d=0; d<dataSourcesCnt[i]; d++) {
+				for (int f=0; f<featuresCnt[i][d]; f++) {
+					for (int l=0; l<(WTlevel[i]+2); l++) {
+						valB[i][d][f][l]=val[0][i][d][f][l];
+					}
+				}
+			}
+		}
 		for (int s=0; s<(stepsCnt-1); s++) {
 			for (int i=0; i<2; i++) {
+				strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, timestamp[s+1][i]);
 				for (int d=0; d<dataSourcesCnt[i]; d++) {
 					for (int f=0; f<featuresCnt[i][d]; f++) {
 						for (int l=0; l<(WTlevel[i]+2); l++) {
@@ -688,6 +699,85 @@ void sTS2::getPrediction() {
 		}
 	}
 }
+void sTS2::calcIndicators(sDataSource* dsrc_, numtype* flatval, int selFcnt_, int* selF_, numtype* valB_, int* cutStepsCnt_) {
+	double* open=(double*)malloc(stepsCnt*sizeof(double));
+	double* high=(double*)malloc(stepsCnt*sizeof(double));
+	double* low=(double*)malloc(stepsCnt*sizeof(double));
+	double* close=(double*)malloc(stepsCnt*sizeof(double));
+	double* volume=(double*)malloc(stepsCnt*sizeof(double));
+/*	double* macd=(double*)malloc(stepsCnt*sizeof(double)); int macd_start[1]; int macd_end[1];
+	double* cci=(double*)malloc(stepsCnt*sizeof(double)); int cci_start[1]; int cci_end[1];
+	double* atr=(double*)malloc(stepsCnt*sizeof(double)); int atr_start[1]; int atr_end[1];
+	double* bollh=(double*)malloc(stepsCnt*sizeof(double)); int boll_start[1]; int boll_end[1];
+	double* bollm=(double*)malloc(stepsCnt*sizeof(double));
+	double* bolll=(double*)malloc(stepsCnt*sizeof(double));
+	double* dema=(double*)malloc(stepsCnt*sizeof(double)); int dema_start[1]; int dema_end[1];
+	double* ma=(double*)malloc(stepsCnt*sizeof(double)); int ma_start[1]; int ma_end[1];
+	double* mom=(double*)malloc(stepsCnt*sizeof(double)); int mom_start[1]; int mom_end[1];*/
+	int indStart[1]; int indEnd[1];
+	double* ind0=(double*)malloc(stepsCnt*sizeof(double));
+	double* ind1=(double*)malloc(stepsCnt*sizeof(double));
+	double* ind2=(double*)malloc(stepsCnt*sizeof(double));
+
+	TA_RetCode ret=TA_Initialize();
+	//-- set high, low, close
+	for (int s=0; s<stepsCnt; s++) {
+		open[s]=flatval[s*FXDATA_FEATURESCNT+FXOPEN];
+		high[s]=flatval[s*FXDATA_FEATURESCNT+FXHIGH];
+		low[s]=flatval[s*FXDATA_FEATURESCNT+FXLOW];
+		close[s]=flatval[s*FXDATA_FEATURESCNT+FXCLOSE];
+		volume[s]=flatval[s*FXDATA_FEATURESCNT+FXVOLUME];
+	}
+	for (int f=0; f<selFcnt_; f++) {
+		for (int df=0; df<dsrc_->featuresCnt; df++) {
+			if (selF_[f]==df) {
+				if (selF_[f]==FXMACD) { 
+					if (TA_MACD(0, stepsCnt, close, EMA_fastPeriod, EMA_slowPeriod, EMA_signalPeriod, indStart, indEnd, ind0, ind1, ind2)!=TA_SUCCESS) fail("Error getting MACD"); 
+					if (indStart[0]>(*cutStepsCnt_)) (*cutStepsCnt_)=indStart[0]+1;
+					for (int s=0; s<(indEnd[0]-1); s++) flatval[(s+indStart[0])*FXDATA_FEATURESCNT+df]=(numtype)ind0[s];
+				}
+				if (selF_[f]==FXCCI) { 
+					if (TA_CCI(0, stepsCnt, high, low, close, CCI_MAperiod, indStart, indEnd, ind0)!=TA_SUCCESS) fail("Error getting CCI");
+					if (indStart[0]>(*cutStepsCnt_)) (*cutStepsCnt_)=indStart[0]+1;
+					for (int s=0; s<(indEnd[0]-1); s++) flatval[(s+indStart[0])*FXDATA_FEATURESCNT+df]=(numtype)ind0[s];
+				}
+				if (selF_[f]==FXATR) { 
+					if (TA_ATR(0, stepsCnt, high, low, close, ATR_MAperiod, indStart, indEnd, ind0)!=TA_SUCCESS) fail("Error getting ATR");
+					if (indStart[0]>(*cutStepsCnt_)) (*cutStepsCnt_)=indStart[0]+1;
+					for (int s=0; s<(indEnd[0]-1); s++) flatval[(s+indStart[0])*FXDATA_FEATURESCNT+df]=(numtype)ind0[s];
+				}
+				if (selF_[f]==FXBOLLH||selF_[f]==FXBOLLM||selF_[f]==FXBOLLL) {
+					if (TA_BBANDS(0, stepsCnt, close, BOLL_period, BOLL_deviation, BOLL_deviation, TA_MAType_SMA, indStart, indEnd, ind0, ind1, ind2)!=TA_SUCCESS) fail("Error getting BOLL");
+					if (indStart[0]>(*cutStepsCnt_)) (*cutStepsCnt_)=indStart[0]+1;
+					for (int s=0; s<(indEnd[0]-1); s++) {
+						flatval[(s+indStart[0])*FXDATA_FEATURESCNT+df]=(numtype)ind0[s];
+						flatval[(s+indStart[0])*FXDATA_FEATURESCNT+df]=(numtype)ind1[s];
+						flatval[(s+indStart[0])*FXDATA_FEATURESCNT+df]=(numtype)ind2[s];
+					}
+				}
+				if (selF_[f]==FXDEMA) { 
+					if (TA_DEMA(0, stepsCnt, close, DEMA_period, indStart, indEnd, ind0)!=TA_SUCCESS) fail("Error getting DEMA");
+					if (indStart[0]>(*cutStepsCnt_)) (*cutStepsCnt_)=indStart[0]+1;
+					for (int s=0; s<(indEnd[0]-1); s++) flatval[(s+indStart[0])*FXDATA_FEATURESCNT+df]=(numtype)ind0[s];
+				}
+				if (selF_[f]==FXMA) { 
+					if (TA_MA(0, stepsCnt, close, MA_period, TA_MAType_SMA, indStart, indEnd, ind0)!=TA_SUCCESS) fail("Error getting MA");
+					if (indStart[0]>(*cutStepsCnt_)) (*cutStepsCnt_)=indStart[0]+1;
+					for (int s=0; s<(indEnd[0]-1); s++) flatval[(s+indStart[0])*FXDATA_FEATURESCNT+df]=(numtype)ind0[s];
+				}
+				if (selF_[f]==FXMOM) { 
+					if (TA_MOM(0, stepsCnt, close, MOM_period, indStart, indEnd, ind0)!=TA_SUCCESS) fail("Error getting MOM");
+					if (indStart[0]>(*cutStepsCnt_)) (*cutStepsCnt_)=indStart[0]+1;
+					for (int s=0; s<(indEnd[0]-1); s++) flatval[(s+indStart[0])*FXDATA_FEATURESCNT+df]=(numtype)ind0[s];
+				}
+			}
+		}
+	}
+
+	TA_Shutdown();
+	free(open); free(high); free(low); free(close); free(volume);
+	free(ind0); free(ind1); free(ind2);
+}
 
 sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	safecall(cfgKey, getParm, &stepsCnt, "HistoryLen");
@@ -744,25 +834,24 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 		tmptime[i][0]='\0';
 	}
 	char* tmptimeB=(char*)malloc(DATE_FORMAT_LEN); tmptimeB[0]='\0';
-	numtype* tmpval;
-	numtype* tmpvalB;
-	numtype* tmpvalx;
-	numtype* tmpvalBx;
-	numtype* tmpbw;
+	numtype* tmpval=(numtype*)malloc(stepsCnt*FXDATA_FEATURESCNT*sizeof(numtype));
+	numtype* tmpvalB=(numtype*)malloc(FXDATA_FEATURESCNT*sizeof(numtype));
+	numtype* tmpvalx=(numtype*)malloc(stepsCnt*FXDATA_FEATURESCNT*sizeof(numtype));
+	numtype* tmpvalBx=(numtype*)malloc(FXDATA_FEATURESCNT*sizeof(numtype));
 
-	//-- load datasources
+	int cutStepsCnt=0;
 	for (int i=0; i<2; i++) {
 		for (int d=0; d<dataSourcesCnt[i]; d++) {
-			tmpval=(numtype*)malloc(stepsCnt*dsrc[i][d]->featuresCnt*sizeof(numtype));
-			tmpvalB=(numtype*)malloc(dsrc[i][d]->featuresCnt*sizeof(numtype));
-			tmpvalx=(numtype*)malloc(stepsCnt*featuresCnt[i][d]*sizeof(numtype));
-			tmpvalBx=(numtype*)malloc(featuresCnt[i][d]*sizeof(numtype));
-			tmpbw=(numtype*)malloc(stepsCnt*dsrc[i][d]->featuresCnt*sizeof(numtype));
-			safecall(dsrc[i][d], load, _date0, (i>0)?IOshift:0, stepsCnt, tmptime, tmpval, tmptimeB, tmpvalB, tmpbw);
+
+			//-- load OHLCV
+			safecall(dsrc[i][d], load, _date0, (i>0)?IOshift:0, stepsCnt, tmptime, tmpval, tmptimeB, tmpvalB);
 
 			//-- set timestamps
 			for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, tmptime[s]);
 			strcpy_s(timestampB[i], DATE_FORMAT_LEN, tmptimeB);
+
+			//-- calc Inds
+			calcIndicators(dsrc[i][d], tmpval, featuresCnt[i][d], feature[i][d], tmpvalB, &cutStepsCnt);
 
 			//-- extract selected features in tmpvalx
 			for (int f=0; f<featuresCnt[i][d]; f++) {
@@ -784,14 +873,22 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 				for (int l=1; l<(WTlevel[i]+2); l++) {
 					valB[i][d][f][l]=val[0][i][d][f][l];
 				}
-				//-- transform for each feature/level.
-				for (int l=0; l<(WTlevel[i]+2); l++) transform(i, d, f, l);
 			}
-			free(tmpval); free(tmpvalB); free(tmpbw);
-			free(tmpvalx); free(tmpvalBx);
 		}
 	}
-
+	//-- slide timestamps and vals , and reset stepsCnt
+	slide(cutStepsCnt);
+	stepsCnt-=cutStepsCnt;
+	//-- transform for each feature/level.
+	for (int i=0; i<2; i++) {
+		for (int d=0; d<dataSourcesCnt[i]; d++) {
+			for (int f=0; f<featuresCnt[i][d]; f++) {
+				for (int l=0; l<(WTlevel[i]+2); l++) transform(i, d, f, l);
+			}
+		}
+	}
+	free(tmpval); free(tmpvalB);
+	free(tmpvalx); free(tmpvalBx);
 	for (int i=0; i<stepsCnt; i++) free(tmptime[i]);
 	free(tmptime); free(tmptimeB);
 	free(dsrc);

@@ -80,7 +80,7 @@ void sOraData::getFutureBar(char* iSymbol_, char* iTF_, char* iDate0_, char* oDa
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0Lag, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar, numtype* oBarWidth) {
+void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0Lag, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar) {
 	int i;
 
 	//-- always check this, first!
@@ -102,7 +102,7 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0L
 		}
 
 		//-- 1. History: open statement and result set
-		sprintf_s(sqlS, SQL_MAXLEN, "select to_char(newdatetime,'%s'), open, high, low, close, nvl(volume,0), macd, cci, atr, bollh, bollm, bolll, dema, ma, mom from %s_%s where NewDateTime<=to_date('%s','%s') order by 1 desc", DATE_FORMAT, pSymbol, pTF, date0_, DATE_FORMAT);
+		sprintf_s(sqlS, SQL_MAXLEN, "select to_char(newdatetime,'%s'), open, high, low, close, nvl(volume,0) from %s_%s where NewDateTime<=to_date('%s','%s') order by 1 desc", DATE_FORMAT, pSymbol, pTF, date0_, DATE_FORMAT);
 		stmt = ((Connection*)conn)->createStatement(sqlS);
 		rset = ((Statement*)stmt)->executeQuery();
 		//-- 2. History: get all records
@@ -114,17 +114,6 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0L
 			oBarData[14*i+2] = ((ResultSet*)rset)->getFloat(4);
 			oBarData[14*i+3] = ((ResultSet*)rset)->getFloat(5);
 			oBarData[14*i+4] = ((ResultSet*)rset)->getFloat(6);
-			oBarData[14*i+5] = ((ResultSet*)rset)->getFloat(7);
-			oBarData[14*i+6] = ((ResultSet*)rset)->getFloat(8);
-			oBarData[14*i+7] = ((ResultSet*)rset)->getFloat(9);
-			oBarData[14*i+8] = ((ResultSet*)rset)->getFloat(10);
-			oBarData[14*i+9] = ((ResultSet*)rset)->getFloat(11);
-			oBarData[14*i+10] = ((ResultSet*)rset)->getFloat(12);
-			oBarData[14*i+11] = ((ResultSet*)rset)->getFloat(13);
-			oBarData[14*i+12] = ((ResultSet*)rset)->getFloat(14);
-			oBarData[14*i+13] = ((ResultSet*)rset)->getFloat(15);
-			//--
-			oBarWidth[i]	= oBarData[14*i+1]-oBarData[14*i+2];
 
 			i--;
 		}
@@ -132,7 +121,7 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0L
 
 		//-- 3. History: one more fetch to get baseBar
 		strcpy_s(oBarTime0, DATE_FORMAT_LEN, ((ResultSet*)rset)->getString(1).c_str());
-		for (int f=0; f<14; f++)	oBaseBar[f] = ((ResultSet*)rset)->getFloat(f+2);
+		for (int f=0; f<5; f++)	oBaseBar[f] = ((ResultSet*)rset)->getFloat(f+2);
 		//-- 4. History: close result set and statement
 		((Statement*)stmt)->closeResultSet((ResultSet*)rset);
 		((Connection*)conn)->terminateStatement((Statement*)stmt);
