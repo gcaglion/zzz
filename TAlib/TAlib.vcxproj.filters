@@ -1,0 +1,651 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ta_ADXR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_APO.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_AROON.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_AROONOSC.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_ASIN.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_ATAN.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_ATR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_AVGPRICE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_BBANDS.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_BETA.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_BOP.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CCI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDL2CROWS.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDL3BLACKCROWS.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDL3INSIDE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDL3LINESTRIKE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDL3OUTSIDE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDL3STARSINSOUTH.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDL3WHITESOLDIERS.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLABANDONEDBABY.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLADVANCEBLOCK.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLBELTHOLD.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLBREAKAWAY.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLCLOSINGMARUBOZU.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLCONCEALBABYSWALL.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLCOUNTERATTACK.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLDARKCLOUDCOVER.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLDOJI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLDOJISTAR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLDRAGONFLYDOJI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLENGULFING.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLEVENINGDOJISTAR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLEVENINGSTAR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLGAPSIDESIDEWHITE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLGRAVESTONEDOJI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLHAMMER.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLHANGINGMAN.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLHARAMI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLHARAMICROSS.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLHIGHWAVE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLHIKKAKE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLHIKKAKEMOD.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLHOMINGPIGEON.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLIDENTICAL3CROWS.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLINNECK.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLINVERTEDHAMMER.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLKICKING.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLKICKINGBYLENGTH.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLLADDERBOTTOM.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLLONGLEGGEDDOJI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLLONGLINE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLMARUBOZU.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLMATCHINGLOW.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLMATHOLD.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLMORNINGDOJISTAR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLMORNINGSTAR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLONNECK.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLPIERCING.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLRICKSHAWMAN.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLRISEFALL3METHODS.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLSEPARATINGLINES.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLSHOOTINGSTAR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLSHORTLINE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLSPINNINGTOP.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLSTALLEDPATTERN.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLSTICKSANDWICH.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLTAKURI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLTASUKIGAP.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLTHRUSTING.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLTRISTAR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLUNIQUE3RIVER.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLUPSIDEGAP2CROWS.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CDLXSIDEGAP3METHODS.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CEIL.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CMO.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_CORREL.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_COS.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_COSH.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_def_ui.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_DEMA.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_DIV.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_DX.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_EMA.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_EXP.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_FLOOR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_frame.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_func_api.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_global.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_group_idx.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_HT_DCPERIOD.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_HT_DCPHASE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_HT_PHASOR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_HT_SINE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_HT_TRENDLINE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_HT_TRENDMODE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_KAMA.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_LINEARREG.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_LINEARREG_ANGLE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_LINEARREG_INTERCEPT.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_LINEARREG_SLOPE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_LN.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_LOG10.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MA.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MACD.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MACDEXT.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MACDFIX.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MAMA.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MAVP.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MAX.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MAXINDEX.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MEDPRICE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MFI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MIDPOINT.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MIDPRICE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MIN.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MININDEX.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MINMAX.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MINMAXINDEX.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MINUS_DI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MINUS_DM.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MOM.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_MULT.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_NATR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_NVI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_OBV.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_PLUS_DI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_PLUS_DM.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_PPO.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_PVI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_retcode.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_ROC.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_ROCP.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_ROCR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_ROCR100.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_RSI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_SAR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_SAREXT.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_SIN.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_SINH.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_SMA.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_SQRT.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_STDDEV.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_STOCH.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_STOCHF.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_STOCHRSI.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_SUB.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_SUM.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_T3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_TAN.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_TANH.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_TEMA.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_TRANGE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_TRIMA.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_TRIX.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_TSF.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_TYPPRICE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_ULTOSC.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_utility.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_VAR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_version.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_WCLPRICE.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_WILLR.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_WMA.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_a.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_b.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_c.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_d.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_e.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_f.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_g.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_h.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_i.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_j.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_k.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_l.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_m.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_n.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_o.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_p.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_q.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_r.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_s.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_t.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_u.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_v.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_w.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_x.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_y.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="table_z.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_abstract.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_ACOS.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_AD.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_ADD.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_ADOSC.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ta_ADX.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ta_common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ta_def_ui.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ta_defs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ta_frame.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ta_frame_priv.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ta_func.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ta_global.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ta_java_defs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ta_libc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ta_magic_nb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ta_memory.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ta_pragma.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ta_utility.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ta_abstract.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ta_retcode.csv" />
+  </ItemGroup>
+</Project>
