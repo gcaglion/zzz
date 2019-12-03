@@ -108,14 +108,10 @@ EXPORT void WaweletDecomp(int pTSlen, numtype* pTS, int pDecompLevel, int pWawel
 	dwt(SWTin, pDecompLevel, wtypeDesc(pWaweletType), SWTout, flag, SWTlen);
 	for (i=0; i<pTSlen; i++) {
 		oLFA[i]=SWTout[pTSlen/2+i/2];
-		oHFD[0][i]=SWTout[pTSlen/4+i/4];
-		oHFD[1][i]=SWTout[pTSlen/8+i/8];
-		oHFD[2][i]=SWTout[pTSlen/16+i/16];
-		oHFD[3][i]=SWTout[pTSlen/16+i/16];
+		for (int l=0; l<pDecompLevel; l++) {
+			oHFD[l][i]=SWTout[(pTSlen+i)/pow(2,l+2)];
+		}
 	}
-//	for (int j=0; j<pDecompLevel; j++) {
-//
-//	}
 
 }
 EXPORT void WaveletRecomp(int pTSlen, int pDecompLevel, int pWaweletType, numtype* iLFA, numtype** iHFD, numtype* oTS) {

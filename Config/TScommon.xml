@@ -27,7 +27,7 @@
 				DataTransformation	= DT_DELTA, DT_DELTA
 			</DataSource0>
 			WaveletType	= WT_NONE
-			DecompLevel = 0
+			DecompLevel = 4
 		</Output>
 	
 	SampleLen	= 50
