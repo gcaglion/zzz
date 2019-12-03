@@ -2,8 +2,8 @@
 			DataSourcesCount		= 1
 			<DataSource0>
 				<! FXDB-EurUsdH1.xml >
-				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
-				DataTransformation	= DT_DELTA, DT_DELTA, DT_DELTA, DT_DELTA
+				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE, FXMACD,FXCCI,FXATR,FXBOLLH,FXBOLLM,FXBOLLL,FXDEMA,FXMA,FXMOM,FXROC
+				DataTransformation	= DT_DELTA,DT_DELTA,DT_DELTA,DT_DELTA,DT_NONE,DT_NONE,DT_NONE,DT_NONE,DT_NONE,DT_NONE,DT_NONE,DT_NONE,DT_NONE,DT_NONE
 			</DataSource0>
 			<DataSource1>
 				<! FXDB-SPXUSDH1.xml >
@@ -13,7 +13,7 @@
 				<! FXDB-ETXEURH1.xml >
 				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
 			</DataSource2>
-			WaveletType	= WT_HAAR
+			WaveletType	= WT_NONE
 			DecompLevel = 4
 		</Input>
 

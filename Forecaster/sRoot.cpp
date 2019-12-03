@@ -148,7 +148,7 @@ void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iB
 
 void sRoot::kaz() {
 
-	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
+	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDSWNN.xml");
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
 	ts->scale(-1, 1);
 	ts->dump();
@@ -414,8 +414,8 @@ void sRoot::getForecast(int seqId_, int predictionStep_, int extraSteps_, int io
 
 	sTS2* mtTS;  safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, \
 		ioShift_, sampleBarsCnt, MT4engine->dt, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump, \
-		&iBarTimeS, &iBarBTimeS, iseriesCnt_, iselFcnt, MT4engine->WTtype[0], MT4engine->WTlevel[0], iBar, iBarB, \
-		&oBarTimeS, &oBarBTimeS, oseriesCnt_, oselFcnt, MT4engine->WTtype[1], MT4engine->WTlevel[1], oBar, oBarB \
+		&iBarTimeS, &iBarBTimeS, iseriesCnt_, iselFcnt, iselF, MT4engine->WTtype[0], MT4engine->WTlevel[0], iBar, iBarB, \
+		&oBarTimeS, &oBarBTimeS, oseriesCnt_, oselFcnt, oselF, MT4engine->WTtype[1], MT4engine->WTlevel[1], oBar, oBarB \
 	);
 
 	//safecall(mtTS, slide, extraSteps_);
@@ -427,6 +427,7 @@ void sRoot::getForecast(int seqId_, int predictionStep_, int extraSteps_, int io
 		oForecastO[i]=0; oForecastH[i]=0; oForecastL[i]=0; oForecastC[i]=0; oForecastV[i]=0;
 	}
 	int fi=0;
+	int frow=(extraSteps_>MT4engine->targetLen) ? (extraSteps_-MT4engine->targetLen+1) : extraSteps_;
 	for (int x=0; x<(extraSteps_+1); x++) {
 		for (int b=0; b<MT4engine->targetLen; b++) {
 			for (int s=0; s<oseriesCnt_; s++) {
@@ -436,7 +437,7 @@ void sRoot::getForecast(int seqId_, int predictionStep_, int extraSteps_, int io
 					info("x=%d ; b=%d ; sf=%d ; prdTR[%d][1][%d][%d][%d]=%7.6f", x, b, sf, MT4engine->sampleLen+x+b, s, sf, 0, mtTS->prdTR[MT4engine->sampleLen+x+b][1][s][sf][0]);
 					info("x=%d ; b=%d ; sf=%d ; prd[%d][1][%d][%d][%d]=%7.6f", x, b, sf, MT4engine->sampleLen+x+b, s, sf, 0, mtTS->prd[MT4engine->sampleLen+x+b][1][s][sf][0]);
 					
-					if (x==0 && b==predictionStep_) {
+					if (x==extraSteps_ && b==predictionStep_) {
 						MT4engine->forecast[fi]=mtTS->prd[MT4engine->sampleLen+x+b][1][s][sf][0];
 
 						if (oselF[s][sf]==FXOPEN) oForecastO[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
@@ -447,7 +448,7 @@ void sRoot::getForecast(int seqId_, int predictionStep_, int extraSteps_, int io
 						fi++;
 					}
 				}
-				if(x==0) info("OHLCV Forecast, serie %d , bar %d: %7.6f|%7.6f|%7.6f|%7.6f|%7.6f", s, b, oForecastO[s*MT4engine->targetLen+b], oForecastH[s*MT4engine->targetLen+b], oForecastL[s*MT4engine->targetLen+b], oForecastC[s*MT4engine->targetLen+b], oForecastV[s*MT4engine->targetLen+b]);
+				if(x==extraSteps_) info("OHLCV Forecast, serie %d , bar %d: %7.6f|%7.6f|%7.6f|%7.6f|%7.6f", s, b, oForecastO[s*MT4engine->targetLen+b], oForecastH[s*MT4engine->targetLen+b], oForecastL[s*MT4engine->targetLen+b], oForecastC[s*MT4engine->targetLen+b], oForecastV[s*MT4engine->targetLen+b]);
 			}
 		}
 	}

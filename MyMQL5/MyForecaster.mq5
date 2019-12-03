@@ -167,7 +167,7 @@ int OnInit() {
 	for (int s=0; s<seriesCnt; s++) {
 		//printf("Symbol/TF [%d] : %s/%s", s, serieSymbol[s], serieTimeFrame[s]);
 		serieFeatMask[s]=CSL2Mask(serieFeatList[s]);
-		//printf("FeatureList [%d] : %s (%d)", s, serieFeatList[s], serieFeatMask[s]);
+		//printf("FeatureList [%d] : %s (%ld)", s, serieFeatList[s], serieFeatMask[s]);
 		//printf("Trade [%d] : %s", s, (chartTrade[s]) ? "TRUE" : "FALSE");
 		featuresCntFromCfg+=StringSplit(serieFeatList[s], ',', serieFeatTmp);
 	}
@@ -274,7 +274,7 @@ int OnInit() {
 }
 void OnTick() {
 
-	if (maxSteps<0||sequenceId<maxSteps) {
+	if (maxSteps<0||sequenceId<(maxSteps-1)) {
 
 		//-- manually check for TP/SL
 		checkTPSL();

@@ -801,9 +801,9 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 sTS2::sTS2(sObjParmsDef, \
 	int ioShift_, int stepsCnt_, int*** dt_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, \
 	char*** INtimestamp_, char** INtimestampB_, \
-	int INdataSourcesCnt_, int* INfeaturesCnt_, int INWTtype_, int INWTlevel_, numtype* INval_, numtype* INvalB_, \
+	int INdataSourcesCnt_, int* INfeaturesCnt_, int** INfeature_, int INWTtype_, int INWTlevel_, numtype* INval_, numtype* INvalB_, \
 	char*** OUTtimestamp_, char** OUTtimestampB_, \
-	int OUTdataSourcesCnt_, int* OUTfeaturesCnt_, int OUTWTtype_, int OUTWTlevel_, numtype* OUTval_, numtype* OUTvalB_\
+	int OUTdataSourcesCnt_, int* OUTfeaturesCnt_, int** OUTfeature_, int OUTWTtype_, int OUTWTlevel_, numtype* OUTval_, numtype* OUTvalB_\
 ) : sCfgObj(sObjParmsVal, nullptr, "") {
 	
 	IOshift=ioShift_; stepsCnt=stepsCnt_; dt=dt_; doDump=doDump_;
@@ -818,24 +818,26 @@ sTS2::sTS2(sObjParmsDef, \
 
 	dataSourcesCnt[0]=INdataSourcesCnt_;
 	featuresCnt[0]=(int*)malloc(dataSourcesCnt[0]*sizeof(int));
+	feature=(int***)malloc(2*sizeof(int**)); 
 	feature[0]=(int**)malloc(dataSourcesCnt[0]*sizeof(int*));
 	for (int d=0; d<dataSourcesCnt[0]; d++) {
 		featuresCnt[0][d]=INfeaturesCnt_[d];
 		feature[0][d]=(int*)malloc(featuresCnt[0][d]*sizeof(int));
+		for (int f=0; f<featuresCnt[0][d]; f++) feature[0][d][f]=INfeature_[d][f];
 	}
 	WTtype[0]=INWTtype_; WTlevel[0]=INWTlevel_;
 	//--
 	dataSourcesCnt[1]=OUTdataSourcesCnt_;
 	featuresCnt[1]=(int*)malloc(dataSourcesCnt[1]*sizeof(int));
-	feature[1]=(int**)malloc(dataSourcesCnt[0]*sizeof(int*));
-	for (int d=0; d<dataSourcesCnt[0]; d++) {
-		featuresCnt[1][d]=INfeaturesCnt_[d];
+	feature[1]=(int**)malloc(dataSourcesCnt[1]*sizeof(int*));
+	for (int d=0; d<dataSourcesCnt[1]; d++) {
+		featuresCnt[1][d]=OUTfeaturesCnt_[d];
 		feature[1][d]=(int*)malloc(featuresCnt[1][d]*sizeof(int));
+		for (int f=0; f<featuresCnt[1][d]; f++) feature[1][d][f]=OUTfeature_[d][f];
 	}
 	WTtype[1]=OUTWTtype_; WTlevel[1]=OUTWTlevel_;
 
 	mallocs1();
-	
 	//=== BUILDING INPUT SIDE ===
 	//-- timestamps
 	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][0], DATE_FORMAT_LEN, (*INtimestamp_)[s]);

@@ -1,3 +1,9 @@
+	<TimeSerie>
+		HistoryLen			= 800
+		Date0				= 2018-08-30-22:00
+		Dump				= false
+		DumpPath			= c:\temp\DataDump
+
 		<Input>
 			DataSourcesCount		= 1
 			<DataSource0>
@@ -33,3 +39,7 @@
 	SampleLen	= 50
 	TargetLen	= 3
 	BatchSize	= 1
+
+	</TimeSerie>
+
+	<! DataSetPersistor-Default.xml >
