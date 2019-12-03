@@ -148,7 +148,7 @@ void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iB
 
 void sRoot::kaz() {
 
-	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDSWNN.xml");
+	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
 	ts->scale(-1, 1);
 	ts->dump();
@@ -397,6 +397,8 @@ void sRoot::getForecast(int seqId_, int predictionStep_, int extraSteps_, int io
 //	int sampleLen=50;
 //	int batchSize=1;
 
+	info("debug.timing=%s", ((dbg->timing) ? "TRUE" : "FALSE"));
+
 	char** iBarTimeS; char* iBarBTimeS; int* iselFcnt; int** iselF;
 	char** oBarTimeS; char* oBarBTimeS; int* oselFcnt; int** oselF;
 	numtype* iBar; numtype* iBarB;
@@ -420,13 +422,12 @@ void sRoot::getForecast(int seqId_, int predictionStep_, int extraSteps_, int io
 
 	safecall(MT4engine, infer, MT4accountId, seqId_, mtTS, MT4enginePid);
 
-	for (int s=0; s<(sampleBarsCnt+targetBarsCnt); s++) info("mtTS: %s: act[%d]=%7.6f ; actTR[%d]=%7.6f ; prdTR[%d]=%7.6f ; prd[%d]=%7.6f", mtTS->timestamp[s][1], s, mtTS->val[s][1][0][0][0], s, mtTS->valTR[s][1][0][0][0], s, mtTS->prdTR[s][1][0][0][0], s, mtTS->prd[s][1][0][0][0]);
+	for (int s=(sampleBarsCnt+targetBarsCnt-2); s<(sampleBarsCnt+targetBarsCnt); s++) info("mtTS: %s: act[%d]=%7.6f ; actTR[%d]=%7.6f ; prdTR[%d]=%7.6f ; prd[%d]=%7.6f", mtTS->timestamp[s][1], s, mtTS->val[s][1][0][0][0], s, mtTS->valTR[s][1][0][0][0], s, mtTS->prdTR[s][1][0][0][0], s, mtTS->prd[s][1][0][0][0]);
 
 	for (int i=0; i<MT4engine->outputCnt; i++) {
 		oForecastO[i]=0; oForecastH[i]=0; oForecastL[i]=0; oForecastC[i]=0; oForecastV[i]=0;
 	}
 	int fi=0;
-	int frow=(extraSteps_>MT4engine->targetLen) ? (extraSteps_-MT4engine->targetLen+1) : extraSteps_;
 	for (int x=0; x<(extraSteps_+1); x++) {
 		for (int b=0; b<MT4engine->targetLen; b++) {
 			for (int s=0; s<oseriesCnt_; s++) {

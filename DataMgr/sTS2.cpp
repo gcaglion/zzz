@@ -575,11 +575,11 @@ void sTS2::_dumpDS(FILE* file, numtype* prs, numtype* prt, numtype* prp) {
 void sTS2::dumpDS() {
 	char fdsname[MAX_PATH];	FILE* fds;
 	
-	sprintf_s(fdsname, "%s/dataSet_BASE_%p.csv", dumpPath, this);
+	sprintf_s(fdsname, "%s/dataSet_BASE_p%d_t%d_%p.csv", dumpPath, GetCurrentProcessId(), GetCurrentThreadId(), this);
 	fopen_s(&fds, fdsname, "w");
 	_dumpDS(fds, sample, target, prediction);
 	fclose(fds);
-	sprintf_s(fdsname, "%s/dataSet_TRS_%p.csv", dumpPath, this);
+	sprintf_s(fdsname, "%s/dataSet_TRS_p%d_t%d_%p.csv", dumpPath, GetCurrentProcessId(), GetCurrentThreadId(), this);
 	fopen_s(&fds, fdsname, "w");
 	_dumpDS(fds, sampleTRS, targetTRS, predictionTRS);
 	fclose(fds);

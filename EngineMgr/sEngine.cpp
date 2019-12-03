@@ -176,10 +176,6 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 	safecall(inferTS_, unscale);
 	safecall(inferTS_, untransform);
 
-//	if(inferTS_->WTtype[1]!=WT_NONE) WTrecompose
-
-	inferTS_->dumpDS();
-
 	//-- persist (OUTPUT only)
 	if (core[0]->persistor->saveRunFlag) {
 		for (int d=0; d<inferTS_->dataSourcesCnt[1]; d++) {
