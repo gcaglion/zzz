@@ -78,5 +78,5 @@ private:
 	void setDataSource(sDataSource** dataSrc_);
 	void WTcalc(int i, int d, int f, numtype* dsvalSF);
 	void transform(int i, int d, int f, int l);
-	
+	void cutAndTransform();
 };

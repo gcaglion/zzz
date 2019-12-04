@@ -116,7 +116,36 @@ void sTS2::setDataSource(sDataSource** dataSrc_) {
 	if (!found) fail("No Valid DataSource Parameters Key found.");
 
 }
-void sTS2::WTcalc(int i, int d, int f, numtype* dsvalSF) {
+void sTS2::cutAndTransform(){
+
+	int cutSteps=(int)pow(2, max(WTlevel[0], WTlevel[1]));
+
+	if (cutSteps>1) {
+		stepsCnt-=cutSteps;
+		for (int i=0; i<2; i++) {
+			strcpy_s(timestampB[i], DATE_FORMAT_LEN, timestamp[cutSteps-1][i]);
+			for (int d=0; d<dataSourcesCnt[i]; d++) {
+				for (int f=0; f<featuresCnt[i][d]; f++) {
+					for (int l=0; l<WTlevel[i]; l++) {
+						valB[i][d][f][l]=val[-1+cutSteps][i][d][f][l];
+					}
+				}
+			}
+			for (int s=0; s<stepsCnt; s++) {
+				strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, timestamp[s+cutSteps][i]);
+			}
+		}
+	}
+	//-- transform for each feature/level.
+	for (int i=0; i<2; i++) {
+		for (int d=0; d<dataSourcesCnt[i]; d++) {
+			for (int f=0; f<featuresCnt[i][d]; f++) {
+				for (int l=0; l<(WTlevel[i]+2); l++) transform(i, d, f, l);
+			}
+		}
+	}
+}
+void sTS2::WTcalc(int i, int d, int f, numtype* dsfval) {
 	
 	//-- mallocs lfa/hfd
 	numtype* lfa=(numtype*)malloc(stepsCnt*sizeof(numtype));
@@ -124,23 +153,15 @@ void sTS2::WTcalc(int i, int d, int f, numtype* dsvalSF) {
 	numtype** hfd=(numtype**)malloc(WTlevel[i]*sizeof(numtype*));
 	for (int l=0; l<WTlevel[i]; l++) hfd[l]=(numtype*)malloc(stepsCnt*sizeof(numtype));
 	
-	//-- extract single features from dsvalSF
-	numtype* tmpf=(numtype*)malloc(stepsCnt*sizeof(numtype));
-	for (int s=0; s<stepsCnt; s++) {
-		tmpf[s]=dsvalSF[s*featuresCnt[i][d]+f];
-	}
-	if (WTlevel[i]>0) WaweletDecomp(stepsCnt, tmpf, WTlevel[i], WTtype[i], lfa, hfd);
+	WaweletDecomp(stepsCnt, dsfval, WTlevel[i], WTtype[i], lfa, hfd);
 
-	for (int s=0; s<stepsCnt; s++) {
-		val[s][i][d][f][0]=tmpf[s];
-		if (WTlevel[i]>0) {
-			val[s][i][d][f][1]=lfa[s];
-			for (int l=0; l<WTlevel[i]; l++) val[s][i][d][f][l+2]=hfd[l][s];
-		}
+	//-- we need to discard the first 2^n steps
+	for (int s=0; s<(stepsCnt-(int)pow(2, WTlevel[i])); s++) {
+		val[s][i][d][f][0]=dsfval[s+(int)pow(2, WTlevel[i])];
+		val[s][i][d][f][1]=lfa[s+(int)pow(2, WTlevel[i])];
+		for (int l=0; l<WTlevel[i]; l++) val[s][i][d][f][l+2]=hfd[l][s+(int)pow(2, WTlevel[i])];
 	}
 
-
-	free(tmpf);
 	for (int l=0; l<WTlevel[i]; l++) free(hfd[l]);
 	free(lfa); free(hfd);
 }
@@ -746,55 +767,50 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	char* tmptimeB=(char*)malloc(DATE_FORMAT_LEN); tmptimeB[0]='\0';
 	numtype* tmpval;
 	numtype* tmpvalB;
-	numtype* tmpvalx;
-	numtype* tmpvalBx;
-	numtype* tmpbw;
+	numtype* tmpvalx=(numtype*)malloc(stepsCnt*sizeof(numtype));
 
 	//-- load datasources
 	for (int i=0; i<2; i++) {
 		for (int d=0; d<dataSourcesCnt[i]; d++) {
 			tmpval=(numtype*)malloc(stepsCnt*dsrc[i][d]->featuresCnt*sizeof(numtype));
 			tmpvalB=(numtype*)malloc(dsrc[i][d]->featuresCnt*sizeof(numtype));
-			tmpvalx=(numtype*)malloc(stepsCnt*featuresCnt[i][d]*sizeof(numtype));
-			tmpvalBx=(numtype*)malloc(featuresCnt[i][d]*sizeof(numtype));
-			tmpbw=(numtype*)malloc(stepsCnt*dsrc[i][d]->featuresCnt*sizeof(numtype));
-			safecall(dsrc[i][d], load, _date0, (i>0)?IOshift:0, stepsCnt, tmptime, tmpval, tmptimeB, tmpvalB, tmpbw);
+			
+			safecall(dsrc[i][d], load, _date0, (i>0)?IOshift:0, stepsCnt, tmptime, tmpval, tmptimeB, tmpvalB);
 
 			//-- set timestamps
 			for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, tmptime[s]);
 			strcpy_s(timestampB[i], DATE_FORMAT_LEN, tmptimeB);
 
-			//-- extract selected features in tmpvalx
 			for (int f=0; f<featuresCnt[i][d]; f++) {
-				for (int s=0; s<stepsCnt; s++) {
-					for (int df=0; df<dsrc[i][d]->featuresCnt; df++) {
-						if (feature[i][d][f]==df) {
-							tmpvalx[s*featuresCnt[i][d]+f]=tmpval[s*dsrc[i][d]->featuresCnt+feature[i][d][f]];
+				for (int df=0; df<dsrc[i][d]->featuresCnt; df++) {
+					if (feature[i][d][f]==df) {
+						if (WTtype[i]!=WT_NONE && WTlevel[i]>0) {
+							//-- extract selected features in tmpvalx
+							for (int s=0; s<stepsCnt; s++) {
+								tmpvalx[s]=tmpval[s*dsrc[i][d]->featuresCnt+feature[i][d][f]];
+							}
+							//-- FFTcalc for each feature. Also sets original value at position 0
+							WTcalc(i, d, f, tmpvalx);
+							//-- base values for each feature. only for original values
+							valB[i][d][f][0]=tmpvalB[feature[i][d][f]];
+							//-- base values for each level. we don't have it, so we set it equal to the first value of the level serie
+							for (int l=1; l<(WTlevel[i]+2); l++) {
+								valB[i][d][f][l]=val[0][i][d][f][l];
+							}
 						}
 					}
 				}
 			}
-
-			for (int f=0; f<featuresCnt[i][d]; f++) {
-				//-- FFTcalc for each feature. Also sets original value at position 0
-				WTcalc(i, d, f, tmpvalx);
-				//-- base values for each feature. only for original values
-				valB[i][d][f][0]=tmpvalB[feature[i][d][f]];
-				//-- base values for each level. we don't have it, so we set it equal to the first value of the level serie
-				for (int l=1; l<(WTlevel[i]+2); l++) {
-					valB[i][d][f][l]=val[0][i][d][f][l];
-				}
-				//-- transform for each feature/level.
-				for (int l=0; l<(WTlevel[i]+2); l++) transform(i, d, f, l);
-			}
-			free(tmpval); free(tmpvalB); free(tmpbw);
-			free(tmpvalx); free(tmpvalBx);
+			free(tmpval); free(tmpvalB);
 		}
 	}
-
+	free(tmpvalx);
 	for (int i=0; i<stepsCnt; i++) free(tmptime[i]);
 	free(tmptime); free(tmptimeB);
 	free(dsrc);
+
+	cutAndTransform();
+
 	if (doDump) dump();
 
 }
@@ -855,26 +871,6 @@ sTS2::sTS2(sObjParmsDef, \
 			}
 		}
 	}
-	//-- now we need to calc wavelets.
-	if (WTtype[i]!=WT_NONE) {
-		numtype* tmpvalx=(numtype*)malloc((stepsCnt)*sizeof(numtype));
-		numtype* lfa=(numtype*)malloc((stepsCnt)*sizeof(numtype));
-		numtype** hfd=(numtype**)malloc(WTlevel[i]*sizeof(numtype*)); for (int l=0; l<WTlevel[i]; l++) hfd[l]=(numtype*)malloc((stepsCnt)*sizeof(numtype));
-		for (int d=0; d<dataSourcesCnt[i]; d++) {
-			for (int f=0; f<featuresCnt[i][d]; f++) {
-				for (int s=0; s<(stepsCnt); s++) {
-					tmpvalx[s]=val[s][i][d][f][0];
-				}
-				WaweletDecomp((stepsCnt), tmpvalx, WTlevel[i], WTtype[i], lfa, hfd);
-				for (int s=0; s<(stepsCnt); s++) {
-					val[s][i][d][f][1]=lfa[s];
-					for (int l=0; l<WTlevel[i]; l++) val[s][i][d][f][l+2]=hfd[l][s];
-				}
-			}
-		}
-		for (int l=0; l<WTlevel[i]; l++) free(hfd[l]);
-		free(lfa); free(hfd);
-	}
 	//-- *valB comes in flat, ordered by [dsXfeature]
 	idx=0;
 	for (int d=0; d<dataSourcesCnt[i]; d++) {
@@ -884,16 +880,30 @@ sTS2::sTS2(sObjParmsDef, \
 		}
 	}
 
+	numtype* tmpvalx=(numtype*)malloc(stepsCnt*sizeof(numtype));
+
 	for (int d=0; d<dataSourcesCnt[i]; d++) {
 		for (int f=0; f<featuresCnt[i][d]; f++) {
-			//-- base values for each level. we don't have it, so we set it equal to the first value of the level serie
-			for (int l=1; l<(WTlevel[i]+2); l++) {
-				valB[i][d][f][l]=val[0][i][d][f][l];
+			for (int df=0; df<dsrc[i][d]->featuresCnt; df++) {
+				if (feature[i][d][f]==df) {
+					if (WTtype[i]!=WT_NONE && WTlevel[i]>0) {
+						//-- extract selected features in tmpvalx
+						for (int s=0; s<stepsCnt; s++) {
+							tmpvalx[s]=val[s][i][d][f][0];
+						}
+						//-- FFTcalc for each feature. Also sets original value at position 0
+						WTcalc(i, d, f, tmpvalx);
+						//-- base values for each level. we don't have it, so we set it equal to the first value of the level serie
+						for (int l=1; l<(WTlevel[i]+2); l++) {
+							valB[i][d][f][l]=val[0][i][d][f][l];
+						}
+					}
+				}
 			}
-			//-- transform for each feature/level.
-			for (int l=0; l<(WTlevel[i]+2); l++) transform(i, d, f, l);
 		}
 	}
+	free(tmpvalx);
+
 
 	//=== BUILDING OUTPUT SIDE ===
 
@@ -922,12 +932,7 @@ sTS2::sTS2(sObjParmsDef, \
 		}
 	}
 
-	//-- transform for each feature/level.
-	for (int d=0; d<dataSourcesCnt[i]; d++) {
-		for (int f=0; f<featuresCnt[i][d]; f++) {
-			for (int l=0; l<(WTlevel[i]+2); l++) transform(i, d, f, l);
-		}
-	}
+	cutAndTransform();
 }
 sTS2::~sTS2() {
 

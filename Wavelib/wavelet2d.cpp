@@ -89,7 +89,7 @@ string wtypeDesc(int wtype) {
 }
 
 EXPORT void WaweletDecomp(int pTSlen, numtype* pTS, int pDecompLevel, int pWaweletType, numtype* oLFA, numtype** oHFD) {
-	int i, n;
+	int i;
 	std::vector<double> SWTin; std::vector<double> SWTout;
 	std::vector<int> SWTlen; std::vector<double> flag;
 	std::vector<double> idwtOut;
@@ -97,7 +97,7 @@ EXPORT void WaweletDecomp(int pTSlen, numtype* pTS, int pDecompLevel, int pWawel
 	SWTin.clear(); SWTout.clear();
 	P2V(pTSlen, pTS, SWTin);
 	//-- 1.2. Then, call swt on TS_TRS[d]
-	swt(SWTin, pDecompLevel, wtypeDesc(pWaweletType), SWTout, pTSlen);
+/*	swt(SWTin, pDecompLevel, wtypeDesc(pWaweletType), SWTout, pTSlen);
 	//-- 1.3. Then, parse output vectors into LFA and HFD[DecompLevel]
 	//--- 1.3.1 First, A[] into LFA[]
 	for (i = 0; i < pTSlen; i++) oLFA[i] = (numtype)SWTout[i];
@@ -105,14 +105,24 @@ EXPORT void WaweletDecomp(int pTSlen, numtype* pTS, int pDecompLevel, int pWawel
 	for (n = 0; n < pDecompLevel; n++) {
 		for (i = 0; i < pTSlen; i++) oHFD[n][i] = (numtype) SWTout[pTSlen*(n+1)+i];
 	}
-/*	dwt(SWTin, pDecompLevel, wtypeDesc(pWaweletType), SWTout, flag, SWTlen);
+*/
+	dwt(SWTin, pDecompLevel, wtypeDesc(pWaweletType), SWTout, flag, SWTlen);
 	for (i=0; i<pTSlen; i++) {
-		oLFA[i]=SWTout[pTSlen/2+i/2];
+		oLFA[i]=(numtype)SWTout[pTSlen/2+i/2];
 		for (int l=0; l<pDecompLevel; l++) {
-			oHFD[l][i]=SWTout[(pTSlen+i)/pow(2,l+2)];
+			oHFD[l][i]=(numtype)SWTout[(pTSlen+i)/(int)pow(2,l+2)];
 		}
 	}
-*/
+
+	numtype oldA;
+	for (i = 0; i<pDecompLevel; i++) {
+		for (int t=0; t<pTSlen; t++) {
+			oldA=oLFA[t];
+			if (t>=pow(2, pDecompLevel)) oLFA[t]=0.5f*(oLFA[t]+oLFA[t-(int)pow(2, i)]);
+			oHFD[i][t]=oldA-oLFA[t];
+		}
+	}
+
 }
 EXPORT void WaveletRecomp(int pTSlen, int pDecompLevel, int pWaweletType, numtype* iLFA, numtype** iHFD, numtype* oTS) {
 	int i;

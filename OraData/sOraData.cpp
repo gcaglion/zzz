@@ -80,7 +80,7 @@ void sOraData::getFutureBar(char* iSymbol_, char* iTF_, char* iDate0_, char* oDa
 		fail("SQL error: %d ; statement: %s", ex.getErrorCode(), ((Statement*)stmt)->getSQL().c_str());
 	}
 }
-void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0Lag, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar, numtype* oBarWidth) {
+void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0Lag, int stepsCnt, char** oBarTime, numtype* oBarData, char* oBarTime0, numtype* oBaseBar) {
 	int i;
 
 	//-- always check this, first!
@@ -123,8 +123,6 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0L
 			oBarData[14*i+11] = ((ResultSet*)rset)->getFloat(13);
 			oBarData[14*i+12] = ((ResultSet*)rset)->getFloat(14);
 			oBarData[14*i+13] = ((ResultSet*)rset)->getFloat(15);
-			//--
-			oBarWidth[i]	= oBarData[14*i+1]-oBarData[14*i+2];
 
 			i--;
 		}
