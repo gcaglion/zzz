@@ -117,23 +117,13 @@ void sTS2::setDataSource(sDataSource** dataSrc_) {
 
 }
 void sTS2::cutAndTransform(){
-
 	int cutSteps=(int)pow(2, max(WTlevel[0], WTlevel[1]));
 
 	if (cutSteps>1) {
 		stepsCnt-=cutSteps;
 		for (int i=0; i<2; i++) {
 			strcpy_s(timestampB[i], DATE_FORMAT_LEN, timestamp[cutSteps-1][i]);
-			for (int d=0; d<dataSourcesCnt[i]; d++) {
-				for (int f=0; f<featuresCnt[i][d]; f++) {
-					for (int l=0; l<WTlevel[i]; l++) {
-						valB[i][d][f][l]=val[-1+cutSteps][i][d][f][l];
-					}
-				}
-			}
-			for (int s=0; s<stepsCnt; s++) {
-				strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, timestamp[s+cutSteps][i]);
-			}
+			for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, timestamp[s+cutSteps][i]);
 		}
 	}
 	//-- transform for each feature/level.
@@ -161,6 +151,10 @@ void sTS2::WTcalc(int i, int d, int f, numtype* dsfval) {
 		val[s][i][d][f][1]=lfa[s+(int)pow(2, WTlevel[i])];
 		for (int l=0; l<WTlevel[i]; l++) val[s][i][d][f][l+2]=hfd[l][s+(int)pow(2, WTlevel[i])];
 	}
+
+	valB[i][d][f][0]=dsfval[(int)pow(2, WTlevel[i])-1];
+	//-- base values for each level. we don't have it, so we set it equal to the first value of the level serie
+	for (int l=1; l<(WTlevel[i]+2); l++) valB[i][d][f][l]=val[(int)pow(2, WTlevel[i])][i][d][f][l];
 
 	for (int l=0; l<WTlevel[i]; l++) free(hfd[l]);
 	free(lfa); free(hfd);
@@ -784,6 +778,9 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 			for (int f=0; f<featuresCnt[i][d]; f++) {
 				for (int df=0; df<dsrc[i][d]->featuresCnt; df++) {
 					if (feature[i][d][f]==df) {
+						//-- base values for each feature. only for original values
+						valB[i][d][f][0]=tmpvalB[feature[i][d][f]];
+						
 						if (WTtype[i]!=WT_NONE && WTlevel[i]>0) {
 							//-- extract selected features in tmpvalx
 							for (int s=0; s<stepsCnt; s++) {
@@ -791,12 +788,6 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 							}
 							//-- FFTcalc for each feature. Also sets original value at position 0
 							WTcalc(i, d, f, tmpvalx);
-							//-- base values for each feature. only for original values
-							valB[i][d][f][0]=tmpvalB[feature[i][d][f]];
-							//-- base values for each level. we don't have it, so we set it equal to the first value of the level serie
-							for (int l=1; l<(WTlevel[i]+2); l++) {
-								valB[i][d][f][l]=val[0][i][d][f][l];
-							}
 						}
 					}
 				}
@@ -893,10 +884,6 @@ sTS2::sTS2(sObjParmsDef, \
 						}
 						//-- FFTcalc for each feature. Also sets original value at position 0
 						WTcalc(i, d, f, tmpvalx);
-						//-- base values for each level. we don't have it, so we set it equal to the first value of the level serie
-						for (int l=1; l<(WTlevel[i]+2); l++) {
-							valB[i][d][f][l]=val[0][i][d][f][l];
-						}
 					}
 				}
 			}
