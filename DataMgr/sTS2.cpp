@@ -124,6 +124,21 @@ void sTS2::cutAndTransform(){
 		for (int i=0; i<2; i++) {
 			strcpy_s(timestampB[i], DATE_FORMAT_LEN, timestamp[cutSteps-1][i]);
 			for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, timestamp[s+cutSteps][i]);
+			for (int s=stepsCnt; s<(stepsCnt+targetLen); s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, timestamp[s+cutSteps][i]);
+			if (WTlevel[i]<=0) {
+				for (int d=0; d<dataSourcesCnt[i]; d++) {
+					for (int f=0; f<featuresCnt[i][d]; f++) {
+						for (int s=0; s<(stepsCnt); s++) {
+							val[s][i][d][f][0]=val[s+cutSteps][i][d][f][0];
+						}
+						for (int s=stepsCnt; s<(stepsCnt+targetLen); s++) {
+							val[s][i][d][f][0]=val[s+cutSteps][i][d][f][0];
+							valTR[s][i][d][f][0]=EMPTY_VALUE;
+							valTRS[s][i][d][f][0]=EMPTY_VALUE;
+						}
+					}
+				}
+			}
 		}
 	}
 	//-- transform for each feature/level.
@@ -780,7 +795,8 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 					if (feature[i][d][f]==df) {
 						//-- base values for each feature. only for original values
 						valB[i][d][f][0]=tmpvalB[feature[i][d][f]];
-						
+						for(int s=0; s<stepsCnt; s++) val[s][i][d][f][0]=tmpval[s*dsrc[i][d]->featuresCnt+feature[i][d][f]];
+
 						if (WTtype[i]!=WT_NONE && WTlevel[i]>0) {
 							//-- extract selected features in tmpvalx
 							for (int s=0; s<stepsCnt; s++) {
@@ -845,7 +861,9 @@ sTS2::sTS2(sObjParmsDef, \
 	WTtype[1]=OUTWTtype_; WTlevel[1]=OUTWTlevel_;
 
 	mallocs1();
+
 	//=== BUILDING INPUT SIDE ===
+
 	//-- timestamps
 	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][0], DATE_FORMAT_LEN, (*INtimestamp_)[s]);
 	//-- timestampB
@@ -872,11 +890,12 @@ sTS2::sTS2(sObjParmsDef, \
 	}
 
 	numtype* tmpvalx=(numtype*)malloc(stepsCnt*sizeof(numtype));
-
 	for (int d=0; d<dataSourcesCnt[i]; d++) {
 		for (int f=0; f<featuresCnt[i][d]; f++) {
-			for (int df=0; df<dsrc[i][d]->featuresCnt; df++) {
+			for (int df=0; df<featuresCnt[i][d]; df++) {
 				if (feature[i][d][f]==df) {
+					//-- base values for each feature. only for original values
+
 					if (WTtype[i]!=WT_NONE && WTlevel[i]>0) {
 						//-- extract selected features in tmpvalx
 						for (int s=0; s<stepsCnt; s++) {
@@ -889,8 +908,6 @@ sTS2::sTS2(sObjParmsDef, \
 			}
 		}
 	}
-	free(tmpvalx);
-
 
 	//=== BUILDING OUTPUT SIDE ===
 
@@ -918,6 +935,24 @@ sTS2::sTS2(sObjParmsDef, \
 			}
 		}
 	}
+
+	for (int d=0; d<dataSourcesCnt[i]; d++) {
+		for (int f=0; f<featuresCnt[i][d]; f++) {
+			for (int df=0; df<featuresCnt[i][d]; df++) {
+				if (feature[i][d][f]==df) {
+					if (WTtype[i]!=WT_NONE && WTlevel[i]>0) {
+						//-- extract selected features in tmpvalx
+						for (int s=0; s<stepsCnt; s++) {
+							tmpvalx[s]=val[s][i][d][f][0];
+						}
+						//-- FFTcalc for each feature. Also sets original value at position 0
+						WTcalc(i, d, f, tmpvalx);
+					}
+				}
+			}
+		}
+	}
+	free(tmpvalx);
 
 	cutAndTransform();
 }

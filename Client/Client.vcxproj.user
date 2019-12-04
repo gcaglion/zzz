@@ -3,7 +3,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LocalDebuggerEnvironment>PATH=C:\Users\gcaglion\dev\AAA\ExtLibs\fft\VisualStudio\$(Platform)\$(Configuration);C:\Users\gcaglion\dev\AAA\ExtLibs\vcomp120d\$(Platform)\$(Configuration);C:\Program Files (x86)\Visual Leak Detector\bin\x64;$(ORACLE_HOME1)\oci\lib\msvc\vc14;$(ORACLE_HOME1)\bin;$(CUDA_PATH)\bin</LocalDebuggerEnvironment>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerCommandArguments>Infer 14 Config/Client.xml Config/inferDS.xml 13869</LocalDebuggerCommandArguments>
+    <LocalDebuggerCommandArguments>Infer 777 Config/Client.xml Config/inferDS.xml 16608 </LocalDebuggerCommandArguments>
     <LocalDebuggerWorkingDirectory>$(SolutionDir)</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
 </Project>

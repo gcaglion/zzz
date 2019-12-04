@@ -31,5 +31,5 @@
 		</Output>
 	
 	SampleLen	= 50
-	TargetLen	= 16
+	TargetLen	= 3
 	BatchSize	= 1
