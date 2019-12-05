@@ -102,7 +102,7 @@ EXPORT void WaweletDecomp(int pTSlen, numtype* pTS, int pDecompLevel, int pWawel
 	//--- 1.3.1 First, A[] into LFA[]
 	for (i = 0; i < pTSlen; i++) oLFA[i] = (numtype)SWTout[i];
 	//--- 1.3.2 Then,  D[j] into HFD[j]
-	for (n = 0; n < pDecompLevel; n++) {
+	for (int n = 0; n < pDecompLevel; n++) {
 		for (i = 0; i < pTSlen; i++) oHFD[n][i] = (numtype) SWTout[pTSlen*(n+1)+i];
 	}
 */

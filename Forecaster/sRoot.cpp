@@ -152,14 +152,7 @@ void sRoot::kaz() {
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
 	ts->scale(-1, 1);
 	ts->dump();
-	return;
-
 	ts->buildDataSet();
-
-//	for(int idx=0; idx<(ts->outputCnt*ts->samplesCnt); idx++) ts->predictionTRS[idx]=ts->targetTRS[idx];
-	
-	ts->dumpDS();
-	ts->slideDS(1);
 	ts->dumpDS();
 	return;
 
@@ -397,8 +390,6 @@ void sRoot::getForecast(int seqId_, int predictionStep_, int extraSteps_, int io
 //	int sampleLen=50;
 //	int batchSize=1;
 
-	info("debug.timing=%s", ((dbg->timing) ? "TRUE" : "FALSE"));
-
 	char** iBarTimeS; char* iBarBTimeS; int* iselFcnt; int** iselF;
 	char** oBarTimeS; char* oBarBTimeS; int* oselFcnt; int** oselF;
 	numtype* iBar; numtype* iBarB;
@@ -428,7 +419,7 @@ void sRoot::getForecast(int seqId_, int predictionStep_, int extraSteps_, int io
 		oForecastO[i]=0; oForecastH[i]=0; oForecastL[i]=0; oForecastC[i]=0; oForecastV[i]=0;
 	}
 	int fi=0;
-	int cutSteps=pow(2, max(MT4engine->WTlevel[0], MT4engine->WTlevel[1])); if (cutSteps<=1) cutSteps=0;
+	int cutSteps=(int)pow(2, max(MT4engine->WTlevel[0], MT4engine->WTlevel[1])); if (cutSteps<=1) cutSteps=0;
 	for (int x=0; x<(extraSteps_+1-cutSteps); x++) {
 		for (int b=0; b<MT4engine->targetLen; b++) {
 			for (int s=0; s<oseriesCnt_; s++) {
