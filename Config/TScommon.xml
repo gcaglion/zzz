@@ -30,6 +30,6 @@
 			DecompLevel = 4
 		</Output>
 	
-	SampleLen	= 32
-	TargetLen	= 3
+	SampleLen	= 50
+	TargetLen	= 2
 	BatchSize	= 1

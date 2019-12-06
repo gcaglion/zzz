@@ -1,5 +1,5 @@
 	<TimeSerie>
-		HistoryLen			= 256
+		HistoryLen			= 300
 		Date0				= 2018-08-30-01:00
 		Dump				= true
 		DumpPath			= c:\temp\DataDump

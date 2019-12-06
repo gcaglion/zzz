@@ -53,9 +53,9 @@ struct sTS2 :sCfgObj {
 	EXPORT sTS2(sCfgObjParmsDef);
 	EXPORT sTS2(sObjParmsDef, \
 		int ioShift_, int stepsCnt_, int*** dt_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, \
-		char*** INtimestamp_, char** INtimestampB_, \
+		char** INtimestamp_, char* INtimestampB_, \
 		int INdataSourcesCnt_, int* INfeaturesCnt_, int** INfeature_, int INWTtype_, int INWTlevel_, numtype* INval_, numtype* INvalB_, \
-		char*** OUTtimestamp_, char** OUTtimestampB_, \
+		char** OUTtimestamp_, char* OUTtimestampB_, \
 		int OUTdataSourcesCnt_, int* OUTfeaturesCnt_, int** OUTfeature_, int OUTWTtype_, int OUTWTlevel_, numtype* OUTval_, numtype* OUTvalB_\
 	);
 	EXPORT ~sTS2();
@@ -71,12 +71,12 @@ struct sTS2 :sCfgObj {
 	EXPORT void slide(int steps_);
 	EXPORT void slideDS(int steps_);
 
+	EXPORT void WTcalc(int i, int d, int f, numtype* dsvalSF);
 private:
 	void dumpToFile(FILE* file, int i, bool predicted, numtype***** val_);
 	void _dumpDS(FILE* file, numtype* prs, numtype* prt, numtype* prp);
 	void mallocs1();
 	void setDataSource(sDataSource** dataSrc_);
-	void WTcalc(int i, int d, int f, numtype* dsvalSF);
 	void transform(int i, int d, int f, int l);
 	void cutAndTransform();
 };

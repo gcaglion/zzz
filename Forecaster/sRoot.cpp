@@ -150,7 +150,90 @@ void sRoot::kaz() {
 
 	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
+	ts->buildDataSet();
+
+	int minitsCnt=ts->samplesCnt/ts->sampleLen;
+	sTS2** miniTS=(sTS2**)malloc(minitsCnt*sizeof(sTS2*));
+	int minitsStepsCnt=ts->sampleLen+ts->targetLen+1;
+
+	int inputCnt=0, outputCnt=0;
+	for (int d=0; d<ts->dataSourcesCnt[0]; d++) { for (int f=0; f<ts->featuresCnt[0][d]; f++) { inputCnt++; } }
+	for (int d=0; d<ts->dataSourcesCnt[1]; d++) { for (int f=0; f<ts->featuresCnt[1][d]; f++) { outputCnt++; } }
+	numtype* INval=(numtype*)malloc(minitsStepsCnt*inputCnt*sizeof(numtype));
+	numtype* INvalB=(numtype*)malloc(inputCnt*sizeof(numtype));
+	numtype* OUTval=(numtype*)malloc((ts->sampleLen+ts->targetLen)*outputCnt*sizeof(numtype));
+	numtype* OUTvalB=(numtype*)malloc(outputCnt*sizeof(numtype));
+	numtype* tmpSample=(numtype*)malloc(ts->samplesCnt*inputCnt*sizeof(numtype));
+	numtype* tmpTarget=(numtype*)malloc(ts->samplesCnt*outputCnt*sizeof(numtype));
+	numtype* tmpvalx=(numtype*)malloc(minitsStepsCnt*sizeof(numtype));
+
+	int idx;
+	for (int t=0; t<minitsCnt; t++) {
+		idx=0;
+		for (int d=0; d<ts->dataSourcesCnt[0]; d++) {
+			for (int f=0; f<ts->featuresCnt[0][d]; f++) {
+				INvalB[d*ts->featuresCnt[0][d]+f]=ts->valB[0][d][f][0];
+				for (int s=0; s<minitsStepsCnt; s++) {
+					INval[idx]=ts->val[t*minitsStepsCnt+s][0][d][f][0];
+					idx++;
+				}
+			}
+		}
+		idx=0;
+		for (int d=0; d<ts->dataSourcesCnt[1]; d++) {
+			for (int f=0; f<ts->featuresCnt[1][d]; f++) {
+				OUTvalB[d*ts->featuresCnt[1][d]+f]=ts->valB[1][d][f][0];
+				for (int s=0; s<minitsStepsCnt; s++) {
+					OUTval[idx]=ts->val[t*minitsStepsCnt+s][1][d][f][0];
+					idx++;
+				}
+			}
+		}
+		char** iBarT=(char**)malloc(ts->stepsCnt*sizeof(char*));
+		char iBarBT[DATE_FORMAT_LEN]; strcpy_s(iBarBT, DATE_FORMAT_LEN, ts->timestampB[0]);
+		for (int i=0; i<ts->stepsCnt; i++) {
+			iBarT[i]=(char*)malloc(DATE_FORMAT_LEN); strcpy_s(iBarT[i], DATE_FORMAT_LEN, ts->timestamp[i][0]);
+		}
+		char** oBarT=(char**)malloc(ts->stepsCnt*sizeof(char*));
+		char oBarBT[DATE_FORMAT_LEN]; strcpy_s(oBarBT, DATE_FORMAT_LEN, ts->timestampB[1]);
+		for (int i=0; i<ts->stepsCnt; i++) {
+			oBarT[i]=(char*)malloc(DATE_FORMAT_LEN); strcpy_s(oBarT[i], DATE_FORMAT_LEN, ts->timestamp[i][1]);
+		}
+		//-- 1. build a timeserie with stepsCnt=sampleLen+predictionLen (predictionLen must be even)
+		miniTS[t]=new sTS2(this, newsname("miniTS%d", t), defaultdbg, nullptr, ts->IOshift, ts->sampleLen+ts->targetLen, ts->dt, ts->sampleLen, ts->targetLen, ts->batchSize, ts->doDump, iBarT, iBarBT, ts->dataSourcesCnt[0], ts->featuresCnt[0], ts->feature[0], ts->WTtype[0], ts->WTlevel[0], INval, INvalB, oBarT, oBarBT, ts->dataSourcesCnt[1], ts->featuresCnt[1], ts->feature[1], ts->WTtype[1], ts->WTlevel[1], OUTval, OUTvalB);
+		//-- 2. calc WT
+		for (int i=0; i<2; i++) {
+			for (int d=0; d<miniTS[t]->dataSourcesCnt[i]; d++) {
+				for (int f=0; f<miniTS[t]->featuresCnt[i][d]; f++) {
+					for (int df=0; df<miniTS[t]->featuresCnt[i][d]; df++) {
+						if (miniTS[t]->feature[i][d][f]==df) {
+							//-- base values for each feature. only for original values
+
+							if (miniTS[t]->WTtype[i]!=WT_NONE && miniTS[t]->WTlevel[i]>0) {
+								//-- extract selected features in tmpvalx
+								for (int s=0; s<miniTS[t]->stepsCnt; s++) {
+									tmpvalx[s]=miniTS[t]->val[s][i][d][f][0];
+								}
+								//-- FFTcalc for each feature. Also sets original value at position 0
+								miniTS[t]->WTcalc(i, d, f, tmpvalx);
+							}
+						}
+					}
+				}
+			}
+		}
+		//-- 3. build DS (with 1 sample)
+		miniTS[t]->buildDataSet();
+		miniTS[t]->dump(); miniTS[t]->dumpDS();
+		//-- 4. save the one sample/target
+		memcpy_s(&tmpSample[t*inputCnt], 1*inputCnt*sizeof(numtype), miniTS[t]->sample, 1*inputCnt*sizeof(numtype));
+		memcpy_s(&tmpTarget[t*outputCnt], 1*outputCnt*sizeof(numtype), miniTS[t]->target, 1*outputCnt*sizeof(numtype));
+		//-- 5. back to 1
+	}
+
 	ts->dump();
+	ts->buildDataSet();
+	ts->dumpDS();
 	return;
 
 	ts->getPrediction();
@@ -404,8 +487,8 @@ void sRoot::getForecast(int seqId_, int predictionStep_, int extraSteps_, int io
 
 	sTS2* mtTS;  safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, \
 		ioShift_, sampleBarsCnt, MT4engine->dt, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump, \
-		&iBarTimeS, &iBarBTimeS, iseriesCnt_, iselFcnt, iselF, MT4engine->WTtype[0], MT4engine->WTlevel[0], iBar, iBarB, \
-		&oBarTimeS, &oBarBTimeS, oseriesCnt_, oselFcnt, oselF, MT4engine->WTtype[1], MT4engine->WTlevel[1], oBar, oBarB \
+		iBarTimeS, iBarBTimeS, iseriesCnt_, iselFcnt, iselF, MT4engine->WTtype[0], MT4engine->WTlevel[0], iBar, iBarB, \
+		oBarTimeS, oBarBTimeS, oseriesCnt_, oselFcnt, oselF, MT4engine->WTtype[1], MT4engine->WTlevel[1], oBar, oBarB \
 	);
 
 	safecall(MT4engine, infer, MT4accountId, seqId_, mtTS, MT4enginePid);

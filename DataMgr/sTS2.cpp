@@ -823,9 +823,9 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 }
 sTS2::sTS2(sObjParmsDef, \
 	int ioShift_, int stepsCnt_, int*** dt_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, \
-	char*** INtimestamp_, char** INtimestampB_, \
+	char** INtimestamp_, char* INtimestampB_, \
 	int INdataSourcesCnt_, int* INfeaturesCnt_, int** INfeature_, int INWTtype_, int INWTlevel_, numtype* INval_, numtype* INvalB_, \
-	char*** OUTtimestamp_, char** OUTtimestampB_, \
+	char** OUTtimestamp_, char* OUTtimestampB_, \
 	int OUTdataSourcesCnt_, int* OUTfeaturesCnt_, int** OUTfeature_, int OUTWTtype_, int OUTWTlevel_, numtype* OUTval_, numtype* OUTvalB_\
 ) : sCfgObj(sObjParmsVal, nullptr, "") {
 	
@@ -865,9 +865,9 @@ sTS2::sTS2(sObjParmsDef, \
 	//=== BUILDING INPUT SIDE ===
 
 	//-- timestamps
-	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][0], DATE_FORMAT_LEN, (*INtimestamp_)[s]);
+	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][0], DATE_FORMAT_LEN, INtimestamp_[s]);
 	//-- timestampB
-	strcpy_s(timestampB[0], DATE_FORMAT_LEN, (*INtimestampB_));
+	strcpy_s(timestampB[0], DATE_FORMAT_LEN, INtimestampB_);
 
 	int i=0;
 	int idx=0;
@@ -912,9 +912,9 @@ sTS2::sTS2(sObjParmsDef, \
 	//=== BUILDING OUTPUT SIDE ===
 
 	//-- timestamps
-	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][1], DATE_FORMAT_LEN, (*OUTtimestamp_)[s]);
+	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][1], DATE_FORMAT_LEN, OUTtimestamp_[s]);
 	//-- timestampB
-	strcpy_s(timestampB[1], DATE_FORMAT_LEN, (*OUTtimestampB_));
+	strcpy_s(timestampB[1], DATE_FORMAT_LEN, OUTtimestampB_);
 
 	i=1;
 	//-- *valB comes in flat, ordered by [dsXfeature]
