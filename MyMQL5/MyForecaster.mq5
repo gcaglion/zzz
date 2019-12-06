@@ -584,20 +584,20 @@ void checkTPSL() {
 				trade.PositionClose(Symbol(), 10);
 				tradeProfit=PositionGetDouble(POSITION_PROFIT);
 				SLhit=1;
-				printf("SL on BUY reached. tick.ask=%6.5f ; tradeSL[%d]=%6.5f", tick.ask, 0, tradeSL[0], tradeProfit);
+				printf("SL on BUY reached. tick.ask=%6.5f ; tradeSL[%d]=%6.5f ; Profit=%f", tick.ask, 0, tradeSL[0], tradeProfit);
 			}
 		} else {
 			if (tick.ask<=tradeTP[0]) {
 				trade.PositionClose(Symbol(), 10);
 				tradeProfit=PositionGetDouble(POSITION_PROFIT);
 				TPhit=1;
-				printf("TP on SELL reached. tick.ask=%6.5f ; tradeTP[%d]=%6.5f", tick.ask, 0, tradeTP[0], tradeProfit);
+				printf("TP on SELL reached. tick.ask=%6.5f ; tradeTP[%d]=%6.5f ; Profit=%f", tick.ask, 0, tradeTP[0], tradeProfit);
 			}
 			if (tick.bid>=tradeSL[0]) {
 				trade.PositionClose(Symbol(), 10);
 				tradeProfit=PositionGetDouble(POSITION_PROFIT);
 				SLhit=1;
-				printf("SL on SELL reached. tick.bid=%6.5f ; tradeSL[%d]=%6.5f", tick.bid, 0, tradeSL[0], tradeProfit);
+				printf("SL on SELL reached. tick.bid=%6.5f ; tradeSL[%d]=%6.5f ; Profit=%f", tick.bid, 0, tradeSL[0], tradeProfit);
 			}
 		}
 	}

@@ -13,12 +13,14 @@ from (
 	select processid, threadid, sequenceid, lasttime, lag(FH) over(order by lasttime) ForecastH, lag(FL) over(order by lasttime) ForecastL from (
 		select rr1.processid, rr1.threadid, rr1.sequenceid, max(rr0.poslabel) lasttime, rr1.prdh FH, rr2.prdl FL from (
 			select r1.processid, r1.threadid, r1.sequenceid, r1.predictedbase prdh from runlog r1,
-				(select processid, threadid, sequenceid, feature, min(poslabel) plh, null pll from runlog where actualbase is null and feature=1 and processid in(&&pid) group by processid, threadid, sequenceid, feature) r2
+				(select processid, threadid, sequenceid, feature, min(poslabel) plh, null pll from runlog where actualbase is null and feature=1 and processid in(15760,20352) 
+				group by processid, threadid, sequenceid, feature) r2
 				where
 				r1.processid=r2.processid and r1.threadid=r2.threadid and r1.sequenceid=r2.sequenceid and r1.feature=r2.feature and r1.poslabel=r2.plh
 			) rr1, 
 			(select r1.processid, r1.threadid, r1.sequenceid, r1.predictedbase prdl from runlog r1,
-				(select processid, threadid, sequenceid, feature, min(poslabel) plh, null pll from runlog where actualbase is null and feature=2 and processid in(&&pid) group by processid, threadid, sequenceid, feature) r2
+				(select processid, threadid, sequenceid, feature, min(poslabel) plh, null pll from runlog where actualbase is null and feature=2 and processid in(15760,20352) 
+				group by processid, threadid, sequenceid, feature) r2
 			where
 			r1.processid=r2.processid and r1.threadid=r2.threadid and r1.sequenceid=r2.sequenceid and r1.feature=r2.feature and r1.poslabel=r2.plh
 			) rr2,
