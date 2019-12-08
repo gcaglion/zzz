@@ -658,100 +658,105 @@ void sTS2::buildDataSet() {
 	}
 	numtype* tmpvalx=(numtype*)malloc(minitsStepsCnt*sizeof(numtype));
 
-	for (int t=0; t<minitsCnt; t++) {
+	if (cutSteps>0) {
 
-		//-- get INval/INvalB/OUTval/OUTvalB/iBarT/iBarBT/oBarT/oBarBT from current TS
-		for (d=0; d<dataSourcesCnt[0]; d++) {
-			for (f=0; f<featuresCnt[0][d]; f++) {
-				INvalB[d*featuresCnt[0][d]+f]=valB[0][d][f][0];
-			}
-		}
-		idx=0;
-		for (s=0; s<minitsStepsCnt; s++) {
+		for (int t=0; t<minitsCnt; t++) {
+
+			//-- get INval/INvalB/OUTval/OUTvalB/iBarT/iBarBT/oBarT/oBarBT from current TS
 			for (d=0; d<dataSourcesCnt[0]; d++) {
 				for (f=0; f<featuresCnt[0][d]; f++) {
-					INval[idx]=val[t+s][0][d][f][0];
-					idx++;
+					INvalB[d*featuresCnt[0][d]+f]=valB[0][d][f][0];
 				}
 			}
-		}
-		idx=0;
-		for (d=0; d<dataSourcesCnt[1]; d++) {
-			for (f=0; f<featuresCnt[1][d]; f++) {
-				OUTvalB[d*featuresCnt[1][d]+f]=valB[1][d][f][0];
-			}
-		}
-		for (s=0; s<minitsStepsCnt; s++) {
-			for (d=0; d<dataSourcesCnt[1]; d++) {
-				for (f=0; f<featuresCnt[1][d]; f++) {
-					OUTval[idx]=val[t+s][1][d][f][0];
-					idx++;
-				}
-			}
-		}		
-		strcpy_s(iBarBT, DATE_FORMAT_LEN, "9999-99-99-00:00");
-		strcpy_s(oBarBT, DATE_FORMAT_LEN, "9999-99-99-00:00");
-		for (s=0; s<minitsStepsCnt; s++) {
-			strcpy_s(iBarT[s], DATE_FORMAT_LEN, timestamp[t+s][0]);
-			strcpy_s(oBarT[s], DATE_FORMAT_LEN, timestamp[t+s][1]);
-		}
-
-		//-- 1. build a timeserie with stepsCnt=sampleLen+predictionLen (predictionLen must be even)
-		miniTS=new sTS2(this, newsname("miniTS%d", t), defaultdbg, nullptr, IOshift, minitsStepsCnt, dt, minitsSampleLen, minitsTargetLen, batchSize, doDump, iBarT, iBarBT, dataSourcesCnt[0], featuresCnt[0], feature[0], WTtype[0], WTlevel[0], INval, INvalB, oBarT, oBarBT, dataSourcesCnt[1], featuresCnt[1], feature[1], WTtype[1], WTlevel[1], OUTval, OUTvalB);
-
-		//-- 2. calc WT
-		for (i=0; i<2; i++) {
-			for (d=0; d<miniTS->dataSourcesCnt[i]; d++) {
-				for (f=0; f<miniTS->featuresCnt[i][d]; f++) {
-					if (miniTS->WTtype[i]!=WT_NONE && miniTS->WTlevel[i]>0) {
-						//-- extract selected features in tmpvalx
-						for (s=0; s<miniTS->stepsCnt; s++) tmpvalx[s]=miniTS->val[s][i][d][f][0];
-						//-- FFTcalc for each feature. Also sets original value at position 0
-						miniTS->WTcalc(i, d, f, tmpvalx);
+			idx=0;
+			for (s=0; s<minitsStepsCnt; s++) {
+				for (d=0; d<dataSourcesCnt[0]; d++) {
+					for (f=0; f<featuresCnt[0][d]; f++) {
+						INval[idx]=val[t+s][0][d][f][0];
+						idx++;
 					}
 				}
 			}
-		}
+			idx=0;
+			for (d=0; d<dataSourcesCnt[1]; d++) {
+				for (f=0; f<featuresCnt[1][d]; f++) {
+					OUTvalB[d*featuresCnt[1][d]+f]=valB[1][d][f][0];
+				}
+			}
+			for (s=0; s<minitsStepsCnt; s++) {
+				for (d=0; d<dataSourcesCnt[1]; d++) {
+					for (f=0; f<featuresCnt[1][d]; f++) {
+						OUTval[idx]=val[t+s][1][d][f][0];
+						idx++;
+					}
+				}
+			}		
+			strcpy_s(iBarBT, DATE_FORMAT_LEN, "9999-99-99-00:00");
+			strcpy_s(oBarBT, DATE_FORMAT_LEN, "9999-99-99-00:00");
+			for (s=0; s<minitsStepsCnt; s++) {
+				strcpy_s(iBarT[s], DATE_FORMAT_LEN, timestamp[t+s][0]);
+				strcpy_s(oBarT[s], DATE_FORMAT_LEN, timestamp[t+s][1]);
+			}
 
-		//-- copy first step of mini-ts to step[t] of ts
-		for (i=0; i<2; i++) {
-			for (d=0; d<miniTS->dataSourcesCnt[i]; d++) {
-				for (f=0; f<miniTS->featuresCnt[i][d]; f++) {
-					for (l=0; l<(WTlevel[i]+2); l++) {
-						val[cutSteps+t][i][d][f][l]=miniTS->val[cutSteps][i][d][f][l];
-						//-- if this is the last mini-ts, copy all steps of the last mini-ts to step[stepsCnt-minitsStepsCnt] of ts
-						if (t==(minitsCnt-1)) {
-							for (s=1; s<(miniTS->stepsCnt-cutSteps); s++) {
-								val[cutSteps+t+s][i][d][f][l]=miniTS->val[cutSteps+s][i][d][f][l];
+			//-- 1. build a timeserie with stepsCnt=sampleLen+predictionLen (predictionLen must be even)
+			miniTS=new sTS2(this, newsname("miniTS%d", t), defaultdbg, nullptr, IOshift, minitsStepsCnt, dt, minitsSampleLen, minitsTargetLen, batchSize, doDump, iBarT, iBarBT, dataSourcesCnt[0], featuresCnt[0], feature[0], WTtype[0], WTlevel[0], INval, INvalB, oBarT, oBarBT, dataSourcesCnt[1], featuresCnt[1], feature[1], WTtype[1], WTlevel[1], OUTval, OUTvalB);
+
+			//-- 2. calc WT
+			for (i=0; i<2; i++) {
+				for (d=0; d<miniTS->dataSourcesCnt[i]; d++) {
+					for (f=0; f<miniTS->featuresCnt[i][d]; f++) {
+						if (miniTS->WTtype[i]!=WT_NONE && miniTS->WTlevel[i]>0) {
+							//-- extract selected features in tmpvalx
+							for (s=0; s<miniTS->stepsCnt; s++) tmpvalx[s]=miniTS->val[s][i][d][f][0];
+							//-- FFTcalc for each feature. Also sets original value at position 0
+							miniTS->WTcalc(i, d, f, tmpvalx);
+						}
+					}
+				}
+			}
+
+			//-- copy first step of mini-ts to step[t] of ts
+			for (i=0; i<2; i++) {
+				for (d=0; d<miniTS->dataSourcesCnt[i]; d++) {
+					for (f=0; f<miniTS->featuresCnt[i][d]; f++) {
+						for (l=0; l<(WTlevel[i]+2); l++) {
+							val[cutSteps+t][i][d][f][l]=miniTS->val[cutSteps][i][d][f][l];
+							//-- if this is the last mini-ts, copy all steps of the last mini-ts to step[stepsCnt-minitsStepsCnt] of ts
+							if (t==(minitsCnt-1)) {
+								for (s=1; s<(miniTS->stepsCnt-cutSteps); s++) {
+									val[cutSteps+t+s][i][d][f][l]=miniTS->val[cutSteps+s][i][d][f][l];
+								}
 							}
 						}
 					}
 				}
 			}
+
+			//-- 5. back to 1
+			delete miniTS;
 		}
 
-		//-- 5. back to 1
-		delete miniTS;
-	}
+		//-- cut ts
+		for (i=0; i<2; i++) {
+			strcpy_s(timestampB[i], DATE_FORMAT_LEN, timestamp[cutSteps-1][i]);
+			for (s=0; s<(stepsCnt-cutSteps); s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, timestamp[cutSteps+s][i]);
 
-	//-- cut ts
-	for (i=0; i<2; i++) {
-		strcpy_s(timestampB[i], DATE_FORMAT_LEN, timestamp[cutSteps-1][i]);
-		for (s=0; s<(stepsCnt-cutSteps); s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, timestamp[cutSteps+s][i]);
-	
-		for (d=0; d<dataSourcesCnt[i]; d++) {
-			for (f=0; f<featuresCnt[i][d]; f++) {
-				valB[i][d][f][0]=val[cutSteps-1][i][d][f][0];
-				//-- base values for each level. we don't have it, so we set it equal to the first value of the level serie
-				for (l=1; l<(WTlevel[i]+2); l++) valB[i][d][f][l]=val[cutSteps][i][d][f][l];
-				for (l=0; l<(WTlevel[i]+2); l++) {
-					for (s=0; s<(stepsCnt-cutSteps); s++) {
-						val[s][i][d][f][l]=val[s+cutSteps][i][d][f][l];
+			for (d=0; d<dataSourcesCnt[i]; d++) {
+				for (f=0; f<featuresCnt[i][d]; f++) {
+					valB[i][d][f][0]=val[cutSteps-1][i][d][f][0];
+					//-- base values for each level. we don't have it, so we set it equal to the first value of the level serie
+					for (l=1; l<(WTlevel[i]+2); l++) valB[i][d][f][l]=val[cutSteps][i][d][f][l];
+					for (l=0; l<(WTlevel[i]+2); l++) {
+						for (s=0; s<(stepsCnt-cutSteps); s++) {
+							val[s][i][d][f][l]=val[s+cutSteps][i][d][f][l];
+						}
 					}
 				}
 			}
 		}
 	}
+
+	//-- fill actual timestamps and values with blanks for the prediction steps
 	for (i=0; i<2; i++) {
 		for (s=stepsCnt; s<(stepsCnt+targetLen); s++) {
 			sprintf_s(timestamp[s-cutSteps][i], DATE_FORMAT_LEN, "9999-99-99-99:%02d", s);
