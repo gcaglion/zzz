@@ -36,9 +36,6 @@ void sTS2::mallocs1() {
 			timestamp[s][i]=(char*)malloc(DATE_FORMAT_LEN);
 		}
 	}
-	for (int s=stepsCnt; s<(stepsCnt+targetLen); s++) {
-		for (int i=0; i<2; i++) sprintf_s(timestamp[s][i], DATE_FORMAT_LEN, "9999-99-99-99:%02d", s);
-	}
 	val=(numtype*****)malloc((stepsCnt+targetLen)*sizeof(numtype****));
 	valTR=(numtype*****)malloc((stepsCnt+targetLen)*sizeof(numtype****));
 	valTRS=(numtype*****)malloc((stepsCnt+targetLen)*sizeof(numtype****));
@@ -468,7 +465,7 @@ void sTS2::dumpToFile(FILE* file, int i, bool predicted, numtype***** val_) {
 		}
 	}
 
-	for (s=0; s<(stepsCnt+((predicted)?targetLen:0)); s++) {
+	for (s=0; s<(stepsCnt+targetLen); s++) {
 		fprintf(file, "\n%d, %s", s, timestamp[s][i]);
 		for (d=0; d<dataSourcesCnt[i]; d++) {
 			for (f=0; f<featuresCnt[i][d]; f++) {
@@ -691,17 +688,9 @@ void sTS2::buildDataSet() {
 					idx++;
 				}
 			}
-		}
-		
+		}		
 		strcpy_s(iBarBT, DATE_FORMAT_LEN, "9999-99-99-00:00");
 		strcpy_s(oBarBT, DATE_FORMAT_LEN, "9999-99-99-00:00");
-		/*if (t>0) {
-			strcpy_s(iBarBT, DATE_FORMAT_LEN, timestamp[t][0]);
-			strcpy_s(oBarBT, DATE_FORMAT_LEN, timestamp[t][1]);
-		} else {
-			strcpy_s(iBarBT, DATE_FORMAT_LEN, timestampB[0]);
-			strcpy_s(oBarBT, DATE_FORMAT_LEN, timestampB[1]);
-		}*/
 		for (s=0; s<minitsStepsCnt; s++) {
 			strcpy_s(iBarT[s], DATE_FORMAT_LEN, timestamp[t+s][0]);
 			strcpy_s(oBarT[s], DATE_FORMAT_LEN, timestamp[t+s][1]);
@@ -740,6 +729,7 @@ void sTS2::buildDataSet() {
 				}
 			}
 		}
+
 		//-- 5. back to 1
 		delete miniTS;
 	}
@@ -761,8 +751,21 @@ void sTS2::buildDataSet() {
 				}
 			}
 		}
-	}	
-
+	}
+	for (i=0; i<2; i++) {
+		for (s=stepsCnt; s<(stepsCnt+targetLen); s++) {
+			sprintf_s(timestamp[s-cutSteps][i], DATE_FORMAT_LEN, "9999-99-99-99:%02d", s);
+			for (d=0; d<dataSourcesCnt[i]; d++) {
+				for (f=0; f<featuresCnt[i][d]; f++) {
+					for (l=0; l<(WTlevel[i]+2); l++) {
+						val[s-cutSteps][i][d][f][l]=EMPTY_VALUE;
+						valTR[s-cutSteps][i][d][f][l]=EMPTY_VALUE;
+						valTRS[s-cutSteps][i][d][f][l]=EMPTY_VALUE;
+					}
+				}
+			}
+		}
+	}
 	stepsCnt-=(cutSteps);
 	samplesCnt-=(cutSteps);
 
