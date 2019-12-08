@@ -699,7 +699,7 @@ void sTS2::buildDataSet() {
 			}
 
 			//-- 1. build a timeserie with stepsCnt=sampleLen+predictionLen (predictionLen must be even)
-			miniTS=new sTS2(this, newsname("miniTS%d", t), defaultdbg, nullptr, IOshift, minitsStepsCnt, dt, minitsSampleLen, minitsTargetLen, batchSize, doDump, iBarT, iBarBT, dataSourcesCnt[0], featuresCnt[0], feature[0], WTtype[0], WTlevel[0], INval, INvalB, oBarT, oBarBT, dataSourcesCnt[1], featuresCnt[1], feature[1], WTtype[1], WTlevel[1], OUTval, OUTvalB);
+			miniTS=new sTS2(this, newsname("miniTS%d", t), new sDbg(true, false, false, false, false), nullptr, IOshift, minitsStepsCnt, dt, minitsSampleLen, minitsTargetLen, batchSize, doDump, iBarT, iBarBT, dataSourcesCnt[0], featuresCnt[0], feature[0], WTtype[0], WTlevel[0], INval, INvalB, oBarT, oBarBT, dataSourcesCnt[1], featuresCnt[1], feature[1], WTtype[1], WTlevel[1], OUTval, OUTvalB);
 
 			//-- 2. calc WT
 			for (i=0; i<2; i++) {
