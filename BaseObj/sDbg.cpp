@@ -1,6 +1,6 @@
 #include "sDbg.h"
 
-sDbg::sDbg(bool verbose_, bool timing_, bool dbgtoscreen_, bool dbgtofile_, char* outfilepath_) {
+sDbg::sDbg(bool override_, bool verbose_, bool timing_, bool dbgtoscreen_, bool dbgtofile_, char* outfilepath_) {
 	outfilepath=(char*)malloc(MAX_PATH);
 	outfilename=(char*)malloc(MAX_PATH);
 	outfilefullname=(char*)malloc(MAX_PATH);
@@ -8,27 +8,28 @@ sDbg::sDbg(bool verbose_, bool timing_, bool dbgtoscreen_, bool dbgtofile_, char
 	verbose=verbose_; timing=timing_; dbgtoscreen=dbgtoscreen_, dbgtofile=dbgtofile_;
 	getFullPath(outfilepath_, outfilepath);
 
-	FILE* dbgPropFile; int linesCnt; 
-	char _line[XMLLINE_MAXLEN]; char _pname[XMLKEY_PARM_NAME_MAXLEN]; char _pval[XMLKEY_PARM_VAL_MAXLEN];
-	if (fopen_s(&dbgPropFile, "debug.properties", "r")==0) {
-		linesCnt=0;
-		while (fgets(_line, XMLLINE_MAXLEN, dbgPropFile)!=NULL) {
-			stripChar(_line, ' '); stripChar(_line, '\t'); stripChar(_line, '\n');
-			if (getValuePair(_line, _pname, _pval, '=')) {
-				if (_stricmp(_pname, "DEFAULT_VERBOSE")==0) verbose=(_stricmp(_pval, "TRUE")==0);
-				if (_stricmp(_pname, "DEFAULT_TIMING")==0) timing=(_stricmp(_pval, "TRUE")==0);
-				if (_stricmp(_pname, "DEFAULT_TOSCREEN")==0) dbgtoscreen=(_stricmp(_pval, "TRUE")==0);
-				if (_stricmp(_pname, "DEFAULT_TOFILE")==0) dbgtofile=(_stricmp(_pval, "TRUE")==0);
-				if (_stricmp(_pname, "DEFAULT_FPATH")==0) getFullPath(_pval, outfilepath);
+	if (!override_) {
+		FILE* dbgPropFile; int linesCnt;
+		char _line[XMLLINE_MAXLEN]; char _pname[XMLKEY_PARM_NAME_MAXLEN]; char _pval[XMLKEY_PARM_VAL_MAXLEN];
+		if (fopen_s(&dbgPropFile, "debug.properties", "r")==0) {
+			linesCnt=0;
+			while (fgets(_line, XMLLINE_MAXLEN, dbgPropFile)!=NULL) {
+				stripChar(_line, ' '); stripChar(_line, '\t'); stripChar(_line, '\n');
+				if (getValuePair(_line, _pname, _pval, '=')) {
+					if (_stricmp(_pname, "DEFAULT_VERBOSE")==0) verbose=(_stricmp(_pval, "TRUE")==0);
+					if (_stricmp(_pname, "DEFAULT_TIMING")==0) timing=(_stricmp(_pval, "TRUE")==0);
+					if (_stricmp(_pname, "DEFAULT_TOSCREEN")==0) dbgtoscreen=(_stricmp(_pval, "TRUE")==0);
+					if (_stricmp(_pname, "DEFAULT_TOFILE")==0) dbgtofile=(_stricmp(_pval, "TRUE")==0);
+					if (_stricmp(_pname, "DEFAULT_FPATH")==0) getFullPath(_pval, outfilepath);
 
-				if (_stricmp(_pname, "DEFAULT_PAUSEERR")==0) pauseOnError=(_stricmp(_pval, "TRUE")==0);
+					if (_stricmp(_pname, "DEFAULT_PAUSEERR")==0) pauseOnError=(_stricmp(_pval, "TRUE")==0);
+				}
+				linesCnt++;
+
 			}
-			linesCnt++;
-
+			fclose(dbgPropFile);
 		}
-		fclose(dbgPropFile);
 	}
-	
 
 	stack[0]='\0';
 	outfile=nullptr;

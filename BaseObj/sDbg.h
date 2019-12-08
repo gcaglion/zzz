@@ -32,7 +32,7 @@ struct sDbg {
 	char msg[DBG_MSG_MAXLEN];
 	char stack[DBG_STACK_MAXLEN];
 
-	EXPORT sDbg(bool verbose_=true, bool timing_=false, bool dbgtoscreen_=true, bool dbgtofile_=true, char* outfilepath_="C:/temp/logs");
+	EXPORT sDbg(bool override_, bool verbose_, bool timing_, bool dbgtoscreen_, bool dbgtofile_, char* outfilepath_="C:/temp/logs");
 	EXPORT ~sDbg();	
 	EXPORT void createOutFile(char* objName, void* objAddr, int objDepth);
 	//-- local copy of stripChar(), to avoid linkng Utils.lib to all modules that use sDbg
@@ -78,7 +78,7 @@ private:
 
 };
 
-#define defaultdbg new sDbg()
+#define defaultdbg new sDbg(false, true, false, true, true)
 #define erronlydbg new sDbg(false)
 #define clonedbg(fromDbg) new sDbg(fromDbg->verbose, fromDbg->timing, fromDbg->dbgtoscreen, fromDbg->dbgtofile, fromDbg->outfilepath)
 #define checkpoint(id) info("%s->%s() Checkpoint %d", name->base, __func__, id); fflush(dbg->outfile);

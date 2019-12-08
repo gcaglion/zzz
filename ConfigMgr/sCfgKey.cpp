@@ -84,7 +84,7 @@ void sCfgKey::setDbg() {
 
 	//-- sObj always sets dbg (to default, parent's, or the one passed)
 	if (dbg!=parent->dbg) delete dbg;	//-- delete current dbg, unless it's inherited by parent
-	dbg = new sDbg(dbg_verbose_, dbg_timing_, dbg_dbgtoscreen_, dbg_dbgtofile_, dbg_outfilepath_);
+	dbg = new sDbg(false, dbg_verbose_, dbg_timing_, dbg_dbgtoscreen_, dbg_dbgtofile_, dbg_outfilepath_);
 	dbg->createOutFile(name->base, this, depth);
 	//-- 
 
