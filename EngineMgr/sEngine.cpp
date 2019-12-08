@@ -52,9 +52,10 @@ void sEngine::train(int simulationId_, sTS2* trainTS_) {
 	sNNparms* NNcp; safespawn(NNcp, newsname("Core%d_NNparms", 0), defaultdbg, cfg, strBuild("Core%d/Parameters", 0));
 	NNcp->setScaleMinMax();
 
-	trainTS_->scale(NNcp->scaleMin[0], NNcp->scaleMax[0]);
 
 	safecall(trainTS_, buildDataSet);
+	safecall(trainTS_, scale, NNcp->scaleMin[0], NNcp->scaleMax[0]);
+
 	inputCnt=trainTS_->inputCnt; outputCnt=trainTS_->outputCnt;
 
 	forecast=(numtype*)malloc(outputCnt*sizeof(numtype));
@@ -129,6 +130,9 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 	cls(GetStdHandle(STD_OUTPUT_HANDLE));
 
 	if (savedEnginePid_>0) {
+
+		safecall(inferTS_, buildDataSet);
+
 		int idx=0;
 		for (int d=0; d<inferTS_->dataSourcesCnt[0]; d++) {
 			for (int f=0; f<inferTS_->featuresCnt[0][d]; f++) {
@@ -150,10 +154,9 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 			}
 		}
 
-		inferTS_->scale(core[0]->parms->scaleMin[0], core[0]->parms->scaleMax[0]);
+		safecall(inferTS_, scale, core[0]->parms->scaleMin[0], core[0]->parms->scaleMax[0]);
 
 		//-- re-build core[0]->procArgs from inferTS_
-		safecall(inferTS_, buildDataSet);
 
 		core[0]->procArgs->testid=simulationId_;
 		core[0]->procArgs->samplesCnt=inferTS_->samplesCnt;
@@ -176,13 +179,15 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 	safecall(inferTS_, unscale);
 	safecall(inferTS_, untransform);
 
+	inferTS_->dumpDS();
+
 	//-- persist (OUTPUT only)
 	if (core[0]->persistor->saveRunFlag) {
 		for (int d=0; d<inferTS_->dataSourcesCnt[1]; d++) {
 			for (int f=0; f<inferTS_->featuresCnt[1][d]; f++) {
 				for (int l=0; l<(inferTS_->WTlevel[1]+2); l++) {
 					safecall(core[0]->persistor, saveRun2, core[0]->procArgs->pid, core[0]->procArgs->tid, core[0]->procArgs->npid, core[0]->procArgs->ntid, seqId_, core[0]->procArgs->mseR, \
-						inferTS_->stepsCnt+((savedEnginePid_>0)?inferTS_->targetLen:-inferTS_->targetLen*2-1), inferTS_->timestamp, 1, d, f, inferTS_->feature[1][d][f], l, inferTS_->valTRS, inferTS_->prdTRS, inferTS_->valTR, inferTS_->prdTR, inferTS_->val, inferTS_->prd
+						inferTS_->stepsCnt, inferTS_->timestamp, 1, d, f, inferTS_->feature[1][d][f], l, inferTS_->valTRS, inferTS_->prdTRS, inferTS_->valTR, inferTS_->prdTR, inferTS_->val, inferTS_->prd
 					);
 				}
 			}

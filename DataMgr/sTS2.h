@@ -53,9 +53,9 @@ struct sTS2 :sCfgObj {
 	EXPORT sTS2(sCfgObjParmsDef);
 	EXPORT sTS2(sObjParmsDef, \
 		int ioShift_, int stepsCnt_, int*** dt_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, \
-		char*** INtimestamp_, char** INtimestampB_, \
+		char** INtimestamp_, char* INtimestampB_, \
 		int INdataSourcesCnt_, int* INfeaturesCnt_, int** INfeature_, int INWTtype_, int INWTlevel_, numtype* INval_, numtype* INvalB_, \
-		char*** OUTtimestamp_, char** OUTtimestampB_, \
+		char** OUTtimestamp_, char* OUTtimestampB_, \
 		int OUTdataSourcesCnt_, int* OUTfeaturesCnt_, int** OUTfeature_, int OUTWTtype_, int OUTWTlevel_, numtype* OUTval_, numtype* OUTvalB_\
 	);
 	EXPORT ~sTS2();
@@ -79,4 +79,5 @@ private:
 	void WTcalc(int i, int d, int f, numtype* dsvalSF);
 	void transform(int i, int d, int f, int l);
 	void cutAndTransform();
+	void setDSshape();
 };

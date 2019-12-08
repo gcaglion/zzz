@@ -150,10 +150,8 @@ void sRoot::kaz() {
 
 	sCfg* tsCfg; safespawn(tsCfg, newsname("tsCfg"), defaultdbg, "Config/inferDS.xml");
 	sTS2* ts; safespawn(ts, newsname("newTS"), defaultdbg, tsCfg, "/TimeSerie");
-	ts->scale(-1, 1);
 	ts->dump();
 	ts->buildDataSet();
-	ts->dumpDS();
 	return;
 
 	ts->getPrediction();
@@ -407,8 +405,8 @@ void sRoot::getForecast(int seqId_, int predictionStep_, int extraSteps_, int io
 
 	sTS2* mtTS;  safespawn(mtTS, newsname("MTtimeSerie"), defaultdbg, \
 		ioShift_, sampleBarsCnt, MT4engine->dt, MT4engine->sampleLen, MT4engine->targetLen, MT4engine->batchSize, MT4doDump, \
-		&iBarTimeS, &iBarBTimeS, iseriesCnt_, iselFcnt, iselF, MT4engine->WTtype[0], MT4engine->WTlevel[0], iBar, iBarB, \
-		&oBarTimeS, &oBarBTimeS, oseriesCnt_, oselFcnt, oselF, MT4engine->WTtype[1], MT4engine->WTlevel[1], oBar, oBarB \
+		iBarTimeS, iBarBTimeS, iseriesCnt_, iselFcnt, iselF, MT4engine->WTtype[0], MT4engine->WTlevel[0], iBar, iBarB, \
+		oBarTimeS, oBarBTimeS, oseriesCnt_, oselFcnt, oselF, MT4engine->WTtype[1], MT4engine->WTlevel[1], oBar, oBarB \
 	);
 
 	safecall(MT4engine, infer, MT4accountId, seqId_, mtTS, MT4enginePid);

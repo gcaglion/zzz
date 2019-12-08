@@ -5,6 +5,29 @@
 #define MAX_TS_FEATURES 128
 #endif
 
+void sTS2::setDSshape() {
+	samplesCnt=stepsCnt-sampleLen+1;
+	inputCnt=0;
+	for (int bar=0; bar<sampleLen; bar++) {
+		for (int d=0; d<dataSourcesCnt[0]; d++) {
+			for (int f=0; f<featuresCnt[0][d]; f++) {
+				for (int l=0; l<(WTlevel[0]+2); l++) {
+					inputCnt++;
+				}
+			}
+		}
+	}
+	outputCnt=0;
+	for (int bar=0; bar<targetLen; bar++) {
+		for (int d=0; d<dataSourcesCnt[1]; d++) {
+			for (int f=0; f<featuresCnt[1][d]; f++) {
+				for (int l=0; l<(WTlevel[1]+2); l++) {
+					outputCnt++;
+				}
+			}
+		}
+	}
+}
 void sTS2::mallocs1() {
 	timestamp=(char***)malloc((stepsCnt+targetLen)*sizeof(char**));
 	for (int s=0; s<(stepsCnt+targetLen); s++) {
@@ -91,6 +114,13 @@ void sTS2::mallocs1() {
 			}
 		}
 	}
+
+	sample=(numtype*)malloc(inputCnt*samplesCnt*sizeof(numtype));
+	sampleTRS=(numtype*)malloc(inputCnt*samplesCnt*sizeof(numtype));
+	target=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
+	targetTRS=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
+	prediction=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
+	predictionTRS=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
 }
 void sTS2::setDataSource(sDataSource** dataSrc_) {
 
@@ -116,40 +146,6 @@ void sTS2::setDataSource(sDataSource** dataSrc_) {
 	if (!found) fail("No Valid DataSource Parameters Key found.");
 
 }
-void sTS2::cutAndTransform(){
-	int cutSteps=(int)pow(2, max(WTlevel[0], WTlevel[1]));
-
-	if (cutSteps>1) {
-		stepsCnt-=cutSteps;
-		for (int i=0; i<2; i++) {
-			strcpy_s(timestampB[i], DATE_FORMAT_LEN, timestamp[cutSteps-1][i]);
-			for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, timestamp[s+cutSteps][i]);
-			for (int s=stepsCnt; s<(stepsCnt+targetLen); s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, timestamp[s+cutSteps][i]);
-			if (WTlevel[i]<=0) {
-				for (int d=0; d<dataSourcesCnt[i]; d++) {
-					for (int f=0; f<featuresCnt[i][d]; f++) {
-						for (int s=0; s<(stepsCnt); s++) {
-							val[s][i][d][f][0]=val[s+cutSteps][i][d][f][0];
-						}
-						for (int s=stepsCnt; s<(stepsCnt+targetLen); s++) {
-							val[s][i][d][f][0]=val[s+cutSteps][i][d][f][0];
-							valTR[s][i][d][f][0]=EMPTY_VALUE;
-							valTRS[s][i][d][f][0]=EMPTY_VALUE;
-						}
-					}
-				}
-			}
-		}
-	}
-	//-- transform for each feature/level.
-	for (int i=0; i<2; i++) {
-		for (int d=0; d<dataSourcesCnt[i]; d++) {
-			for (int f=0; f<featuresCnt[i][d]; f++) {
-				for (int l=0; l<(WTlevel[i]+2); l++) transform(i, d, f, l);
-			}
-		}
-	}
-}
 void sTS2::WTcalc(int i, int d, int f, numtype* dsfval) {
 	
 	//-- mallocs lfa/hfd
@@ -162,9 +158,9 @@ void sTS2::WTcalc(int i, int d, int f, numtype* dsfval) {
 
 	//-- we need to discard the first 2^n steps
 	for (int s=0; s<(stepsCnt-(int)pow(2, WTlevel[i])); s++) {
-		val[s][i][d][f][0]=dsfval[s+(int)pow(2, WTlevel[i])];
-		val[s][i][d][f][1]=lfa[s+(int)pow(2, WTlevel[i])];
-		for (int l=0; l<WTlevel[i]; l++) val[s][i][d][f][l+2]=hfd[l][s+(int)pow(2, WTlevel[i])];
+		val[s+(int)pow(2, WTlevel[i])][i][d][f][0]=dsfval[s+(int)pow(2, WTlevel[i])];
+		val[s+(int)pow(2, WTlevel[i])][i][d][f][1]=lfa[s+(int)pow(2, WTlevel[i])];
+		for (int l=0; l<WTlevel[i]; l++) val[s+(int)pow(2, WTlevel[i])][i][d][f][l+2]=hfd[l][s+(int)pow(2, WTlevel[i])];
 	}
 
 	valB[i][d][f][0]=dsfval[(int)pow(2, WTlevel[i])-1];
@@ -229,6 +225,33 @@ void sTS2::scale(float scaleMin_, float scaleMax_) {
 				for (int f=0; f<featuresCnt[i][d]; f++) {
 					for (int l=0; l<(WTlevel[i]+2); l++) {
 						valTRS[s][i][d][f][l]=(valTRS[s][i][d][f][l]==EMPTY_VALUE) ? EMPTY_VALUE : valTR[s][i][d][f][l]*scaleM[i][d][f][l]+scaleP[i][d][f][l];
+					}
+				}
+			}
+		}
+	}
+
+	int dsidx=0;
+	for (int s=0; s<samplesCnt; s++) {
+		for (int bar=0; bar<sampleLen; bar++) {
+			for (int d=0; d<dataSourcesCnt[0]; d++) {
+				for (int f=0; f<featuresCnt[0][d]; f++) {
+					for (int l=0; l<(WTlevel[0]+2); l++) {
+						sampleTRS[dsidx] = valTRS[s+bar][0][d][f][l];
+						dsidx++;
+					}
+				}
+			}
+		}
+	}
+	dsidx=0;
+	for (int s=0; s<samplesCnt; s++) {
+		for (int bar=0; bar<targetLen; bar++) {
+			for (int d=0; d<dataSourcesCnt[1]; d++) {
+				for (int f=0; f<featuresCnt[1][d]; f++) {
+					for (int l=0; l<(WTlevel[1]+2); l++) {
+						targetTRS[dsidx] = (s>=(samplesCnt-targetLen)) ? EMPTY_VALUE : valTRS[s+sampleLen+bar][1][d][f][l];
+						dsidx++;
 					}
 				}
 			}
@@ -615,72 +638,183 @@ void sTS2::dumpDS() {
 	fclose(fds);
 }
 void sTS2::buildDataSet() {
-	samplesCnt=stepsCnt-sampleLen+1;
+	int s, i, b, d, f, l, idx;
+
+	sTS2* miniTS;
+	int cutSteps=(int)pow(2, max(WTlevel[0], WTlevel[1]));
+	int minitsStepsCnt=sampleLen+cutSteps;
+	int minitsCnt=stepsCnt-minitsStepsCnt+1;
+	int minitsSampleLen=sampleLen;
+	int minitsTargetLen=targetLen;
+
+	numtype* INval=(numtype*)malloc(minitsStepsCnt*inputCnt*sizeof(numtype));
+	numtype* INvalB=(numtype*)malloc(inputCnt*sizeof(numtype));
+	numtype* OUTval=(numtype*)malloc(minitsStepsCnt*outputCnt*sizeof(numtype));
+	numtype* OUTvalB=(numtype*)malloc(outputCnt*sizeof(numtype));
+	char** iBarT=(char**)malloc(minitsStepsCnt*sizeof(char*));
+	char** oBarT=(char**)malloc(minitsStepsCnt*sizeof(char*));
+	char iBarBT[DATE_FORMAT_LEN]; 
+	char oBarBT[DATE_FORMAT_LEN]; 
+	for (int i=0; i<minitsStepsCnt; i++) {
+		iBarT[i]=(char*)malloc(DATE_FORMAT_LEN);
+		oBarT[i]=(char*)malloc(DATE_FORMAT_LEN);
+	}
+	numtype* tmpvalx=(numtype*)malloc(minitsStepsCnt*sizeof(numtype));
+
+	for (int t=0; t<minitsCnt; t++) {
+
+		//-- get INval/INvalB/OUTval/OUTvalB/iBarT/iBarBT/oBarT/oBarBT from current TS
+		for (d=0; d<dataSourcesCnt[0]; d++) {
+			for (f=0; f<featuresCnt[0][d]; f++) {
+				INvalB[d*featuresCnt[0][d]+f]=valB[0][d][f][0];
+			}
+		}
+		idx=0;
+		for (s=0; s<minitsStepsCnt; s++) {
+			for (d=0; d<dataSourcesCnt[0]; d++) {
+				for (f=0; f<featuresCnt[0][d]; f++) {
+					INval[idx]=val[t+s][0][d][f][0];
+					idx++;
+				}
+			}
+		}
+		idx=0;
+		for (d=0; d<dataSourcesCnt[1]; d++) {
+			for (f=0; f<featuresCnt[1][d]; f++) {
+				OUTvalB[d*featuresCnt[1][d]+f]=valB[1][d][f][0];
+			}
+		}
+		for (s=0; s<minitsStepsCnt; s++) {
+			for (d=0; d<dataSourcesCnt[1]; d++) {
+				for (f=0; f<featuresCnt[1][d]; f++) {
+					OUTval[idx]=val[t+s][1][d][f][0];
+					idx++;
+				}
+			}
+		}
 		
-	inputCnt=0;
-	for (int bar=0; bar<sampleLen; bar++) {
-		for (int d=0; d<dataSourcesCnt[0]; d++) {
-			for (int f=0; f<featuresCnt[0][d]; f++) {
-				for (int l=0; l<(WTlevel[0]+2); l++) {
-					inputCnt++;
+		strcpy_s(iBarBT, DATE_FORMAT_LEN, "9999-99-99-00:00");
+		strcpy_s(oBarBT, DATE_FORMAT_LEN, "9999-99-99-00:00");
+		/*if (t>0) {
+			strcpy_s(iBarBT, DATE_FORMAT_LEN, timestamp[t][0]);
+			strcpy_s(oBarBT, DATE_FORMAT_LEN, timestamp[t][1]);
+		} else {
+			strcpy_s(iBarBT, DATE_FORMAT_LEN, timestampB[0]);
+			strcpy_s(oBarBT, DATE_FORMAT_LEN, timestampB[1]);
+		}*/
+		for (s=0; s<minitsStepsCnt; s++) {
+			strcpy_s(iBarT[s], DATE_FORMAT_LEN, timestamp[t+s][0]);
+			strcpy_s(oBarT[s], DATE_FORMAT_LEN, timestamp[t+s][1]);
+		}
+
+		//-- 1. build a timeserie with stepsCnt=sampleLen+predictionLen (predictionLen must be even)
+		miniTS=new sTS2(this, newsname("miniTS%d", t), defaultdbg, nullptr, IOshift, minitsStepsCnt, dt, minitsSampleLen, minitsTargetLen, batchSize, doDump, iBarT, iBarBT, dataSourcesCnt[0], featuresCnt[0], feature[0], WTtype[0], WTlevel[0], INval, INvalB, oBarT, oBarBT, dataSourcesCnt[1], featuresCnt[1], feature[1], WTtype[1], WTlevel[1], OUTval, OUTvalB);
+
+		//-- 2. calc WT
+		for (i=0; i<2; i++) {
+			for (d=0; d<miniTS->dataSourcesCnt[i]; d++) {
+				for (f=0; f<miniTS->featuresCnt[i][d]; f++) {
+					if (miniTS->WTtype[i]!=WT_NONE && miniTS->WTlevel[i]>0) {
+						//-- extract selected features in tmpvalx
+						for (s=0; s<miniTS->stepsCnt; s++) tmpvalx[s]=miniTS->val[s][i][d][f][0];
+						//-- FFTcalc for each feature. Also sets original value at position 0
+						miniTS->WTcalc(i, d, f, tmpvalx);
+					}
 				}
+			}
+		}
+
+		//-- copy first step of mini-ts to step[t] of ts
+		for (i=0; i<2; i++) {
+			for (d=0; d<miniTS->dataSourcesCnt[i]; d++) {
+				for (f=0; f<miniTS->featuresCnt[i][d]; f++) {
+					for (l=0; l<(WTlevel[i]+2); l++) {
+						val[cutSteps+t][i][d][f][l]=miniTS->val[cutSteps][i][d][f][l];
+						//-- if this is the last mini-ts, copy all steps of the last mini-ts to step[stepsCnt-minitsStepsCnt] of ts
+						if (t==(minitsCnt-1)) {
+							for (s=1; s<(miniTS->stepsCnt-cutSteps); s++) {
+								val[cutSteps+t+s][i][d][f][l]=miniTS->val[cutSteps+s][i][d][f][l];
+							}
+						}
+					}
+				}
+			}
+		}
+		//-- 5. back to 1
+		delete miniTS;
+	}
+
+	//-- cut ts
+	for (i=0; i<2; i++) {
+		strcpy_s(timestampB[i], DATE_FORMAT_LEN, timestamp[cutSteps-1][i]);
+		for (s=0; s<(stepsCnt-cutSteps); s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, timestamp[cutSteps+s][i]);
+	
+		for (d=0; d<dataSourcesCnt[i]; d++) {
+			for (f=0; f<featuresCnt[i][d]; f++) {
+				valB[i][d][f][0]=val[cutSteps-1][i][d][f][0];
+				//-- base values for each level. we don't have it, so we set it equal to the first value of the level serie
+				for (l=1; l<(WTlevel[i]+2); l++) valB[i][d][f][l]=val[cutSteps][i][d][f][l];
+				for (l=0; l<(WTlevel[i]+2); l++) {
+					for (s=0; s<(stepsCnt-cutSteps); s++) {
+						val[s][i][d][f][l]=val[s+cutSteps][i][d][f][l];
+					}
+				}
+			}
+		}
+	}	
+
+	stepsCnt-=(cutSteps);
+	samplesCnt-=(cutSteps);
+
+	//-- transform for each feature/level.
+	for (int i=0; i<2; i++) {
+		for (int d=0; d<dataSourcesCnt[i]; d++) {
+			for (int f=0; f<featuresCnt[i][d]; f++) {
+				for (int l=0; l<(WTlevel[i]+2); l++) transform(i, d, f, l);
 			}
 		}
 	}
 
-	sample=(numtype*)malloc(inputCnt*samplesCnt*sizeof(numtype));
-	sampleTRS=(numtype*)malloc(inputCnt*samplesCnt*sizeof(numtype));
-
-	int dsidx=0;
-	for (int s=0; s<samplesCnt; s++) {
-		for (int bar=0; bar<sampleLen; bar++) {
-			for (int d=0; d<dataSourcesCnt[0]; d++) {
-				for (int f=0; f<featuresCnt[0][d]; f++) {
-					for (int l=0; l<(WTlevel[0]+2); l++) {
-						sample[dsidx] = val[s+bar][0][d][f][l];
-						sampleTRS[dsidx] = valTRS[s+bar][0][d][f][l];
-						dsidx++;
+	//-- 3. build DS
+	idx=0;
+	for (s=0; s<samplesCnt; s++) {
+		for (b=0; b<minitsSampleLen; b++) {
+			for (d=0; d<dataSourcesCnt[0]; d++) {
+				for (f=0; f<featuresCnt[0][d]; f++) {
+					for (l=0; l<(WTlevel[0]+2); l++) {
+						sample[idx] = val[s+b][0][d][f][l];
+						idx++;
 					}
 				}
 			}
 		}
 	}
-
-	outputCnt=0;
-	for (int bar=0; bar<targetLen; bar++) {
-		for (int d=0; d<dataSourcesCnt[1]; d++) {
-			for (int f=0; f<featuresCnt[1][d]; f++) {
-				for (int l=0; l<(WTlevel[1]+2); l++) {
-					outputCnt++;
-				}
-			}
-		}
-	}
-
-	target=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
-	targetTRS=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
-
-	dsidx=0;
-	for (int s=0; s<samplesCnt; s++) {
-		for (int bar=0; bar<targetLen; bar++) {
-			for (int d=0; d<dataSourcesCnt[1]; d++) {
-				for (int f=0; f<featuresCnt[1][d]; f++) {
-					for (int l=0; l<(WTlevel[1]+2); l++) {
-						target[dsidx] = (s>=(samplesCnt-targetLen)) ? EMPTY_VALUE : val[s+sampleLen+bar][1][d][f][l];
-						targetTRS[dsidx] = (s>=(samplesCnt-targetLen)) ? EMPTY_VALUE : valTRS[s+sampleLen+bar][1][d][f][l];
-						dsidx++;
+	idx=0;
+	for (s=0; s<samplesCnt; s++) {
+		for (b=0; b<targetLen; b++) {
+			for (d=0; d<dataSourcesCnt[1]; d++) {
+				for (f=0; f<featuresCnt[1][d]; f++) {
+					for (l=0; l<(WTlevel[1]+2); l++) {
+						target[idx] = (s>=(samplesCnt-targetLen)) ? EMPTY_VALUE : val[s+sampleLen+b][1][d][f][l];
+						idx++;
 					}
 				}
 			}
 		}
 	}
-
-	prediction=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
-	predictionTRS=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
 
 	//-- Print
-	if (doDump) dumpDS();
-	
+	if (doDump) {
+		dump(); dumpDS();
+	}
+
+	//-- free(s)
+	free(INval); free(INvalB); free(OUTval); free(OUTvalB);
+	for (int i=0; i<minitsStepsCnt; i++) {
+		free(iBarT[i]); free(oBarT[i]);
+	}
+	free(iBarT); free(oBarT);
+	free(tmpvalx);
 }
 void sTS2::getPrediction() {
 	int s, b;
@@ -765,6 +899,7 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 		safecall(cfg, setKey, "../");
 	}
 
+	setDSshape();
 	mallocs1();
 
 	//-- load all data sources
@@ -776,7 +911,6 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	char* tmptimeB=(char*)malloc(DATE_FORMAT_LEN); tmptimeB[0]='\0';
 	numtype* tmpval;
 	numtype* tmpvalB;
-	numtype* tmpvalx=(numtype*)malloc(stepsCnt*sizeof(numtype));
 
 	//-- load datasources
 	for (int i=0; i<2; i++) {
@@ -790,42 +924,30 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 			for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, tmptime[s]);
 			strcpy_s(timestampB[i], DATE_FORMAT_LEN, tmptimeB);
 
+
+			//-- set base values for each feature. only for original values
 			for (int f=0; f<featuresCnt[i][d]; f++) {
 				for (int df=0; df<dsrc[i][d]->featuresCnt; df++) {
 					if (feature[i][d][f]==df) {
-						//-- base values for each feature. only for original values
 						valB[i][d][f][0]=tmpvalB[feature[i][d][f]];
 						for(int s=0; s<stepsCnt; s++) val[s][i][d][f][0]=tmpval[s*dsrc[i][d]->featuresCnt+feature[i][d][f]];
-
-						if (WTtype[i]!=WT_NONE && WTlevel[i]>0) {
-							//-- extract selected features in tmpvalx
-							for (int s=0; s<stepsCnt; s++) {
-								tmpvalx[s]=tmpval[s*dsrc[i][d]->featuresCnt+feature[i][d][f]];
-							}
-							//-- FFTcalc for each feature. Also sets original value at position 0
-							WTcalc(i, d, f, tmpvalx);
-						}
 					}
 				}
 			}
 			free(tmpval); free(tmpvalB);
+
 		}
 	}
-	free(tmpvalx);
 	for (int i=0; i<stepsCnt; i++) free(tmptime[i]);
 	free(tmptime); free(tmptimeB);
 	free(dsrc);
 
-	cutAndTransform();
-
-	if (doDump) dump();
-
 }
 sTS2::sTS2(sObjParmsDef, \
 	int ioShift_, int stepsCnt_, int*** dt_, int sampleLen_, int targetLen_, int batchSize_, bool doDump_, \
-	char*** INtimestamp_, char** INtimestampB_, \
+	char** INtimestamp_, char* INtimestampB_, \
 	int INdataSourcesCnt_, int* INfeaturesCnt_, int** INfeature_, int INWTtype_, int INWTlevel_, numtype* INval_, numtype* INvalB_, \
-	char*** OUTtimestamp_, char** OUTtimestampB_, \
+	char** OUTtimestamp_, char* OUTtimestampB_, \
 	int OUTdataSourcesCnt_, int* OUTfeaturesCnt_, int** OUTfeature_, int OUTWTtype_, int OUTWTlevel_, numtype* OUTval_, numtype* OUTvalB_\
 ) : sCfgObj(sObjParmsVal, nullptr, "") {
 	
@@ -860,14 +982,15 @@ sTS2::sTS2(sObjParmsDef, \
 	}
 	WTtype[1]=OUTWTtype_; WTlevel[1]=OUTWTlevel_;
 
+	setDSshape();
 	mallocs1();
 
 	//=== BUILDING INPUT SIDE ===
 
 	//-- timestamps
-	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][0], DATE_FORMAT_LEN, (*INtimestamp_)[s]);
+	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][0], DATE_FORMAT_LEN, INtimestamp_[s]);
 	//-- timestampB
-	strcpy_s(timestampB[0], DATE_FORMAT_LEN, (*INtimestampB_));
+	strcpy_s(timestampB[0], DATE_FORMAT_LEN, INtimestampB_);
 
 	int i=0;
 	int idx=0;
@@ -889,32 +1012,12 @@ sTS2::sTS2(sObjParmsDef, \
 		}
 	}
 
-	numtype* tmpvalx=(numtype*)malloc(stepsCnt*sizeof(numtype));
-	for (int d=0; d<dataSourcesCnt[i]; d++) {
-		for (int f=0; f<featuresCnt[i][d]; f++) {
-			for (int df=0; df<featuresCnt[i][d]; df++) {
-				if (feature[i][d][f]==df) {
-					//-- base values for each feature. only for original values
-
-					if (WTtype[i]!=WT_NONE && WTlevel[i]>0) {
-						//-- extract selected features in tmpvalx
-						for (int s=0; s<stepsCnt; s++) {
-							tmpvalx[s]=val[s][i][d][f][0];
-						}
-						//-- FFTcalc for each feature. Also sets original value at position 0
-						WTcalc(i, d, f, tmpvalx);
-					}
-				}
-			}
-		}
-	}
-
 	//=== BUILDING OUTPUT SIDE ===
 
 	//-- timestamps
-	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][1], DATE_FORMAT_LEN, (*OUTtimestamp_)[s]);
+	for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][1], DATE_FORMAT_LEN, OUTtimestamp_[s]);
 	//-- timestampB
-	strcpy_s(timestampB[1], DATE_FORMAT_LEN, (*OUTtimestampB_));
+	strcpy_s(timestampB[1], DATE_FORMAT_LEN, OUTtimestampB_);
 
 	i=1;
 	//-- *valB comes in flat, ordered by [dsXfeature]
@@ -936,25 +1039,6 @@ sTS2::sTS2(sObjParmsDef, \
 		}
 	}
 
-	for (int d=0; d<dataSourcesCnt[i]; d++) {
-		for (int f=0; f<featuresCnt[i][d]; f++) {
-			for (int df=0; df<featuresCnt[i][d]; df++) {
-				if (feature[i][d][f]==df) {
-					if (WTtype[i]!=WT_NONE && WTlevel[i]>0) {
-						//-- extract selected features in tmpvalx
-						for (int s=0; s<stepsCnt; s++) {
-							tmpvalx[s]=val[s][i][d][f][0];
-						}
-						//-- FFTcalc for each feature. Also sets original value at position 0
-						WTcalc(i, d, f, tmpvalx);
-					}
-				}
-			}
-		}
-	}
-	free(tmpvalx);
-
-	cutAndTransform();
 }
 sTS2::~sTS2() {
 
