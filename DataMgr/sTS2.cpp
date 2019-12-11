@@ -720,11 +720,11 @@ void sTS2::buildDataSet() {
 				for (d=0; d<miniTS->dataSourcesCnt[i]; d++) {
 					for (f=0; f<miniTS->featuresCnt[i][d]; f++) {
 						for (l=0; l<(WTlevel[i]+2); l++) {
-							val[cutSteps+t][i][d][f][l]=miniTS->val[cutSteps][i][d][f][l];
-							//-- if this is the last mini-ts, copy all steps of the last mini-ts to step[stepsCnt-minitsStepsCnt] of ts
-							if (t==(minitsCnt-1)) {
-								for (s=1; s<(miniTS->stepsCnt-cutSteps); s++) {
-									val[cutSteps+t+s][i][d][f][l]=miniTS->val[cutSteps+s][i][d][f][l];
+							val[minitsStepsCnt-1+t][i][d][f][l]=miniTS->val[minitsStepsCnt-1][i][d][f][l];
+							//-- if this is the first mini-ts, copy all steps of the first mini-ts to step[stepsCnt-minitsStepsCnt] of ts
+							if (t==0) {
+								for (s=0; s<(miniTS->stepsCnt-cutSteps); s++) {
+									val[cutSteps+s][i][d][f][l]=miniTS->val[cutSteps+s][i][d][f][l];
 								}
 							}
 						}
