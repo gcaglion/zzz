@@ -22,7 +22,7 @@ int _destroyEnv(uchar& iEnv[]);
 
 enum SLhandling {
 	//MinDist   = 1,
-	RiskRatio = 2,
+	RR = 2,
 	Forecast  = 3
 };
 
@@ -40,7 +40,6 @@ input bool GetActualFutureData	= false;
 input double TradeVol			= 0.1;
 input double RiskRatio			= 0.20;
 input double ForecastTolerance	= 2;
-input bool tradeClose			= false;
 input SLhandling stopsHandling	= 3;
 
 //--- local variables
@@ -82,7 +81,7 @@ int DEMA_period=20;
 int DEMA_shift=0;
 int MA_period=10;
 int MA_shift=0;
-int MOM_period=4320;
+int MOM_period=120;
 int indHandle[];
 //--
 double vopen[], vhigh[], vlow[], vclose[], vvolume[];
@@ -135,7 +134,6 @@ int OnInit() {
 	}
 	EnvS=CharArrayToString(vEnvS);
 	printf("EnginePid=%d ; SampleLen/PredictionLen/FeaturesCnt/BatchSize=%d/%d/%d/%d ; EnvS=%s ; ClientXMLFile=%s", EnginePid, historyLen, predictionLen, featuresCnt, batchSize, EnvS, ClientXMLFile);
-	//barsCnt=batchSize+historyLen-1;// +predictionLen;
 	barsCnt=historyLen+ExtraSteps;
 
 	//--
@@ -165,7 +163,7 @@ int OnInit() {
 	featuresCntFromCfg=0;
 	string serieFeatTmp[14];
 	for (int s=0; s<seriesCnt; s++) {
-		//printf("Symbol/TF [%d] : %s/%s", s, serieSymbol[s], serieTimeFrame[s]);
+		printf("Symbol/TF [%d] : %s/%s", s, serieSymbol[s], serieTimeFrame[s]);
 		serieFeatMask[s]=CSL2Mask(serieFeatList[s]);
 		//printf("FeatureList [%d] : %s (%ld)", s, serieFeatList[s], serieFeatMask[s]);
 		//printf("Trade [%d] : %s", s, (chartTrade[s]) ? "TRUE" : "FALSE");
@@ -177,7 +175,10 @@ int OnInit() {
 	}
 
 	ArrayResize(indHandle, seriesCnt*INDICATORS_CNT);
-	initStats();
+	if (!initStats()) {
+		printf("initStats() FAILURE! Exiting...");
+		return -1;
+	}
 
 	ArrayResize(vForecastO, PredictionStep+2);
 	ArrayResize(vForecastH, PredictionStep+2);
@@ -208,11 +209,8 @@ int OnInit() {
 
 
 	OUTseriesCnt=1;
-	if(tradeClose) {
-		OUTserieFeatMask[0]=10000000000;	//-- [CLOSE]
-	} else {
-		OUTserieFeatMask[0]=1000000000000+100000000000;	//-- [HIGH,LOW]
-	}
+	OUTserieFeatMask[0]=1000000000000+100000000000;	//-- [HIGH,LOW]
+
 	ArrayResize(vtimeB, seriesCnt);
 	ArrayResize(vtimeSB, seriesCnt);
 	ArrayResize(vopenB, seriesCnt);
@@ -376,7 +374,6 @@ void OnTick() {
 		}
 		saveLog();
 		shiftForecast();
-
 	}
 }
 void shiftForecast() {
@@ -429,6 +426,10 @@ bool loadBars() {
 	//-- INPUT Series/Features
 	for (int s=0; s<seriesCnt; s++) {
 		tf = getTimeFrameEnum(serieTimeFrame[s]);
+		if (tf<0) {
+			printf("getTimeFrameEnum() FAILURE! Exiting...");
+			return false;
+		}
 		copied=CopyRates(serieSymbol[s], tf, 1, barsCnt+1, serierates);	//printf("copied[%d]=%d", s, copied);
 		if (copied!=(barsCnt+1)) return false;
 		//-- base bar
@@ -483,13 +484,13 @@ bool loadBars() {
 }
 bool initStats() {
 	for (int s=0; s<seriesCnt; s++) {
-		indHandle[s*INDICATORS_CNT+0] = iMACD(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), EMA_fastPeriod, EMA_slowPeriod, EMA_signalPeriod, PRICE_CLOSE);
-		indHandle[s*INDICATORS_CNT+1] = iCCI(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), CCI_MAperiod, PRICE_CLOSE);
-		indHandle[s*INDICATORS_CNT+2] = iATR(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), ATR_MAperiod);
-		indHandle[s*INDICATORS_CNT+3] = iBands(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), BOLL_period, BOLL_shift, BOLL_deviation, PRICE_CLOSE);
-		indHandle[s*INDICATORS_CNT+4] = iDEMA(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), DEMA_period, DEMA_shift, PRICE_CLOSE);
-		indHandle[s*INDICATORS_CNT+5] = iMA(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), MA_period, MA_shift, MODE_SMA, PRICE_CLOSE);
-		indHandle[s*INDICATORS_CNT+6] = iMomentum(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), MOM_period, PRICE_CLOSE);
+		indHandle[s*INDICATORS_CNT+0] = iMACD(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), EMA_fastPeriod, EMA_slowPeriod, EMA_signalPeriod, PRICE_CLOSE);	if (indHandle[s*INDICATORS_CNT+0]==INVALID_HANDLE) return false;
+		indHandle[s*INDICATORS_CNT+1] = iCCI(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), CCI_MAperiod, PRICE_CLOSE);										if (indHandle[s*INDICATORS_CNT+1]==INVALID_HANDLE) return false;
+		indHandle[s*INDICATORS_CNT+2] = iATR(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), ATR_MAperiod);													if (indHandle[s*INDICATORS_CNT+2]==INVALID_HANDLE) return false;
+		indHandle[s*INDICATORS_CNT+3] = iBands(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), BOLL_period, BOLL_shift, BOLL_deviation, PRICE_CLOSE);			if (indHandle[s*INDICATORS_CNT+3]==INVALID_HANDLE) return false;
+		indHandle[s*INDICATORS_CNT+4] = iDEMA(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), DEMA_period, DEMA_shift, PRICE_CLOSE);							if (indHandle[s*INDICATORS_CNT+4]==INVALID_HANDLE) return false;
+		indHandle[s*INDICATORS_CNT+5] = iMA(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), MA_period, MA_shift, MODE_SMA, PRICE_CLOSE);						if (indHandle[s*INDICATORS_CNT+5]==INVALID_HANDLE) return false;
+		indHandle[s*INDICATORS_CNT+6] = iMomentum(serieSymbol[s], getTimeFrameEnum(serieTimeFrame[s]), MOM_period, PRICE_CLOSE);									if (indHandle[s*INDICATORS_CNT+6]==INVALID_HANDLE) return false;
 	}
 	return true;
 }
@@ -575,29 +576,29 @@ void checkTPSL() {
 		SymbolInfoTick(Symbol(), tick); //printf("ask=%f ; bid=%f ; tradeTP=%f ; tradeSL=%f", tick.ask, tick.bid, tradeTP, tradeSL);
 		if (PositionGetInteger(POSITION_TYPE)==POSITION_TYPE_BUY) {
 			if (tick.bid>=tradeTP[0]) {
-				trade.PositionClose(Symbol(), 10);
 				tradeProfit=PositionGetDouble(POSITION_PROFIT);
 				TPhit=1;
 				printf("TP on BUY reached. tick.bid=%6.5f ; tradeTP[%d]=%6.5f ; Profit=%f", tick.bid, 0, tradeTP[0], tradeProfit);
+				trade.PositionClose(Symbol(), 10);
 			}
 			if (tick.ask<=tradeSL[0]) {
-				trade.PositionClose(Symbol(), 10);
 				tradeProfit=PositionGetDouble(POSITION_PROFIT);
 				SLhit=1;
-				printf("SL on BUY reached. tick.ask=%6.5f ; tradeSL[%d]=%6.5f", tick.ask, 0, tradeSL[0], tradeProfit);
+				printf("SL on BUY reached. tick.ask=%6.5f ; tradeSL[%d]=%6.5f ; Profit=%f", tick.ask, 0, tradeSL[0], tradeProfit);
+				trade.PositionClose(Symbol(), 10);
 			}
 		} else {
 			if (tick.ask<=tradeTP[0]) {
-				trade.PositionClose(Symbol(), 10);
 				tradeProfit=PositionGetDouble(POSITION_PROFIT);
 				TPhit=1;
-				printf("TP on SELL reached. tick.ask=%6.5f ; tradeTP[%d]=%6.5f", tick.ask, 0, tradeTP[0], tradeProfit);
+				printf("TP on SELL reached. tick.ask=%6.5f ; tradeTP[%d]=%6.5f ; Profit=%f", tick.ask, 0, tradeTP[0], tradeProfit);
+				trade.PositionClose(Symbol(), 10);
 			}
 			if (tick.bid>=tradeSL[0]) {
-				trade.PositionClose(Symbol(), 10);
 				tradeProfit=PositionGetDouble(POSITION_PROFIT);
 				SLhit=1;
-				printf("SL on SELL reached. tick.bid=%6.5f ; tradeSL[%d]=%6.5f", tick.bid, 0, tradeSL[0], tradeProfit);
+				printf("SL on SELL reached. tick.bid=%6.5f ; tradeSL[%d]=%6.5f ; Profit=%f", tick.bid, 0, tradeSL[0], tradeProfit);
+				trade.PositionClose(Symbol(), 10);
 			}
 		}
 	}
@@ -607,7 +608,6 @@ int getTradeScenario(double fH, double fL, double fC, int& oTradeType, double& o
 	int scenario=-1;
 	double point=SymbolInfoDouble(Symbol(), SYMBOL_POINT);
 	double fTolerance=ForecastTolerance*(10*point);
-	double riskRatio=RiskRatio;
 
 	double cH=SymbolInfoDouble(_Symbol, SYMBOL_ASK);
 	double cL=SymbolInfoDouble(_Symbol, SYMBOL_BID);
@@ -620,78 +620,73 @@ int getTradeScenario(double fH, double fL, double fC, int& oTradeType, double& o
 
 	printf("getTradeScenario(): cH=%6.5f , cL=%6.5f , fH=%6.5f , fL=%6.5f , fC=%6.5f , dH=%6.5f , dL=%6.5f, minDist=%f , spread=%f", cH, cL, fH, fL, fC, dH, dL, minDist, spread);
 
-	if (tradeClose) {
-		//-- forecast Close is above current price high (ask)	=> BUY (1)
-		if (fC>cH) {
-			scenario=1;
-			oTradeTP=fC-fTolerance;
-			expProfit=oTradeTP-cH;
-			expLoss=expProfit*riskRatio;
-			oTradeSL=cL-expLoss;
+	//-- scenario 0 (see drawing)
+	if (fL>cH) {
+		scenario=0;
+		oTradeType=OP_NOTHING;
+	}
+	//-- scenario 1 (see drawing)
+	if (fH<cL) {
+		scenario=1;
+		oTradeType=OP_NOTHING;
+	}
+	//-- scenario 2 (see drawing)
+	if (fH<=cH && fL>=cL) {
+		scenario=2;
+		//-- the whole forecast bar is smaller than current spread. do nothing
+		oTradeType=OP_NOTHING;
+	}
+	//-- scenario 3 (see drawing)
+	if (fH>cH && fL<=cH && fL>=cL) {
+		scenario=3;
+		oTradeTP=fH-fTolerance;
+		oTradeSL=cL-fTolerance;
+		expProfit=oTradeTP-cH;
+		expLoss=cH-oTradeSL;
+		if (stopsHandling==RR) {
+			oTradeType=((expProfit>(expLoss/RiskRatio)) ? OP_BUY : OP_NOTHING);
+		}
+		if (stopsHandling==Forecast) {
 			oTradeType=((expProfit>0) ? OP_BUY : OP_NOTHING);
 		}
-		//-- forecast Close is below current price low (bid)	=> SELL (2)
-		else if (fC<cL) {
-			scenario=2;
-			oTradeTP=fC+fTolerance;
-			expProfit=cL-oTradeTP;
-			expLoss=expProfit*riskRatio;
-			oTradeSL=cL+expLoss;
+	}
+	//-- scenario 4 (see drawing)
+	if (fH<cH && fH>cL && fL<cL) {
+		scenario=4;
+		oTradeTP=fL+fTolerance;
+		oTradeSL=cH+fTolerance;
+		expProfit=fL+fTolerance;
+		expLoss=oTradeSL-cL;
+		if (stopsHandling==RR) {
+			oTradeType=((expProfit>(expLoss/RiskRatio)) ? OP_SELL : OP_NOTHING);
+		}
+		if (stopsHandling==Forecast) {
 			oTradeType=((expProfit>0) ? OP_SELL : OP_NOTHING);
-		} else {
-			scenario=0;
-			oTradeType=OP_NOTHING;
 		}
-	} else {
-
-		//-- scenario 0 (see drawing)
-		if (fL>cH) {
-			scenario=0;
-			oTradeType=OP_NOTHING;
-		}
-		//-- scenario 1 (see drawing)
-		if (fH<cL) {
-			scenario=1;
-			oTradeType=OP_NOTHING;
-		}
-		//-- scenario 2 (see drawing)
-		if (fH<=cH && fL>=cL) {
-			scenario=2;
-			//-- the whole forecast bar is smaller than current spread. do nothing
-			oTradeType=OP_NOTHING;
-		}
-		//-- scenario 3 (see drawing)
-		if (fH>cH && fL<=cH && fL>=cL) {
-			scenario=3;
-			oTradeTP=fH-fTolerance;
-			oTradeSL=cL-fTolerance;
-			expProfit=oTradeTP-cH;
-			expLoss=cH-oTradeSL;
-			oTradeType=((expProfit>0) ? OP_BUY : OP_NOTHING);
-		}
-		//-- scenario 4 (see drawing)
-		if (fH<cH && fH>cL && fL<cL) {
-			scenario=4;
+	}
+	//-- scenario 5 (see drawing)
+	if (fH>cH && fL<cL) {
+		scenario=5;
+		if (MathAbs(fH-cH)<MathAbs(fL-cL)) {
 			oTradeTP=fL+fTolerance;
-			oTradeSL=cH+fTolerance;
-			expProfit=fL+fTolerance;
-			expLoss=oTradeSL-cL;
-			oTradeType=((expProfit>0) ? OP_SELL : OP_NOTHING);
-		}
-		//-- scenario 5 (see drawing)
-		if (fH>cH && fL<cL) {
-			scenario=5;
-			if (MathAbs(fH-cH)<MathAbs(fL-cL)) {
-				oTradeTP=fL+fTolerance;
-				oTradeSL=fH+fTolerance;
-				expProfit=cL-oTradeTP;
-				expLoss=oTradeSL-cH;
+			oTradeSL=fH+fTolerance;
+			expProfit=cL-oTradeTP;
+			expLoss=oTradeSL-cH;
+			if (stopsHandling==RR) {
+				oTradeType=((expProfit>(expLoss/RiskRatio)) ? OP_SELL : OP_NOTHING);
+			}
+			if (stopsHandling==Forecast) {
 				oTradeType=((expProfit>0) ? OP_SELL : OP_NOTHING);
-			} else {
-				oTradeTP=fH-fTolerance;
-				oTradeSL=fL-fTolerance;
-				expProfit=oTradeTP-cH;
-				expLoss=cL-oTradeSL;
+			}
+		} else {
+			oTradeTP=fH-fTolerance;
+			oTradeSL=fL-fTolerance;
+			expProfit=oTradeTP-cH;
+			expLoss=cL-oTradeSL;
+			if (stopsHandling==RR) {
+				oTradeType=((expProfit>(expLoss/RiskRatio)) ? OP_BUY : OP_NOTHING);
+			}
+			if (stopsHandling==Forecast) {
 				oTradeType=((expProfit>0) ? OP_BUY : OP_NOTHING);
 			}
 		}
@@ -738,9 +733,9 @@ int NewTrade(int cmd, double volume, double TP, double SL) {
 }
 void closeExistingPosition() {
 	if (PositionSelect(Symbol())) {
-		trade.PositionClose(Symbol(), 10);
 		tradeProfit=PositionGetDouble(POSITION_PROFIT);
 		printf("Closing current position. Profit=%f", tradeProfit);
+		trade.PositionClose(Symbol(), 10);
 		TPhit=0; SLhit=0;
 	}
 }
@@ -772,19 +767,11 @@ void drawForecast(double H, double L, double C, int clr) {
 	if (copied<=0) Print("Error copying price data ", GetLastError());
 
 	string nameE;
-	if (tradeClose) {
-		StringConcatenate(nameE, "Forecast", TimeToString(rates[0].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES), " C=", DoubleToString(C, 5));
-		//-- draw the rectangle between last bar and new bar
-		ObjectCreate(0, nameE, OBJ_RECTANGLE, 0, rates[0].time, C, rates[1].time, C);
-		ObjectSetInteger(0, nameE, OBJPROP_COLOR, clr);
-		ObjectSetInteger(0, nameE, OBJPROP_WIDTH, 2);
-	} else {
-		StringConcatenate(nameE, "Forecast", TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES), " H=", DoubleToString(H, 5), " ; L=", DoubleToString(L, 5));
-		//-- draw the rectangle between last bar and new bar
-		ObjectCreate(0, nameE, OBJ_ELLIPSE, 0, rates[1].time, H, rates[1].time, L, (rates[0].time+rates[1].time)/2, (H+L)/2);
-		ObjectSetInteger(0, nameE, OBJPROP_COLOR, clr);
-		ObjectSetInteger(0, nameE, OBJPROP_WIDTH, 2);
-	}
+	StringConcatenate(nameE, "Forecast", TimeToString(rates[1].time, TIME_DATE), ".", TimeToString(rates[1].time, TIME_MINUTES), " H=", DoubleToString(H, 5), " ; L=", DoubleToString(L, 5));
+	//-- draw the rectangle between last bar and new bar
+	ObjectCreate(0, nameE, OBJ_ELLIPSE, 0, rates[1].time, H, rates[1].time, L, (rates[0].time+rates[1].time)/2, (H+L)/2);
+	ObjectSetInteger(0, nameE, OBJPROP_COLOR, clr);
+	ObjectSetInteger(0, nameE, OBJPROP_WIDTH, 2);
 	ObjectSetInteger(0, nameE, OBJPROP_HIDDEN, false);
 
 }
@@ -804,9 +791,15 @@ void delIndicators() {
 	}
 }
 ENUM_TIMEFRAMES getTimeFrameEnum(string tfS) {
+	if (tfS=="M1") return PERIOD_M1;
+	if (tfS=="M5") return PERIOD_M5;
+	if (tfS=="M15") return PERIOD_M15;
+	if (tfS=="M30") return PERIOD_M30;
 	if (tfS=="H1") return PERIOD_H1;
+	if (tfS=="H2") return PERIOD_H2;
+	if (tfS=="H4") return PERIOD_H4;
 	if (tfS=="D1") return PERIOD_D1;
-	return 0;
+	return -1;
 }
 long CSL2Mask(string mask) {
 	string selF[14];

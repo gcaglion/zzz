@@ -22,8 +22,8 @@
 		ChartsCount 	= 1
 		<Chart0>
 			Symbol				= EURUSD
-			TimeFrame			= H1
-				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
+			TimeFrame			= D1
+			SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
 		</Chart0>
 		<Chart1>
 			Symbol				= US500-DEC19
