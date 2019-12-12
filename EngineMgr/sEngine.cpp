@@ -12,7 +12,6 @@ sEngine::sEngine(sCfgObjParmsDef, int clientPid_) : sCfgObj(sCfgObjParmsVal) {
 	pid=clientPid_;
 	safecall(cfgKey, getParm, &coresCnt, "CoresCount");
 	safespawn(persistor, newsname("EnginePersistor"), defaultdbg, cfg, "Persistor");
-
 }
 sEngine::sEngine(sObjParmsDef, int clientPid_, sLogger* persistor_, int savedEnginePid_) : sCfgObj(sObjParmsVal, nullptr, "") {
 	mallocs();
@@ -33,14 +32,12 @@ sEngine::sEngine(sObjParmsDef, int clientPid_, sLogger* persistor_, int savedEng
 
 		safecall(NNc, loadImage, savedEnginePid_, coreThreadId[c], -1);
 	}
-	
 }
 sEngine::~sEngine(){
 	free(coreType);
 	free(coreThreadId);
 	free(coreLayer);
 	free(core);
-	//free(forecast);
 }
 
 void sEngine::train(int simulationId_, sTS2* trainTS_) {
@@ -56,8 +53,6 @@ void sEngine::train(int simulationId_, sTS2* trainTS_) {
 
 	safecall(trainTS_, buildDataSet);
 	inputCnt=trainTS_->inputCnt; outputCnt=trainTS_->outputCnt;
-
-	forecast=(numtype*)malloc(outputCnt*sizeof(numtype));
 
 	sNN2* NNc; safespawn(NNc, newsname("Core%d_NN", 0), defaultdbg, cfg, "../", inputCnt, outputCnt, NNcp);
 	core[0]=NNc;
@@ -150,7 +145,7 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 			}
 		}
 
-		inferTS_->scale(core[0]->parms->scaleMin[0], core[0]->parms->scaleMax[0]);
+		safecall(inferTS_, scale, core[0]->parms->scaleMin[0], core[0]->parms->scaleMax[0]);
 
 		//-- re-build core[0]->procArgs from inferTS_
 		safecall(inferTS_, buildDataSet);
@@ -167,8 +162,6 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 		core[0]->procArgs->npid=savedEnginePid_;
 		core[0]->procArgs->ntid=coreThreadId[0];
 	}
-
-	forecast=(numtype*)malloc(outputCnt*sizeof(numtype));
 
 	safecall(core[0], infer);
 

@@ -82,7 +82,7 @@ sNNparms::sNNparms(sObjParmsDef, sLogger* persistor_, int loadingPid_, int loadi
 	sCfgParm* tmpParm2= new sCfgParm(this, newsname("tmpParm2"), defaultdbg, GUIreporter, tmpS2, levelActivationS);
 	int tmpInt=0;
 	tmpParm2->getVal(&ActivationFunction, &tmpInt);
-
+	delete tmpParm2;
 }
 sNNparms::~sNNparms() {
 	free(levelRatio);

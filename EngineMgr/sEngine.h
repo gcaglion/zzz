@@ -42,8 +42,6 @@ struct sEngine : sCfgObj {
 	numtype* trMinOUT=nullptr;
 	numtype* trMaxOUT=nullptr;
 
-	numtype* forecast;
-
 	EXPORT sEngine(sCfgObjParmsDef, int clientPid_);
 	EXPORT sEngine(sObjParmsDef, int clientPid_, sLogger* persistor_, int savedEnginePid_);
 	EXPORT ~sEngine();

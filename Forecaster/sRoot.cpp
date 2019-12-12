@@ -415,7 +415,6 @@ void sRoot::getForecast(int seqId_, int predictionStep_, int extraSteps_, int io
 	for (int i=0; i<MT4engine->outputCnt; i++) {
 		oForecastO[i]=0; oForecastH[i]=0; oForecastL[i]=0; oForecastC[i]=0; oForecastV[i]=0;
 	}
-	int fi=0;
 	int cutSteps=(int)pow(2, max(MT4engine->WTlevel[0], MT4engine->WTlevel[1])); if (cutSteps<=1) cutSteps=0;
 	for (int x=0; x<(extraSteps_+1-cutSteps); x++) {
 		for (int b=0; b<MT4engine->targetLen; b++) {
@@ -426,15 +425,12 @@ void sRoot::getForecast(int seqId_, int predictionStep_, int extraSteps_, int io
 					info("x=%d ; b=%d ; sf=%d ; prdTR[%d][1][%d][%d][%d]=%7.6f", x, b, sf, MT4engine->sampleLen+x+b, s, sf, 0, mtTS->prdTR[MT4engine->sampleLen+x+b][1][s][sf][0]);
 					info("x=%d ; b=%d ; sf=%d ; prd[%d][1][%d][%d][%d]=%7.6f", x, b, sf, MT4engine->sampleLen+x+b, s, sf, 0, mtTS->prd[MT4engine->sampleLen+x+b][1][s][sf][0]);
 					
-					if (x==(extraSteps_-cutSteps)) {
-						MT4engine->forecast[fi]=mtTS->prd[MT4engine->sampleLen+x+b][1][s][sf][0];
-						
-						if (oselF[s][sf]==FXOPEN) oForecastO[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
-						if (oselF[s][sf]==FXHIGH) oForecastH[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
-						if (oselF[s][sf]==FXLOW) oForecastL[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
-						if (oselF[s][sf]==FXCLOSE) oForecastC[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
-						if (oselF[s][sf]==FXVOLUME) oForecastV[s*MT4engine->targetLen+b]=MT4engine->forecast[fi];
-						fi++;
+					if (x==(extraSteps_-cutSteps)) {						
+						if (oselF[s][sf]==FXOPEN) oForecastO[s*MT4engine->targetLen+b]=mtTS->prd[MT4engine->sampleLen+x+b][1][s][sf][0];;
+						if (oselF[s][sf]==FXHIGH) oForecastH[s*MT4engine->targetLen+b]=mtTS->prd[MT4engine->sampleLen+x+b][1][s][sf][0];;
+						if (oselF[s][sf]==FXLOW) oForecastL[s*MT4engine->targetLen+b]=mtTS->prd[MT4engine->sampleLen+x+b][1][s][sf][0];;
+						if (oselF[s][sf]==FXCLOSE) oForecastC[s*MT4engine->targetLen+b]=mtTS->prd[MT4engine->sampleLen+x+b][1][s][sf][0];;
+						if (oselF[s][sf]==FXVOLUME) oForecastV[s*MT4engine->targetLen+b]=mtTS->prd[MT4engine->sampleLen+x+b][1][s][sf][0];;
 					}
 				}
 				if(x==(extraSteps_-cutSteps)) info("OHLCV Forecast, serie %d , bar %d: %7.6f|%7.6f|%7.6f|%7.6f|%7.6f", s, b, oForecastO[s*MT4engine->targetLen+b], oForecastH[s*MT4engine->targetLen+b], oForecastL[s*MT4engine->targetLen+b], oForecastC[s*MT4engine->targetLen+b], oForecastV[s*MT4engine->targetLen+b]);
@@ -442,6 +438,9 @@ void sRoot::getForecast(int seqId_, int predictionStep_, int extraSteps_, int io
 		}
 	}
 	safecall(MT4engine, commit);
+
+	delete mtTS;
+
 }
 void sRoot::saveTradeInfo(int iPositionTicket, char* iPositionOpenTime, char* iLastBarT, double iLastBarO, double iLastBarH, double iLastBarL, double iLastBarC, double iLastBarV, double iLastForecastO, double iLastForecastH, double iLastForecastL, double iLastForecastC, double iLastForecastV, char* iCurrBarT, double iForecastO, double iForecastH, double iForecastL, double iForecastC, double iForecastV, int iTradeScenario, int iTradeResult, double iTradeProfit, int iTPhit, int iSLhit) {
 	safecall(MT4clientLog, saveTradeInfo, MT4clientPid, MT4sessionId, MT4accountId, MT4enginePid, iPositionTicket, iPositionOpenTime, iLastBarT, iLastBarO, iLastBarH, iLastBarL, iLastBarC, iLastBarV, iLastForecastO, iLastForecastH, iLastForecastL, iLastForecastC, iLastForecastV, iCurrBarT, iForecastO, iForecastH, iForecastL, iForecastC, iForecastV, iTradeScenario, iTradeResult, iTradeProfit, iTPhit, iSLhit);
