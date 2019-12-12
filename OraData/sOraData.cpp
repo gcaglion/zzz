@@ -90,7 +90,7 @@ void sOraData::getFlatOHLCV2(char* pSymbol, char* pTF, char* date0_, int pDate0L
 
 		//-- first, get new date0 using date0Lag
 		if (pDate0Lag>0) {
-			sprintf_s(sqlS, SQL_MAXLEN, "select to_char(max(newdatetime),'%s') from(select newdatetime from(select newdatetime from history.eurusd_h1 where newdatetime>to_date('%s','%s') order by 1) where rownum<%d)", DATE_FORMAT, date0_, DATE_FORMAT, pDate0Lag);
+			sprintf_s(sqlS, SQL_MAXLEN, "select to_char(max(newdatetime),'%s') from(select newdatetime from(select newdatetime from history.eurusd_h1 where newdatetime>to_date('%s','%s') order by 1) where rownum<=%d)", DATE_FORMAT, date0_, DATE_FORMAT, pDate0Lag);
 			stmt = ((Connection*)conn)->createStatement(sqlS);
 			rset = ((Statement*)stmt)->executeQuery();
 			i=0;
