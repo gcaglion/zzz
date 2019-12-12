@@ -19,5 +19,4 @@ sCore::sCore(sCfgObjParmsDef, int inputCnt_, int outputCnt_) : sCfgObj(sCfgObjPa
 }
 sCore::~sCore() {
 	delete procArgs;
-	delete Alg;
 }
