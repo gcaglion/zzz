@@ -289,6 +289,8 @@ void OnTick() {
 		//-- close existing position
 		closeExistingPosition();
 	
+		//if ((sequenceId%2)==0) return;
+
 		//-- load bars and stats into arrrays
 		if (!loadBars()) {
 			printf("loadBars() FAILURE! Exiting...");

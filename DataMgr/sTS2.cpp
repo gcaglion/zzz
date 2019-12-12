@@ -479,42 +479,44 @@ void sTS2::dumpToFile(FILE* file, int i, bool predicted, numtype***** val_) {
 	fclose(file);
 }
 void sTS2::dump() {
+	int pid=GetCurrentProcessId(); int tid=GetCurrentThreadId();
 	char dumpFileName[MAX_PATH];
-	sprintf_s(dumpFileName, "%s/%s_IN_ACT_BASE_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+
+	sprintf_s(dumpFileName, "%s/%s_%s_IN_ACT_BASE_dump_p%d_t%d.csv", dumpPath, name->base, left(timestamp[stepsCnt-1][0], 13), pid, tid);
 	FILE* dumpFileINACTBASE;
 	if (fopen_s(&dumpFileINACTBASE, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-	sprintf_s(dumpFileName, "%s/%s_IN_ACT_TR_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(dumpFileName, "%s/%s_%s_IN_ACT_TR_dump_p%d_t%d.csv", dumpPath, name->base, left(timestamp[stepsCnt-1][0], 13), pid, tid);
 	FILE* dumpFileINACTTR;
 	if (fopen_s(&dumpFileINACTTR, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-	sprintf_s(dumpFileName, "%s/%s_IN_ACT_TRS_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(dumpFileName, "%s/%s_%s_IN_ACT_TRS_dump_p%d_t%d.csv", dumpPath, name->base, left(timestamp[stepsCnt-1][0], 13), pid, tid);
 	FILE* dumpFileINACTTRS;
 	if (fopen_s(&dumpFileINACTTRS, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-	sprintf_s(dumpFileName, "%s/%s_IN_PRD_TRS_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(dumpFileName, "%s/%s_%s_IN_PRD_TRS_dump_p%d_t%d.csv", dumpPath, name->base, left(timestamp[stepsCnt-1][0], 13), pid, tid);
 	FILE* dumpFileINPRDTRS;
 	if (fopen_s(&dumpFileINPRDTRS, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-	sprintf_s(dumpFileName, "%s/%s_IN_PRD_TR_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(dumpFileName, "%s/%s_%s_IN_PRD_TR_dump_p%d_t%d.csv", dumpPath, name->base, left(timestamp[stepsCnt-1][0], 13), pid, tid);
 	FILE* dumpFileINPRDTR;
 	if (fopen_s(&dumpFileINPRDTR, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-	sprintf_s(dumpFileName, "%s/%s_IN_PRD_BASE_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(dumpFileName, "%s/%s_%s_IN_PRD_BASE_dump_p%d_t%d.csv", dumpPath, name->base, left(timestamp[stepsCnt-1][0], 13), pid, tid);
 	FILE* dumpFileINPRDBASE;
 	if (fopen_s(&dumpFileINPRDBASE, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
-	sprintf_s(dumpFileName, "%s/%s_OUT_ACT_BASE_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(dumpFileName, "%s/%s_%s_OUT_ACT_BASE_dump_p%d_t%d.csv", dumpPath, name->base, left(timestamp[stepsCnt-1][1], 13), pid, tid);
 	FILE* dumpFileOUTACTBASE;
 	if (fopen_s(&dumpFileOUTACTBASE, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-	sprintf_s(dumpFileName, "%s/%s_OUT_ACT_TR_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(dumpFileName, "%s/%s_%s_OUT_ACT_TR_dump_p%d_t%d.csv", dumpPath, name->base, left(timestamp[stepsCnt-1][1], 13), pid, tid);
 	FILE* dumpFileOUTACTTR;
 	if (fopen_s(&dumpFileOUTACTTR, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-	sprintf_s(dumpFileName, "%s/%s_OUT_ACT_TRS_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(dumpFileName, "%s/%s_%s_OUT_ACT_TRS_dump_p%d_t%d.csv", dumpPath, name->base, left(timestamp[stepsCnt-1][1], 13), pid, tid);
 	FILE* dumpFileOUTACTTRS;
 	if (fopen_s(&dumpFileOUTACTTRS, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-	sprintf_s(dumpFileName, "%s/%s_OUT_PRD_BASE_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(dumpFileName, "%s/%s_%s_OUT_PRD_BASE_dump_p%d_t%d.csv", dumpPath, name->base, left(timestamp[stepsCnt-1][1], 13), pid, tid);
 	FILE* dumpFileOUTPRDBASE;
 	if (fopen_s(&dumpFileOUTPRDBASE, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-	sprintf_s(dumpFileName, "%s/%s_OUT_PRD_TR_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(dumpFileName, "%s/%s_%s_OUT_PRD_TR_dump_p%d_t%d.csv", dumpPath, name->base, left(timestamp[stepsCnt-1][1], 13), pid, tid);
 	FILE* dumpFileOUTPRDTR;
 	if (fopen_s(&dumpFileOUTPRDTR, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
-	sprintf_s(dumpFileName, "%s/%s_OUT_PRD_TRS_dump_p%d_t%d_%p.csv", dumpPath, name->base, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(dumpFileName, "%s/%s_%s_OUT_PRD_TRS_dump_p%d_t%d.csv", dumpPath, name->base, left(timestamp[stepsCnt-1][1], 13), pid, tid);
 	FILE* dumpFileOUTPRDTRS;
 	if (fopen_s(&dumpFileOUTPRDTRS, dumpFileName, "w")!=0) fail("Could not open dump file %s . Error %d", dumpFileName, errno);
 
@@ -605,11 +607,11 @@ void sTS2::_dumpDS(FILE* file, numtype* prs, numtype* prt, numtype* prp) {
 void sTS2::dumpDS() {
 	char fdsname[MAX_PATH];	FILE* fds;
 	
-	sprintf_s(fdsname, "%s/dataSet_BASE_p%d_t%d_%p.csv", dumpPath, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(fdsname, "%s/dataSet_BASE_%s_p%d_t%d.csv", dumpPath, left(timestamp[stepsCnt-1][0], 13), GetCurrentProcessId(), GetCurrentThreadId());
 	fopen_s(&fds, fdsname, "w");
 	_dumpDS(fds, sample, target, prediction);
 	fclose(fds);
-	sprintf_s(fdsname, "%s/dataSet_TRS_p%d_t%d_%p.csv", dumpPath, GetCurrentProcessId(), GetCurrentThreadId(), this);
+	sprintf_s(fdsname, "%s/dataSet_TRS_%s_p%d_t%d.csv", dumpPath, left(timestamp[stepsCnt-1][0], 13), GetCurrentProcessId(), GetCurrentThreadId());
 	fopen_s(&fds, fdsname, "w");
 	_dumpDS(fds, sampleTRS, targetTRS, predictionTRS);
 	fclose(fds);
