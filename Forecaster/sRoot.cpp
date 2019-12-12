@@ -57,6 +57,20 @@ void sRoot::trainClient(int simulationId_, const char* clientXMLfile_, const cha
 		eng->commit();
 		clientLogger->commit();
 
+		//-- print training stats
+		numtype te=0; int teCnt=0;
+		for(int s=0; s<(trainTS->stepsCnt-trainTS->targetLen*2-1); s++) {
+			for (int d=0; d<trainTS->dataSourcesCnt[1]; d++) {
+				for (int f=0; f<trainTS->featuresCnt[1][d]; f++) {
+					if (trainTS->val[s][1][d][f][0]!=EMPTY_VALUE && trainTS->prd[s][1][d][f][0]!=EMPTY_VALUE) {
+						te+=abs(trainTS->val[s][1][d][f][0]-trainTS->prd[s][1][d][f][0]);
+						teCnt++;
+					}
+				}
+			}
+		}
+		printf("Training terminated successfully. MSE=%9.8f ; Avg. Infer error on training set=%8.5f \n", eng->core[0]->procArgs->mseR, te/teCnt);
+
 	}
 	catch (std::exception exc) {
 		fail("Exception=%s", exc.what());
@@ -96,6 +110,20 @@ void sRoot::inferClient(int simulationId_, const char* clientXMLfile_, const cha
 	//-- persist XML config parameters for Client,DataSet
 	safecall(clientLogger, saveXMLconfig, simulationId_, pid, 0, 0, clientCfg);
 	safecall(clientLogger, saveXMLconfig, simulationId_, pid, 0, 2, inferCfg);
+
+	//-- print infer stats
+	numtype te=0; int teCnt=0;
+	for (int s=0; s<(inferTS->stepsCnt+inferTS->targetLen-1); s++) {
+		for (int d=0; d<inferTS->dataSourcesCnt[1]; d++) {
+			for (int f=0; f<inferTS->featuresCnt[1][d]; f++) {
+				if (inferTS->val[s][1][d][f][0]!=EMPTY_VALUE && inferTS->prd[s][1][d][f][0]!=EMPTY_VALUE) {
+					te+=abs(inferTS->val[s][1][d][f][0]-inferTS->prd[s][1][d][f][0]);
+					teCnt++;
+				}
+			}
+		}
+	}
+	printf("Infer terminated successfully. Avg. Infer error on infer set=%8.5f \n", te/teCnt);
 
 	eng->commit();
 	clientLogger->commit();
