@@ -629,9 +629,23 @@ void sTS2::buildDataSet() {
 			}
 		}
 	}
+	outputCnt=0;
+	for (int bar=0; bar<targetLen; bar++) {
+		for (int d=0; d<dataSourcesCnt[1]; d++) {
+			for (int f=0; f<featuresCnt[1][d]; f++) {
+				for (int l=0; l<(WTlevel[1]+2); l++) {
+					outputCnt++;
+				}
+			}
+		}
+	}
 
 	sample=(numtype*)malloc(inputCnt*samplesCnt*sizeof(numtype));
 	sampleTRS=(numtype*)malloc(inputCnt*samplesCnt*sizeof(numtype));
+	target=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
+	targetTRS=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
+	prediction=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
+	predictionTRS=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
 
 	int dsidx=0;
 	for (int s=0; s<samplesCnt; s++) {
@@ -648,20 +662,6 @@ void sTS2::buildDataSet() {
 		}
 	}
 
-	outputCnt=0;
-	for (int bar=0; bar<targetLen; bar++) {
-		for (int d=0; d<dataSourcesCnt[1]; d++) {
-			for (int f=0; f<featuresCnt[1][d]; f++) {
-				for (int l=0; l<(WTlevel[1]+2); l++) {
-					outputCnt++;
-				}
-			}
-		}
-	}
-
-	target=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
-	targetTRS=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
-
 	dsidx=0;
 	for (int s=0; s<samplesCnt; s++) {
 		for (int bar=0; bar<targetLen; bar++) {
@@ -676,10 +676,32 @@ void sTS2::buildDataSet() {
 			}
 		}
 	}
-
-	prediction=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
-	predictionTRS=(numtype*)malloc(outputCnt*samplesCnt*sizeof(numtype));
-
+	/*dumpDS();
+	//-- swap last 2 samples/targets
+	numtype* stmp=(numtype*)malloc(inputCnt*sizeof(numtype));
+	numtype* stmpTRS=(numtype*)malloc(inputCnt*sizeof(numtype));
+	numtype* ttmp=(numtype*)malloc(outputCnt*sizeof(numtype));
+	numtype* ttmpTRS=(numtype*)malloc(outputCnt*sizeof(numtype));
+	for (int s=(samplesCnt-1); s>0; s-=2) {
+		for (int i=0; i<(inputCnt); i++) {
+			stmp[i]=sample[s*inputCnt+i];
+			sample[s*inputCnt+i]=sample[(s-1)*inputCnt+i];
+			sample[(s-1)*inputCnt+i]=stmp[i];
+			stmpTRS[i]=sampleTRS[s*inputCnt+i];
+			sampleTRS[s*inputCnt+i]=sampleTRS[(s-1)*inputCnt+i];
+			sampleTRS[(s-1)*inputCnt+i]=stmpTRS[i];
+		}
+		for (int i=0; i<(outputCnt); i++) {
+			ttmp[i]=target[s*outputCnt+i];
+			target[s*outputCnt+i]=target[(s-1)*outputCnt+i];
+			target[(s-1)*outputCnt+i]=ttmp[i];
+			ttmpTRS[i]=targetTRS[s*outputCnt+i];
+			targetTRS[s*outputCnt+i]=targetTRS[(s-1)*outputCnt+i];
+			targetTRS[(s-1)*outputCnt+i]=ttmpTRS[i];
+		}
+	}
+	free(stmp); free(ttmp); free(stmpTRS); free(ttmpTRS);
+	*/
 	//-- Print
 	if (doDump) dumpDS();
 	

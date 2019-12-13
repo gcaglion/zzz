@@ -165,6 +165,32 @@ void sEngine::infer(int simulationId_, int seqId_, sTS2* inferTS_, int savedEngi
 
 	safecall(core[0], infer);
 
+	inferTS_->dumpDS();
+
+	/*//-- swap last 2 samples/targets
+	numtype* ptmp=(numtype*)malloc(inputCnt*sizeof(numtype));
+	numtype* ptmpTRS=(numtype*)malloc(inputCnt*sizeof(numtype));
+	numtype* ttmp=(numtype*)malloc(outputCnt*sizeof(numtype));
+	numtype* ttmpTRS=(numtype*)malloc(outputCnt*sizeof(numtype));
+	for (int s=(inferTS_->samplesCnt-1); s>0; s-=2) {
+		for (int i=0; i<(outputCnt); i++) {
+			ttmp[i]=inferTS_->target[s*outputCnt+i];
+			inferTS_->target[s*outputCnt+i]=inferTS_->target[(s-1)*outputCnt+i];
+			inferTS_->target[(s-1)*outputCnt+i]=ttmp[i];
+			ttmpTRS[i]=inferTS_->targetTRS[s*outputCnt+i];
+			inferTS_->targetTRS[s*outputCnt+i]=inferTS_->targetTRS[(s-1)*outputCnt+i];
+			inferTS_->targetTRS[(s-1)*outputCnt+i]=ttmpTRS[i];
+			
+			ptmp[i]=inferTS_->prediction[s*outputCnt+i];
+			inferTS_->prediction[s*outputCnt+i]=inferTS_->prediction[(s-1)*outputCnt+i];
+			inferTS_->prediction[(s-1)*outputCnt+i]=ptmp[i];
+			ptmpTRS[i]=inferTS_->predictionTRS[s*outputCnt+i];
+			inferTS_->predictionTRS[s*outputCnt+i]=inferTS_->predictionTRS[(s-1)*outputCnt+i];
+			inferTS_->predictionTRS[(s-1)*outputCnt+i]=ptmpTRS[i];
+		}
+	}
+	free(ptmp); free(ttmp); free(ptmpTRS); free(ttmpTRS);
+	*/
 	safecall(inferTS_, getPrediction);
 	safecall(inferTS_, unscale);
 	safecall(inferTS_, untransform);
