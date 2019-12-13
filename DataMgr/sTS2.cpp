@@ -676,32 +676,7 @@ void sTS2::buildDataSet() {
 			}
 		}
 	}
-	/*dumpDS();
-	//-- swap last 2 samples/targets
-	numtype* stmp=(numtype*)malloc(inputCnt*sizeof(numtype));
-	numtype* stmpTRS=(numtype*)malloc(inputCnt*sizeof(numtype));
-	numtype* ttmp=(numtype*)malloc(outputCnt*sizeof(numtype));
-	numtype* ttmpTRS=(numtype*)malloc(outputCnt*sizeof(numtype));
-	for (int s=(samplesCnt-1); s>0; s-=2) {
-		for (int i=0; i<(inputCnt); i++) {
-			stmp[i]=sample[s*inputCnt+i];
-			sample[s*inputCnt+i]=sample[(s-1)*inputCnt+i];
-			sample[(s-1)*inputCnt+i]=stmp[i];
-			stmpTRS[i]=sampleTRS[s*inputCnt+i];
-			sampleTRS[s*inputCnt+i]=sampleTRS[(s-1)*inputCnt+i];
-			sampleTRS[(s-1)*inputCnt+i]=stmpTRS[i];
-		}
-		for (int i=0; i<(outputCnt); i++) {
-			ttmp[i]=target[s*outputCnt+i];
-			target[s*outputCnt+i]=target[(s-1)*outputCnt+i];
-			target[(s-1)*outputCnt+i]=ttmp[i];
-			ttmpTRS[i]=targetTRS[s*outputCnt+i];
-			targetTRS[s*outputCnt+i]=targetTRS[(s-1)*outputCnt+i];
-			targetTRS[(s-1)*outputCnt+i]=ttmpTRS[i];
-		}
-	}
-	free(stmp); free(ttmp); free(stmpTRS); free(ttmpTRS);
-	*/
+
 	//-- Print
 	if (doDump) dumpDS();
 	
@@ -744,6 +719,9 @@ void sTS2::getPrediction() {
 }
 
 sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
+
+	int s, d, f;
+
 	safecall(cfgKey, getParm, &stepsCnt, "HistoryLen");
 	safecall(cfgKey, getParm, &doDump, "Dump");
 	strcpy_s(dumpPath, MAX_PATH, dbg->outfilepath);
@@ -774,7 +752,7 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 		featuresCnt[i]=(int*)malloc(dataSourcesCnt[i]*sizeof(int));
 		feature[i]=(int**)malloc(dataSourcesCnt[i]*sizeof(int*));
 		dt[i]=(int**)malloc(dataSourcesCnt[i]*sizeof(int*));
-		for (int d=0; d<dataSourcesCnt[i]; d++) {
+		for (d=0; d<dataSourcesCnt[i]; d++) {
 			feature[i][d]=(int*)malloc(MAX_TS_FEATURES*sizeof(int));
 			safecall(cfg, setKey, strBuild("DataSource%d", d).c_str());
 			setDataSource(&dsrc[i][d]);
@@ -804,31 +782,41 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 
 	//-- load datasources
 	for (int i=0; i<2; i++) {
-		for (int d=0; d<dataSourcesCnt[i]; d++) {
+		for (d=0; d<dataSourcesCnt[i]; d++) {
 			tmpval=(numtype*)malloc(stepsCnt*dsrc[i][d]->featuresCnt*sizeof(numtype));
 			tmpvalB=(numtype*)malloc(dsrc[i][d]->featuresCnt*sizeof(numtype));
 			
 			safecall(dsrc[i][d], load, _date0, (i>0)?IOshift:0, stepsCnt, tmptime, tmpval, tmptimeB, tmpvalB);
 
 			//-- set timestamps
-			for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, tmptime[s]);
+			for (s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, tmptime[s]);
 			strcpy_s(timestampB[i], DATE_FORMAT_LEN, tmptimeB);
 
-			for (int f=0; f<featuresCnt[i][d]; f++) {
+			for (f=0; f<featuresCnt[i][d]; f++) {
 				for (int df=0; df<dsrc[i][d]->featuresCnt; df++) {
 					if (feature[i][d][f]==df) {
 						//-- base values for each feature. only for original values
 						valB[i][d][f][0]=tmpvalB[feature[i][d][f]];
-						for(int s=0; s<stepsCnt; s++) val[s][i][d][f][0]=tmpval[s*dsrc[i][d]->featuresCnt+feature[i][d][f]];
+						for(s=0; s<stepsCnt; s++) val[s][i][d][f][0]=tmpval[s*dsrc[i][d]->featuresCnt+feature[i][d][f]];
 
 						if (WTtype[i]!=WT_NONE && WTlevel[i]>0) {
+
+							//-- slide 1 step back, set last step = stepsnt-3. Also set valB
+							/*valB[i][d][f][0]=val[0][i][d][f][0];
+							for (s=0; s<(stepsCnt-1); s++) val[s][i][d][f][0]=val[s+1][i][d][f][0];
+							val[stepsCnt-1][i][d][f][0]=val[stepsCnt-3][i][d][f][0];*/
+
 							//-- extract selected features in tmpvalx
-							for (int s=0; s<stepsCnt; s++) {
-								tmpvalx[s]=tmpval[s*dsrc[i][d]->featuresCnt+feature[i][d][f]];
-							}
+							for (s=0; s<stepsCnt; s++) tmpvalx[s]=val[s][i][d][f][0];
 							//-- FFTcalc for each feature. Also sets original value at position 0
 							WTcalc(i, d, f, tmpvalx);
+
+							//-- slide 1 step forward. valB has been set by WTcalc()
+							/*for (int l=0; l<WTlevel[i]; l++) {
+								for (s=stepsCnt-1; s>0; s--) val[s][i][d][f][l]=val[s-1][i][d][f][l];
+							}*/
 						}
+
 					}
 				}
 			}
