@@ -145,6 +145,7 @@ void sRoot::getSafePid(sLogger* persistor, int* pid) {
 #include "../EngineMgr/sCoreLayout.h"
 #include "../EngineMgr/sNNparms.h"
 #include "../EngineMgr/sNN2.h"
+#include "../TAlib/ta_func.h"
 
 void createBars(int n, long** iBarT, double** iBarO, double** iBarH, double** iBarL, double** iBarC, double** iBarV, long** iBaseBarT, double** iBaseBarO, double** iBaseBarH, double** iBaseBarL, double** iBaseBarC, double** iBaseBarV) {
 	srand(timeGetTime());

@@ -779,6 +779,7 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	numtype* tmpval;
 	numtype* tmpvalB;
 	numtype* tmpvalx=(numtype*)malloc(stepsCnt*sizeof(numtype));
+	//numtype tmpvalB0;
 
 	//-- load datasources
 	for (int i=0; i<2; i++) {
@@ -797,24 +798,27 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 					if (feature[i][d][f]==df) {
 						//-- base values for each feature. only for original values
 						valB[i][d][f][0]=tmpvalB[feature[i][d][f]];
+						//tmpvalB0=tmpval[((int)pow(2, WTlevel[i])-1)*dsrc[i][d]->featuresCnt+feature[i][d][f]];
 						for(s=0; s<stepsCnt; s++) val[s][i][d][f][0]=tmpval[s*dsrc[i][d]->featuresCnt+feature[i][d][f]];
 
 						if (WTtype[i]!=WT_NONE && WTlevel[i]>0) {
 
-							//-- slide 1 step back, set last step = stepsnt-3. Also set valB
-							/*valB[i][d][f][0]=val[0][i][d][f][0];
+							/*//-- (A) slide back by 1. last value is taken from 2 steps back
+							valB[i][d][f][0]=val[0][i][d][f][0];
 							for (s=0; s<(stepsCnt-1); s++) val[s][i][d][f][0]=val[s+1][i][d][f][0];
-							val[stepsCnt-1][i][d][f][0]=val[stepsCnt-3][i][d][f][0];*/
+							val[stepsCnt-1][i][d][f][0]=val[stepsCnt-3][i][d][f][0];*/							
 
 							//-- extract selected features in tmpvalx
 							for (s=0; s<stepsCnt; s++) tmpvalx[s]=val[s][i][d][f][0];
 							//-- FFTcalc for each feature. Also sets original value at position 0
 							WTcalc(i, d, f, tmpvalx);
-
-							//-- slide 1 step forward. valB has been set by WTcalc()
-							/*for (int l=0; l<WTlevel[i]; l++) {
-								for (s=stepsCnt-1; s>0; s--) val[s][i][d][f][l]=val[s-1][i][d][f][l];
-							}*/
+							
+							/*//-- (A) slide forward by 1, bringing WTs, too
+							for (int l=0; l<(WTlevel[i]+2); l++) {
+								for (s=(stepsCnt-1); s>0; s--) val[s][i][d][f][l]=val[s-1][i][d][f][l];
+								val[0][i][d][f][l]=valB[i][d][f][l];
+							}
+							valB[i][d][f][0]=tmpvalB0;*/
 						}
 
 					}
@@ -828,9 +832,9 @@ sTS2::sTS2(sCfgObjParmsDef) : sCfgObj(sCfgObjParmsVal) {
 	free(tmptime); free(tmptimeB);
 	free(dsrc);
 
-	cutAndTransform();
+	safecall(this, cutAndTransform);
 
-	if (doDump) dump();
+	if (doDump) safecall(this, dump);
 
 }
 sTS2::sTS2(sObjParmsDef, \
