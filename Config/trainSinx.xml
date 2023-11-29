@@ -1,0 +1,49 @@
+	
+	<TimeSerie>
+		HistoryLen			= 4000
+		Date0				= 2018-06-01-00:00
+		Dump				= false
+		DumpPath			= c:\temp\DataDump
+
+		<Input>
+			DataSourcesCount		= 1
+			<DataSource0>
+				<FXDB_DataSource>
+					Symbol				= SINX
+					TimeFrame			= H1
+					IsFilled			= false
+					<! DBConnection-History.xml >
+				</FXDB_DataSource>
+
+				SelectedFeatures = FXOPEN
+				DataTransformation	= DT_DELTA
+			</DataSource0>
+			WaveletType	= WT_NONE
+			DecompLevel = 4
+		</Input>
+
+		IOshift=0
+
+		<Output>
+			DataSourcesCount		= 1
+			<DataSource0>
+				<FXDB_DataSource>
+					Symbol				= SINX
+					TimeFrame			= H1
+					IsFilled			= false
+					<! DBConnection-History.xml >
+				</FXDB_DataSource>
+				SelectedFeatures = FXOPEN
+				DataTransformation	= DT_DELTA
+			</DataSource0>
+			WaveletType	= WT_NONE
+			DecompLevel = 4
+		</Output>
+	
+	SampleLen	= 50
+	TargetLen	= 2
+	BatchSize	= 1
+		
+	</TimeSerie>
+
+	<! DataSetPersistor-Default.xml >

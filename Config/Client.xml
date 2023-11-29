@@ -22,7 +22,7 @@
 		ChartsCount 	= 1
 		<Chart0>
 			Symbol				= EURUSD
-			TimeFrame			= H1
+			TimeFrame			= M5
 				SelectedFeatures = FXOPEN, FXHIGH, FXLOW, FXCLOSE
 		</Chart0>
 		<Chart1>

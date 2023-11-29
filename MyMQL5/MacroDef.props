@@ -2,9 +2,9 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="PropertySheets" />
   <PropertyGroup Label="UserMacros">
-    <MT5InstallPath>"C:\Program Files\XM UK MT5"</MT5InstallPath>
-    <MT5UserPath>"C:\Users\gcaglion\AppData\Roaming\MetaQuotes\Terminal\91B85E7C52B57BF365F85A909F61CC9C"</MT5UserPath>
-    <MT5TesterPath>C:\Users\gcaglion\AppData\Roaming\MetaQuotes\Tester\91B85E7C52B57BF365F85A909F61CC9C\Agent-127.0.0.1-300</MT5TesterPath>
+    <MT5InstallPath>"C:\Program Files\XM MT5"</MT5InstallPath>
+    <MT5UserPath>"C:\Users\gcagl\appdata\roaming\MetaQuotes\Terminal\9B101088254A9C260A9790D5079A7B11"</MT5UserPath>
+    <MT5TesterPath>C:\Users\gcagl\appdata\roaming\MetaQuotes\Tester\9B101088254A9C260A9790D5079A7B11\Agent-127.0.0.1-300</MT5TesterPath>
   </PropertyGroup>
   <PropertyGroup />
   <ItemDefinitionGroup />
