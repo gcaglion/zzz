@@ -125,12 +125,10 @@ void sTS2::cutAndTransform(){
 			strcpy_s(timestampB[i], DATE_FORMAT_LEN, timestamp[cutSteps-1][i]);
 			for (int s=0; s<stepsCnt; s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, timestamp[s+cutSteps][i]);
 			for (int s=stepsCnt; s<(stepsCnt+targetLen); s++) strcpy_s(timestamp[s][i], DATE_FORMAT_LEN, timestamp[s+cutSteps][i]);
-			if (WTlevel[i]<=0) {
+			if (WTlevel[i]>0) {
 				for (int d=0; d<dataSourcesCnt[i]; d++) {
 					for (int f=0; f<featuresCnt[i][d]; f++) {
-						for (int s=0; s<(stepsCnt); s++) {
-							val[s][i][d][f][0]=val[s+cutSteps][i][d][f][0];
-						}
+						for (int s=0; s<(stepsCnt); s++) val[s][i][d][f][0]=val[s+cutSteps][i][d][f][0];
 						for (int s=stepsCnt; s<(stepsCnt+targetLen); s++) {
 							val[s][i][d][f][0]=val[s+cutSteps][i][d][f][0];
 							valTR[s][i][d][f][0]=EMPTY_VALUE;
